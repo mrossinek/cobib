@@ -62,9 +62,12 @@ def main():
                            help="DOI of the new references")
     group_add.add_argument("-p", "--pdf", type=argparse.FileType('rb'),
                            nargs='+', help="PDFs files to be added")
-    parser.set_defaults(func=list)
+    parser_add.set_defaults(func=add)
 
     args = parser.parse_args()
+    if args._get_args() == []:
+        parser.print_usage()
+        return
     args.func(args)
 
 
