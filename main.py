@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import argparse
+import configparser
 import pdftotext
 import json
 import re
@@ -8,8 +9,10 @@ import sqlite3
 
 API_URL = "https://api.crossref.org/works/"
 DOI_REGEX = r'(10\.[0-9a-zA-Z]+\/(?:(?!["&\'])\S)+)\b'
-HEADER = {'user-agent': 'CReMa (https://github.com/mrossinek/crema)/0.1'}
 KEYS = ['author', 'title', 'volume', 'issue', 'page', 'published-print', 'DOI', 'publisher', 'ISSN', 'URL']
+
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 
 def init(args):
@@ -41,7 +44,7 @@ def add(args):
         dois.extend(args.dois)
     for doi in dois:
         assert(re.match(DOI_REGEX, doi))
-        page = requests.get(API_URL+doi, headers=HEADER).json()
+        page = requests.get(API_URL+doi, headers=dict(config['HEADER'])).json()
         for key in KEYS:
             print(dict(page)['message'][key])
 
@@ -59,7 +62,7 @@ def main():
                            help="DOI of the new references")
     group_add.add_argument("-p", "--pdf", type=argparse.FileType('rb'),
                            nargs='+', help="PDFs files to be added")
-    parser_add.set_defaults(func=add)
+    parser.set_defaults(func=list)
 
     args = parser.parse_args()
     args.func(args)
