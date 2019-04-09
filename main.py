@@ -6,6 +6,7 @@ import json
 import re
 import requests
 import sqlite3
+import sys
 
 API_URL = "https://api.crossref.org/works/"
 DOI_REGEX = r'(10\.[0-9a-zA-Z]+\/(?:(?!["&\'])\S)+)\b'
@@ -64,10 +65,10 @@ def main():
                            nargs='+', help="PDFs files to be added")
     parser_add.set_defaults(func=add)
 
+    if (len(sys.argv) == 1):
+        parser.print_usage(sys.stderr)
+        sys.exit(1)
     args = parser.parse_args()
-    if args._get_args() == []:
-        parser.print_usage()
-        return
     args.func(args)
 
 
