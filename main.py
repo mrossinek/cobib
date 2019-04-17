@@ -7,39 +7,40 @@ import requests
 import sqlite3
 import sys
 
-HEADER = {'Accept': "application/x-bibtex"}
 API_URL = "https://doi.org/"
+HEADER = {'Accept': "application/x-bibtex"}
 DOI_REGEX = r'(10\.[0-9a-zA-Z]+\/(?:(?!["&\'])\S)+)\b'
-TYPES = {
-        'article': ['author', 'title', 'journal', 'year'],
-        'book': ['author', 'title', 'year'],
-        'collection': ['editor', 'title', 'year'],
-        'proceedings': ['title', 'year'],
-        'report': ['author', 'title', 'type', 'institution', 'year'],
-        'thesis': ['author', 'title', 'type', 'institution', 'year'],
-        'unpublished': ['author', 'title', 'year']
-        }
-KEYS = {
-        'doi':      "primary key not null",
-        'type':     "not null",
-        'label':    "not null",
-        'file':     "",
-        'tags':     "",
-        'abstract': ""
-        }
+TABLE_KEYS = {
+    'doi':      "primary key not null",
+    'type':     "not null",
+    'label':    "not null",
+    'file':     "",
+    'tags':     "",
+    'abstract': ""
+    }
+BIBTEX_TYPES = {
+    'article': ['author', 'title', 'journal', 'year'],
+    'book': ['author', 'title', 'year'],
+    'collection': ['editor', 'title', 'year'],
+    'proceedings': ['title', 'year'],
+    'report': ['author', 'title', 'type', 'institution', 'year'],
+    'thesis': ['author', 'title', 'type', 'institution', 'year'],
+    'unpublished': ['author', 'title', 'year']
+    }
 
 config = configparser.ConfigParser()
 config.read('config.ini')
+conf_database = dict(config['DATABASE'])
 
 
 def init(args):
-    conn = sqlite3.connect("test.db")
-    cmd = "create table literature(\n"
-    for type, keys in TYPES.items():
+    conn = sqlite3.connect(conf_database['path'])
+    cmd = "create table "+conf_database['table']+"(\n"
+    for type, keys in BIBTEX_TYPES.items():
         for key in keys:
-            if key not in KEYS.keys():
-                KEYS[key] = ""
-    for key, params in KEYS.items():
+            if key not in TABLE_KEYS.keys():
+                TABLE_KEYS[key] = ""
+    for key, params in TABLE_KEYS.items():
         cmd += key+' text '+params+',\n'
     cmd = cmd[:-2]+'\n)'
     conn.execute(cmd)
@@ -47,8 +48,8 @@ def init(args):
 
 
 def list(args):
-    conn = sqlite3.connect("test.db")
-    cursor = conn.execute("SELECT rowid, doi, label from literature")
+    conn = sqlite3.connect(conf_database['path'])
+    cursor = conn.execute("SELECT rowid, doi, label from "+conf_database['table'])
     for row in cursor:
         print(row)
 
@@ -73,8 +74,8 @@ def add(args):
 
 def parse_bibtex(str):
     # load database info
-    conn = sqlite3.connect("test.db")
-    cursor = conn.execute("PRAGMA table_info(literature)")
+    conn = sqlite3.connect(conf_database['path'])
+    cursor = conn.execute("PRAGMA table_info("+conf_database['table']+")")
     table_keys = [row[1] for row in cursor]
 
     # extract information from bibtex
@@ -87,13 +88,13 @@ def parse_bibtex(str):
         key, value = line.split('=')
         key = key.strip()
         if key not in table_keys:
-            cursor.execute("ALTER TABLE literature ADD COLUMN "+key+" text")
-            cursor = conn.execute("PRAGMA table_info(literature)")
+            cursor.execute("ALTER TABLE "+conf_database['table']+" ADD COLUMN "+key+" text")
+            cursor = conn.execute("PRAGMA table_info("+conf_database['table']+")")
             table_keys = [row[1] for row in cursor]
         value = value.strip(' ,{}')
         keys = keys+','+key
         values = "{},'{}'".format(values, value)
-    cmd = "INSERT INTO literature ("+keys+") VALUES ("+values+")"
+    cmd = "INSERT INTO "+conf_database['table']+" ("+keys+") VALUES ("+values+")"
     cursor.execute(cmd)
     conn.commit()
     conn.close()
