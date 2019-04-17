@@ -49,9 +49,17 @@ def init(args):
 
 def list(args):
     conn = sqlite3.connect(conf_database['path'])
-    cursor = conn.execute("SELECT rowid, doi, label from "+conf_database['table'])
+    cursor = conn.execute("SELECT rowid, doi, label FROM "+conf_database['table'])
     for row in cursor:
         print(row)
+
+
+def show(args):
+    conn = sqlite3.connect(conf_database['path'])
+    conn.row_factory = sqlite3.Row
+    cursor = conn.execute("SELECT * FROM "+conf_database['table']+" WHERE rowid = "+str(args.id))
+    for row in cursor:
+        print(dict_to_bibtex(dict(row)))
 
 
 def add(args):
@@ -69,35 +77,55 @@ def add(args):
     for doi in dois:
         assert(re.match(DOI_REGEX, doi))
         page = requests.get(API_URL+doi, headers=HEADER)
-        parse_bibtex(page.text)
+        insert_from_bibtex(page.text)
 
 
-def parse_bibtex(str):
+def insert_from_bibtex(bibtex: str):
     # load database info
     conn = sqlite3.connect(conf_database['path'])
     cursor = conn.execute("PRAGMA table_info("+conf_database['table']+")")
     table_keys = [row[1] for row in cursor]
 
     # extract information from bibtex
-    lines = str.split('\n')
-    type = re.findall(r'^@([a-zA-Z]*){', lines[0])[0]
-    label = re.findall(r'{(\w*),$', lines[0])[0]
-    keys = 'type,label'
-    values = "'{}','{}'".format(type, label)
-    for line in lines[1:-1]:
-        key, value = line.split('=')
-        key = key.strip()
+    entry = bibtex_to_dict(bibtex)
+    keys = ''
+    values = ''
+    for key, value in entry.items():
         if key not in table_keys:
             cursor.execute("ALTER TABLE "+conf_database['table']+" ADD COLUMN "+key+" text")
             cursor = conn.execute("PRAGMA table_info("+conf_database['table']+")")
             table_keys = [row[1] for row in cursor]
-        value = value.strip(' ,{}')
-        keys = keys+','+key
+        keys = "{},{}".format(keys, key)
         values = "{},'{}'".format(values, value)
+
+    keys = keys.strip(',')
+    values = values.strip(',')
+
+    # insert into table
     cmd = "INSERT INTO "+conf_database['table']+" ("+keys+") VALUES ("+values+")"
     cursor.execute(cmd)
     conn.commit()
     conn.close()
+
+
+def bibtex_to_dict(bibtex: str):
+    entry = {}
+    lines = bibtex.split('\n')
+    entry['type'] = re.findall(r'^@([a-zA-Z]*){', lines[0])[0]
+    entry['label'] = re.findall(r'{(\w*),$', lines[0])[0]
+    for line in lines[1:-1]:
+        key, value = line.split('=')
+        entry[key.strip()] = value.strip(' ,{}')
+    return entry
+
+
+def dict_to_bibtex(entry: dict):
+    bibtex = "@"+entry['type']+"{"+entry['label']
+    for key in sorted(entry):
+        if entry[key] is not None and key not in ['type', 'label']:
+            bibtex += "\n\t"+key+" = {"+str(entry[key])+"},"
+    bibtex = bibtex.strip(',')+"\n}"
+    return bibtex
 
 
 def main():
@@ -107,6 +135,9 @@ def main():
     parser_init.set_defaults(func=init)
     parser_list = subparsers.add_parser("list", help="list entries from the database")
     parser_list.set_defaults(func=list)
+    parser_show = subparsers.add_parser("show", help="show an entry from the database")
+    parser_show.add_argument("id", type=int, help="row ID of the entry")
+    parser_show.set_defaults(func=show)
     parser_add = subparsers.add_parser("add", help="add help")
     group_add = parser_add.add_mutually_exclusive_group()
     group_add.add_argument("-d", "--doi", type=str, nargs='+',
