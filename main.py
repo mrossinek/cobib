@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+from subprocess import Popen
 import argparse
 import configparser
 import pdftotext
@@ -60,6 +61,18 @@ def show(args):
     cursor = conn.execute("SELECT * FROM "+conf_database['table']+" WHERE rowid = "+str(args.id))
     for row in cursor:
         print(dict_to_bibtex(dict(row)))
+
+
+def open(args):
+    conn = sqlite3.connect(conf_database['path'])
+    conn.row_factory = sqlite3.Row
+    cursor = conn.execute("SELECT * FROM "+conf_database['table']+" WHERE rowid = "+str(args.id))
+    for row in cursor:
+        entry = dict(row)
+        if entry['file'] is None:
+            print("Error: There is no file associated with this entry.")
+            sys.exit(1)
+        Popen(["xdg-open", entry['file']], stdin=None, stdout=None, stderr=None, close_fds=True, shell=False)
 
 
 def add(args):
@@ -138,6 +151,9 @@ def main():
     parser_show = subparsers.add_parser("show", help="show an entry from the database")
     parser_show.add_argument("id", type=int, help="row ID of the entry")
     parser_show.set_defaults(func=show)
+    parser_open = subparsers.add_parser("open", help="open the file associated with this entry")
+    parser_open.add_argument("id", type=int, help="row ID of the entry")
+    parser_open.set_defaults(func=open)
     parser_add = subparsers.add_parser("add", help="add help")
     group_add = parser_add.add_mutually_exclusive_group()
     group_add.add_argument("-d", "--doi", type=str, nargs='+',
