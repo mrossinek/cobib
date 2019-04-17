@@ -1,3 +1,4 @@
+# vim: fdm=marker
 #!/usr/bin/python3
 # {{{ IMPORTS
 from subprocess import Popen
