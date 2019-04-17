@@ -25,8 +25,8 @@ DOI_REGEX = r'(10\.[0-9a-zA-Z]+\/(?:(?!["&\'])\S)+)\b'
 # custom database keys which are not part of the biblatex default keys
 # this dict may also hold all those keys that require special parameters
 TABLE_KEYS = {
+    'label':    "primary key not null",
     'type':     "not null",
-    'label':    "not null",
     'doi':      "",
     'eprint':   "",
     'file':     "",
@@ -88,7 +88,7 @@ def list(args):
     conf_database = dict(CONFIG['DATABASE'])
     path = os.path.expanduser(conf_database['path'])
     conn = sqlite3.connect(path)
-    cursor = conn.execute("SELECT rowid, doi, label FROM "+conf_database['table'])
+    cursor = conn.execute("SELECT rowid, label FROM "+conf_database['table'])
     for row in cursor:
         print(row)
 
@@ -134,6 +134,8 @@ def add(args):
             page = requests.get(ARXIV_URL+arxiv)
             xml = BeautifulSoup(page.text, features='xml')
             entry = parse_arxiv(xml)
+            if args.label is not None:
+                entry['label'] = args.label
             if 'doi' in entry.keys():
                 dois[entry['doi']] = entry
             else:
@@ -151,6 +153,8 @@ def add(args):
         assert(re.match(DOI_REGEX, doi))
         page = requests.get(DOI_URL+doi, headers=DOI_HEADER)
         entry = bibtex_to_dict(page.text)
+        if args.label is not None:
+            entry['label'] = args.label
         insert_entry({**entry, **extra})
 # }}}
 
@@ -283,6 +287,8 @@ def main():
     parser_open.set_defaults(func=open)
 
     parser_add = subparsers.add_parser("add", help="add help")
+    parser_add.add_argument("-l", "--label", type=str,
+                            help="the label for the new database entry")
     group_add = parser_add.add_mutually_exclusive_group()
     group_add.add_argument("-a", "--arxiv", type=str, nargs='+',
                            help="arXiv ID of the new references")
