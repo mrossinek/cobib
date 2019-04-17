@@ -1,6 +1,6 @@
-# vim: fdm=marker
 #!/usr/bin/python3
 # {{{ IMPORTS
+from bs4 import BeautifulSoup
 from subprocess import Popen
 import argparse
 import configparser
@@ -16,20 +16,26 @@ import sys
 # {{{ GLOBAL VARIABLES
 # API and HEADER settings according to this resource
 # https://crosscite.org/docs.html
-API_URL = "https://doi.org/"
-HEADER = {'Accept': "application/x-bibtex"}
+DOI_URL = "https://doi.org/"
+DOI_HEADER = {'Accept': "application/x-bibtex"}
+# arXiv url according to docs from here https://arxiv.org/help/oa
+ARXIV_URL = "https://export.arxiv.org/oai2?verb=GetRecord&metadataPrefix=arXiv&identifier=oai:arXiv.org:"
 # DOI regex used for matching DOIs
 DOI_REGEX = r'(10\.[0-9a-zA-Z]+\/(?:(?!["&\'])\S)+)\b'
 # custom database keys which are not part of the biblatex default keys
 # this dict may also hold all those keys that require special parameters
 TABLE_KEYS = {
-    'doi':      "primary key not null",
     'type':     "not null",
     'label':    "not null",
+    'doi':      "",
+    'eprint':   "",
     'file':     "",
     'tags':     "",
     'abstract': ""
     }
+TABLE_CONSTRAINTS = [
+    'doi is not null or eprint is not null'
+    ]
 # biblatex default types and required values taken from their docs
 # https://ctan.org/pkg/biblatex
 BIBTEX_TYPES = {
@@ -61,13 +67,15 @@ def init(args):
     conf_database = dict(CONFIG['DATABASE'])
     path = os.path.expanduser(conf_database['path'])
     conn = sqlite3.connect(path)
-    cmd = "create table "+conf_database['table']+"(\n"
+    cmd = "CREATE TABLE "+conf_database['table']+"(\n"
     for type, keys in BIBTEX_TYPES.items():
         for key in keys:
             if key not in TABLE_KEYS.keys():
                 TABLE_KEYS[key] = ""
     for key, params in TABLE_KEYS.items():
         cmd += key+' text '+params+',\n'
+    for constraint in TABLE_CONSTRAINTS:
+        cmd += "CHECK ("+constraint+"),\n"
     cmd = cmd[:-2]+'\n)'
     conn.execute(cmd)
     conn.commit()
@@ -119,32 +127,36 @@ def add(args):
     """
     Adds new entries to the database.
     """
-    dois = []
+    dois = {}
     def flatten(l): return [item for sublist in l for item in sublist]
+    if args.arxiv is not None:
+        for arxiv in args.arxiv:
+            page = requests.get(ARXIV_URL+arxiv)
+            xml = BeautifulSoup(page.text, features='xml')
+            entry = parse_arxiv(xml)
+            if 'doi' in entry.keys():
+                dois[entry['doi']] = entry
+            else:
+                insert_entry(entry)
     if args.pdf is not None:
         def most_common(lst: list): return max(set(matches), key=matches.count)
         for pdf in args.pdf:
             pdf_obj = pdftotext.PDF(pdf)
             text = "".join(pdf_obj)
             matches = re.findall(DOI_REGEX, text)
-            dois.append((most_common(matches), pdf.name))
+            dois[most_common(matches)] = {'pdf': pdf.name}
     if args.doi is not None:
-        dois.extend(args.doi)
-    for doi in dois:
-        if type(doi) == tuple:
-            doi_str = doi[0]
-            file = doi[1]
-        else:
-            doi_str = doi
-            file = None
-        assert(re.match(DOI_REGEX, doi_str))
-        page = requests.get(API_URL+doi_str, headers=HEADER)
-        insert_entry(page.text, file)
+        dois[args.doi] = {}
+    for doi, extra in dois.items():
+        assert(re.match(DOI_REGEX, doi))
+        page = requests.get(DOI_URL+doi, headers=DOI_HEADER)
+        entry = bibtex_to_dict(page.text)
+        insert_entry({**entry, **extra})
 # }}}
 
 
 # {{{ HELPER FUNCTIONS
-def insert_entry(bibtex: str, pdf: str = None):
+def insert_entry(entry: dict):
     """
     Inserts an entry into the database.
     This function has the following side effects:
@@ -152,14 +164,12 @@ def insert_entry(bibtex: str, pdf: str = None):
     * if a duplicate entry appears to exist, nothing happens
     """
     # load database info
+    conf_database = dict(CONFIG['DATABASE'])
     conn = sqlite3.connect(conf_database['path'])
     cursor = conn.execute("PRAGMA table_info("+conf_database['table']+")")
     table_keys = [row[1] for row in cursor]
 
     # extract information from bibtex
-    entry = bibtex_to_dict(bibtex)
-    if pdf is not None:
-        entry['file'] = pdf
     keys = ''
     values = ''
     for key, value in entry.items():
@@ -183,6 +193,44 @@ def insert_entry(bibtex: str, pdf: str = None):
         print("Error: You already appear to have an identical entry in your database.")
     finally:
         conn.close()
+
+
+def parse_arxiv(xml):
+    entry = {}
+    entry['type'] = 'article'
+    entry['archivePrefix'] = 'arXiv'
+    for key in xml.metadata.arXiv.findChildren(recursive=False):
+        if key.name == 'doi':
+            entry['doi'] = key.contents[0]
+        elif key.name == 'id':
+            entry['eprint'] = key.contents[0]
+        elif key.name == 'categories':
+            entry['primaryClass'] = key.contents[0].split(' ')[0]
+        elif key.name == 'created':
+            entry['year'] = key.contents[0].split('-')[0]
+            if 'label' in entry.keys():
+                entry['label'] = entry['label'] + entry['year']
+            else:
+                entry['label'] = entry['year']
+        elif key.name == 'title':
+            entry['title'] = key.contents[0].strip().replace('\n', ' ').replace('  ',  ' ')
+        elif key.name == 'authors':
+            entry['author'] = ''
+            first = True
+            for author in key.findChildren(recursive=False):
+                if first:
+                    if 'label' in entry.keys():
+                        entry['label'] = author.keyname.contents[0] + entry['label']
+                    else:
+                        entry['label'] = author.keyname.contents[0]
+                    first = False
+                entry['author'] += author.forenames.contents[0] + ' ' + author.keyname.contents[0] + ' and '
+            entry['author'] = entry['author'][:-5]
+        elif key.name == 'abstract':
+            entry['abstract'] = key.contents[0].strip().replace('\n', ' ').replace('  ', ' ')
+        else:
+            print("The key '{}' of this arXiv entry is not being processed!".format(key.name))
+    return entry
 
 
 def bibtex_to_dict(bibtex: str):
@@ -236,6 +284,8 @@ def main():
 
     parser_add = subparsers.add_parser("add", help="add help")
     group_add = parser_add.add_mutually_exclusive_group()
+    group_add.add_argument("-a", "--arxiv", type=str, nargs='+',
+                           help="arXiv ID of the new references")
     group_add.add_argument("-d", "--doi", type=str, nargs='+',
                            help="DOI of the new references")
     group_add.add_argument("-p", "--pdf", type=argparse.FileType('rb'),
@@ -259,3 +309,4 @@ def main():
 if __name__ == '__main__':
     main()
 # }}}
+# vim: fdm=marker
