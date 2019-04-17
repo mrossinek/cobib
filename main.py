@@ -81,19 +81,25 @@ def add(args):
     if args.pdf is not None:
         def most_common(lst: list): return max(set(matches), key=matches.count)
         for pdf in args.pdf:
-            pdf = pdftotext.PDF(pdf)
-            text = "".join(pdf)
+            pdf_obj = pdftotext.PDF(pdf)
+            text = "".join(pdf_obj)
             matches = re.findall(DOI_REGEX, text)
-            dois.append(most_common(matches))
+            dois.append((most_common(matches), pdf.name))
     if args.doi is not None:
         dois.extend(args.doi)
     for doi in dois:
-        assert(re.match(DOI_REGEX, doi))
-        page = requests.get(API_URL+doi, headers=HEADER)
-        insert_from_bibtex(page.text)
+        if type(doi) == tuple:
+            doi_str = doi[0]
+            file = doi[1]
+        else:
+            doi_str = doi
+            file = None
+        assert(re.match(DOI_REGEX, doi_str))
+        page = requests.get(API_URL+doi_str, headers=HEADER)
+        insert_entry(page.text, file)
 
 
-def insert_from_bibtex(bibtex: str):
+def insert_entry(bibtex: str, pdf: str = None):
     # load database info
     conn = sqlite3.connect(conf_database['path'])
     cursor = conn.execute("PRAGMA table_info("+conf_database['table']+")")
@@ -101,6 +107,8 @@ def insert_from_bibtex(bibtex: str):
 
     # extract information from bibtex
     entry = bibtex_to_dict(bibtex)
+    if pdf is not None:
+        entry['file'] = pdf
     keys = ''
     values = ''
     for key, value in entry.items():
@@ -116,9 +124,14 @@ def insert_from_bibtex(bibtex: str):
 
     # insert into table
     cmd = "INSERT INTO "+conf_database['table']+" ("+keys+") VALUES ("+values+")"
-    cursor.execute(cmd)
-    conn.commit()
-    conn.close()
+    try:
+        cursor.execute(cmd)
+        conn.commit()
+    except sqlite3.IntegrityError as e:
+        print(e)
+        print("Error: You already appear to have an identical entry in your database.")
+    finally:
+        conn.close()
 
 
 def bibtex_to_dict(bibtex: str):
