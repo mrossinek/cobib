@@ -33,6 +33,7 @@ TABLE_KEYS = {
     'tags':     "",
     'abstract': ""
     }
+# list of CHECK constraints which are added to the database table definition
 TABLE_CONSTRAINTS = [
     'doi is not null or eprint is not null',
     '(type = "article" and author not null and title not null and journal not null and year not null) or \
@@ -207,6 +208,9 @@ def insert_entry(entry: dict):
 
 
 def parse_arxiv(xml):
+    """
+    Extracts an information dictionary from an arXiv XML export.
+    """
     entry = {}
     entry['archivePrefix'] = 'arXiv'
     for key in xml.metadata.arXiv.findChildren(recursive=False):
