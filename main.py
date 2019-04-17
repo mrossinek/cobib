@@ -34,7 +34,14 @@ TABLE_KEYS = {
     'abstract': ""
     }
 TABLE_CONSTRAINTS = [
-    'doi is not null or eprint is not null'
+    'doi is not null or eprint is not null',
+    '(type = "article" and author not null and title not null and journal not null and year not null) or \
+    (type = "book" and author not null and title not null and year not null) or \
+    (type = "collection" and editor not null and title not null and year not null) or \
+    (type = "proceedings" and title not null and year not null) or \
+    (type = "report" and author not null and title not null and institution not null and year not null) or \
+    (type = "thesis" and author not null and title not null and institution not null and year not null) or \
+    (type = "unpublished" and author not null and title not null and year not null)',
     ]
 # biblatex default types and required values taken from their docs
 # https://ctan.org/pkg/biblatex
@@ -201,7 +208,6 @@ def insert_entry(entry: dict):
 
 def parse_arxiv(xml):
     entry = {}
-    entry['type'] = 'article'
     entry['archivePrefix'] = 'arXiv'
     for key in xml.metadata.arXiv.findChildren(recursive=False):
         if key.name == 'doi':
@@ -234,6 +240,10 @@ def parse_arxiv(xml):
             entry['abstract'] = key.contents[0].strip().replace('\n', ' ').replace('  ', ' ')
         else:
             print("The key '{}' of this arXiv entry is not being processed!".format(key.name))
+    if 'doi' in entry.keys():
+        entry['type'] = 'article'
+    else:
+        entry['type'] = 'unpublished'
     return entry
 
 
