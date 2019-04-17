@@ -3,6 +3,7 @@
 from subprocess import Popen
 import argparse
 import configparser
+import os
 import pdftotext
 import re
 import requests
@@ -39,13 +40,9 @@ BIBTEX_TYPES = {
     'thesis': ['author', 'title', 'type', 'institution', 'year'],
     'unpublished': ['author', 'title', 'year']
     }
-# }}}
-
-
-# {{{ CONFIG
-config = configparser.ConfigParser()
-config.read('config.ini')
-conf_database = dict(config['DATABASE'])
+# global config
+# the default configuration file will be loaded from ~/.config/crema/config.ini
+CONFIG = configparser.ConfigParser()
 # }}}
 
 
@@ -60,7 +57,9 @@ def init(args):
     entry must not be NULL it should be declared in the TABLE_KEYS dictionary
     with its according parameters.
     """
-    conn = sqlite3.connect(conf_database['path'])
+    conf_database = dict(CONFIG['DATABASE'])
+    path = os.path.expanduser(conf_database['path'])
+    conn = sqlite3.connect(path)
     cmd = "create table "+conf_database['table']+"(\n"
     for type, keys in BIBTEX_TYPES.items():
         for key in keys:
@@ -77,7 +76,9 @@ def list(args):
     """
     Lists all entries in the database.
     """
-    conn = sqlite3.connect(conf_database['path'])
+    conf_database = dict(CONFIG['DATABASE'])
+    path = os.path.expanduser(conf_database['path'])
+    conn = sqlite3.connect(path)
     cursor = conn.execute("SELECT rowid, doi, label FROM "+conf_database['table'])
     for row in cursor:
         print(row)
@@ -87,7 +88,9 @@ def show(args):
     """
     Prints the details of a selected entry in bibtex format to stdout.
     """
-    conn = sqlite3.connect(conf_database['path'])
+    conf_database = dict(CONFIG['DATABASE'])
+    path = os.path.expanduser(conf_database['path'])
+    conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
     cursor = conn.execute("SELECT * FROM "+conf_database['table']+" WHERE rowid = "+str(args.id))
     for row in cursor:
@@ -98,7 +101,9 @@ def open(args):
     """
     Opens the associated file of an entry with xdg-open.
     """
-    conn = sqlite3.connect(conf_database['path'])
+    conf_database = dict(CONFIG['DATABASE'])
+    path = os.path.expanduser(conf_database['path'])
+    conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
     cursor = conn.execute("SELECT * FROM "+conf_database['table']+" WHERE rowid = "+str(args.id))
     for row in cursor:
@@ -209,17 +214,25 @@ def dict_to_bibtex(entry: dict):
 # {{{ MAIN
 def main():
     parser = argparse.ArgumentParser(description="Process input arguments.")
+    parser.add_argument("-c", "--config", type=argparse.FileType('r'),
+                        help="Alternative config file")
+
     subparsers = parser.add_subparsers(help="sub-command help")
+
     parser_init = subparsers.add_parser("init", help="initialize the database")
     parser_init.set_defaults(func=init)
+
     parser_list = subparsers.add_parser("list", help="list entries from the database")
     parser_list.set_defaults(func=list)
+
     parser_show = subparsers.add_parser("show", help="show an entry from the database")
     parser_show.add_argument("id", type=int, help="row ID of the entry")
     parser_show.set_defaults(func=show)
+
     parser_open = subparsers.add_parser("open", help="open the file associated with this entry")
     parser_open.add_argument("id", type=int, help="row ID of the entry")
     parser_open.set_defaults(func=open)
+
     parser_add = subparsers.add_parser("add", help="add help")
     group_add = parser_add.add_mutually_exclusive_group()
     group_add.add_argument("-d", "--doi", type=str, nargs='+',
@@ -231,7 +244,14 @@ def main():
     if (len(sys.argv) == 1):
         parser.print_usage(sys.stderr)
         sys.exit(1)
+
     args = parser.parse_args()
+
+    if args.config is not None:
+        CONFIG.read(args.config.name)
+    else:
+        CONFIG.read(os.path.expanduser('~/.config/crema/config.ini'))
+
     args.func(args)
 
 
