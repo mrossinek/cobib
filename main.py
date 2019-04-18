@@ -256,7 +256,7 @@ def parse_arxiv(xml):
             else:
                 entry['label'] = entry['year']
         elif key.name == 'title':
-            entry['title'] = key.contents[0].strip().replace('\n', ' ').replace('  ',  ' ')
+            entry['title'] = re.sub(r'\s+', ' ', key.contents[0].strip().replace('\n', ' '))
         elif key.name == 'authors':
             entry['author'] = ''
             first = True
@@ -270,7 +270,7 @@ def parse_arxiv(xml):
                 entry['author'] += author.forenames.contents[0] + ' ' + author.keyname.contents[0] + ' and '
             entry['author'] = entry['author'][:-5]
         elif key.name == 'abstract':
-            entry['abstract'] = key.contents[0].strip().replace('\n', ' ').replace('  ', ' ')
+            entry['abstract'] = re.sub(r'\s+', ' ', key.contents[0].strip().replace('\n', ' '))
         else:
             print("The key '{}' of this arXiv entry is not being processed!".format(key.name))
     if 'doi' in entry.keys():
@@ -290,7 +290,7 @@ def bibtex_to_dict(bibtex: str):
     entry['label'] = re.findall(r'{(\w*),$', lines[0])[0]
     for line in lines[1:-1]:
         key, value = line.split('=')
-        entry[key.strip()] = value.strip(' ,{}')
+        entry[key.strip()] = re.sub(r'\s+', ' ', value.strip(' ,{}'))
     return entry
 
 
