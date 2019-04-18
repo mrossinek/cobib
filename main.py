@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from subprocess import Popen
 import argparse
 import configparser
+import inspect
 import os
 import pdftotext
 import re
@@ -105,11 +106,14 @@ def show(args):
     """
     Prints the details of a selected entry in bibtex format to stdout.
     """
+    parser = argparse.ArgumentParser(description="Show subcommand parser.")
+    parser.add_argument("id", type=int, help="row ID of the entry")
+    largs = parser.parse_args(args)
     conf_database = dict(CONFIG['DATABASE'])
     path = os.path.expanduser(conf_database['path'])
     conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
-    cursor = conn.execute("SELECT * FROM "+conf_database['table']+" WHERE rowid = "+str(args.id))
+    cursor = conn.execute("SELECT * FROM "+conf_database['table']+" WHERE rowid = "+str(largs.id))
     for row in cursor:
         print(dict_to_bibtex(dict(row)))
 
@@ -118,11 +122,14 @@ def open(args):
     """
     Opens the associated file of an entry with xdg-open.
     """
+    parser = argparse.ArgumentParser(description="Open subcommand parser.")
+    parser.add_argument("id", type=int, help="row ID of the entry")
+    largs = parser.parse_args(args)
     conf_database = dict(CONFIG['DATABASE'])
     path = os.path.expanduser(conf_database['path'])
     conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
-    cursor = conn.execute("SELECT * FROM "+conf_database['table']+" WHERE rowid = "+str(args.id))
+    cursor = conn.execute("SELECT * FROM "+conf_database['table']+" WHERE rowid = "+str(largs.id))
     for row in cursor:
         entry = dict(row)
         if entry['file'] is None:
@@ -135,35 +142,47 @@ def add(args):
     """
     Adds new entries to the database.
     """
+    parser = argparse.ArgumentParser(description="Add subcommand parser.")
+    parser.add_argument("-l", "--label", type=str,
+                        help="the label for the new database entry")
+    group_add = parser.add_mutually_exclusive_group()
+    group_add.add_argument("-a", "--arxiv", type=str, nargs='+',
+                           help="arXiv ID of the new references")
+    group_add.add_argument("-d", "--doi", type=str, nargs='+',
+                           help="DOI of the new references")
+    group_add.add_argument("-p", "--pdf", type=argparse.FileType('rb'),
+                           nargs='+', help="PDFs files to be added")
+    largs = parser.parse_args(args)
+
     dois = {}
     def flatten(l): return [item for sublist in l for item in sublist]
-    if args.arxiv is not None:
-        for arxiv in args.arxiv:
+    if largs.arxiv is not None:
+        for arxiv in largs.arxiv:
             page = requests.get(ARXIV_URL+arxiv)
             xml = BeautifulSoup(page.text, features='xml')
             entry = parse_arxiv(xml)
-            if args.label is not None:
-                entry['label'] = args.label
+            if largs.label is not None:
+                entry['label'] = largs.label
             if 'doi' in entry.keys():
                 dois[entry['doi']] = entry
             else:
                 insert_entry(entry)
-    if args.pdf is not None:
+    if largs.pdf is not None:
         def most_common(lst: list): return max(set(matches), key=matches.count)
-        for pdf in args.pdf:
+        for pdf in largs.pdf:
             pdf_obj = pdftotext.PDF(pdf)
             text = "".join(pdf_obj)
             matches = re.findall(DOI_REGEX, text)
             dois[most_common(matches)] = {'file': pdf.name}
-    if args.doi is not None:
-        for doi in args.doi:
+    if largs.doi is not None:
+        for doi in largs.doi:
             dois[doi] = {}
     for doi, extra in dois.items():
         assert(re.match(DOI_REGEX, doi))
         page = requests.get(DOI_URL+doi, headers=DOI_HEADER)
         entry = bibtex_to_dict(page.text)
-        if args.label is not None:
-            entry['label'] = args.label
+        if largs.label is not None:
+            entry['label'] = largs.label
         insert_entry({**entry, **extra})
 # }}}
 
@@ -281,37 +300,16 @@ def dict_to_bibtex(entry: dict):
 
 # {{{ MAIN
 def main():
+    subcommands = []
+    for key, value in globals().items():
+        if inspect.isfunction(value) and 'args' in inspect.signature(value).parameters:
+            subcommands.append(value.__name__)
     parser = argparse.ArgumentParser(description="Process input arguments.")
     parser.add_argument("-c", "--config", type=argparse.FileType('r'),
                         help="Alternative config file")
-
-    subparsers = parser.add_subparsers(help="sub-command help")
-
-    parser_init = subparsers.add_parser("init", help="initialize the database")
-    parser_init.set_defaults(func=init)
-
-    parser_list = subparsers.add_parser("list", help="list entries from the database")
-    parser_list.set_defaults(func=list)
-
-    parser_show = subparsers.add_parser("show", help="show an entry from the database")
-    parser_show.add_argument("id", type=int, help="row ID of the entry")
-    parser_show.set_defaults(func=show)
-
-    parser_open = subparsers.add_parser("open", help="open the file associated with this entry")
-    parser_open.add_argument("id", type=int, help="row ID of the entry")
-    parser_open.set_defaults(func=open)
-
-    parser_add = subparsers.add_parser("add", help="add help")
-    parser_add.add_argument("-l", "--label", type=str,
-                            help="the label for the new database entry")
-    group_add = parser_add.add_mutually_exclusive_group()
-    group_add.add_argument("-a", "--arxiv", type=str, nargs='+',
-                           help="arXiv ID of the new references")
-    group_add.add_argument("-d", "--doi", type=str, nargs='+',
-                           help="DOI of the new references")
-    group_add.add_argument("-p", "--pdf", type=argparse.FileType('rb'),
-                           nargs='+', help="PDFs files to be added")
-    parser_add.set_defaults(func=add)
+    parser.add_argument('command', help="subcommand to be called",
+                        choices=subcommands)
+    parser.add_argument('args', nargs=argparse.REMAINDER)
 
     if (len(sys.argv) == 1):
         parser.print_usage(sys.stderr)
@@ -324,7 +322,7 @@ def main():
     else:
         CONFIG.read(os.path.expanduser('~/.config/crema/config.ini'))
 
-    args.func(args)
+    globals()[args.command](args.args)
 
 
 if __name__ == '__main__':
