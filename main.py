@@ -104,7 +104,7 @@ def list(args):
     """
     if '--' in args:
         args.remove('--')
-    parser = argparse.ArgumentParser(description="List subcommand parser.",
+    parser = argparse.ArgumentParser(prog="list", description="List subcommand parser.",
                                      prefix_chars='+-')
     parser.add_argument('-x', '--or', dest='OR', action='store_true',
                         help="concatenate filters with OR instead of AND")
@@ -160,8 +160,11 @@ def show(args):
     """
     Prints the details of a selected entry in bibtex format to stdout.
     """
-    parser = argparse.ArgumentParser(description="Show subcommand parser.")
+    parser = argparse.ArgumentParser(prog="show", description="Show subcommand parser.")
     parser.add_argument("id", type=int, help="row ID of the entry")
+    if (len(args) == 0):
+        parser.print_usage(sys.stderr)
+        sys.exit(1)
     largs = parser.parse_args(args)
     conf_database = dict(CONFIG['DATABASE'])
     path = os.path.expanduser(conf_database['path'])
@@ -182,8 +185,11 @@ def open(args):
     """
     Opens the associated file of an entry with xdg-open.
     """
-    parser = argparse.ArgumentParser(description="Open subcommand parser.")
+    parser = argparse.ArgumentParser(prog="open", description="Open subcommand parser.")
     parser.add_argument("id", type=int, help="row ID of the entry")
+    if (len(args) == 0):
+        parser.print_usage(sys.stderr)
+        sys.exit(1)
     largs = parser.parse_args(args)
     conf_database = dict(CONFIG['DATABASE'])
     path = os.path.expanduser(conf_database['path'])
@@ -208,7 +214,7 @@ def add(args):
     """
     Adds new entries to the database.
     """
-    parser = argparse.ArgumentParser(description="Add subcommand parser.")
+    parser = argparse.ArgumentParser(prog="add", description="Add subcommand parser.")
     parser.add_argument("-l", "--label", type=str,
                         help="the label for the new database entry")
     group_add = parser.add_mutually_exclusive_group()
@@ -219,6 +225,9 @@ def add(args):
     group_add.add_argument("-p", "--pdf", type=argparse.FileType('rb'),
                            help="PDFs files to be added")
     parser.add_argument("tags", nargs=argparse.REMAINDER)
+    if (len(args) == 0):
+        parser.print_usage(sys.stderr)
+        sys.exit(1)
     largs = parser.parse_args(args)
 
     dois = {}
@@ -261,12 +270,15 @@ def export(args):
     * bibtex databases
     * zip archives
     """
-    parser = argparse.ArgumentParser(description="Export subcommand parser.")
+    parser = argparse.ArgumentParser(prog="export", description="Export subcommand parser.")
     parser.add_argument("-b", "--bibtex", type=argparse.FileType('a'),
                         help="BibTeX output file")
     parser.add_argument("-z", "--zip", type=argparse.FileType('a'),
                         help="zip output file")
     parser.add_argument('list_args', nargs=argparse.REMAINDER)
+    if (len(args) == 0):
+        parser.print_usage(sys.stderr)
+        sys.exit(1)
     largs = parser.parse_args(args)
     if largs.bibtex is None and largs.zip is None:
         return
