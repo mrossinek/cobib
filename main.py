@@ -92,12 +92,24 @@ def init(args):
 
 def list(args):
     """
-    Lists all entries in the database.
+    By default, all entries of the database are listed.
+    This output can be filtered by providing values for any set of table keys.
     """
+    parser = argparse.ArgumentParser(description="List subcommand parser.")
     conf_database = dict(CONFIG['DATABASE'])
     path = os.path.expanduser(conf_database['path'])
     conn = sqlite3.connect(path)
-    cursor = conn.execute("SELECT rowid, label FROM "+conf_database['table'])
+    cursor = conn.execute("PRAGMA table_info("+conf_database['table']+")")
+    for row in cursor:
+        parser.add_argument('--'+row[1], type=str, help="filter by "+row[1])
+    largs = parser.parse_args(args)
+    filter = ''
+    for f in largs._get_kwargs():
+        if f[1] is not None:
+            if filter == '':
+                filter = 'WHERE'
+            filter += ' ' + f[0] + ' LIKE "%' + f[1] + '%"'
+    cursor = conn.execute("SELECT rowid, label, title FROM "+conf_database['table']+' '+filter)
     for row in cursor:
         print(row)
 
