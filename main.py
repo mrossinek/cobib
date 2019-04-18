@@ -142,6 +142,11 @@ def add(args):
     """
     Adds new entries to the database.
     """
+    tags = []
+    for arg in args.copy():
+        if arg[0] == '+':
+            tags.append(args.pop(args.index(arg)))
+
     parser = argparse.ArgumentParser(description="Add subcommand parser.")
     parser.add_argument("-l", "--label", type=str,
                         help="the label for the new database entry")
@@ -166,6 +171,8 @@ def add(args):
             if 'doi' in entry.keys():
                 dois[entry['doi']] = entry
             else:
+                if tags != []:
+                    entry['tags'] = ''.join(tag.strip('+')+' ' for tag in tags).strip()
                 insert_entry(entry)
     if largs.pdf is not None:
         def most_common(lst: list): return max(set(matches), key=matches.count)
@@ -183,6 +190,8 @@ def add(args):
         entry = bibtex_to_dict(page.text)
         if largs.label is not None:
             entry['label'] = largs.label
+        if tags != []:
+            entry['tags'] = ''.join(tag.strip('+')+' ' for tag in tags).strip()
         insert_entry({**entry, **extra})
 # }}}
 
