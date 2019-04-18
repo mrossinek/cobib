@@ -2,6 +2,7 @@
 # {{{ IMPORTS
 from bs4 import BeautifulSoup
 from subprocess import Popen
+from zipfile import ZipFile
 import argparse
 import configparser
 import inspect
@@ -140,15 +141,17 @@ def list(args):
                     break
             filter += ' LIKE "%' + i + '%"'
     cmd = "SELECT rowid, label, title, tags FROM "+conf_database['table']+' '+filter
+    ids = []
     try:
         cursor = conn.execute(cmd)
         for row in cursor:
+            ids.append(row[0])
             print(row)
     except sqlite3.Error as e:
         print(e)
     finally:
         conn.close()
-    return cursor
+    return ids
 
 
 def show(args):
@@ -247,6 +250,46 @@ def add(args):
         if largs.tags is not None:
             entry['tags'] = ''.join(tag.strip('+')+' ' for tag in largs.tags).strip()
         insert_entry({**entry, **extra})
+
+
+def export(args):
+    """
+    Exports all entries matched by the filter queries (see the list docs).
+    Currently supported exporting formats are:
+    * bibtex databases
+    * zip archives
+    """
+    parser = argparse.ArgumentParser(description="Export subcommand parser.",
+                                     prefix_chars='+-')
+    parser.add_argument("-b", "--bibtex", type=argparse.FileType('a'),
+                        help="BibTeX output file")
+    parser.add_argument("-z", "--zip", type=argparse.FileType('a'),
+                        help="zip output file")
+    parser.add_argument('list_args', nargs=argparse.REMAINDER)
+    largs = parser.parse_args(args)
+    if largs.bibtex is None and largs.zip is None:
+        return
+    if largs.zip is not None:
+        largs.zip = ZipFile(largs.zip.name, 'w')
+    ids = list(largs.list_args)
+    conf_database = dict(CONFIG['DATABASE'])
+    path = os.path.expanduser(conf_database['path'])
+    conn = sqlite3.connect(path)
+    conn.row_factory = sqlite3.Row
+    cmd = "SELECT * FROM "+conf_database['table']+" WHERE rowid IN ("+', '.join([str(id) for id in ids])+')'
+    try:
+        cursor = conn.execute(cmd)
+        for row in cursor:
+            if largs.bibtex is not None:
+                largs.bibtex.write(dict_to_bibtex(dict(row))+'\n')
+            if largs.zip is not None:
+                file = dict(row)['file']
+                if file is not None:
+                    largs.zip.write(file, dict(row)['label']+'.pdf')
+    except sqlite3.Error as e:
+        print(e)
+    finally:
+        conn.close()
 # }}}
 
 
