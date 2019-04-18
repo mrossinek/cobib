@@ -87,8 +87,13 @@ def init(args):
     for constraint in TABLE_CONSTRAINTS:
         cmd += "CHECK ("+constraint+"),\n"
     cmd = cmd[:-2]+'\n)'
-    conn.execute(cmd)
-    conn.commit()
+    try:
+        conn.execute(cmd)
+        conn.commit()
+    except sqlite3.Error as e:
+        print(e)
+    finally:
+        conn.close()
 
 
 def list(args):
@@ -103,7 +108,10 @@ def list(args):
     conf_database = dict(CONFIG['DATABASE'])
     path = os.path.expanduser(conf_database['path'])
     conn = sqlite3.connect(path)
-    cursor = conn.execute("PRAGMA table_info("+conf_database['table']+")")
+    try:
+        cursor = conn.execute("PRAGMA table_info("+conf_database['table']+")")
+    except sqlite3.Error as e:
+        print(e)
     for row in cursor:
         parser.add_argument('++'+row[1], type=str, action='append',
                             help="include elements with matching "+row[1])
@@ -132,9 +140,15 @@ def list(args):
                     break
             filter += ' LIKE "%' + i + '%"'
     cmd = "SELECT rowid, label, title, tags FROM "+conf_database['table']+' '+filter
-    cursor = conn.execute(cmd)
-    for row in cursor:
-        print(row)
+    try:
+        cursor = conn.execute(cmd)
+        for row in cursor:
+            print(row)
+    except sqlite3.Error as e:
+        print(e)
+    finally:
+        conn.close()
+    return cursor
 
 
 def show(args):
@@ -148,9 +162,15 @@ def show(args):
     path = os.path.expanduser(conf_database['path'])
     conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
-    cursor = conn.execute("SELECT * FROM "+conf_database['table']+" WHERE rowid = "+str(largs.id))
-    for row in cursor:
-        print(dict_to_bibtex(dict(row)))
+    cmd = "SELECT * FROM "+conf_database['table']+" WHERE rowid = "+str(largs.id)
+    try:
+        cursor = conn.execute(cmd)
+        for row in cursor:
+            print(dict_to_bibtex(dict(row)))
+    except sqlite3.Error as e:
+        print(e)
+    finally:
+        conn.close()
 
 
 def open(args):
@@ -164,13 +184,19 @@ def open(args):
     path = os.path.expanduser(conf_database['path'])
     conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
-    cursor = conn.execute("SELECT * FROM "+conf_database['table']+" WHERE rowid = "+str(largs.id))
-    for row in cursor:
-        entry = dict(row)
-        if entry['file'] is None:
-            print("Error: There is no file associated with this entry.")
-            sys.exit(1)
-        Popen(["xdg-open", entry['file']], stdin=None, stdout=None, stderr=None, close_fds=True, shell=False)
+    cmd = "SELECT * FROM "+conf_database['table']+" WHERE rowid = "+str(largs.id)
+    try:
+        cursor = conn.execute(cmd)
+        for row in cursor:
+            entry = dict(row)
+            if entry['file'] is None:
+                print("Error: There is no file associated with this entry.")
+                sys.exit(1)
+            Popen(["xdg-open", entry['file']], stdin=None, stdout=None, stderr=None, close_fds=True, shell=False)
+    except sqlite3.Error as e:
+        print(e)
+    finally:
+        conn.close()
 
 
 def add(args):
@@ -235,7 +261,10 @@ def insert_entry(entry: dict):
     # load database info
     conf_database = dict(CONFIG['DATABASE'])
     conn = sqlite3.connect(conf_database['path'])
-    cursor = conn.execute("PRAGMA table_info("+conf_database['table']+")")
+    try:
+        cursor = conn.execute("PRAGMA table_info("+conf_database['table']+")")
+    except sqlite3.Error as e:
+        print(e)
     table_keys = [row[1] for row in cursor]
 
     # extract information from bibtex
@@ -243,8 +272,11 @@ def insert_entry(entry: dict):
     values = ''
     for key, value in entry.items():
         if key not in table_keys:
-            cursor.execute("ALTER TABLE "+conf_database['table']+" ADD COLUMN "+key+" text")
-            cursor = conn.execute("PRAGMA table_info("+conf_database['table']+")")
+            try:
+                conn.execute("ALTER TABLE "+conf_database['table']+" ADD COLUMN "+key+" text")
+                cursor = conn.execute("PRAGMA table_info("+conf_database['table']+")")
+            except sqlite3.Error as e:
+                print(e)
             table_keys = [row[1] for row in cursor]
         keys = "{},{}".format(keys, key)
         values = "{},'{}'".format(values, value)
