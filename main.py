@@ -154,9 +154,10 @@ def add(args):
             pdf_obj = pdftotext.PDF(pdf)
             text = "".join(pdf_obj)
             matches = re.findall(DOI_REGEX, text)
-            dois[most_common(matches)] = {'pdf': pdf.name}
+            dois[most_common(matches)] = {'file': pdf.name}
     if args.doi is not None:
-        dois[args.doi] = {}
+        for doi in args.doi:
+            dois[doi] = {}
     for doi, extra in dois.items():
         assert(re.match(DOI_REGEX, doi))
         page = requests.get(DOI_URL+doi, headers=DOI_HEADER)
