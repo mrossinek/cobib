@@ -11,6 +11,7 @@ import re
 import requests
 import sqlite3
 import sys
+import types
 # }}}
 
 
@@ -95,21 +96,43 @@ def list(args):
     By default, all entries of the database are listed.
     This output can be filtered by providing values for any set of table keys.
     """
-    parser = argparse.ArgumentParser(description="List subcommand parser.")
+    parser = argparse.ArgumentParser(description="List subcommand parser.",
+                                     prefix_chars='+-')
+    parser.add_argument('-x', '--or', dest='OR', action='store_true',
+                        help="concatenate filters with OR instead of AND")
     conf_database = dict(CONFIG['DATABASE'])
     path = os.path.expanduser(conf_database['path'])
     conn = sqlite3.connect(path)
     cursor = conn.execute("PRAGMA table_info("+conf_database['table']+")")
     for row in cursor:
-        parser.add_argument('--'+row[1], type=str, help="filter by "+row[1])
+        parser.add_argument('++'+row[1], type=str, action='append',
+                            help="include elements with matching "+row[1])
+        parser.add_argument('--'+row[1], type=str, action='append',
+                            help="exclude elements with matching "+row[1])
     largs = parser.parse_args(args)
     filter = ''
     for f in largs._get_kwargs():
-        if f[1] is not None:
+        if f[0] == 'OR' or f[1] is None:
+            continue
+        if not isinstance(f[1], types.__builtins__['list']):
+            f[1] = [f[1]]
+        for i in f[1]:
             if filter == '':
-                filter = 'WHERE'
-            filter += ' ' + f[0] + ' LIKE "%' + f[1] + '%"'
-    cursor = conn.execute("SELECT rowid, label, title FROM "+conf_database['table']+' '+filter)
+                filter = 'WHERE '
+            else:
+                if largs.OR:
+                    filter += ' OR '
+                else:
+                    filter += ' AND '
+            filter += f[0]
+            for index, object in enumerate(sys.argv):
+                if i in object:
+                    if sys.argv[index-1][0] == '-':
+                        filter += ' NOT'
+                    break
+            filter += ' LIKE "%' + i + '%"'
+    cmd = "SELECT rowid, label, title, tags FROM "+conf_database['table']+' '+filter
+    cursor = conn.execute(cmd)
     for row in cursor:
         print(row)
 
