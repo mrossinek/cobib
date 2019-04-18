@@ -154,56 +154,49 @@ def add(args):
     """
     Adds new entries to the database.
     """
-    tags = []
-    for arg in args.copy():
-        if arg[0] == '+':
-            tags.append(args.pop(args.index(arg)))
-
     parser = argparse.ArgumentParser(description="Add subcommand parser.")
     parser.add_argument("-l", "--label", type=str,
                         help="the label for the new database entry")
     group_add = parser.add_mutually_exclusive_group()
-    group_add.add_argument("-a", "--arxiv", type=str, nargs='+',
+    group_add.add_argument("-a", "--arxiv", type=str,
                            help="arXiv ID of the new references")
-    group_add.add_argument("-d", "--doi", type=str, nargs='+',
+    group_add.add_argument("-d", "--doi", type=str,
                            help="DOI of the new references")
     group_add.add_argument("-p", "--pdf", type=argparse.FileType('rb'),
-                           nargs='+', help="PDFs files to be added")
+                           help="PDFs files to be added")
+    parser.add_argument("tags", nargs=argparse.REMAINDER)
     largs = parser.parse_args(args)
 
     dois = {}
     def flatten(l): return [item for sublist in l for item in sublist]
     if largs.arxiv is not None:
-        for arxiv in largs.arxiv:
-            page = requests.get(ARXIV_URL+arxiv)
-            xml = BeautifulSoup(page.text, features='xml')
-            entry = parse_arxiv(xml)
-            if largs.label is not None:
-                entry['label'] = largs.label
-            if 'doi' in entry.keys():
-                dois[entry['doi']] = entry
-            else:
-                if tags != []:
-                    entry['tags'] = ''.join(tag.strip('+')+' ' for tag in tags).strip()
-                insert_entry(entry)
+        page = requests.get(ARXIV_URL+largs.arxiv)
+        xml = BeautifulSoup(page.text, features='xml')
+        entry = parse_arxiv(xml)
+        if largs.label is not None:
+            entry['label'] = largs.label
+        if 'doi' in entry.keys():
+            dois[entry['doi']] = entry
+        else:
+            if largs.tags is not None:
+                entry['tags'] = ''.join(tag.strip('+')+' ' for tag in largs.tags).strip()
+            insert_entry(entry)
     if largs.pdf is not None:
         def most_common(lst: list): return max(set(matches), key=matches.count)
-        for pdf in largs.pdf:
-            pdf_obj = pdftotext.PDF(pdf)
-            text = "".join(pdf_obj)
-            matches = re.findall(DOI_REGEX, text)
-            dois[most_common(matches)] = {'file': pdf.name}
+        pdf_obj = pdftotext.PDF(largs.pdf)
+        text = "".join(pdf_obj)
+        matches = re.findall(DOI_REGEX, text)
+        dois[most_common(matches)] = {'file': largs.pdf.name}
     if largs.doi is not None:
-        for doi in largs.doi:
-            dois[doi] = {}
+        dois[largs.doi] = {}
     for doi, extra in dois.items():
         assert(re.match(DOI_REGEX, doi))
         page = requests.get(DOI_URL+doi, headers=DOI_HEADER)
         entry = bibtex_to_dict(page.text)
         if largs.label is not None:
             entry['label'] = largs.label
-        if tags != []:
-            entry['tags'] = ''.join(tag.strip('+')+' ' for tag in tags).strip()
+        if largs.tags is not None:
+            entry['tags'] = ''.join(tag.strip('+')+' ' for tag in largs.tags).strip()
         insert_entry({**entry, **extra})
 # }}}
 
