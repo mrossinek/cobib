@@ -102,6 +102,8 @@ def list(args):
     By default, all entries of the database are listed.
     This output can be filtered by providing values for any set of table keys.
     """
+    if '--' in args:
+        args.remove('--')
     parser = argparse.ArgumentParser(description="List subcommand parser.",
                                      prefix_chars='+-')
     parser.add_argument('-x', '--or', dest='OR', action='store_true',
@@ -259,8 +261,7 @@ def export(args):
     * bibtex databases
     * zip archives
     """
-    parser = argparse.ArgumentParser(description="Export subcommand parser.",
-                                     prefix_chars='+-')
+    parser = argparse.ArgumentParser(description="Export subcommand parser.")
     parser.add_argument("-b", "--bibtex", type=argparse.FileType('a'),
                         help="BibTeX output file")
     parser.add_argument("-z", "--zip", type=argparse.FileType('a'),
