@@ -243,7 +243,7 @@ def add_(args):
             dois[entry['doi']] = entry
         else:
             if largs.tags is not None:
-                entry['tags'] = ''.join(tag.strip('+')+' ' for tag in largs.tags).strip()
+                entry['tags'] = ''.join(tag.strip('+')+', ' for tag in largs.tags).strip(', ')
             _insert_entry(entry)
     if largs.pdf is not None:
         def most_common(lst: list): return max(set(lst), key=lst.count)
@@ -260,7 +260,7 @@ def add_(args):
         if largs.label is not None:
             entry['label'] = largs.label
         if largs.tags is not None:
-            entry['tags'] = ''.join(tag.strip('+')+' ' for tag in largs.tags).strip()
+            entry['tags'] = ''.join(tag.strip('+')+', ' for tag in largs.tags).strip(', ')
         _insert_entry({**entry, **extra})
 
 
