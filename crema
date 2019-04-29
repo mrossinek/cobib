@@ -218,6 +218,8 @@ def add_(args):
     parser = argparse.ArgumentParser(prog="add", description="Add subcommand parser.")
     parser.add_argument("-l", "--label", type=str,
                         help="the label for the new database entry")
+    parser.add_argument("-f", "--file", type=str,
+                        help="a file associated with this entry")
     group_add = parser.add_mutually_exclusive_group()
     group_add.add_argument("-a", "--arxiv", type=str,
                            help="arXiv ID of the new references")
@@ -261,6 +263,8 @@ def add_(args):
             entry['label'] = largs.label
         if largs.tags is not None:
             entry['tags'] = ''.join(tag.strip('+')+', ' for tag in largs.tags).strip(', ')
+        if largs.file is not None:
+            entry['file'] = os.path.abspath(largs.file)
         _insert_entry({**entry, **extra})
 
 
