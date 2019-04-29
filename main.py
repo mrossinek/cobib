@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# {{{ IMPORTS
+# IMPORTS
 from bs4 import BeautifulSoup
 from subprocess import Popen
 from zipfile import ZipFile
@@ -12,10 +12,9 @@ import re
 import requests
 import sqlite3
 import sys
-# }}}
 
 
-# {{{ GLOBAL VARIABLES
+# GLOBAL VARIABLES
 # API and HEADER settings according to this resource
 # https://crosscite.org/docs.html
 DOI_URL = "https://doi.org/"
@@ -60,10 +59,9 @@ BIBTEX_TYPES = {
 # global config
 # the default configuration file will be loaded from ~/.config/crema/config.ini
 CONFIG = configparser.ConfigParser()
-# }}}
 
 
-# {{{ ARGUMENT FUNCTIONS
+# ARGUMENT FUNCTIONS
 def init_(args):
     """
     Initializes the sqlite3 database at the configured location.
@@ -302,10 +300,9 @@ def export_(args):
         print(e)
     finally:
         conn.close()
-# }}}
 
 
-# {{{ HELPER FUNCTIONS
+# HELPER FUNCTIONS
 def _insert_entry(entry: dict):
     """
     Inserts an entry into the database.
@@ -419,10 +416,9 @@ def _dict_to_bibtex(entry: dict):
             bibtex += "\n\t"+key+" = {"+str(entry[key])+"},"
     bibtex = bibtex.strip(',')+"\n}"
     return bibtex
-# }}}
 
 
-# {{{ MAIN
+# MAIN
 def main():
     subcommands = []
     for key, value in globals().items():
@@ -451,5 +447,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-# }}}
-# vim: fdm=marker
