@@ -10,14 +10,40 @@ Hence, I have decided to make it my own task of implementing a simple, yet
 fast, reference manager. CReMa is written in Python and uses SQLite3 as its
 database in the background.
 
-The features which I consider most important to me are:
-* adding references via DOI
-* adding reference PDFs and determining DOI automatically
-* querying the database by author, title, year, tags, etc.
-* exporting citations of queries
+Currently CReMa provides the following functionality:
+* adding new references via DOI, arXiv ID and PDF
+* querying the database by in- and exclusion filters
+* printing detailed information about a reference ID
+* exporting a list of references to the biblatex format
+* opening associated files using an external program
+* manually editing database entries using the EDITOR
 
-Some additional features which I consider nice to have are:
-* previewing the abstract of a paper
-* opening attached PDFs with an external application
+Future features may include:
+* importing a set of references from a biblatex library file
+* previewing abstracts directly inside the terminal
+* extracting abstracts from PDFs
 
 
+## Installation
+```
+git clone https://github.com/mrossinek/crema
+cd crema
+make install
+```
+
+This will install the Python script to `/usr/local/bin` and create a default
+config file at `~/.config/crema`.
+
+
+## Usage
+Start by initializing the database with
+```
+crema init
+```
+Afterwards you can `add`, `list`, `edit`, `show`, `open` and `export` database
+entries. Type `crema --help` for further information.
+
+
+## Config
+A different config file may be specified using the `-c` or `--config` command
+line argument.
