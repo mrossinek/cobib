@@ -264,6 +264,30 @@ def add_(args):
         _insert_entry({**entry, **extra})
 
 
+def remove_(args):
+    """
+    Removes the entry from the database.
+    """
+    parser = argparse.ArgumentParser(prog="remove", description="Remove subcommand parser.")
+    parser.add_argument("id", type=int, help="row ID of the entry")
+    if (len(args) == 0):
+        parser.print_usage(sys.stderr)
+        sys.exit(1)
+    largs = parser.parse_args(args)
+    conf_database = dict(CONFIG['DATABASE'])
+    path = os.path.expanduser(conf_database['path'])
+    conn = sqlite3.connect(path)
+    conn.row_factory = sqlite3.Row
+    cmd = "DELETE FROM "+conf_database['table']+" WHERE rowid = "+str(largs.id)
+    try:
+        cursor = conn.execute(cmd)
+        conn.commit()
+    except sqlite3.Error as e:
+        print(e)
+    finally:
+        conn.close()
+
+
 def edit_(args):
     """
     Opens an existing entry for manual editing.
