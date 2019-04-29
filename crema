@@ -246,11 +246,11 @@ def add_(args):
                 entry['tags'] = ''.join(tag.strip('+')+' ' for tag in largs.tags).strip()
             _insert_entry(entry)
     if largs.pdf is not None:
-        def most_common(lst: list): return max(set(matches), key=matches.count)
+        def most_common(lst: list): return max(set(lst), key=lst.count)
         pdf_obj = pdftotext.PDF(largs.pdf)
         text = "".join(pdf_obj)
         matches = re.findall(DOI_REGEX, text)
-        dois[most_common(matches)] = {'file': largs.pdf.name}
+        dois[most_common(matches)] = {'file': os.path.abspath(largs.pdf.name)}
     if largs.doi is not None:
         dois[largs.doi] = {}
     for doi, extra in dois.items():
