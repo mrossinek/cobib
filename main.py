@@ -12,7 +12,6 @@ import re
 import requests
 import sqlite3
 import sys
-import types
 # }}}
 
 
@@ -125,7 +124,7 @@ def list_(args):
     for f in largs._get_kwargs():
         if f[0] == 'OR' or f[1] is None:
             continue
-        if not isinstance(f[1], types.__builtins__['list']):
+        if not isinstance(f[1], list):
             f[1] = [f[1]]
         for i in f[1]:
             if filter == '':
@@ -284,7 +283,7 @@ def export_(args):
         return
     if largs.zip is not None:
         largs.zip = ZipFile(largs.zip.name, 'w')
-    ids = list(largs.list_args)
+    ids = list_(largs.list_args)
     conf_database = dict(CONFIG['DATABASE'])
     path = os.path.expanduser(conf_database['path'])
     conn = sqlite3.connect(path)
