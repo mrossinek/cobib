@@ -65,7 +65,7 @@ CONFIG = configparser.ConfigParser()
 
 
 # {{{ ARGUMENT FUNCTIONS
-def init(args):
+def init_(args):
     """
     Initializes the sqlite3 database at the configured location.
     A single table is used which is named in the config file.
@@ -97,7 +97,7 @@ def init(args):
         conn.close()
 
 
-def list(args):
+def list_(args):
     """
     By default, all entries of the database are listed.
     This output can be filtered by providing values for any set of table keys.
@@ -156,7 +156,7 @@ def list(args):
     return ids
 
 
-def show(args):
+def show_(args):
     """
     Prints the details of a selected entry in bibtex format to stdout.
     """
@@ -174,14 +174,14 @@ def show(args):
     try:
         cursor = conn.execute(cmd)
         for row in cursor:
-            print(dict_to_bibtex(dict(row)))
+            print(_dict_to_bibtex(dict(row)))
     except sqlite3.Error as e:
         print(e)
     finally:
         conn.close()
 
 
-def open(args):
+def open_(args):
     """
     Opens the associated file of an entry with xdg-open.
     """
@@ -210,7 +210,7 @@ def open(args):
         conn.close()
 
 
-def add(args):
+def add_(args):
     """
     Adds new entries to the database.
     """
@@ -235,7 +235,7 @@ def add(args):
     if largs.arxiv is not None:
         page = requests.get(ARXIV_URL+largs.arxiv)
         xml = BeautifulSoup(page.text, features='xml')
-        entry = parse_arxiv(xml)
+        entry = _parse_arxiv(xml)
         if largs.label is not None:
             entry['label'] = largs.label
         if 'doi' in entry.keys():
@@ -243,7 +243,7 @@ def add(args):
         else:
             if largs.tags is not None:
                 entry['tags'] = ''.join(tag.strip('+')+' ' for tag in largs.tags).strip()
-            insert_entry(entry)
+            _insert_entry(entry)
     if largs.pdf is not None:
         def most_common(lst: list): return max(set(matches), key=matches.count)
         pdf_obj = pdftotext.PDF(largs.pdf)
@@ -255,15 +255,15 @@ def add(args):
     for doi, extra in dois.items():
         assert(re.match(DOI_REGEX, doi))
         page = requests.get(DOI_URL+doi, headers=DOI_HEADER)
-        entry = bibtex_to_dict(page.text)
+        entry = _bibtex_to_dict(page.text)
         if largs.label is not None:
             entry['label'] = largs.label
         if largs.tags is not None:
             entry['tags'] = ''.join(tag.strip('+')+' ' for tag in largs.tags).strip()
-        insert_entry({**entry, **extra})
+        _insert_entry({**entry, **extra})
 
 
-def export(args):
+def export_(args):
     """
     Exports all entries matched by the filter queries (see the list docs).
     Currently supported exporting formats are:
@@ -294,7 +294,7 @@ def export(args):
         cursor = conn.execute(cmd)
         for row in cursor:
             if largs.bibtex is not None:
-                largs.bibtex.write(dict_to_bibtex(dict(row))+'\n')
+                largs.bibtex.write(_dict_to_bibtex(dict(row))+'\n')
             if largs.zip is not None:
                 file = dict(row)['file']
                 if file is not None:
@@ -307,7 +307,7 @@ def export(args):
 
 
 # {{{ HELPER FUNCTIONS
-def insert_entry(entry: dict):
+def _insert_entry(entry: dict):
     """
     Inserts an entry into the database.
     This function has the following side effects:
@@ -352,7 +352,7 @@ def insert_entry(entry: dict):
         conn.close()
 
 
-def parse_arxiv(xml):
+def _parse_arxiv(xml):
     """
     Extracts an information dictionary from an arXiv XML export.
     """
@@ -396,7 +396,7 @@ def parse_arxiv(xml):
     return entry
 
 
-def bibtex_to_dict(bibtex: str):
+def _bibtex_to_dict(bibtex: str):
     """
     Converts a bibtex formatted string into a dictionary of key-value pairs.
     """
@@ -410,7 +410,7 @@ def bibtex_to_dict(bibtex: str):
     return entry
 
 
-def dict_to_bibtex(entry: dict):
+def _dict_to_bibtex(entry: dict):
     """
     Converts a key-value paired dictionary into a bibtex formatted string.
     """
@@ -428,7 +428,7 @@ def main():
     subcommands = []
     for key, value in globals().items():
         if inspect.isfunction(value) and 'args' in inspect.signature(value).parameters:
-            subcommands.append(value.__name__)
+            subcommands.append(value.__name__[:-1])
     parser = argparse.ArgumentParser(description="Process input arguments.")
     parser.add_argument("-c", "--config", type=argparse.FileType('r'),
                         help="Alternative config file")
@@ -447,7 +447,7 @@ def main():
     else:
         CONFIG.read(os.path.expanduser('~/.config/crema/config.ini'))
 
-    globals()[args.command](args.args)
+    globals()[args.command+'_'](args.args)
 
 
 if __name__ == '__main__':
