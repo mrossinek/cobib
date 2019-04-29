@@ -1,2 +1,5 @@
 *.db
 tags
+build
+dist
+*.egg-info
