@@ -12,6 +12,7 @@ import re
 import requests
 import sqlite3
 import sys
+import tempfile
 
 
 # GLOBAL VARIABLES
@@ -260,6 +261,55 @@ def add_(args):
         _insert_entry({**entry, **extra})
 
 
+def edit_(args):
+    """
+    Opens an existing entry for manual editing.
+    """
+    parser = argparse.ArgumentParser(prog="edit", description="Edit subcommand parser.")
+    parser.add_argument("id", type=int, help="row ID of the entry")
+    if (len(args) == 0):
+        parser.print_usage(sys.stderr)
+        sys.exit(1)
+    largs = parser.parse_args(args)
+    id = largs.id
+    conf_database = dict(CONFIG['DATABASE'])
+    path = os.path.expanduser(conf_database['path'])
+    conn = sqlite3.connect(path)
+    conn.row_factory = sqlite3.Row
+    cmd = "SELECT * FROM "+conf_database['table']+" WHERE rowid = "+str(id)
+    prev = ''
+    try:
+        cursor = conn.execute(cmd)
+        for row in cursor:
+            prev += _dict_to_bibtex(dict(row))+'\n'
+    except sqlite3.Error as e:
+        print(e)
+    tmp_file = tempfile.NamedTemporaryFile(mode='w+')
+    tmp_file.write(prev)
+    tmp_file.flush()
+    status = os.system(os.environ['EDITOR'] + ' ' + tmp_file.name)
+    assert status == 0
+    tmp_file.seek(0, 0)
+    next = tmp_file.read()
+    tmp_file.close()
+    assert not os.path.exists(tmp_file.name)
+    if prev == next:
+        conn.close()
+        return
+    entry = _bibtex_to_dict(next)
+    update = "UPDATE "+conf_database['table']+" SET "
+    for k, v in entry.items():
+        update += k + " = '" + v + "', "
+    update = update[:-2] + " WHERE rowid = "+str(id)
+    try:
+        cursor = conn.execute(update)
+        conn.commit()
+    except sqlite3.Error as e:
+        print(e)
+    finally:
+        conn.close()
+
+
 def export_(args):
     """
     Exports all entries matched by the filter queries (see the list docs).
@@ -400,7 +450,9 @@ def _bibtex_to_dict(bibtex: str):
     lines = bibtex.split('\n')
     entry['type'] = re.findall(r'^@([a-zA-Z]*){', lines[0])[0]
     entry['label'] = re.findall(r'{(\w*),$', lines[0])[0]
-    for line in lines[1:-1]:
+    for line in lines[1:]:
+        if line == '}':
+            break
         key, value = line.split('=')
         entry[key.strip()] = re.sub(r'\s+', ' ', value.strip(' ,{}'))
     return entry
@@ -410,7 +462,7 @@ def _dict_to_bibtex(entry: dict):
     """
     Converts a key-value paired dictionary into a bibtex formatted string.
     """
-    bibtex = "@"+entry['type']+"{"+entry['label']
+    bibtex = "@"+entry['type']+"{"+entry['label']+","
     for key in sorted(entry):
         if entry[key] is not None and key not in ['type', 'label']:
             bibtex += "\n\t"+key+" = {"+str(entry[key])+"},"
