@@ -365,7 +365,8 @@ def _insert_entry(entry: dict):
     """
     # load database info
     conf_database = dict(CONFIG['DATABASE'])
-    conn = sqlite3.connect(conf_database['path'])
+    path = os.path.expanduser(conf_database['path'])
+    conn = sqlite3.connect(path)
     try:
         cursor = conn.execute("PRAGMA table_info("+conf_database['table']+")")
     except sqlite3.Error as e:
