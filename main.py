@@ -12,6 +12,7 @@ import re
 import requests
 import sqlite3
 import sys
+import tabulate
 import tempfile
 
 
@@ -142,15 +143,17 @@ def list_(args):
             filter += ' LIKE "%' + i + '%"'
     cmd = "SELECT rowid, label, title, tags FROM "+conf_database['table']+' '+filter
     ids = []
+    table = []
     try:
         cursor = conn.execute(cmd)
         for row in cursor:
             ids.append(row[0])
-            print(row)
+            table.append(row)
     except sqlite3.Error as e:
         print(e)
     finally:
         conn.close()
+    print(tabulate.tabulate(table, headers=["ID", "Label", "Title", "Tags"]))
     return ids
 
 
