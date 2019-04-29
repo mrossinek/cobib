@@ -375,7 +375,7 @@ def _insert_entry(entry: dict):
 
     # extract information from bibtex
     keys = ''
-    values = ''
+    values = ()
     for key, value in entry.items():
         if key not in table_keys:
             try:
@@ -385,15 +385,15 @@ def _insert_entry(entry: dict):
                 print(e)
             table_keys = [row[1] for row in cursor]
         keys = "{},{}".format(keys, key)
-        values = "{},'{}'".format(values, value)
+        values = values + (value,)
 
     keys = keys.strip(',')
-    values = values.strip(',')
+    placeholders = ''.join('?,' for n in range(len(values)))[:-1]
 
     # insert into table
-    cmd = "INSERT INTO "+conf_database['table']+" ("+keys+") VALUES ("+values+")"
+    cmd = "INSERT INTO "+conf_database['table']+" ({}) VALUES (".format(keys)+placeholders+")"
     try:
-        cursor.execute(cmd)
+        cursor.execute(cmd, values)
         conn.commit()
     except sqlite3.IntegrityError as e:
         print(e)
