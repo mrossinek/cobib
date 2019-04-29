@@ -302,10 +302,10 @@ def edit_(args):
     entry = _bibtex_to_dict(next)
     update = "UPDATE "+conf_database['table']+" SET "
     for k, v in entry.items():
-        update += k + " = '" + v + "', "
+        update += k + " = :"+k+", "
     update = update[:-2] + " WHERE rowid = "+str(id)
     try:
-        cursor = conn.execute(update)
+        cursor = conn.execute(update, entry)
         conn.commit()
     except sqlite3.Error as e:
         print(e)
