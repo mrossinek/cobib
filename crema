@@ -481,7 +481,7 @@ def _bibtex_to_dict(bibtex: str):
     for line in lines[1:]:
         if line == '}':
             break
-        key, value = line.split('=')
+        key, value = line.split(' = ')
         entry[key.strip()] = re.sub(r'\s+', ' ', value.strip(' ,{}'))
     return entry
 
