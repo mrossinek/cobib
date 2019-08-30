@@ -13,7 +13,7 @@ install:
 	sudo install -m755 crema $(BINDIR)/crema
 	sudo install -m644 README.md $(DOCDIR)
 	install -m755 -o $(USER) -g $(USER) -d $(CONFDIR)
-	install -m644 -o $(USER) -g $(USER) default.ini $(CONFDIR)/config.ini
+	install -m644 -o $(USER) -g $(USER) docs/default.ini $(CONFDIR)/config.ini
 
 uninstall:
 	sudo rm -f $(BINDIR)/crema

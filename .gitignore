@@ -1,5 +1,11 @@
-*.db
 tags
+
+# Python data
 build
 dist
 *.egg-info
+__pycache__
+
+# literature data (debugging)
+*.bib
+*.yaml

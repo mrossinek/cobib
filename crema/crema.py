@@ -1,6 +1,10 @@
-#!/usr/bin/python3
 # IMPORTS
+
+from .parser import Entry
+
 from bs4 import BeautifulSoup
+from collections import OrderedDict
+from pathlib import Path
 from subprocess import Popen
 from zipfile import ZipFile
 import argparse
@@ -36,9 +40,6 @@ BIBTEX_TYPES = {
     'thesis': ['author', 'title', 'type', 'institution', 'year'],
     'unpublished': ['author', 'title', 'year']
     }
-# global config
-# the default configuration file will be loaded from ~/.config/crema/config.ini
-CONFIG = configparser.ConfigParser()
 
 
 # ARGUMENT FUNCTIONS
@@ -48,8 +49,7 @@ def init_(args):
     """
     conf_database = dict(CONFIG['DATABASE'])
     file = os.path.expanduser(conf_database['file'])
-    with open(file, 'w') as f:
-        f.write('entries:')
+    open(file, 'w').close()
     return
 
 
@@ -74,9 +74,9 @@ def list_(args):
     largs = parser.parse_args(args)
     labels = []
     table = []
-    for key, entry in bib_data.entries.items():
-        labels.append(key)
-        table.append([key, entry.fields['title']])
+    for label, entry in bib_data.items():
+        labels.append(label)
+        table.append([label, entry.data['title']])
     print(tabulate.tabulate(table, headers=["Label", "Title"]))
     return labels
 
@@ -93,8 +93,8 @@ def show_(args):
     largs = parser.parse_args(args)
     bib_data = _read_database()
     try:
-        entry = bib_data.entries[largs.label]
-        entry_str = pybtex.database.BibliographyData(entries={largs.label: entry}).to_string(bib_format='bibtex')
+        entry = bib_data[largs.label]
+        entry_str = entry.to_bibtex()
         print(entry_str)
     except KeyError:
         print("Error: No entry with the label '{}' could be found.".format(largs.label))
@@ -113,11 +113,11 @@ def open_(args):
     largs = parser.parse_args(args)
     bib_data = _read_database()
     try:
-        entry = bib_data.entries[largs.label]
-        if 'file' not in entry.fields.keys() or entry.fields['file'] is None:
+        entry = bib_data[largs.label]
+        if 'file' not in entry.data.keys() or entry.data['file'] is None:
             print("Error: There is no file associated with this entry.")
             sys.exit(1)
-        Popen(["xdg-open", entry.fields['file']], stdin=None, stdout=None, stderr=None, close_fds=True, shell=False)
+        Popen(["xdg-open", entry.data['file']], stdin=None, stdout=None, stderr=None, close_fds=True, shell=False)
     except KeyError:
         print("Error: No entry with the label '{}' could be found.".format(largs.label))
     return
@@ -150,16 +150,16 @@ def add_(args):
     bib_data = _read_database()
 
     if largs.bibtex is not None:
-        new_data = pybtex.database.parse_file(largs.bibtex)
-        new_entries = []
-        for key, entry in new_data.entries.items():
-            if key in bib_data.entries.keys():
-                print("Error: key '{}' already exists!".format(key))
+        new_entries = Entry.from_bibtex(largs.bibtex)
+        new_lines = []
+        for label, entry in new_entries.items():
+            if label in bib_data.keys():
+                print("Error: label '{}' already exists!".format(label))
                 continue
-            string = pybtex.database.BibliographyData(entries={key: entry}).to_string(bib_format='yaml')
-            reduced = '\n'.join(string.splitlines()[1:])
-            new_entries.append(reduced)
-        _write_database(new_entries)
+            string = entry.to_yaml()
+            reduced = '\n'.join(string.splitlines())
+            new_lines.append(reduced)
+        _write_database(new_lines)
     return
 
 
@@ -178,18 +178,20 @@ def remove_(args):
     with open(file, 'r') as bib:
         lines = bib.readlines()
     entry_to_be_removed = False
-    indent_level_threshold = -1
+    buffer = []
+    for line in lines:
+        if line.startswith(largs.label):
+            entry_to_be_removed = True
+            buffer.pop()
+            continue
+        if entry_to_be_removed and line.startswith('...'):
+            entry_to_be_removed = False
+            continue
+        if not entry_to_be_removed:
+            buffer.append(line)
     with open(file, 'w') as bib:
-        for line in lines:
-            if largs.label in line:
-                indent_level_threshold = len(line) - len(line.strip())
-                entry_to_be_removed = True
-                continue
-            indent_level = len(line) - len(line.strip())
-            if indent_level <= indent_level_threshold:
-                entry_to_be_removed = False
-            if not entry_to_be_removed:
-                bib.write(line)
+        for line in buffer:
+            bib.write(line)
     return
 
 
@@ -205,8 +207,8 @@ def edit_(args):
     largs = parser.parse_args(args)
     bib_data = _read_database()
     try:
-        entry = bib_data.entries[largs.label]
-        prev = pybtex.database.BibliographyData(entries={largs.label: entry}).to_string(bib_format='yaml')
+        entry = bib_data[largs.label]
+        prev = entry.to_yaml()
     except KeyError:
         print("Error: No entry with the label '{}' could be found.".format(largs.label))
     tmp_file = tempfile.NamedTemporaryFile(mode='w+', suffix='.yaml')
@@ -225,17 +227,15 @@ def edit_(args):
     with open(file, 'r') as bib:
         lines = bib.readlines()
     entry_to_be_replaced = False
-    indent_level_threshold = -1
     with open(file, 'w') as bib:
         for line in lines:
-            if largs.label in line:
-                indent_level_threshold = len(line) - len(line.strip())
+            if line.startswith(largs.label):
                 entry_to_be_replaced = True
                 continue
-            indent_level = len(line) - len(line.strip())
-            if indent_level <= indent_level_threshold:
+            if entry_to_be_replaced and line.startswith('...'):
                 entry_to_be_replaced = False
                 bib.writelines(next)
+                continue
             if not entry_to_be_replaced:
                 bib.write(line)
     return
@@ -268,13 +268,13 @@ def export_(args):
 
     try:
         for label in labels:
-            entry = bib_data.entries[label]
+            entry = bib_data[label]
             if largs.bibtex is not None:
-                entry_str = pybtex.database.BibliographyData(entries={label: entry}).to_string(bib_format='bibtex')
+                entry_str = entry.to_bibtex()
                 largs.bibtex.write(entry_str)
             if largs.zip is not None:
-                if 'file' in entry.fields.keys() and entry.fields['file'] is not None:
-                    largs.zip.write(entry.fields['file'], label+'.pdf')
+                if 'file' in entry.data.keys() and entry.data['file'] is not None:
+                    largs.zip.write(entry.data['file'], label+'.pdf')
     except KeyError:
         print("Error: No entry with the label '{}' could be found.".format(largs.label))
     return
@@ -285,9 +285,9 @@ def _read_database():
     conf_database = dict(CONFIG['DATABASE'])
     file = os.path.expanduser(conf_database['file'])
     try:
-        bib_data = pybtex.database.parse_file(file, bib_format='yaml')
+        bib_data = Entry.from_yaml(Path(file))
     except AttributeError:
-        bib_data = pybtex.database.BibliographyData()
+        bib_data = OrderedDict()
     return bib_data
 
 
@@ -296,36 +296,18 @@ def _write_database(entries):
     file = os.path.expanduser(conf_database['file'])
     with open(file, 'a') as bib:
         for entry in entries:
-            bib.write('\n'+entry)
+            bib.write(entry+'\n')
     return
 
 
-# MAIN
-def main():
+def _load_config(config):
+    global CONFIG
+    CONFIG = config
+
+
+def _list_commands():
     subcommands = []
     for key, value in globals().items():
         if inspect.isfunction(value) and 'args' in inspect.signature(value).parameters:
             subcommands.append(value.__name__[:-1])
-    parser = argparse.ArgumentParser(description="Process input arguments.")
-    parser.add_argument("-c", "--config", type=argparse.FileType('r'),
-                        help="Alternative config file")
-    parser.add_argument('command', help="subcommand to be called",
-                        choices=subcommands)
-    parser.add_argument('args', nargs=argparse.REMAINDER)
-
-    if (len(sys.argv) == 1):
-        parser.print_usage(sys.stderr)
-        sys.exit(1)
-
-    args = parser.parse_args()
-
-    if args.config is not None:
-        CONFIG.read(args.config.name)
-    else:
-        CONFIG.read(os.path.expanduser('~/.config/crema/config.ini'))
-
-    globals()[args.command+'_'](args.args)
-
-
-if __name__ == '__main__':
-    main()
+    return subcommands
