@@ -3,7 +3,7 @@
 from .parser import Entry
 
 from bs4 import BeautifulSoup
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from pathlib import Path
 from subprocess import Popen
 from zipfile import ZipFile
@@ -12,7 +12,6 @@ import configparser
 import inspect
 import os
 import pdftotext
-import pybtex.database
 import re
 import requests
 import sys
@@ -66,17 +65,36 @@ def list_(args):
     parser.add_argument('-x', '--or', dest='OR', action='store_true',
                         help="concatenate filters with OR instead of AND")
     bib_data = _read_database()
-    # for row in cursor:
-    #     parser.add_argument('++'+row[1], type=str, action='append',
-    #                         help="include elements with matching "+row[1])
-    #     parser.add_argument('--'+row[1], type=str, action='append',
-    #                         help="exclude elements with matching "+row[1])
+    unique_keys = set()
+    for label, entry in bib_data.items():
+        unique_keys.update(entry.data.keys())
+    for key in sorted(unique_keys):
+        parser.add_argument('++'+key, type=str, action='append',
+                            help="include elements with matching "+key)
+        parser.add_argument('--'+key, type=str, action='append',
+                            help="exclude elements with matching "+key)
     largs = parser.parse_args(args)
+    filter = defaultdict(list)
+    for f in largs._get_kwargs():
+        if f[0] == 'OR' or f[1] is None:
+            continue
+        if not isinstance(f[1], list):
+            f[1] = [f[1]]
+        for i in f[1]:
+            for index, object in enumerate(sys.argv):
+                if i == object:
+                    if sys.argv[index-1][0] == '-':
+                        filter[tuple([f[0], False])].append(i)
+                        break
+                    else:
+                        filter[tuple([f[0], True])].append(i)
+                        break
     labels = []
     table = []
     for label, entry in bib_data.items():
-        labels.append(label)
-        table.append([label, entry.data['title']])
+        if entry.matches(filter, largs.OR):
+            labels.append(label)
+            table.append([label, entry.data['title']])
     print(tabulate.tabulate(table, headers=["Label", "Title"]))
     return labels
 

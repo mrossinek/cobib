@@ -22,6 +22,21 @@ class Entry():
     def __repr__(self):
         return self.to_bibtex()
 
+    def matches(self, filter, OR):
+        match_list = []
+        for key, values in filter.items():
+            if key[0] not in self.data.keys():
+                match_list.append(not key[1])
+            for val in values:
+                if val not in self.data[key[0]]:
+                    match_list.append(not key[1])
+                else:
+                    match_list.append(key[1])
+        if OR:
+            return any(m for m in match_list)
+        else:
+            return all(m for m in match_list)
+
     def to_bibtex(self):
         database = bibtexparser.bibdatabase.BibDatabase()
         database.entries = [self.data]
