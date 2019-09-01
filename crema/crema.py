@@ -149,6 +149,21 @@ def add_(args):
     if largs.pdf is not None:
         new_entries = Entry.from_pdf(largs.pdf)
 
+    if largs.file is not None:
+        assert(len(new_entries.values()) == 1)
+        for key, value in new_entries.items():
+            value.set_file(largs.file)
+
+    if largs.label is not None:
+        assert(len(new_entries.values()) == 1)
+        for key, value in new_entries.items():
+            value.set_label(largs.label)
+
+    if largs.tags is not None:
+        assert(len(new_entries.values()) == 1)
+        for key, value in new_entries.items():
+            value.set_tags(largs.tags)
+
     _write_database(new_entries)
     return
 

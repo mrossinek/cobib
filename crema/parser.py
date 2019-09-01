@@ -3,6 +3,7 @@ from ruamel.yaml.compat import StringIO
 from bs4 import BeautifulSoup
 from collections import OrderedDict
 import bibtexparser
+import os
 import pdftotext
 import re
 import requests
@@ -46,6 +47,18 @@ class Entry():
 
     def __repr__(self):
         return self.to_bibtex()
+
+    def set_label(self, label):
+        self.label = label
+        self.data['ID'] = label
+        return
+
+    def set_tags(self, tags):
+        self.data['tags'] = ''.join(tag.strip('+')+', ' for tag in tags).strip(', ')
+
+    def set_file(self, file):
+        self.data['file'] = os.path.abspath(file)
+        return
 
     def matches(self, filter, OR):
         match_list = []
@@ -151,4 +164,7 @@ class Entry():
         pdf_obj = pdftotext.PDF(pdf)
         text = "".join(pdf_obj)
         matches = re.findall(DOI_REGEX, text)
-        return Entry.from_doi(most_common(matches))
+        bib = Entry.from_doi(most_common(matches))
+        for key, value in bib.items():
+            value.set_file(pdf.name)
+        return bib
