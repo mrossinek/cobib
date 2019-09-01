@@ -2,43 +2,16 @@
 
 from .parser import Entry
 
-from bs4 import BeautifulSoup
 from collections import OrderedDict, defaultdict
 from pathlib import Path
 from subprocess import Popen
 from zipfile import ZipFile
 import argparse
-import configparser
 import inspect
 import os
-import pdftotext
-import re
-import requests
 import sys
 import tabulate
 import tempfile
-
-
-# GLOBAL VARIABLES
-# API and HEADER settings according to this resource
-# https://crosscite.org/docs.html
-DOI_URL = "https://doi.org/"
-DOI_HEADER = {'Accept': "application/x-bibtex"}
-# arXiv url according to docs from here https://arxiv.org/help/oa
-ARXIV_URL = "https://export.arxiv.org/oai2?verb=GetRecord&metadataPrefix=arXiv&identifier=oai:arXiv.org:"
-# DOI regex used for matching DOIs
-DOI_REGEX = r'(10\.[0-9a-zA-Z]+\/(?:(?!["&\'])\S)+)\b'
-# biblatex default types and required values taken from their docs
-# https://ctan.org/pkg/biblatex
-BIBTEX_TYPES = {
-    'article': ['author', 'title', 'journal', 'year'],
-    'book': ['author', 'title', 'year'],
-    'collection': ['editor', 'title', 'year'],
-    'proceedings': ['title', 'year'],
-    'report': ['author', 'title', 'type', 'institution', 'year'],
-    'thesis': ['author', 'title', 'type', 'institution', 'year'],
-    'unpublished': ['author', 'title', 'year']
-    }
 
 
 # ARGUMENT FUNCTIONS
@@ -151,33 +124,32 @@ def add_(args):
     parser.add_argument("-f", "--file", type=str,
                         help="a file associated with this entry")
     group_add = parser.add_mutually_exclusive_group()
-    # group_add.add_argument("-a", "--arxiv", type=str,
-    #                        help="arXiv ID of the new references")
+    group_add.add_argument("-a", "--arxiv", type=str,
+                           help="arXiv ID of the new references")
     group_add.add_argument("-b", "--bibtex", type=argparse.FileType('r'),
                            help="BibTeX bibliographic data")
-    # group_add.add_argument("-d", "--doi", type=str,
-    #                        help="DOI of the new references")
-    # group_add.add_argument("-p", "--pdf", type=argparse.FileType('rb'),
-    #                        help="PDFs files to be added")
+    group_add.add_argument("-d", "--doi", type=str,
+                           help="DOI of the new references")
+    group_add.add_argument("-p", "--pdf", type=argparse.FileType('rb'),
+                           help="PDFs files to be added")
     parser.add_argument("tags", nargs=argparse.REMAINDER)
     if (len(args) == 0):
         parser.print_usage(sys.stderr)
         sys.exit(1)
     largs = parser.parse_args(args)
 
-    bib_data = _read_database()
+    new_entries = OrderedDict()
 
     if largs.bibtex is not None:
         new_entries = Entry.from_bibtex(largs.bibtex)
-        new_lines = []
-        for label, entry in new_entries.items():
-            if label in bib_data.keys():
-                print("Error: label '{}' already exists!".format(label))
-                continue
-            string = entry.to_yaml()
-            reduced = '\n'.join(string.splitlines())
-            new_lines.append(reduced)
-        _write_database(new_lines)
+    if largs.arxiv is not None:
+        new_entries = Entry.from_arxiv(largs.arxiv)
+    if largs.doi is not None:
+        new_entries = Entry.from_doi(largs.doi)
+    if largs.pdf is not None:
+        new_entries = Entry.from_pdf(largs.pdf)
+
+    _write_database(new_entries)
     return
 
 
@@ -310,11 +282,21 @@ def _read_database():
 
 
 def _write_database(entries):
+    bib_data = _read_database()
+    new_lines = []
+    for label, entry in entries.items():
+        if label in bib_data.keys():
+            print("Error: label '{}' already exists!".format(label))
+            continue
+        string = entry.to_yaml()
+        reduced = '\n'.join(string.splitlines())
+        new_lines.append(reduced)
+
     conf_database = dict(CONFIG['DATABASE'])
     file = os.path.expanduser(conf_database['file'])
     with open(file, 'a') as bib:
-        for entry in entries:
-            bib.write(entry+'\n')
+        for line in new_lines:
+            bib.write(line+'\n')
     return
 
 
