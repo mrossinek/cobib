@@ -12,7 +12,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     keywords='console reference manager',
-    url='https://github.com/mrossinek/crema',
+    url='https://gitlab.com/mrossinek/crema',
     license='MIT',
     author='Max Rossmannek',
     author_email='rmax@ethz.ch',
