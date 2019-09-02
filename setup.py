@@ -17,12 +17,20 @@ setup(
     author='Max Rossmannek',
     author_email='rmax@ethz.ch',
     platforms=['any'],
-    py_modules=['crema'],
+    packages=['crema'],
+    package_data={'crema': ['docs/default.ini']},
     python_requires='>=3.5',
     install_requires=[
+        'bibtexparser',
         'bs4',
         'pdftotext',
         'requests',
+        'ruamel.yaml',
         'tabulate'
-    ]
+    ],
+    entry_points={
+        'console_scripts': [
+            'crema = crema.__main__:main'
+        ]
+    }
 )

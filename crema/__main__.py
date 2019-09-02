@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from crema import crema
+from . import crema
 
 import argparse
 import configparser
@@ -28,8 +28,11 @@ def main():
 
     if args.config is not None:
         CONFIG.read(args.config.name)
-    else:
+    elif os.path.exists('~/.config/crema/config.ini'):
         CONFIG.read(os.path.expanduser('~/.config/crema/config.ini'))
+    else:
+        _ROOT = os.path.abspath(os.path.dirname(__file__))
+        CONFIG.read(os.path.join(_ROOT, 'docs', 'default.ini'))
 
     crema._load_config(CONFIG)
     subcmd = getattr(crema, args.command+'_')
