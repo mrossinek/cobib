@@ -159,7 +159,7 @@ def add_(args):
         for key, value in new_entries.items():
             value.set_label(largs.label)
 
-    if largs.tags is not None:
+    if largs.tags != []:
         assert(len(new_entries.values()) == 1)
         for key, value in new_entries.items():
             value.set_tags(largs.tags)
