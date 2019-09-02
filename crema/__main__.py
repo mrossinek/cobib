@@ -7,7 +7,8 @@ import os
 import sys
 
 # global config
-# the default configuration file will be loaded from ~/.config/crema/config.ini
+# the configuration file will be loaded from ~/.config/crema/config.ini
+# if this file does not exists, defaults are taken from the package data config
 CONFIG = configparser.ConfigParser()
 
 
