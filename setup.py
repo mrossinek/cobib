@@ -12,17 +12,25 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     keywords='console reference manager',
-    url='https://github.com/mrossinek/crema',
+    url='https://gitlab.com/mrossinek/crema',
     license='MIT',
     author='Max Rossmannek',
     author_email='rmax@ethz.ch',
     platforms=['any'],
-    py_modules=['crema'],
+    packages=['crema'],
+    package_data={'crema': ['docs/default.ini']},
     python_requires='>=3.5',
     install_requires=[
+        'bibtexparser',
         'bs4',
         'pdftotext',
         'requests',
+        'ruamel.yaml',
         'tabulate'
-    ]
+    ],
+    entry_points={
+        'console_scripts': [
+            'crema = crema.__main__:main'
+        ]
+    }
 )

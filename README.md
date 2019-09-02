@@ -7,8 +7,8 @@ regular basis and does not allow me to work from the command line which is
 where I spent most of the time that I spent on the computer.
 
 Hence, I have decided to make it my own task of implementing a simple, yet
-fast, reference manager. CReMa is written in Python and uses SQLite3 as its
-database in the background.
+fast, reference manager. CReMa is written in Python and uses a YAML file to
+store all references in a plain text format.
 
 Currently CReMa provides the following functionality:
 * adding new references via DOI, arXiv ID and PDF
@@ -16,7 +16,7 @@ Currently CReMa provides the following functionality:
 * printing detailed information about a reference ID
 * exporting a list of references to the biblatex format
 * opening associated files using an external program
-* manually editing database entries using the EDITOR
+* manually editing entries using the $EDITOR
 
 Future features may include:
 * importing a set of references from a biblatex library file
