@@ -25,7 +25,7 @@ def init_(args):
     return
 
 
-def list_(args):
+def list_(args, out=sys.stdout):
     """
     By default, all entries of the database are listed.
     This output will be filterable in the future by providing values for any
@@ -68,7 +68,7 @@ def list_(args):
         if entry.matches(filter, largs.OR):
             labels.append(label)
             table.append([label, entry.data['title']])
-    print(tabulate.tabulate(table, headers=["Label", "Title"]))
+    print(tabulate.tabulate(table, headers=["Label", "Title"]), file=out)
     return labels
 
 
@@ -269,7 +269,8 @@ def export_(args):
         return
     if largs.zip is not None:
         largs.zip = ZipFile(largs.zip.name, 'w')
-    labels = list_(largs.list_args)
+    out = open(os.devnull, 'w')
+    labels = list_(largs.list_args, out=out)
 
     try:
         for label in labels:
