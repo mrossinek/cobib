@@ -1,12 +1,17 @@
-from ruamel.yaml import YAML
-from ruamel.yaml.compat import StringIO
-from bs4 import BeautifulSoup
+"""CReMa parsing module"""
+
+# IMPORTS
+# standard
 from collections import OrderedDict
-import bibtexparser
 import os
-import pdftotext
 import re
 import requests
+# third-party
+from bs4 import BeautifulSoup
+from ruamel.yaml import YAML
+from ruamel.yaml.compat import StringIO
+import bibtexparser
+import pdftotext
 
 # GLOBAL VARIABLES
 # API and HEADER settings according to this resource
@@ -14,7 +19,8 @@ import requests
 DOI_URL = "https://doi.org/"
 DOI_HEADER = {'Accept': "application/x-bibtex"}
 # arXiv url according to docs from here https://arxiv.org/help/oa
-ARXIV_URL = "https://export.arxiv.org/oai2?verb=GetRecord&metadataPrefix=arXiv&identifier=oai:arXiv.org:"
+ARXIV_URL = "https://export.arxiv.org/oai2?verb=GetRecord&metadataPrefix=arXiv\
+             &identifier=oai:arXiv.org:"
 # DOI regex used for matching DOIs
 DOI_REGEX = r'(10\.[0-9a-zA-Z]+\/(?:(?!["&\'])\S)+)\b'
 # biblatex default types and required values taken from their docs
@@ -31,7 +37,10 @@ BIBTEX_TYPES = {
 
 
 class Entry():
+    """Bibliography entry class"""
     class YamlDumper(YAML):
+        """Wrapper class for dumping YAML"""
+        # pylint: disable=arguments-differ,inconsistent-return-statements
         def dump(self, data, stream=None, **kw):
             inefficient = False
             if stream is None:
@@ -49,20 +58,22 @@ class Entry():
         return self.to_bibtex()
 
     def set_label(self, label):
+        """Sets the label"""
         self.label = label
         self.data['ID'] = label
-        return
 
     def set_tags(self, tags):
+        """Sets the tags"""
         self.data['tags'] = ''.join(tag.strip('+')+', ' for tag in tags).strip(', ')
 
     def set_file(self, file):
+        """Sets the file"""
         self.data['file'] = os.path.abspath(file)
-        return
 
-    def matches(self, filter, OR):
+    def matches(self, _filter, _or):
+        """Check whether the filter is matched"""
         match_list = []
-        for key, values in filter.items():
+        for key, values in _filter.items():
             if key[0] not in self.data.keys():
                 match_list.append(not key[1])
             for val in values:
@@ -70,17 +81,18 @@ class Entry():
                     match_list.append(not key[1])
                 else:
                     match_list.append(key[1])
-        if OR:
+        if _or:
             return any(m for m in match_list)
-        else:
-            return all(m for m in match_list)
+        return all(m for m in match_list)
 
     def to_bibtex(self):
+        """Returns the Entry in bibtex format"""
         database = bibtexparser.bibdatabase.BibDatabase()
         database.entries = [self.data]
         return bibtexparser.dumps(database)
 
     def to_yaml(self):
+        """Returns the Entry in YAML format"""
         yaml = Entry.YamlDumper()
         yaml.explicit_start = True
         yaml.explicit_end = True
@@ -88,6 +100,7 @@ class Entry():
 
     @staticmethod
     def from_bibtex(file, string=False):
+        """Creates a new bibliography (dict of Entry instances) from a bibtex source file"""
         if string:
             database = bibtexparser.loads(file)
         else:
@@ -99,6 +112,7 @@ class Entry():
 
     @staticmethod
     def from_yaml(file):
+        """Creates a new bibliography (dict of Entry instances) from a YAML source file"""
         yaml = YAML()
         bib = OrderedDict()
         for entry in yaml.load_all(file):
@@ -108,12 +122,15 @@ class Entry():
 
     @staticmethod
     def from_doi(doi):
-        assert(re.match(DOI_REGEX, doi))
+        """Queries the bibtex source from a given DOI"""
+        assert re.match(DOI_REGEX, doi)
         page = requests.get(DOI_URL+doi, headers=DOI_HEADER)
         return Entry.from_bibtex(page.text, string=True)
 
     @staticmethod
     def from_arxiv(arxiv):
+        # pylint: disable=too-many-branches
+        """Queries the bibtex source from a given arxiv ID"""
         page = requests.get(ARXIV_URL+arxiv)
         xml = BeautifulSoup(page.text, features='xml')
         entry = {}
@@ -144,7 +161,8 @@ class Entry():
                         else:
                             entry['ID'] = author.keyname.contents[0]
                         first = False
-                    entry['author'] += author.forenames.contents[0] + ' ' + author.keyname.contents[0] + ' and '
+                    entry['author'] += '{} {} and '.format(author.forenames.contents[0],
+                                                           author.keyname.contents[0])
                 entry['author'] = entry['author'][:-5]
             elif key.name == 'abstract':
                 entry['abstract'] = re.sub(r'\s+', ' ', key.contents[0].strip().replace('\n', ' '))
@@ -160,11 +178,13 @@ class Entry():
 
     @staticmethod
     def from_pdf(pdf):
-        def most_common(lst: list): return max(set(lst), key=lst.count)
-        pdf_obj = pdftotext.PDF(pdf)
+        """Extracts the most common DOI from a pdf file"""
+        def most_common(lst: list):
+            return max(set(lst), key=lst.count)
+        pdf_obj = pdftotext.PDF(pdf)  # pylint: disable=c-extension-no-member
         text = "".join(pdf_obj)
         matches = re.findall(DOI_REGEX, text)
         bib = Entry.from_doi(most_common(matches))
-        for key, value in bib.items():
+        for value in bib.values():
             value.set_file(pdf.name)
         return bib

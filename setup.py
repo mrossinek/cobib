@@ -1,15 +1,17 @@
-from setuptools import setup
+#!/usr/bin/python3
+# pylint: disable=missing-docstring
 import os
+from setuptools import setup
 
-here = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
-    long_description = f.read()
+HERE = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(HERE, 'README.md'), encoding='utf-8') as f:
+    README = f.read()
 
 setup(
     name='crema',
     version='1.0.0',
     description='Console Reference Manager',
-    long_description=long_description,
+    long_description=README,
     long_description_content_type='text/markdown',
     keywords='console reference manager',
     url='https://gitlab.com/mrossinek/crema',

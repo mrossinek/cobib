@@ -1,10 +1,13 @@
 #!/usr/bin/python3
-from . import crema
+"""CReMa main body"""
 
+# IMPORTS
 import argparse
 import configparser
 import os
 import sys
+
+from . import crema
 
 # global config
 # the configuration file will be loaded from ~/.config/crema/config.ini
@@ -13,6 +16,7 @@ CONFIG = configparser.ConfigParser()
 
 
 def main():
+    """Main function"""
     subcommands = crema._list_commands()
     parser = argparse.ArgumentParser(description="Process input arguments.")
     parser.add_argument("-c", "--config", type=argparse.FileType('r'),
@@ -21,7 +25,7 @@ def main():
                         choices=subcommands)
     parser.add_argument('args', nargs=argparse.REMAINDER)
 
-    if (len(sys.argv) == 1):
+    if len(sys.argv) == 1:
         parser.print_usage(sys.stderr)
         sys.exit(1)
 
@@ -32,8 +36,8 @@ def main():
     elif os.path.exists('~/.config/crema/config.ini'):
         CONFIG.read(os.path.expanduser('~/.config/crema/config.ini'))
     else:
-        _ROOT = os.path.abspath(os.path.dirname(__file__))
-        CONFIG.read(os.path.join(_ROOT, 'docs', 'default.ini'))
+        root = os.path.abspath(os.path.dirname(__file__))
+        CONFIG.read(os.path.join(root, 'docs', 'default.ini'))
 
     crema._load_config(CONFIG)
     subcmd = getattr(crema, args.command+'_')

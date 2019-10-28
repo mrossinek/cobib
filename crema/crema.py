@@ -1,28 +1,33 @@
+"""CReMa main module"""
+
 # IMPORTS
-
-from .parser import Entry
-
-from collections import OrderedDict, defaultdict
-from pathlib import Path
-from subprocess import Popen
-from zipfile import ZipFile
+# standard
 import argparse
 import inspect
 import os
 import sys
-import tabulate
 import tempfile
+from collections import OrderedDict, defaultdict
+from pathlib import Path
+from subprocess import Popen
+from zipfile import ZipFile
+# third-party
+import tabulate
+# relative
+from .parser import Entry
+
+# GLOBALS
+CONFIG = None
 
 
 # ARGUMENT FUNCTIONS
-def init_(args):
+def init_(args):  # pylint: disable=unused-argument
     """
     Initializes the yaml database file at the configured location.
     """
-    conf_database = dict(CONFIG['DATABASE'])
+    conf_database = dict(globals()['CONFIG']['DATABASE'])
     file = os.path.expanduser(conf_database['file'])
     open(file, 'w').close()
-    return
 
 
 def list_(args, out=sys.stdout):
@@ -39,7 +44,7 @@ def list_(args, out=sys.stdout):
                         help="concatenate filters with OR instead of AND")
     bib_data = _read_database()
     unique_keys = set()
-    for label, entry in bib_data.items():
+    for entry in bib_data.values():
         unique_keys.update(entry.data.keys())
     for key in sorted(unique_keys):
         parser.add_argument('++'+key, type=str, action='append',
@@ -47,27 +52,23 @@ def list_(args, out=sys.stdout):
         parser.add_argument('--'+key, type=str, action='append',
                             help="exclude elements with matching "+key)
     largs = parser.parse_args(args)
-    filter = defaultdict(list)
-    for f in largs._get_kwargs():
-        if f[0] == 'OR' or f[1] is None:
+    _filter = defaultdict(list)
+    for key, val in largs.__dict__.items():
+        if key == 'OR' or val is None:
             continue
-        if not isinstance(f[1], list):
-            f[1] = [f[1]]
-        for i in f[1]:
-            for index, object in enumerate(sys.argv):
-                if i == object:
-                    if sys.argv[index-1][0] == '-':
-                        filter[tuple([f[0], False])].append(i)
-                        break
-                    else:
-                        filter[tuple([f[0], True])].append(i)
-                        break
+        if not isinstance(val, list):
+            val = [val]
+        for i in val:
+            for idx, obj in enumerate(sys.argv):
+                if i == obj:
+                    _filter[tuple([key, sys.argv[idx-1][0] == '+'])].append(i)
+                    break
     labels = []
     table = []
-    for label, entry in bib_data.items():
-        if entry.matches(filter, largs.OR):
-            labels.append(label)
-            table.append([label, entry.data['title']])
+    for key, entry in bib_data.items():
+        if entry.matches(_filter, largs.OR):
+            labels.append(key)
+            table.append([key, entry.data['title']])
     print(tabulate.tabulate(table, headers=["Label", "Title"]), file=out)
     return labels
 
@@ -78,7 +79,7 @@ def show_(args):
     """
     parser = argparse.ArgumentParser(prog="show", description="Show subcommand parser.")
     parser.add_argument("label", type=str, help="label of the entry")
-    if (len(args) == 0):
+    if not args:
         parser.print_usage(sys.stderr)
         sys.exit(1)
     largs = parser.parse_args(args)
@@ -89,7 +90,6 @@ def show_(args):
         print(entry_str)
     except KeyError:
         print("Error: No entry with the label '{}' could be found.".format(largs.label))
-    return
 
 
 def open_(args):
@@ -98,7 +98,7 @@ def open_(args):
     """
     parser = argparse.ArgumentParser(prog="open", description="Open subcommand parser.")
     parser.add_argument("label", type=str, help="label of the entry")
-    if (len(args) == 0):
+    if not args:
         parser.print_usage(sys.stderr)
         sys.exit(1)
     largs = parser.parse_args(args)
@@ -108,10 +108,10 @@ def open_(args):
         if 'file' not in entry.data.keys() or entry.data['file'] is None:
             print("Error: There is no file associated with this entry.")
             sys.exit(1)
-        Popen(["xdg-open", entry.data['file']], stdin=None, stdout=None, stderr=None, close_fds=True, shell=False)
+        Popen(["xdg-open", entry.data['file']], stdin=None, stdout=None, stderr=None,
+              close_fds=True, shell=False)
     except KeyError:
         print("Error: No entry with the label '{}' could be found.".format(largs.label))
-    return
 
 
 def add_(args):
@@ -133,7 +133,7 @@ def add_(args):
     group_add.add_argument("-p", "--pdf", type=argparse.FileType('rb'),
                            help="PDFs files to be added")
     parser.add_argument("tags", nargs=argparse.REMAINDER)
-    if (len(args) == 0):
+    if not args:
         parser.print_usage(sys.stderr)
         sys.exit(1)
     largs = parser.parse_args(args)
@@ -150,22 +150,21 @@ def add_(args):
         new_entries = Entry.from_pdf(largs.pdf)
 
     if largs.file is not None:
-        assert(len(new_entries.values()) == 1)
-        for key, value in new_entries.items():
+        assert len(new_entries.values()) == 1
+        for value in new_entries.values():
             value.set_file(largs.file)
 
     if largs.label is not None:
-        assert(len(new_entries.values()) == 1)
-        for key, value in new_entries.items():
+        assert len(new_entries.values()) == 1
+        for value in new_entries.values():
             value.set_label(largs.label)
 
     if largs.tags != []:
-        assert(len(new_entries.values()) == 1)
-        for key, value in new_entries.items():
+        assert len(new_entries.values()) == 1
+        for value in new_entries.values():
             value.set_tags(largs.tags)
 
     _write_database(new_entries)
-    return
 
 
 def remove_(args):
@@ -174,11 +173,11 @@ def remove_(args):
     """
     parser = argparse.ArgumentParser(prog="remove", description="Remove subcommand parser.")
     parser.add_argument("label", type=str, help="label of the entry")
-    if (len(args) == 0):
+    if not args:
         parser.print_usage(sys.stderr)
         sys.exit(1)
     largs = parser.parse_args(args)
-    conf_database = dict(CONFIG['DATABASE'])
+    conf_database = dict(globals()['CONFIG']['DATABASE'])
     file = os.path.expanduser(conf_database['file'])
     with open(file, 'r') as bib:
         lines = bib.readlines()
@@ -197,7 +196,6 @@ def remove_(args):
     with open(file, 'w') as bib:
         for line in buffer:
             bib.write(line)
-    return
 
 
 def edit_(args):
@@ -206,28 +204,28 @@ def edit_(args):
     """
     parser = argparse.ArgumentParser(prog="edit", description="Edit subcommand parser.")
     parser.add_argument("label", type=str, help="label of the entry")
-    if (len(args) == 0):
+    if not args:
         parser.print_usage(sys.stderr)
         sys.exit(1)
     largs = parser.parse_args(args)
     bib_data = _read_database()
     try:
         entry = bib_data[largs.label]
-        prev = entry.to_yaml()
+        prv = entry.to_yaml()
     except KeyError:
         print("Error: No entry with the label '{}' could be found.".format(largs.label))
     tmp_file = tempfile.NamedTemporaryFile(mode='w+', suffix='.yaml')
-    tmp_file.write(prev)
+    tmp_file.write(prv)
     tmp_file.flush()
     status = os.system(os.environ['EDITOR'] + ' ' + tmp_file.name)
     assert status == 0
     tmp_file.seek(0, 0)
-    next = ''.join(tmp_file.readlines()[1:])
+    nxt = ''.join(tmp_file.readlines()[1:])
     tmp_file.close()
     assert not os.path.exists(tmp_file.name)
-    if prev == next:
+    if prv == nxt:
         return
-    conf_database = dict(CONFIG['DATABASE'])
+    conf_database = dict(globals()['CONFIG']['DATABASE'])
     file = os.path.expanduser(conf_database['file'])
     with open(file, 'r') as bib:
         lines = bib.readlines()
@@ -239,11 +237,10 @@ def edit_(args):
                 continue
             if entry_to_be_replaced and line.startswith('...'):
                 entry_to_be_replaced = False
-                bib.writelines(next)
+                bib.writelines(nxt)
                 continue
             if not entry_to_be_replaced:
                 bib.write(line)
-    return
 
 
 def export_(args):
@@ -259,7 +256,7 @@ def export_(args):
     parser.add_argument("-z", "--zip", type=argparse.FileType('a'),
                         help="zip output file")
     parser.add_argument('list_args', nargs=argparse.REMAINDER)
-    if (len(args) == 0):
+    if not args:
         parser.print_usage(sys.stderr)
         sys.exit(1)
     largs = parser.parse_args(args)
@@ -283,12 +280,11 @@ def export_(args):
                     largs.zip.write(entry.data['file'], label+'.pdf')
     except KeyError:
         print("Error: No entry with the label '{}' could be found.".format(largs.label))
-    return
 
 
 # HELPER FUNCTIONS
 def _read_database():
-    conf_database = dict(CONFIG['DATABASE'])
+    conf_database = dict(globals()['CONFIG']['DATABASE'])
     file = os.path.expanduser(conf_database['file'])
     try:
         bib_data = Entry.from_yaml(Path(file))
@@ -308,22 +304,20 @@ def _write_database(entries):
         reduced = '\n'.join(string.splitlines())
         new_lines.append(reduced)
 
-    conf_database = dict(CONFIG['DATABASE'])
+    conf_database = dict(globals()['CONFIG']['DATABASE'])
     file = os.path.expanduser(conf_database['file'])
     with open(file, 'a') as bib:
         for line in new_lines:
             bib.write(line+'\n')
-    return
 
 
 def _load_config(config):
-    global CONFIG
-    CONFIG = config
+    globals()['CONFIG'] = config
 
 
 def _list_commands():
     subcommands = []
-    for key, value in globals().items():
+    for value in globals().values():
         if inspect.isfunction(value) and 'args' in inspect.signature(value).parameters:
             subcommands.append(value.__name__[:-1])
     return subcommands
