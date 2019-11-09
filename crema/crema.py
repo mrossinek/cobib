@@ -63,13 +63,15 @@ def list_(args, out=sys.stdout):
                 if i == obj:
                     _filter[tuple([key, sys.argv[idx-1][0] == '+'])].append(i)
                     break
+    columns = ['ID', 'title']
+    columns.extend([arg[0] for arg in _filter.keys() if arg[0] not in columns])
     labels = []
     table = []
     for key, entry in bib_data.items():
         if entry.matches(_filter, largs.OR):
             labels.append(key)
-            table.append([key, entry.data['title']])
-    print(tabulate.tabulate(table, headers=["Label", "Title"]), file=out)
+            table.append([entry.data[c] for c in columns])
+    print(tabulate.tabulate(table, headers=columns), file=out)
     return labels
 
 
