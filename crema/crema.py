@@ -9,6 +9,7 @@ import sys
 import tempfile
 import textwrap
 from collections import OrderedDict, defaultdict
+from operator import itemgetter
 from pathlib import Path
 from subprocess import Popen
 from zipfile import ZipFile
@@ -31,7 +32,7 @@ def init_(args):  # pylint: disable=unused-argument
     open(file, 'w').close()
 
 
-def list_(args, out=sys.stdout):
+def list_(args, out=sys.stdout):  # pylint: disable=too-many-branches,too-many-locals
     """
     By default, all entries of the database are listed.
     This output will be filterable in the future by providing values for any
@@ -45,6 +46,7 @@ def list_(args, out=sys.stdout):
                         help="concatenate filters with OR instead of AND")
     parser.add_argument('-l', '--long', action='store_true',
                         help="print table in long format (i.e. wrap long lines rather than shorten")
+    parser.add_argument('-s', '--sort', help="specify column along which to sort the list")
     bib_data = _read_database()
     unique_keys = set()
     for entry in bib_data.values():
@@ -57,7 +59,7 @@ def list_(args, out=sys.stdout):
     largs = parser.parse_args(args)
     _filter = defaultdict(list)
     for key, val in largs.__dict__.items():
-        if key in ['OR', 'long'] or val is None:
+        if key in ['OR', 'long', 'sort'] or val is None:
             continue
         if not isinstance(val, list):
             val = [val]
@@ -67,6 +69,8 @@ def list_(args, out=sys.stdout):
                     _filter[tuple([key, sys.argv[idx-1][0] == '+'])].append(i)
                     break
     columns = ['ID', 'title']
+    if largs.sort and largs.sort not in columns:
+        columns.append(largs.sort)
     columns.extend([arg[0] for arg in _filter.keys() if arg[0] not in columns])
     labels = []
     table = []
@@ -78,6 +82,8 @@ def list_(args, out=sys.stdout):
                 table[-1][1] = textwrap.fill(table[-1][1], width=80)
             else:
                 table[-1][1] = textwrap.shorten(table[-1][1], 80, placeholder='...')
+    if largs.sort:
+        table = sorted(table, key=itemgetter(columns.index(largs.sort)))
     print(tabulate.tabulate(table, headers=columns), file=out)
     return labels
 
