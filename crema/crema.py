@@ -7,6 +7,7 @@ import inspect
 import os
 import sys
 import tempfile
+import textwrap
 from collections import OrderedDict, defaultdict
 from pathlib import Path
 from subprocess import Popen
@@ -42,6 +43,8 @@ def list_(args, out=sys.stdout):
                                      prefix_chars='+-')
     parser.add_argument('-x', '--or', dest='OR', action='store_true',
                         help="concatenate filters with OR instead of AND")
+    parser.add_argument('-l', '--long', action='store_true',
+                        help="print table in long format (i.e. wrap long lines rather than shorten")
     bib_data = _read_database()
     unique_keys = set()
     for entry in bib_data.values():
@@ -54,7 +57,7 @@ def list_(args, out=sys.stdout):
     largs = parser.parse_args(args)
     _filter = defaultdict(list)
     for key, val in largs.__dict__.items():
-        if key == 'OR' or val is None:
+        if key in ['OR', 'long'] or val is None:
             continue
         if not isinstance(val, list):
             val = [val]
@@ -71,6 +74,10 @@ def list_(args, out=sys.stdout):
         if entry.matches(_filter, largs.OR):
             labels.append(key)
             table.append([entry.data[c] for c in columns])
+            if largs.long:
+                table[-1][1] = textwrap.fill(table[-1][1], width=80)
+            else:
+                table[-1][1] = textwrap.shorten(table[-1][1], 80, placeholder='...')
     print(tabulate.tabulate(table, headers=columns), file=out)
     return labels
 
