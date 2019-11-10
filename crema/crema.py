@@ -3,6 +3,7 @@
 # IMPORTS
 # standard
 import argparse
+import configparser
 import os
 import sys
 import tempfile
@@ -327,10 +328,16 @@ def _write_database(entries):
             bib.write(line+'\n')
 
 
-def set_config(config):
+def set_config(configpath=None):
     """
     Sets the global config
     Args:
-        config (dict): confi from configgparser
+        configpath (TextIOWrapper): config file
     """
-    globals()['CONFIG'] = config
+    if configpath is not None:
+        CONFIG.read(configpath.name)
+    elif os.path.exists('~/.config/crema/config.ini'):
+        CONFIG.read(os.path.expanduser('~/.config/crema/config.ini'))
+    else:
+        root = os.path.abspath(os.path.dirname(__file__))
+        CONFIG.read(os.path.join(root, 'docs', 'default.ini'))

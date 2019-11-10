@@ -3,18 +3,11 @@
 
 # IMPORTS
 import argparse
-import configparser
 import inspect
-import os
 import sys
 
 from . import crema
 from . import zsh_helper
-
-# global config
-# the configuration file will be loaded from ~/.config/crema/config.ini
-# if this file does not exists, defaults are taken from the package data config
-CONFIG = configparser.ConfigParser()
 
 
 def main():
@@ -37,15 +30,7 @@ def main():
 
     args = parser.parse_args()
 
-    if args.config is not None:
-        CONFIG.read(args.config.name)
-    elif os.path.exists('~/.config/crema/config.ini'):
-        CONFIG.read(os.path.expanduser('~/.config/crema/config.ini'))
-    else:
-        root = os.path.abspath(os.path.dirname(__file__))
-        CONFIG.read(os.path.join(root, 'docs', 'default.ini'))
-
-    crema.set_config(CONFIG)
+    crema.set_config(args.config)
     subcmd = getattr(crema, args.command+'_')
     subcmd(args.args)
 
