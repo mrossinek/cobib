@@ -55,12 +55,13 @@ def zsh_main():
     helper_avail = ['_'+m[0] for m in inspect.getmembers(zsh_helper) if inspect.isfunction(m[1])]
     parser = argparse.ArgumentParser(description="Process ZSH helper call")
     parser.add_argument('helper', help="zsh helper to be called", choices=helper_avail)
+    parser.add_argument('args', nargs=argparse.REMAINDER)
 
     args = parser.parse_args()
 
     helper = getattr(zsh_helper, args.helper.strip('_'))
     # any zsh helper function will return a list of the requested items
-    for item in helper():
+    for item in helper(args=args.args):
         print(item)
 
 

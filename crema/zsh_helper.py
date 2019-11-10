@@ -5,7 +5,7 @@ import inspect
 from . import crema
 
 
-def list_commands():
+def list_commands(args=None):  # pylint: disable=unused-argument
     """ List all subcommands """
     subcommands = []
     for name, member in inspect.getmembers(crema):
