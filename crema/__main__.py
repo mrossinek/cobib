@@ -17,7 +17,7 @@ def main():
         zsh_main()
         sys.exit()
 
-    subcommands = zsh_helper.list_commands()
+    subcommands = [cmd.split(':')[0] for cmd in zsh_helper.list_commands()]
     parser = argparse.ArgumentParser(description="Process input arguments.")
     parser.add_argument("-c", "--config", type=argparse.FileType('r'),
                         help="Alternative config file")

@@ -18,13 +18,16 @@ import tabulate
 # relative
 from .parser import Entry
 
-# GLOBALS
-CONFIG = None
+# global config
+# the configuration file will be loaded from ~/.config/crema/config.ini
+# if this file does not exists, defaults are taken from the package data config
+CONFIG = configparser.ConfigParser()
 
 
 # ARGUMENT FUNCTIONS
 def init_(args):  # pylint: disable=unused-argument
-    """
+    """initialize database
+
     Initializes the yaml database file at the configured location.
     """
     conf_database = dict(globals()['CONFIG']['DATABASE'])
@@ -33,7 +36,8 @@ def init_(args):  # pylint: disable=unused-argument
 
 
 def list_(args, out=sys.stdout):  # pylint: disable=too-many-branches,too-many-locals
-    """
+    """list entries
+
     By default, all entries of the database are listed.
     This output will be filterable in the future by providing values for any
     set of table keys.
@@ -91,7 +95,8 @@ def list_(args, out=sys.stdout):  # pylint: disable=too-many-branches,too-many-l
 
 
 def show_(args):
-    """
+    """show entry
+
     Prints the details of a selected entry in bibtex format to stdout.
     """
     parser = argparse.ArgumentParser(prog="show", description="Show subcommand parser.")
@@ -110,7 +115,8 @@ def show_(args):
 
 
 def open_(args):
-    """
+    """open file from entry
+
     Opens the associated file of an entry with xdg-open.
     """
     parser = argparse.ArgumentParser(prog="open", description="Open subcommand parser.")
@@ -132,7 +138,8 @@ def open_(args):
 
 
 def add_(args):
-    """
+    """add new entry
+
     Adds new entries to the database.
     """
     parser = argparse.ArgumentParser(prog="add", description="Add subcommand parser.")
@@ -185,7 +192,8 @@ def add_(args):
 
 
 def remove_(args):
-    """
+    """remove entry
+
     Removes the entry from the database.
     """
     parser = argparse.ArgumentParser(prog="remove", description="Remove subcommand parser.")
@@ -216,7 +224,8 @@ def remove_(args):
 
 
 def edit_(args):
-    """
+    """edit entry
+
     Opens an existing entry for manual editing.
     """
     parser = argparse.ArgumentParser(prog="edit", description="Edit subcommand parser.")
@@ -261,7 +270,8 @@ def edit_(args):
 
 
 def export_(args):
-    """
+    """export database
+
     Exports all entries matched by the filter queries (see the list docs).
     Currently supported exporting formats are:
     * bibtex databases
