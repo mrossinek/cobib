@@ -3,7 +3,6 @@
 # IMPORTS
 # standard
 import argparse
-import inspect
 import os
 import sys
 import tempfile
@@ -335,11 +334,3 @@ def set_config(config):
         config (dict): confi from configgparser
     """
     globals()['CONFIG'] = config
-
-
-def _list_commands():
-    subcommands = []
-    for value in globals().values():
-        if inspect.isfunction(value) and 'args' in inspect.signature(value).parameters:
-            subcommands.append(value.__name__[:-1])
-    return subcommands
