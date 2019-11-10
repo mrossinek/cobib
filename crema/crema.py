@@ -328,7 +328,12 @@ def _write_database(entries):
             bib.write(line+'\n')
 
 
-def _load_config(config):
+def set_config(config):
+    """
+    Sets the global config
+    Args:
+        config (dict): confi from configgparser
+    """
     globals()['CONFIG'] = config
 
 

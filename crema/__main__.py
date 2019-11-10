@@ -39,7 +39,7 @@ def main():
         root = os.path.abspath(os.path.dirname(__file__))
         CONFIG.read(os.path.join(root, 'docs', 'default.ini'))
 
-    crema._load_config(CONFIG)
+    crema.set_config(CONFIG)
     subcmd = getattr(crema, args.command+'_')
     subcmd(args.args)
 
