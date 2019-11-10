@@ -47,6 +47,8 @@ def list_(args, out=sys.stdout):  # pylint: disable=too-many-branches,too-many-l
     parser.add_argument('-l', '--long', action='store_true',
                         help="print table in long format (i.e. wrap long lines rather than shorten")
     parser.add_argument('-s', '--sort', help="specify column along which to sort the list")
+    parser.add_argument('-r', '--reverse', action='store_true',
+                        help="reverses the sorting order")
     bib_data = _read_database()
     unique_keys = set()
     for entry in bib_data.values():
@@ -83,7 +85,7 @@ def list_(args, out=sys.stdout):  # pylint: disable=too-many-branches,too-many-l
             else:
                 table[-1][1] = textwrap.shorten(table[-1][1], 80, placeholder='...')
     if largs.sort:
-        table = sorted(table, key=itemgetter(columns.index(largs.sort)))
+        table = sorted(table, key=itemgetter(columns.index(largs.sort)), reverse=largs.reverse)
     print(tabulate.tabulate(table, headers=columns), file=out)
     return labels
 
