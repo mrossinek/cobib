@@ -19,8 +19,7 @@ import bibtexparser
 DOI_URL = "https://doi.org/"
 DOI_HEADER = {'Accept': "application/x-bibtex"}
 # arXiv url according to docs from here https://arxiv.org/help/oa
-ARXIV_URL = "https://export.arxiv.org/oai2?verb=GetRecord&metadataPrefix=arXiv\
-             &identifier=oai:arXiv.org:"
+ARXIV_URL = "https://export.arxiv.org/api/query?id_list="
 # DOI regex used for matching DOIs
 DOI_REGEX = r'(10\.[0-9a-zA-Z]+\/(?:(?!["&\'])\S)+)\b'
 # biblatex default types and required values taken from their docs
@@ -133,17 +132,21 @@ class Entry():
         """Queries the bibtex source from a given arxiv ID"""
         page = requests.get(ARXIV_URL+arxiv)
         xml = BeautifulSoup(page.text, features='xml')
+        # TODO rewrite this to use a defaultdict(str)
         entry = {}
         entry['archivePrefix'] = 'arXiv'
-        for key in xml.metadata.arXiv.findChildren(recursive=False):
-            if key.name == 'doi':
+        for key in xml.feed.entry.findChildren(recursive=False):
+            # TODO key.name == 'category'
+            # TODO key.name == 'link'
+            # TODO key.name == 'updated'
+            if key.name == 'arxiv:doi':
                 entry['doi'] = str(key.contents[0])
             elif key.name == 'id':
-                entry['arxivid'] = str(key.contents[0])
+                entry['arxivid'] = str(key.contents[0]).replace('http://arxiv.org/abs/', '')
                 entry['eprint'] = str(key.contents[0])
-            elif key.name == 'categories':
-                entry['primaryClass'] = key.contents[0].split(' ')[0]
-            elif key.name == 'created':
+            elif key.name == 'primary_category':
+                entry['primaryClass'] = str(key.attrs['term'])
+            elif key.name == 'published':
                 entry['year'] = key.contents[0].split('-')[0]
                 if 'ID' in entry.keys():
                     entry['ID'] = entry['ID'] + entry['year']
@@ -151,20 +154,19 @@ class Entry():
                     entry['ID'] = entry['year']
             elif key.name == 'title':
                 entry['title'] = re.sub(r'\s+', ' ', key.contents[0].strip().replace('\n', ' '))
-            elif key.name == 'authors':
-                entry['author'] = ''
-                first = True
-                for author in key.findChildren(recursive=False):
-                    if first:
-                        if 'ID' in entry.keys():
-                            entry['ID'] = author.keyname.contents[0] + entry['ID']
-                        else:
-                            entry['ID'] = author.keyname.contents[0]
-                        first = False
-                    entry['author'] += '{} {} and '.format(author.forenames.contents[0],
-                                                           author.keyname.contents[0])
-                entry['author'] = entry['author'][:-5]
-            elif key.name == 'abstract':
+            elif key.name == 'author':
+                if 'author' not in entry.keys():
+                    first = True
+                    entry['author'] = ''
+                name = [n.contents[0] for n in key.findChildren()][0]
+                if first:
+                    if 'ID' in entry.keys():
+                        entry['ID'] = name.split()[-1] + entry['ID']
+                    else:
+                        entry['ID'] = name.split()[-1]
+                    first = False
+                entry['author'] += '{} and '.format(name)
+            elif key.name == 'summary':
                 entry['abstract'] = re.sub(r'\s+', ' ', key.contents[0].strip().replace('\n', ' '))
             else:
                 print("The key '{}' of this arXiv entry is not being processed!".format(key.name))
@@ -172,6 +174,8 @@ class Entry():
             entry['ENTRYTYPE'] = 'article'
         else:
             entry['ENTRYTYPE'] = 'unpublished'
+        # strip last 'and' from author field
+        entry['author'] = entry['author'][:-5]
         bib = OrderedDict()
         bib[entry['ID']] = Entry(entry['ID'], entry)
         return bib
