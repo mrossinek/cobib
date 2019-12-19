@@ -131,8 +131,15 @@ def open_(args):
         if 'file' not in entry.data.keys() or entry.data['file'] is None:
             print("Error: There is no file associated with this entry.")
             sys.exit(1)
-        Popen(["xdg-open", entry.data['file']], stdin=None, stdout=None, stderr=None,
-              close_fds=True, shell=False)
+        try:
+            Popen(["xdg-open", entry.data['file']], stdin=None, stdout=None, stderr=None,
+                  close_fds=True, shell=False)
+        except FileNotFoundError:
+            try:
+                Popen(["open", entry.data['file']], stdin=None, stdout=None, stderr=None,
+                      close_fds=True, shell=False)
+            except FileNotFoundError:
+                pass
     except KeyError:
         print("Error: No entry with the label '{}' could be found.".format(largs.label))
 
