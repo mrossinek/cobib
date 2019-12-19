@@ -10,8 +10,8 @@ import requests
 from bs4 import BeautifulSoup
 from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
-import bibtexparser
 import pdftotext
+import bibtexparser
 
 # GLOBAL VARIABLES
 # API and HEADER settings according to this resource

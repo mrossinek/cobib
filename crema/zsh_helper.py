@@ -18,7 +18,7 @@ def list_tags(args=None):  # pylint: disable=unused-argument
     """ List all tags """
     crema.set_config()
     bib_data = crema._read_database()  # pylint: disable=protected-access
-    tags = [tag for tag in bib_data.keys()]
+    tags = list(bib_data.keys())
     return tags
 
 
