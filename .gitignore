@@ -1,4 +1,6 @@
 tags
+.direnv
+.envrc
 
 # Python data
 build
