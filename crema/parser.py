@@ -51,7 +51,7 @@ class Entry():
 
     def __init__(self, label, data):
         self.label = label
-        self.data = data
+        self.data = data.copy()
 
     def __repr__(self):
         return self.to_bibtex()
@@ -131,7 +131,7 @@ class Entry():
         # pylint: disable=too-many-branches
         """Queries the bibtex source from a given arxiv ID"""
         page = requests.get(ARXIV_URL+arxiv)
-        xml = BeautifulSoup(page.text, features='xml')
+        xml = BeautifulSoup(page.text, features='html.parser')
         # TODO rewrite this to use a defaultdict(str)
         entry = {}
         entry['archivePrefix'] = 'arXiv'
