@@ -22,5 +22,5 @@ before_script:
 
 test:
     script:
-        - pip install -r requirements.txrt
+        - pip install -r requirements.txt
         - python -m pytest test
