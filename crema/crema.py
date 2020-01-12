@@ -94,7 +94,7 @@ def list_(args, out=sys.stdout):  # pylint: disable=too-many-branches,too-many-l
     return labels
 
 
-def show_(args):
+def show_(args, out=sys.stdout):
     """show entry
 
     Prints the details of a selected entry in bibtex format to stdout.
@@ -109,7 +109,7 @@ def show_(args):
     try:
         entry = bib_data[largs.label]
         entry_str = entry.to_bibtex()
-        print(entry_str)
+        print(entry_str, file=out)
     except KeyError:
         print("Error: No entry with the label '{}' could be found.".format(largs.label))
 
