@@ -95,7 +95,7 @@ class Entry():
         yaml = Entry.YamlDumper()
         yaml.explicit_start = True
         yaml.explicit_end = True
-        return yaml.dump({self.label: self.data})
+        return yaml.dump({self.label: dict(sorted(self.data.items()))})
 
     @staticmethod
     def from_bibtex(file, string=False):
