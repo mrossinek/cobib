@@ -15,13 +15,14 @@ cache:
         - .cache/pip
         - venv/
 before_script:
-    - apt-get install libpoppler-cpp-dev pkg-config
+    - uname -a
+    - apt-get install libpoppler-cpp pkg-config
     - python -V  # Print out python version for debugging
     - pip install virtualenv
     - virtualenv venv
     - source venv/bin/activate
+    - pip install -r requirements.txt
 
 test:
     script:
-        - pip install -r requirements.txt
         - python -m pytest test
