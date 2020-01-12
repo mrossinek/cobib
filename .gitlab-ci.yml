@@ -15,7 +15,7 @@ cache:
         - .cache/pip
         - venv/
 before_script:
-    - sudo apt-get install libpoppler-cpp-dev pkg-config
+    - apt-get install libpoppler-cpp-dev pkg-config
     - python -V  # Print out python version for debugging
     - pip install virtualenv
     - virtualenv venv
