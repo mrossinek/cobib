@@ -4,6 +4,7 @@
 # standard
 import argparse
 import configparser
+import io
 import os
 import sys
 import tempfile
@@ -352,6 +353,8 @@ def set_config(configpath=None):
         configpath (TextIOWrapper): config file
     """
     if configpath is not None:
+        if type(configpath) == io.TextIOWrapper:
+            configpath = configpath.name
         CONFIG.read(configpath)
     elif os.path.exists('~/.config/crema/config.ini'):
         CONFIG.read(os.path.expanduser('~/.config/crema/config.ini'))
