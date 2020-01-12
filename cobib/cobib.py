@@ -162,8 +162,6 @@ def add_(args):
                            help="BibTeX bibliographic data")
     group_add.add_argument("-d", "--doi", type=str,
                            help="DOI of the new references")
-    group_add.add_argument("-p", "--pdf", type=argparse.FileType('rb'),
-                           help="PDFs files to be added")
     parser.add_argument("tags", nargs=argparse.REMAINDER)
     if not args:
         parser.print_usage(sys.stderr)
@@ -178,8 +176,6 @@ def add_(args):
         new_entries = Entry.from_arxiv(largs.arxiv)
     if largs.doi is not None:
         new_entries = Entry.from_doi(largs.doi)
-    if largs.pdf is not None:
-        new_entries = Entry.from_pdf(largs.pdf)
 
     if largs.file is not None:
         assert len(new_entries.values()) == 1

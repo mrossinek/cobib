@@ -139,8 +139,3 @@ def test_parser_from_arxiv():
     # cannot assert against EXAMPLE_ENTRY_DICT due to outdated reference on arxiv
     # thus, we simply assert that the data dictionary is not empty
     assert entry.data
-
-
-def test_parser_from_pdf():
-    """Test parsing a pdf"""
-    pytest.skip("There is currently no meaningful way of testing this generically.")

@@ -1,6 +1,5 @@
 bibtexparser
 bs4
-pdftotext
 requests
 ruamel.yaml
 tabulate

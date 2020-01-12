@@ -9,7 +9,7 @@ with open(os.path.join(HERE, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='cobib',
-    version='1.0.1',
+    version='1.0.2',
     description='Console Bibliography',
     long_description=README,
     long_description_content_type='text/markdown',
@@ -26,7 +26,6 @@ setup(
     install_requires=[
         'bibtexparser',
         'bs4',
-        'pdftotext',
         'requests',
         'ruamel.yaml',
         'tabulate'

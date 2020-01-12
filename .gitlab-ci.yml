@@ -16,7 +16,6 @@ cache:
         - venv/
 before_script:
     - uname -a
-    - apt-get install -y pkg-config libpoppler-dev
     - python -V  # Print out python version for debugging
     - pip install virtualenv
     - virtualenv venv

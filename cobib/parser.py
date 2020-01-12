@@ -10,7 +10,6 @@ import requests
 from bs4 import BeautifulSoup
 from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
-import pdftotext
 import bibtexparser
 
 # GLOBAL VARIABLES
@@ -178,17 +177,4 @@ class Entry():
         entry['author'] = entry['author'][:-5]
         bib = OrderedDict()
         bib[entry['ID']] = Entry(entry['ID'], entry)
-        return bib
-
-    @staticmethod
-    def from_pdf(pdf):
-        """Extracts the most common DOI from a pdf file"""
-        def most_common(lst: list):
-            return max(set(lst), key=lst.count)
-        pdf_obj = pdftotext.PDF(pdf)  # pylint: disable=c-extension-no-member
-        text = "".join(pdf_obj)
-        matches = re.findall(DOI_REGEX, text)
-        bib = Entry.from_doi(most_common(matches))
-        for value in bib.values():
-            value.set_file(pdf.name)
         return bib

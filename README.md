@@ -11,7 +11,7 @@ fast, reference manager. CoBib is written in Python and uses a YAML file to
 store its bibliography in a plain text format.
 
 Currently CoBib provides the following functionality:
-* adding new references from a bibtex source or via DOI, arXiv ID or PDF
+* adding new references from a bibtex source or via DOI or arXiv ID
 * querying the database by in- and exclusion filters
 * printing detailed information about a reference ID
 * exporting a list of references to the biblatex format
