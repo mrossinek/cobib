@@ -1,0 +1,8 @@
+stages:
+    - test
+
+test:
+    stage: test
+    script:
+        - pip install -r requirements.txrt
+        - python -m pytest test
