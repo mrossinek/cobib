@@ -14,17 +14,23 @@ def list_commands(args=None):  # pylint: disable=unused-argument
     return subcommands
 
 
-def list_tags(args=None):  # pylint: disable=unused-argument
+def list_tags(args=None):
     """ List all tags """
-    crema.set_config()
+    if 'config' in args.keys():
+        crema.set_config(args['config'])
+    else:
+        crema.set_config()
     bib_data = crema._read_database()  # pylint: disable=protected-access
     tags = list(bib_data.keys())
     return tags
 
 
-def list_filters(args=None):  # pylint: disable=unused-argument
+def list_filters(args=None):
     """ List all filters """
-    crema.set_config()
+    if 'config' in args.keys():
+        crema.set_config(args['config'])
+    else:
+        crema.set_config()
     bib_data = crema._read_database()  # pylint: disable=protected-access
     filters = set()
     for entry in bib_data.values():
