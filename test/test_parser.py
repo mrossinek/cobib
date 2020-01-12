@@ -114,8 +114,6 @@ def test_parser_from_bibtex_as_file():
     with open(EXAMPLE_BIBTEX_FILE, 'r') as bibtex_file:
         entries = parser.Entry.from_bibtex(bibtex_file, string=False)
         entry = list(entries.values())[0]
-        print(entry.data['author'])
-        print(EXAMPLE_ENTRY_DICT['author'])
         assert entry.data == EXAMPLE_ENTRY_DICT
 
 
