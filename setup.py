@@ -9,11 +9,12 @@ with open(os.path.join(HERE, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='cobib',
-    version='1.0.0',
-    description='Console Reference Manager',
+    version='1.0.1',
+    description='Console Bibliography',
     long_description=README,
     long_description_content_type='text/markdown',
-    keywords='console reference manager',
+    keywords='reference-manager terminal-based console-based citation-manager bibtex doi arxiv cli \
+              command-line bibliography',
     url='https://gitlab.com/mrossinek/cobib',
     license='MIT',
     author='Max Rossmannek',
