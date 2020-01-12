@@ -1,6 +1,6 @@
-""" Initialize CReMa module """
+""" Initialize CoBib module """
 
-from .crema import init_, list_, show_, open_, add_, remove_, edit_, export_
+from .cobib import init_, list_, show_, open_, add_, remove_, edit_, export_
 
 __all__ = [
         'init_',

@@ -1,12 +1,12 @@
 #!/usr/bin/python3
-"""CReMa main body"""
+"""CoBib main body"""
 
 # IMPORTS
 import argparse
 import inspect
 import sys
 
-from . import crema
+from . import cobib
 from . import zsh_helper
 
 
@@ -30,8 +30,8 @@ def main():
 
     args = parser.parse_args()
 
-    crema.set_config(args.config)
-    subcmd = getattr(crema, args.command+'_')
+    cobib.set_config(args.config)
+    subcmd = getattr(cobib, args.command+'_')
     subcmd(args.args)
 
 

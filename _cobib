@@ -1,19 +1,19 @@
-#compdef crema
+#compdef cobib
 #
-# Completion definition for CReMa.
+# Completion definition for CoBib.
 #
 
 setopt localoptions noshwordsplit noksharrays
 
 typeset -g subcmds tags filters
 
-subcmds=( ${(f)"$(crema _list_commands)"} )
+subcmds=( ${(f)"$(cobib _list_commands)"} )
 _describe -t commands "commands" subcmds
 
-tags=( ${(f)"$(crema _list_tags)"} )
+tags=( ${(f)"$(cobib _list_tags)"} )
 _describe -t tags "tags" tags
 
-filters=( ${(f)"$(crema _list_filters)"} )
+filters=( ${(f)"$(cobib _list_filters)"} )
 _describe -t filters "filters" filters
 
 local -a globalargs

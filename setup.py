@@ -8,19 +8,19 @@ with open(os.path.join(HERE, 'README.md'), encoding='utf-8') as f:
     README = f.read()
 
 setup(
-    name='crema',
+    name='cobib',
     version='1.0.0',
     description='Console Reference Manager',
     long_description=README,
     long_description_content_type='text/markdown',
     keywords='console reference manager',
-    url='https://gitlab.com/mrossinek/crema',
+    url='https://gitlab.com/mrossinek/cobib',
     license='MIT',
     author='Max Rossmannek',
     author_email='rmax@ethz.ch',
     platforms=['any'],
-    packages=['crema'],
-    package_data={'crema': ['docs/default.ini']},
+    packages=['cobib'],
+    package_data={'cobib': ['docs/default.ini']},
     python_requires='>=3.5',
     install_requires=[
         'bibtexparser',
@@ -32,7 +32,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'crema = crema.__main__:main'
+            'cobib = cobib.__main__:main'
         ]
     }
 )

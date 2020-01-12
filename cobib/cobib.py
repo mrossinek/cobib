@@ -1,4 +1,4 @@
-"""CReMa main module"""
+"""CoBib main module"""
 
 # IMPORTS
 # standard
@@ -20,7 +20,7 @@ import tabulate
 from .parser import Entry
 
 # global config
-# the configuration file will be loaded from ~/.config/crema/config.ini
+# the configuration file will be loaded from ~/.config/cobib/config.ini
 # if this file does not exists, defaults are taken from the package data config
 CONFIG = configparser.ConfigParser()
 
@@ -356,8 +356,8 @@ def set_config(configpath=None):
         if isinstance(configpath, io.TextIOWrapper):
             configpath = configpath.name
         CONFIG.read(configpath)
-    elif os.path.exists('~/.config/crema/config.ini'):
-        CONFIG.read(os.path.expanduser('~/.config/crema/config.ini'))
+    elif os.path.exists('~/.config/cobib/config.ini'):
+        CONFIG.read(os.path.expanduser('~/.config/cobib/config.ini'))
     else:
         root = os.path.abspath(os.path.dirname(__file__))
         CONFIG.read(os.path.join(root, 'docs', 'default.ini'))

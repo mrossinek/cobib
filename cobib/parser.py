@@ -1,4 +1,4 @@
-"""CReMa parsing module"""
+"""CoBib parsing module"""
 
 # IMPORTS
 # standard

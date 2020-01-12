@@ -1,8 +1,8 @@
-"""Tests for CReMa's parsing module"""
+"""Tests for CoBib's parsing module"""
 
 from os import path
 import pytest
-from crema import parser
+from cobib import parser
 
 EXAMPLE_BIBTEX_FILE = 'test/example_entry.bib'
 EXAMPLE_YAML_FILE = 'test/example_entry.yaml'
