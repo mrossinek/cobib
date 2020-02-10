@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
 ## [1.0.2] - 2020-01-12
 
 Pypi: https://pypi.org/project/cobib/1.0.2/
@@ -17,12 +18,14 @@ Note: this removal is not seen as a MINOR version bump because this is
 - doi extraction from pdf files (476efc4f)
   - also removes the ability to add entries directly via pdf files
 
+
 ## [1.0.1] - 2020-01-12
 
 Pypi: https://pypi.org/project/cobib/1.0.1/
 
 ### Changed
 - metadata for pypi
+
 
 ## [1.0.0] - 2020-01-12
 
@@ -42,16 +45,18 @@ The project was renamed from `CReMa` to `CoBib`
 ### Fixed
 - fixed arxiv parser (7ce3726f)
 
+
 ## [0.2] - 2019-09-02
 
 Note: this release was not marked MAJOR because this is still a WIP and early
       alpha release.
 
 ### Added
-- complete rewrite to use a plain-text `yaml` database instead of `sqlite3`
+- complete rewrite to use a plain-text `yaml` database instead of `sqlite3` !1
 
 ### Removed
 - `sqlite3` database
+
 
 ## [0.1] - 2019-04-29
 
