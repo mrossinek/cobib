@@ -84,7 +84,7 @@ def list_(args, out=sys.stdout):  # pylint: disable=too-many-branches,too-many-l
     for key, entry in bib_data.items():
         if entry.matches(_filter, largs.OR):
             labels.append(key)
-            table.append([entry.data[c] for c in columns])
+            table.append([entry.data.get(c, None) for c in columns])
             if largs.long:
                 table[-1][1] = textwrap.fill(table[-1][1], width=80)
             else:
