@@ -4,6 +4,7 @@
 import os
 from datetime import datetime
 from io import StringIO
+from itertools import zip_longest
 from pathlib import Path
 from shutil import copyfile
 
@@ -110,6 +111,35 @@ def test_add():
         with open('./test/example_literature.yaml', 'r') as expected:
             for line, truth in zip(file, expected):
                 assert line == truth
+    # clean up file system
+    os.remove('/tmp/cobib_test_database.yaml')
+    os.remove('/tmp/cobib_test_config.ini')
+
+
+def test_add_overwrite_label():
+    """Test add command while specifying a label manually.
+
+    Regression test against #4.
+    """
+    # use temporary config
+    tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
+    with open('/tmp/cobib_test_config.ini', 'w') as file:
+        file.write(tmp_config)
+    cobib.set_config(Path('/tmp/cobib_test_config.ini'))
+    # ensure database file exists and is empty
+    open('/tmp/cobib_test_database.yaml', 'w').close()
+    # add some data
+    cobib.add_(['-b', './test/example_literature.bib'])
+    # add potentially duplicate entry
+    cobib.add_(['-b', './test/example_duplicate_entry.bib', '--label', 'duplicate_resolver'])
+    # compare with reference file
+    with open('./test/example_literature.yaml', 'r') as expected:
+        true_lines = expected.readlines()
+    with open('./test/example_duplicate_entry.yaml', 'r') as extra:
+        true_lines += extra.readlines()
+    with open('/tmp/cobib_test_database.yaml', 'r') as file:
+        for line, truth in zip_longest(file, true_lines):
+            assert line == truth
     # clean up file system
     os.remove('/tmp/cobib_test_database.yaml')
     os.remove('/tmp/cobib_test_config.ini')
