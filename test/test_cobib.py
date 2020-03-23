@@ -84,7 +84,7 @@ def test_show(setup):
     file = StringIO()
     cobib.show_(['einstein'], out=file)
     with open('./test/example_literature.bib', 'r') as expected:
-        for line, truth in zip(file.getvalue().split('\n'), expected):
+        for line, truth in zip_longest(file.getvalue().split('\n'), expected):
             if not line:
                 continue
             assert line == truth.strip('\n')
@@ -109,7 +109,7 @@ def test_add():
     # compare with reference file
     with open('/tmp/cobib_test_database.yaml', 'r') as file:
         with open('./test/example_literature.yaml', 'r') as expected:
-            for line, truth in zip(file, expected):
+            for line, truth in zip_longest(file, expected):
                 assert line == truth
     # clean up file system
     os.remove('/tmp/cobib_test_database.yaml')
@@ -159,6 +159,7 @@ def test_remove():
     cobib.remove_(['knuthwebsite'])
     with open('/tmp/cobib_test_database.yaml', 'r') as file:
         with open('./test/example_literature.yaml', 'r') as expected:
+            # NOTE: do NOT use zip_longest to omit last entry (thus, we removed the last one)
             for line, truth in zip(file, expected):
                 assert line == truth
             with pytest.raises(StopIteration):
@@ -178,7 +179,10 @@ def test_export(setup):
     cobib.export_(['-b', '/tmp/cobib_test_export.bib'])
     with open('/tmp/cobib_test_export.bib', 'r') as file:
         with open('./test/example_literature.bib', 'r') as expected:
-            for line, truth in zip(file, expected):
+            for line, truth in zip_longest(file, expected):
+                if truth[0] == '%':
+                    # ignore comments
+                    continue
                 assert line == truth
     # clean up file system
     os.remove('/tmp/cobib_test_export.bib')
