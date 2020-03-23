@@ -1,4 +1,5 @@
 """Tests for CoBib's actual commands"""
+# pylint: disable=unused-argument, redefined-outer-name
 
 import os
 from datetime import datetime
@@ -17,7 +18,7 @@ def setup():
     cobib.set_config(Path(root + '/../cobib/docs/debug.ini'))
 
 
-def test_set_config(setup):  # pylint: disable=unused-argument, redefined-outer-name
+def test_set_config(setup):
     """Test config setting"""
     # from setup
     assert cobib.CONFIG['DATABASE']['file'] == './test/example_literature.yaml'
@@ -45,7 +46,7 @@ def test_init():
     os.remove('/tmp/cobib_test_config.ini')
 
 
-def test_list(setup):  # pylint: disable=unused-argument, redefined-outer-name
+def test_list(setup):
     """Test list command"""
     # redirect output of list to string
     file = StringIO()
@@ -59,11 +60,28 @@ def test_list(setup):  # pylint: disable=unused-argument, redefined-outer-name
         assert line.split()[0] in expected
 
 
-def test_show(setup):  # pylint: disable=unused-argument, redefined-outer-name
+def test_list_with_missing_keys(setup):
+    """Asserts issue #1 is fixed.
+
+    When a key is queried which is not present in all entries, the list command should return
+    normally.
+    """
+    # redirect output of list to string
+    file = StringIO()
+    tags = cobib.list_(['++year', '1905'], out=file)
+    expected = ['einstein']
+    assert tags == expected
+    for line in file.getvalue().split('\n'):
+        if line.startswith('ID') or all([c in '- ' for c in line]):
+            # skip table header
+            continue
+        assert line.split()[0] in expected
+
+
+def test_show(setup):
     """Test show command"""
     file = StringIO()
-    # pylint: disable=unexpected-keyword-arg
-    cobib.show_(['einstein'], out=file)  # TODO: figure out why the above exception is needed
+    cobib.show_(['einstein'], out=file)
     with open('./test/example_literature.bib', 'r') as expected:
         for line, truth in zip(file.getvalue().split('\n'), expected):
             if not line:
@@ -125,7 +143,7 @@ def test_edit():
     pytest.skip("There is currently no meaningful way of testing this.")
 
 
-def test_export(setup):  # pylint: disable=unused-argument, redefined-outer-name
+def test_export(setup):
     """Test export command"""
     cobib.export_(['-b', '/tmp/cobib_test_export.bib'])
     with open('/tmp/cobib_test_export.bib', 'r') as file:

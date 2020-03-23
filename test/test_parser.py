@@ -87,6 +87,17 @@ def test_entry_matches():
     assert entry.matches(_filter, _or=False)
 
 
+def test_match_with_wrong_key():
+    """Asserts issue #1 is fixed.
+
+    When matches() is called with a key in the filter which does not exist in the entry, the key
+    should be ignored and the function should return normally.
+    """
+    entry = parser.Entry('article', EXAMPLE_ENTRY_DICT)
+    _filter = {('tags', False): ['test']}
+    assert entry.matches(_filter, _or=False)
+
+
 def test_to_bibtex():
     """Test to bibtex conversion"""
     pytest.skip("Testing this string is too ambigious. Assumed to be tested by bibtexparser.")

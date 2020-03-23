@@ -66,14 +66,14 @@ def list_(args, out=sys.stdout):  # pylint: disable=too-many-branches,too-many-l
     largs = parser.parse_args(args)
     _filter = defaultdict(list)
     for key, val in largs.__dict__.items():
-        if key in ['OR', 'long', 'sort'] or val is None:
+        if key in ['OR', 'long', 'sort', 'reverse'] or val is None:
             continue
         if not isinstance(val, list):
             val = [val]
         for i in val:
-            for idx, obj in enumerate(sys.argv):
+            for idx, obj in enumerate(args):
                 if i == obj:
-                    _filter[tuple([key, sys.argv[idx-1][0] == '+'])].append(i)
+                    _filter[tuple([key, args[idx-1][0] == '+'])].append(i)
                     break
     columns = ['ID', 'title']
     if largs.sort and largs.sort not in columns:
@@ -84,7 +84,7 @@ def list_(args, out=sys.stdout):  # pylint: disable=too-many-branches,too-many-l
     for key, entry in bib_data.items():
         if entry.matches(_filter, largs.OR):
             labels.append(key)
-            table.append([entry.data[c] for c in columns])
+            table.append([entry.data.get(c, None) for c in columns])
             if largs.long:
                 table[-1][1] = textwrap.fill(table[-1][1], width=80)
             else:

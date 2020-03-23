@@ -74,6 +74,7 @@ class Entry():
         for key, values in _filter.items():
             if key[0] not in self.data.keys():
                 match_list.append(not key[1])
+                continue
             for val in values:
                 if val not in self.data[key[0]]:
                     match_list.append(not key[1])
