@@ -186,6 +186,7 @@ def add_(args):
         assert len(new_entries.values()) == 1
         for value in new_entries.values():
             value.set_label(largs.label)
+        new_entries = OrderedDict((largs.label, value) for value in new_entries.values())
 
     if largs.tags != []:
         assert len(new_entries.values()) == 1
