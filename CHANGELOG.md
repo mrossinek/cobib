@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     in any bibliography entry (!2)
 - `--label` can now correctly overwrite the ID (#4,!3)
 - `set_config()` and global `CONFIG` exported to separate module
+- add `FORMAT.month` configuration option to configure the default type for
+    month fields (defaults to `int`) (#3,!4)
 
 
 ## [1.0.2] - 2020-01-12
