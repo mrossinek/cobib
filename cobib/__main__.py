@@ -8,6 +8,7 @@ import sys
 
 from . import cobib
 from . import zsh_helper
+from .config import set_config
 
 
 def main():
@@ -30,7 +31,7 @@ def main():
 
     args = parser.parse_args()
 
-    cobib.set_config(args.config)
+    set_config(args.config)
     subcmd = getattr(cobib, args.command+'_')
     subcmd(args.args)
 

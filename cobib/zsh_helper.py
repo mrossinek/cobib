@@ -3,6 +3,7 @@
 import inspect
 
 from . import cobib
+from .config import set_config
 
 
 def list_commands(args=None):  # pylint: disable=unused-argument
@@ -16,10 +17,7 @@ def list_commands(args=None):  # pylint: disable=unused-argument
 
 def list_tags(args=None):
     """ List all tags """
-    if 'config' in args.keys():
-        cobib.set_config(args['config'])
-    else:
-        cobib.set_config()
+    set_config(args.get('config', None))
     bib_data = cobib._read_database()  # pylint: disable=protected-access
     tags = list(bib_data.keys())
     return tags
@@ -27,10 +25,7 @@ def list_tags(args=None):
 
 def list_filters(args=None):
     """ List all filters """
-    if 'config' in args.keys():
-        cobib.set_config(args['config'])
-    else:
-        cobib.set_config()
+    set_config(args.get('config', None))
     bib_data = cobib._read_database()  # pylint: disable=protected-access
     filters = set()
     for entry in bib_data.values():

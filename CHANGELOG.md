@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `list` no longer breaks with a `KeyError` when a queried field does not exist
     in any bibliography entry (!2)
 - `--label` can now correctly overwrite the ID (#4,!3)
+- `set_config()` and global `CONFIG` exported to separate module
 
 
 ## [1.0.2] - 2020-01-12
