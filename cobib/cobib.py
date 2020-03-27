@@ -3,8 +3,6 @@
 # IMPORTS
 # standard
 import argparse
-import configparser
-import io
 import os
 import sys
 import tempfile
@@ -18,11 +16,7 @@ from zipfile import ZipFile
 import tabulate
 # relative
 from .parser import Entry
-
-# global config
-# the configuration file will be loaded from ~/.config/cobib/config.ini
-# if this file does not exists, defaults are taken from the package data config
-CONFIG = configparser.ConfigParser()
+from .config import CONFIG
 
 
 # ARGUMENT FUNCTIONS
@@ -31,7 +25,7 @@ def init_(args):  # pylint: disable=unused-argument
 
     Initializes the yaml database file at the configured location.
     """
-    conf_database = dict(globals()['CONFIG']['DATABASE'])
+    conf_database = dict(CONFIG['DATABASE'])
     file = os.path.expanduser(conf_database['file'])
     open(file, 'w').close()
 
@@ -207,7 +201,7 @@ def remove_(args):
         parser.print_usage(sys.stderr)
         sys.exit(1)
     largs = parser.parse_args(args)
-    conf_database = dict(globals()['CONFIG']['DATABASE'])
+    conf_database = dict(CONFIG['DATABASE'])
     file = os.path.expanduser(conf_database['file'])
     with open(file, 'r') as bib:
         lines = bib.readlines()
@@ -256,7 +250,7 @@ def edit_(args):
     assert not os.path.exists(tmp_file.name)
     if prv == nxt:
         return
-    conf_database = dict(globals()['CONFIG']['DATABASE'])
+    conf_database = dict(CONFIG['DATABASE'])
     file = os.path.expanduser(conf_database['file'])
     with open(file, 'r') as bib:
         lines = bib.readlines()
@@ -316,7 +310,7 @@ def export_(args):
 
 # HELPER FUNCTIONS
 def _read_database():
-    conf_database = dict(globals()['CONFIG']['DATABASE'])
+    conf_database = dict(CONFIG['DATABASE'])
     file = os.path.expanduser(conf_database['file'])
     try:
         bib_data = Entry.from_yaml(Path(file))
@@ -336,25 +330,8 @@ def _write_database(entries):
         reduced = '\n'.join(string.splitlines())
         new_lines.append(reduced)
 
-    conf_database = dict(globals()['CONFIG']['DATABASE'])
+    conf_database = dict(CONFIG['DATABASE'])
     file = os.path.expanduser(conf_database['file'])
     with open(file, 'a') as bib:
         for line in new_lines:
             bib.write(line+'\n')
-
-
-def set_config(configpath=None):
-    """
-    Sets the global config
-    Args:
-        configpath (TextIOWrapper): config file
-    """
-    if configpath is not None:
-        if isinstance(configpath, io.TextIOWrapper):
-            configpath = configpath.name
-        CONFIG.read(configpath)
-    elif os.path.exists('~/.config/cobib/config.ini'):
-        CONFIG.read(os.path.expanduser('~/.config/cobib/config.ini'))
-    else:
-        root = os.path.abspath(os.path.dirname(__file__))
-        CONFIG.read(os.path.join(root, 'docs', 'default.ini'))

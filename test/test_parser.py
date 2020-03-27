@@ -1,8 +1,10 @@
 """Tests for CoBib's parsing module"""
 
 from os import path
+from pathlib import Path
 import pytest
 from cobib import parser
+from cobib import config
 
 EXAMPLE_BIBTEX_FILE = 'test/example_entry.bib'
 EXAMPLE_YAML_FILE = 'test/example_entry.yaml'
@@ -16,7 +18,7 @@ EXAMPLE_ENTRY_DICT = {
               + "Al{\\'{a}}n Aspuru-Guzik",
     'doi': '10.1021/acs.chemrev.8b00803',
     'journal': 'Chemical Reviews',
-    'month': 'aug',
+    'month': '8',
     'number': '19',
     'pages': '10856--10915',
     'publisher': 'American Chemical Society ({ACS})',
@@ -111,36 +113,64 @@ def test_to_yaml():
         assert yaml_str == file.read()
 
 
-def test_parser_from_bibtex_as_string():
+@pytest.mark.parametrize('month_type', ['int', 'str'])
+def test_parser_from_bibtex_as_string(month_type):
     """Test parsing a bibtex string"""
+    root = path.abspath(path.dirname(__file__))
+    config.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    config.CONFIG['FORMAT']['month'] = month_type
+    reference = EXAMPLE_ENTRY_DICT.copy()
+    if month_type == 'str':
+        reference['month'] = 'aug'
     with open(EXAMPLE_BIBTEX_FILE, 'r') as file:
         bibtex_str = file.read()
     entries = parser.Entry.from_bibtex(bibtex_str, string=True)
     entry = list(entries.values())[0]
-    assert entry.data == EXAMPLE_ENTRY_DICT
+    assert entry.data == reference
 
 
-def test_parser_from_bibtex_as_file():
+@pytest.mark.parametrize('month_type', ['int', 'str'])
+def test_parser_from_bibtex_as_file(month_type):
     """Test parsing a bibtex file"""
+    root = path.abspath(path.dirname(__file__))
+    config.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    config.CONFIG['FORMAT']['month'] = month_type
+    reference = EXAMPLE_ENTRY_DICT.copy()
+    if month_type == 'str':
+        reference['month'] = 'aug'
     with open(EXAMPLE_BIBTEX_FILE, 'r') as bibtex_file:
         entries = parser.Entry.from_bibtex(bibtex_file, string=False)
         entry = list(entries.values())[0]
-        assert entry.data == EXAMPLE_ENTRY_DICT
+        assert entry.data == reference
 
 
-def test_parser_from_yaml_as_file():
+@pytest.mark.parametrize('month_type', ['int', 'str'])
+def test_parser_from_yaml_as_file(month_type):
     """Test parsing a yaml file"""
+    root = path.abspath(path.dirname(__file__))
+    config.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    config.CONFIG['FORMAT']['month'] = month_type
+    reference = EXAMPLE_ENTRY_DICT.copy()
+    if month_type == 'str':
+        reference['month'] = 'aug'
     with open(EXAMPLE_YAML_FILE, 'r') as yaml_file:
         entries = parser.Entry.from_yaml(yaml_file)
         entry = list(entries.values())[0]
-        assert entry.data == EXAMPLE_ENTRY_DICT
+        assert entry.data == reference
 
 
-def test_parser_from_doi():
+@pytest.mark.parametrize('month_type', ['int', 'str'])
+def test_parser_from_doi(month_type):
     """Test parsing from doi"""
+    root = path.abspath(path.dirname(__file__))
+    config.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    config.CONFIG['FORMAT']['month'] = month_type
+    reference = EXAMPLE_ENTRY_DICT.copy()
+    if month_type == 'str':
+        reference['month'] = 'aug'
     entries = parser.Entry.from_doi('10.1021/acs.chemrev.8b00803')
     entry = list(entries.values())[0]
-    assert entry.data == EXAMPLE_ENTRY_DICT
+    assert entry.data == reference
 
 
 def test_parser_from_arxiv():
