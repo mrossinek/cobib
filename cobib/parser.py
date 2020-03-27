@@ -12,6 +12,8 @@ from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
 import bibtexparser
 
+from .config import CONFIG
+
 # GLOBAL VARIABLES
 # API and HEADER settings according to this resource
 # https://crosscite.org/docs.html
@@ -51,6 +53,9 @@ class Entry():
     def __init__(self, label, data):
         self.label = label
         self.data = data.copy()
+        month_type = CONFIG.get('FORMAT', 'month', fallback=None)
+        if month_type:
+            self.convert_month(month_type)
 
     def __repr__(self):
         return self.to_bibtex()
@@ -67,6 +72,24 @@ class Entry():
     def set_file(self, file):
         """Sets the file"""
         self.data['file'] = os.path.abspath(file)
+
+    def convert_month(self, type_):
+        """Converts the month into the specified type."""
+        month = self.data.get('month', None)
+        if month is None:
+            return
+        try:
+            month = int(month)
+        except ValueError:
+            pass
+        if type(month).__name__ != type_:
+            months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
+                      'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+            if isinstance(month, str):
+                self.data['month'] = str(months.index(month)+1)
+            elif isinstance(month, int):
+                self.data['month'] = months[month-1]
+
 
     def matches(self, _filter, _or):
         """Check whether the filter is matched"""
