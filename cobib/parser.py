@@ -19,7 +19,7 @@ from .config import CONFIG
 # https://crosscite.org/docs.html
 DOI_URL = "https://doi.org/"
 DOI_HEADER = {'Accept': "application/x-bibtex"}
-# arXiv url according to docs from here https://arxiv.org/help/oa
+# arXiv URL according to docs from here https://arxiv.org/help/oa
 ARXIV_URL = "https://export.arxiv.org/api/query?id_list="
 # DOI regex used for matching DOIs
 DOI_REGEX = r'(10\.[0-9a-zA-Z]+\/(?:(?!["&\'])\S)+)\b'

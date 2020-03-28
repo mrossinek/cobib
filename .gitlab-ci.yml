@@ -22,6 +22,11 @@ before_script:
     - source venv/bin/activate
     - pip install -r requirements.txt
 
+pylint:
+    script:
+        - pylint -rn cobib test --disable='fixme'
+          --spelling-dict='en_US' --spelling-private-dict-file=.pylintdict
+
 test:
     script:
         - pip install pytest
