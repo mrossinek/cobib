@@ -1,5 +1,6 @@
 bibtexparser
 bs4
+pylatexenc
 requests
 ruamel.yaml
 tabulate
