@@ -21,7 +21,7 @@ before_script:
     - virtualenv venv
     - source venv/bin/activate
     - pip install -r requirements.txt
-    - pip install pylint pyenchant
+    - pip install pylint
 
 style:
     script:
@@ -29,6 +29,7 @@ style:
 
 spell:
     script:
+        - apt-get install enchant
         - pylint -rn cobib test --disable=all --enable=spelling
           --spelling-dict='en_US' --spelling-private-dict-file=.pylintdict
 
