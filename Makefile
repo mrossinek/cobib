@@ -10,8 +10,8 @@ test: cobib/ test/
 	python -m pytest test/
 
 lint: cobib/ test/
-	pylint -rn cobib test --disable='fixme'
+	pylint -rn cobib test --disable=fixme
 
 spell: cobib/ test/
-	pylint -rn cobib test --disable='all' --enable='spelling' \
-	    --spelling-dict='en_US' --spelling-private-dict-file=.pytlindict
+	pylint -rn cobib test --disable=all --enable=spelling \
+	    --spelling-dict=en_US --spelling-private-dict-file=.pylintdict
