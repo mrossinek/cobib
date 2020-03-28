@@ -3,9 +3,9 @@ article:
   ENTRYTYPE: article
   ID: Cao_2019
   author: Yudong Cao and Jonathan Romero and Jonathan P. Olson and Matthias Degroote
-    and Peter D. Johnson and M{\'{a}}ria Kieferov{\'{a}} and Ian D. Kivlichan and
-    Tim Menke and Borja Peropadre and Nicolas P. D. Sawaya and Sukin Sim and Libor
-    Veis and Al{\'{a}}n Aspuru-Guzik
+    and Peter D. Johnson and M{\'a}ria Kieferov{\'a} and Ian D. Kivlichan and Tim
+    Menke and Borja Peropadre and Nicolas P. D. Sawaya and Sukin Sim and Libor Veis
+    and Al{\'a}n Aspuru-Guzik
   doi: 10.1021/acs.chemrev.8b00803
   journal: Chemical Reviews
   month: '8'
