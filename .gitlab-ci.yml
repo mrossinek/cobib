@@ -21,7 +21,7 @@ before_script:
     - virtualenv venv
     - source venv/bin/activate
     - pip install -r requirements.txt
-    - pip install pylint
+    - pip install pylint python-enchant  # the latter provides the spelling dict
 
 pylint:
     script:
