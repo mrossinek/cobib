@@ -22,12 +22,12 @@ before_script:
     - source venv/bin/activate
     - pip install -r requirements.txt
     - pip install pylint
-    - apt-get install python-enchant  # provides the spelling dictionary
 
 pylint:
     script:
         - pylint -rn cobib test --disable='fixme'
-          --spelling-dict='en_US' --spelling-private-dict-file=.pylintdict
+          # TODO enable spell checks again
+          # --spelling-dict='en_US' --spelling-private-dict-file=.pylintdict
 
 test:
     script:
