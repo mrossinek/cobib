@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `set_config()` and global `CONFIG` exported to separate module
 - add `FORMAT.month` configuration option to configure the default type for
     month fields (defaults to `int`) (#3,!4)
+- escape special LaTeX characters (#2,!5)
 
 
 ## [1.0.2] - 2020-01-12

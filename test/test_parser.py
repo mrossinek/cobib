@@ -13,9 +13,9 @@ EXAMPLE_ENTRY_DICT = {
     'ENTRYTYPE': 'article',
     'ID': 'Cao_2019',
     'author': "Yudong Cao and Jonathan Romero and Jonathan P. Olson and Matthias Degroote and Peter"
-              + " D. Johnson and M{\\'{a}}ria Kieferov{\\'{a}} and Ian D. Kivlichan and Tim Menke "
+              + " D. Johnson and M{\\'a}ria Kieferov{\\'a} and Ian D. Kivlichan and Tim Menke "
               + "and Borja Peropadre and Nicolas P. D. Sawaya and Sukin Sim and Libor Veis and "
-              + "Al{\\'{a}}n Aspuru-Guzik",
+              + "Al{\\'a}n Aspuru-Guzik",
     'doi': '10.1021/acs.chemrev.8b00803',
     'journal': 'Chemical Reviews',
     'month': '8',
@@ -168,6 +168,10 @@ def test_parser_from_doi(month_type):
     reference = EXAMPLE_ENTRY_DICT.copy()
     if month_type == 'str':
         reference['month'] = 'aug'
+    # In this specific case the bib file provided by this DOI includes additional (yet unnecessary)
+    # brackets in the escaped special characters of the author field. Thus, we correct for this
+    # inconsistency manually before asserting the equality.
+    reference['author'] = reference['author'].replace("'a", "'{a}")
     entries = parser.Entry.from_doi('10.1021/acs.chemrev.8b00803')
     entry = list(entries.values())[0]
     assert entry.data == reference
@@ -180,3 +184,18 @@ def test_parser_from_arxiv():
     # cannot assert against EXAMPLE_ENTRY_DICT due to outdated reference on arxiv
     # thus, we simply assert that the data dictionary is not empty
     assert entry.data
+
+
+@pytest.mark.parametrize('month_type', ['int', 'str'])
+def test_escape_special_chars(month_type):
+    """Test escaping special characters"""
+    root = path.abspath(path.dirname(__file__))
+    config.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    config.CONFIG['FORMAT']['month'] = month_type
+    reference = EXAMPLE_ENTRY_DICT.copy()
+    if month_type == 'str':
+        reference['month'] = 'aug'
+    with open('test/example_entry_unescaped.bib', 'r') as bibtex_file:
+        entries = parser.Entry.from_bibtex(bibtex_file, string=False)
+        entry = list(entries.values())[0]
+        assert entry.data == reference

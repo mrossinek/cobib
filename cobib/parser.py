@@ -8,6 +8,7 @@ import re
 import requests
 # third-party
 from bs4 import BeautifulSoup
+from pylatexenc.latexencode import UnicodeToLatexEncoder
 from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
 import bibtexparser
@@ -53,6 +54,7 @@ class Entry():
     def __init__(self, label, data):
         self.label = label
         self.data = data.copy()
+        self.escape_special_chars()
         month_type = CONFIG.get('FORMAT', 'month', fallback=None)
         if month_type:
             self.convert_month(month_type)
@@ -90,6 +92,14 @@ class Entry():
             elif isinstance(month, int):
                 self.data['month'] = months[month-1]
 
+    def escape_special_chars(self):
+        """Escapes special characters."""
+        enc = UnicodeToLatexEncoder(non_ascii_only=True,
+                                    replacement_latex_protection='braces-all',
+                                    unknown_char_policy='keep')
+        for key, value in self.data.items():
+            if isinstance(value, str):
+                self.data[key] = enc.unicode_to_latex(value)
 
     def matches(self, _filter, _or):
         """Check whether the filter is matched"""
