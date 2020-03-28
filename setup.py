@@ -4,12 +4,12 @@ import os
 from setuptools import setup
 
 HERE = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(HERE, 'README.md'), encoding='utf-8') as f:
+with open(os.path.join(HERE, 'README.md'), 'r', encoding='utf-8') as f:
     README = f.read()
 
 setup(
     name='cobib',
-    version='1.0.2',
+    version='1.1.0',
     description='Console Bibliography',
     long_description=README,
     long_description_content_type='text/markdown',
@@ -26,6 +26,7 @@ setup(
     install_requires=[
         'bibtexparser',
         'bs4',
+        'pylatexenc',
         'requests',
         'ruamel.yaml',
         'tabulate'

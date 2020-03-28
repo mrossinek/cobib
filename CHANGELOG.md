@@ -6,14 +6,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-- `list` no longer breaks with a `KeyError` when a queried field does not exist
-    in any bibliography entry (!2)
-- `--label` can now correctly overwrite the ID (#4,!3)
-- `set_config()` and global `CONFIG` exported to separate module
+
+## [1.1.0] - 2020-03-28
+
+Pypi: https://pypi.org/project/cobib/1.1.0/
+
+### Added
 - add `FORMAT.month` configuration option to configure the default type for
     month fields (defaults to `int`) (#3,!4)
 - escape special LaTeX characters (#2,!5)
+
+### Fixed
+- `list` no longer breaks with a `KeyError` when a queried field does not exist
+    in any bibliography entry (!2)
+- `--label` can now correctly overwrite the ID (#4,!3)
+
+### Changed
+- `set_config()` and global `CONFIG` exported to separate module
 
 
 ## [1.0.2] - 2020-01-12
@@ -73,7 +82,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/deuterium/-/compare/v1.0.2...master
+[Unreleased]: https://gitlab.com/mrossinek/deuterium/-/compare/v1.1.0...master
+[1.1.0]: https://gitlab.com/mrossinek/cobib/-/tags/v1.1.0
 [1.0.2]: https://gitlab.com/mrossinek/cobib/-/tags/v1.0.2
 [1.0.1]: https://gitlab.com/mrossinek/cobib/-/tags/v1.0.1
 [1.0.0]: https://gitlab.com/mrossinek/cobib/-/tags/v1.0.0
