@@ -30,7 +30,7 @@ style:
 spell:
     script:
         - apt-get update
-        - apt-get install python3-enchant
+        - apt-get install -y python3-enchant
         - pylint -rn cobib test --disable=all --enable=spelling
           --spelling-dict='en_US' --spelling-private-dict-file=.pylintdict
 
