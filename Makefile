@@ -10,7 +10,7 @@ test: cobib/ test/
 	python -m pytest test/
 
 lint: cobib/ test/
-	pylint -rn cobib test --disable=fixme
+	pylint -rn cobib test --disable=fixme,duplicate-code
 
 spell: cobib/ test/
 	pylint -rn cobib test --disable=all --enable=spelling \
