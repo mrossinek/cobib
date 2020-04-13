@@ -12,7 +12,7 @@ from cobib.config import set_config
 
 def main():
     """Main function"""
-    if len(sys.argv) > 1 and sys.argv[1][0] == '_':
+    if len(sys.argv) > 1 and any([a[0] == '_' for a in sys.argv]):
         # zsh helper function called
         zsh_main()
         sys.exit()
