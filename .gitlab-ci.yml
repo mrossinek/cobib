@@ -25,7 +25,7 @@ before_script:
 
 style:
     script:
-        - pylint -rn cobib test --disable=fixme
+        - pylint -rn cobib test --disable=fixme,duplicate-code
 
 spell:
     script:
