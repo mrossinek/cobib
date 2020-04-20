@@ -6,14 +6,13 @@ import argparse
 import inspect
 import sys
 
-from . import cobib
-from . import zsh_helper
-from .config import set_config
+from cobib import commands, zsh_helper
+from cobib.config import set_config
 
 
 def main():
     """Main function"""
-    if len(sys.argv) > 1 and sys.argv[1][0] == '_':
+    if len(sys.argv) > 1 and any([a[0] == '_' for a in sys.argv]):
         # zsh helper function called
         zsh_main()
         sys.exit()
@@ -32,8 +31,8 @@ def main():
     args = parser.parse_args()
 
     set_config(args.config)
-    subcmd = getattr(cobib, args.command+'_')
-    subcmd(args.args)
+    subcmd = getattr(commands, args.command.title()+'Command')()
+    subcmd.execute(args.args)
 
 
 def zsh_main():

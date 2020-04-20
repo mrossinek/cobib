@@ -9,7 +9,7 @@ from pathlib import Path
 from shutil import copyfile
 
 import pytest
-from cobib import cobib, config
+from cobib import commands, config
 
 
 @pytest.fixture
@@ -37,7 +37,7 @@ def test_init():
     config.set_config(Path('/tmp/cobib_test_config.ini'))
     # store current time
     now = float(datetime.now().timestamp())
-    cobib.init_({})
+    commands.InitCommand().execute({})
     # check creation time of temporary database file
     ctime = os.stat('/tmp/cobib_test_database.yaml').st_ctime
     # assert these times are close
@@ -51,7 +51,7 @@ def test_list(setup):
     """Test list command"""
     # redirect output of list to string
     file = StringIO()
-    tags = cobib.list_([], out=file)
+    tags = commands.ListCommand().execute([], out=file)
     expected = ['einstein', 'latexcompanion', 'knuthwebsite']
     assert tags == expected
     for line in file.getvalue().split('\n'):
@@ -69,7 +69,7 @@ def test_list_with_missing_keys(setup):
     """
     # redirect output of list to string
     file = StringIO()
-    tags = cobib.list_(['++year', '1905'], out=file)
+    tags = commands.ListCommand().execute(['++year', '1905'], out=file)
     expected = ['einstein']
     assert tags == expected
     for line in file.getvalue().split('\n'):
@@ -82,7 +82,7 @@ def test_list_with_missing_keys(setup):
 def test_show(setup):
     """Test show command"""
     file = StringIO()
-    cobib.show_(['einstein'], out=file)
+    commands.ShowCommand().execute(['einstein'], out=file)
     with open('./test/example_literature.bib', 'r') as expected:
         for line, truth in zip_longest(file.getvalue().split('\n'), expected):
             if not line:
@@ -105,7 +105,7 @@ def test_add():
     # ensure database file exists and is empty
     open('/tmp/cobib_test_database.yaml', 'w').close()
     # add some data
-    cobib.add_(['-b', './test/example_literature.bib'])
+    commands.AddCommand().execute(['-b', './test/example_literature.bib'])
     # compare with reference file
     with open('/tmp/cobib_test_database.yaml', 'r') as file:
         with open('./test/example_literature.yaml', 'r') as expected:
@@ -129,9 +129,10 @@ def test_add_overwrite_label():
     # ensure database file exists and is empty
     open('/tmp/cobib_test_database.yaml', 'w').close()
     # add some data
-    cobib.add_(['-b', './test/example_literature.bib'])
+    commands.AddCommand().execute(['-b', './test/example_literature.bib'])
     # add potentially duplicate entry
-    cobib.add_(['-b', './test/example_duplicate_entry.bib', '--label', 'duplicate_resolver'])
+    commands.AddCommand().execute(['-b', './test/example_duplicate_entry.bib',
+                                   '--label', 'duplicate_resolver'])
     # compare with reference file
     with open('./test/example_literature.yaml', 'r') as expected:
         true_lines = expected.readlines()
@@ -156,7 +157,7 @@ def test_remove():
     copyfile(Path('./test/example_literature.yaml'), Path('/tmp/cobib_test_database.yaml'))
     # remove some data
     # NOTE: for testing simplicity we remove the last entry
-    cobib.remove_(['knuthwebsite'])
+    commands.RemoveCommand().execute(['knuthwebsite'])
     with open('/tmp/cobib_test_database.yaml', 'r') as file:
         with open('./test/example_literature.yaml', 'r') as expected:
             # NOTE: do NOT use zip_longest to omit last entry (thus, we removed the last one)
@@ -176,7 +177,7 @@ def test_edit():
 
 def test_export(setup):
     """Test export command"""
-    cobib.export_(['-b', '/tmp/cobib_test_export.bib'])
+    commands.ExportCommand().execute(['-b', '/tmp/cobib_test_export.bib'])
     with open('/tmp/cobib_test_export.bib', 'r') as file:
         with open('./test/example_literature.bib', 'r') as expected:
             for line, truth in zip_longest(file, expected):

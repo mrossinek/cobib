@@ -13,7 +13,7 @@ from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
 import bibtexparser
 
-from .config import CONFIG
+from cobib.config import CONFIG
 
 # GLOBAL VARIABLES
 # API and HEADER settings according to this resource

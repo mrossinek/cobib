@@ -10,7 +10,7 @@ def test_list_commands():
     """Test listing commands"""
     cmds = zsh_helper.list_commands()
     cmds = [c.split(':')[0] for c in cmds]
-    expected = [cmd[:-1] for cmd in cobib.__all__]
+    expected = [cmd.replace('Command', '').lower() for cmd in cobib.commands.__all__]
     assert sorted(cmds) == sorted(expected)
 
 
