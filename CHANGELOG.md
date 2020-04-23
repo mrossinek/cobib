@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
-## [2.0.0-alpha] - 2020-04-23
+## [2.0.0a1] - 2020-04-23
+
+Pypi: https://pypi.org/project/cobib/2.0.0a1/
 
 ### Added
 - Added a basic curses-based TUI (#5,!7)
