@@ -1,24 +1,25 @@
 """CoBib add command"""
 
 import argparse
+import os
 import sys
 from collections import OrderedDict
 
 from cobib.parser import Entry
-from .base_command import Command
+from .base_command import ArgumentParser, Command
 
 
-class AddCommand(Command):  # pylint: disable=too-few-public-methods
+class AddCommand(Command):
     """Add Command"""
 
     name = 'add'
 
-    def execute(self, args):
+    def execute(self, args, out=sys.stdout):
         """add new entry
 
         Adds new entries to the database.
         """
-        parser = argparse.ArgumentParser(prog="add", description="Add subcommand parser.")
+        parser = ArgumentParser(prog="add", description="Add subcommand parser.")
         parser.add_argument("-l", "--label", type=str,
                             help="the label for the new database entry")
         parser.add_argument("-f", "--file", type=str,
@@ -34,7 +35,12 @@ class AddCommand(Command):  # pylint: disable=too-few-public-methods
         if not args:
             parser.print_usage(sys.stderr)
             sys.exit(1)
-        largs = parser.parse_args(args)
+
+        try:
+            largs = parser.parse_args(args)
+        except argparse.ArgumentError as exc:
+            print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
+            return
 
         new_entries = OrderedDict()
 
@@ -62,3 +68,17 @@ class AddCommand(Command):  # pylint: disable=too-few-public-methods
                 value.set_tags(largs.tags)
 
         self._write_database(new_entries)
+
+    @staticmethod
+    def tui(tui):
+        """TUI command interface"""
+        # temporarily disable prints to stdout
+        original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+        # handle input via prompt
+        tui.prompt_handler('add')
+        # restore stdout
+        sys.stdout.close()
+        sys.stdout = original_stdout
+        # update database list
+        tui.update_list()

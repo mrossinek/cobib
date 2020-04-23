@@ -6,25 +6,32 @@ import sys
 import tempfile
 
 from cobib.config import CONFIG
-from .base_command import Command
+from .base_command import ArgumentParser, Command
 
 
-class EditCommand(Command):  # pylint: disable=too-few-public-methods
+class EditCommand(Command):
     """Edit Command"""
 
     name = 'edit'
 
-    def execute(self, args):  # pylint: disable=too-many-locals
+    def execute(self, args, out=sys.stdout):  # pylint: disable=too-many-locals
         """edit entry
 
         Opens an existing entry for manual editing.
         """
-        parser = argparse.ArgumentParser(prog="edit", description="Edit subcommand parser.")
+        parser = ArgumentParser(prog="edit", description="Edit subcommand parser.")
         parser.add_argument("label", type=str, help="label of the entry")
+
         if not args:
             parser.print_usage(sys.stderr)
             sys.exit(1)
-        largs = parser.parse_args(args)
+
+        try:
+            largs = parser.parse_args(args)
+        except argparse.ArgumentError as exc:
+            print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
+            return
+
         bib_data = self._read_database()
         try:
             entry = bib_data[largs.label]
@@ -58,3 +65,15 @@ class EditCommand(Command):  # pylint: disable=too-few-public-methods
                     continue
                 if not entry_to_be_replaced:
                     bib.write(line)
+
+    @staticmethod
+    def tui(tui):
+        """TUI command interface"""
+        # get current label
+        label = tui.get_current_label()
+        # populate buffer with entry data
+        EditCommand().execute([label])
+        # redraw total screen after closing external editor
+        tui.resize_handler(None, None)
+        # update database list
+        tui.update_list()

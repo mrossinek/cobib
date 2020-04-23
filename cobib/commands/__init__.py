@@ -6,7 +6,7 @@ from .export import ExportCommand
 from .init import InitCommand
 from .list import ListCommand
 from .open import OpenCommand
-from .remove import RemoveCommand
+from .delete import DeleteCommand
 from .show import ShowCommand
 
 
@@ -17,6 +17,6 @@ __all__ = [
     "InitCommand",
     "ListCommand",
     "OpenCommand",
-    "RemoveCommand",
+    "DeleteCommand",
     "ShowCommand",
     ]
