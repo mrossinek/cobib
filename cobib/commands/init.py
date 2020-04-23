@@ -1,17 +1,18 @@
 """Cobib init command"""
 
 import os
+import sys
 
 from cobib.config import CONFIG
 from .base_command import Command
 
 
-class InitCommand(Command):  # pylint: disable=too-few-public-methods
+class InitCommand(Command):
     """Init Command"""
 
     name = 'init'
 
-    def execute(self, args):  # pylint: disable=unused-argument
+    def execute(self, args, out=sys.stdout):
         """initialize database
 
         Initializes the yaml database file at the configured location.

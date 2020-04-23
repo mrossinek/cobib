@@ -6,13 +6,10 @@ import textwrap
 from collections import defaultdict
 from operator import itemgetter
 
-# third-party
-import tabulate
-
-from .base_command import Command
+from .base_command import ArgumentParser, Command
 
 
-class ListCommand(Command):  # pylint: disable=too-few-public-methods
+class ListCommand(Command):
     """List Command"""
 
     name = 'list'
@@ -27,8 +24,8 @@ class ListCommand(Command):  # pylint: disable=too-few-public-methods
         """
         if '--' in args:
             args.remove('--')
-        parser = argparse.ArgumentParser(prog="list", description="List subcommand parser.",
-                                         prefix_chars='+-')
+        parser = ArgumentParser(prog="list", description="List subcommand parser.",
+                                prefix_chars='+-')
         parser.add_argument('-x', '--or', dest='OR', action='store_true',
                             help="concatenate filters with OR instead of AND")
         parser.add_argument('-l', '--long', action='store_true',
@@ -45,7 +42,13 @@ class ListCommand(Command):  # pylint: disable=too-few-public-methods
                                 help="include elements with matching "+key)
             parser.add_argument('--'+key, type=str, action='append',
                                 help="exclude elements with matching "+key)
-        largs = parser.parse_args(args)
+
+        try:
+            largs = parser.parse_args(args)
+        except argparse.ArgumentError as exc:
+            print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
+            return None
+
         _filter = defaultdict(list)
         for key, val in largs.__dict__.items():
             if key in ['OR', 'long', 'sort', 'reverse'] or val is None:
@@ -61,17 +64,31 @@ class ListCommand(Command):  # pylint: disable=too-few-public-methods
         if largs.sort and largs.sort not in columns:
             columns.append(largs.sort)
         columns.extend([arg[0] for arg in _filter.keys() if arg[0] not in columns])
+        widths = [0]*len(columns)
         labels = []
         table = []
         for key, entry in bib_data.items():
             if entry.matches(_filter, largs.OR):
                 labels.append(key)
-                table.append([entry.data.get(c, None) for c in columns])
+                table.append([entry.data.get(c, '') for c in columns])
                 if largs.long:
-                    table[-1][1] = textwrap.fill(table[-1][1], width=80)
+                    table[-1][1] = table[-1][1]
                 else:
                     table[-1][1] = textwrap.shorten(table[-1][1], 80, placeholder='...')
+                widths = [max(widths[col], len(table[-1][col])) for col in range(len(widths))]
         if largs.sort:
             table = sorted(table, key=itemgetter(columns.index(largs.sort)), reverse=largs.reverse)
-        print(tabulate.tabulate(table, headers=columns), file=out)
+        for row in table:
+            print('  '.join([f'{col: <{wid}}' for col, wid in zip(row, widths)]), file=out)
         return labels
+
+    @staticmethod
+    def tui(tui, args=''):
+        """TUI command interface"""
+        tui.buffer.clear()
+        # handle input via prompt
+        tui.prompt_handler('list -l' + ' '*bool(args) + args, out=tui.buffer)
+        # populate buffer with the list
+        tui.list_mode = -1
+        tui.inactive_commands = []
+        tui.buffer.view(tui.viewport, tui.visible, tui.width-1)

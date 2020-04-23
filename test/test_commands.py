@@ -1,4 +1,4 @@
-"""Tests for CoBib's actual commands"""
+"""Tests for CoBib's commands"""
 # pylint: disable=unused-argument, redefined-outer-name
 
 import os
@@ -146,8 +146,8 @@ def test_add_overwrite_label():
     os.remove('/tmp/cobib_test_config.ini')
 
 
-def test_remove():
-    """Test remove command"""
+def test_delete():
+    """Test delete command"""
     # use temporary config
     tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
     with open('/tmp/cobib_test_config.ini', 'w') as file:
@@ -155,12 +155,12 @@ def test_remove():
     config.set_config(Path('/tmp/cobib_test_config.ini'))
     # copy example database to configured location
     copyfile(Path('./test/example_literature.yaml'), Path('/tmp/cobib_test_database.yaml'))
-    # remove some data
-    # NOTE: for testing simplicity we remove the last entry
-    commands.RemoveCommand().execute(['knuthwebsite'])
+    # delete some data
+    # NOTE: for testing simplicity we delete the last entry
+    commands.DeleteCommand().execute(['knuthwebsite'])
     with open('/tmp/cobib_test_database.yaml', 'r') as file:
         with open('./test/example_literature.yaml', 'r') as expected:
-            # NOTE: do NOT use zip_longest to omit last entry (thus, we removed the last one)
+            # NOTE: do NOT use zip_longest to omit last entry (thus, we deleted the last one)
             for line, truth in zip(file, expected):
                 assert line == truth
             with pytest.raises(StopIteration):

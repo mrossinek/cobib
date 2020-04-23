@@ -7,11 +7,15 @@ config
 configpath
 defaultdict
 doi
+ESC
 ini
 init
+statusbar
 stdout
 str
 subcommands
+TUI
+viewport
 xdg
 yaml
 zsh
