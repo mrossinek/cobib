@@ -23,7 +23,7 @@ before_script:
     - pip install -r requirements.txt
     - pip install pylint
 
-style:
+lint:
     script:
         - pylint -rn cobib test --disable=fixme,duplicate-code
 

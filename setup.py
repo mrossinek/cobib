@@ -8,7 +8,7 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(HERE, 'README.md'), 'r', encoding='utf-8') as f:
     README = f.read()
 with open(os.path.join(HERE, 'cobib/__init__.py'), 'r') as f:
-    VERSION = re.search(r"__version__ = '([\d\.]+)'", f.read()).group(1)
+    VERSION = re.search(r"__version__ = '([\S]+)'", f.read()).group(1)
 
 setup(
     name='cobib',
