@@ -7,6 +7,7 @@ from signal import signal, SIGWINCH
 
 from cobib import __version__
 from cobib import commands
+from cobib.config import CONFIG
 from .buffer import TextBuffer
 
 
@@ -16,6 +17,23 @@ class TUI:  # pylint: disable=too-many-instance-attributes
     The TUI is implemented as a class to simplify management of different windows/pads and keep a
     synchronized state most consistently.
     """
+
+    COLOR_VALUES = {
+        'black': curses.COLOR_BLACK,
+        'blue': curses.COLOR_BLUE,
+        'cyan': curses.COLOR_CYAN,
+        'green': curses.COLOR_GREEN,
+        'magenta': curses.COLOR_MAGENTA,
+        'red': curses.COLOR_RED,
+        'white': curses.COLOR_WHITE,
+        'yellow': curses.COLOR_YELLOW,
+    }
+
+    COLOR_PAIRS = {
+        'cursor_line': [1, 'white', 'cyan'],
+        'top_statusbar': [2, 'black', 'yellow'],
+        'bottom_statusbar': [3, 'black', 'yellow'],
+    }
 
     # available command dictionary
     COMMANDS = {
@@ -91,12 +109,12 @@ class TUI:  # pylint: disable=too-many-instance-attributes
 
         # Initialize top status bar
         self.topbar = curses.newwin(1, self.width, 0, 0)
-        self.topbar.bkgd(' ', curses.color_pair(1))
+        self.topbar.bkgd(' ', curses.color_pair(TUI.COLOR_PAIRS['top_statusbar'][0]))
 
         # Initialize bottom status bar
         # NOTE: -2 leaves an additional empty line for the command prompt
         self.botbar = curses.newwin(1, self.width, self.height-2, 0)
-        self.botbar.bkgd(' ', curses.color_pair(1))
+        self.botbar.bkgd(' ', curses.color_pair(TUI.COLOR_PAIRS['bottom_statusbar'][0]))
         self.statusbar(self.botbar, self.infoline)
 
         # Initialize command prompt and viewport
@@ -151,8 +169,38 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         """Initialize the color pairs for the curses TUI."""
         # Start colors in curses
         curses.start_color()
-        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_YELLOW)
-        curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_CYAN)
+        # parse user color configuration
+        if 'COLORS' in CONFIG.sections():
+            color_cfg = CONFIG['COLORS']
+            for attr, col in color_cfg.items():
+                if attr in TUI.COLOR_VALUES.keys():
+                    if not curses.can_change_color():
+                        # cannot change curses default colors
+                        continue
+                    # update curses-internal color with HEX-color
+                    rgb_color = tuple(int(col.strip('#')[i:i+2], 16) for i in (0, 2, 4))
+                    # curses colors range from 0 to 1000
+                    curses_color = tuple(col * 1000 // 255 for col in rgb_color)
+                    curses.init_color(TUI.COLOR_VALUES[attr], *curses_color)
+                else:
+                    # check if the attribute fits a TUI element name
+                    for element in TUI.COLOR_PAIRS:
+                        if element == attr[:-3]:
+                            # determine whethre foreground or background color are specified
+                            if attr[-3:] == '_fg':
+                                ground = 1
+                            elif attr[-3:] == '_bg':
+                                ground = 2
+                            else:
+                                continue
+                            TUI.COLOR_PAIRS[element][ground] = col
+
+        # initialize color pairs for TUI elements
+        for idx, foreground, background in TUI.COLOR_PAIRS.values():
+            curses.init_pair(idx, TUI.COLOR_VALUES[foreground], TUI.COLOR_VALUES[background])
+        # TODO further color configuration options:
+        # - (later) selected items
+        # - help window
 
     @staticmethod
     def statusbar(statusline, text, attr=0):
@@ -264,7 +312,8 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                 break
 
             # highlight current line
-            self.viewport.chgat(self.current_line, 0, curses.color_pair(2))
+            self.viewport.chgat(self.current_line, 0,
+                                curses.color_pair(TUI.COLOR_PAIRS['cursor_line'][0]))
 
             # Refresh the screen
             self.viewport.refresh(self.top_line, self.left_edge, 1, 0, self.visible, self.width-1)
