@@ -7,6 +7,7 @@ from signal import signal, SIGWINCH
 
 from cobib import __version__
 from cobib import commands
+from cobib.config import CONFIG
 from .buffer import TextBuffer
 
 
@@ -16,6 +17,25 @@ class TUI:  # pylint: disable=too-many-instance-attributes
     The TUI is implemented as a class to simplify management of different windows/pads and keep a
     synchronized state most consistently.
     """
+
+    COLOR_VALUES = {
+        'black': curses.COLOR_BLACK,
+        'blue': curses.COLOR_BLUE,
+        'cyan': curses.COLOR_CYAN,
+        'green': curses.COLOR_GREEN,
+        'magenta': curses.COLOR_MAGENTA,
+        'red': curses.COLOR_RED,
+        'white': curses.COLOR_WHITE,
+        'yellow': curses.COLOR_YELLOW,
+    }
+
+    COLOR_PAIRS = {
+        'cursor_line': [1, 'white', 'cyan'],
+        'top_statusbar': [2, 'black', 'yellow'],
+        'bottom_statusbar': [3, 'black', 'yellow'],
+        'help': [4, 'white', 'red'],
+        # TODO when implementing select command add a color configuration option
+    }
 
     # available command dictionary
     COMMANDS = {
@@ -86,17 +106,24 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.visible = self.height-3
         # and colors
         TUI.colors()
+        # and user key mappings
+        TUI.bind_keys()
         # and inactive commands
         self.inactive_commands = []
+        # and default list args
+        if 'TUI' in CONFIG.sections() and CONFIG['TUI'].get('default_list_args'):
+            self.list_args = CONFIG['TUI'].get('default_list_args').split(' ')
+        else:
+            self.list_args = ['-l']
 
         # Initialize top status bar
         self.topbar = curses.newwin(1, self.width, 0, 0)
-        self.topbar.bkgd(' ', curses.color_pair(1))
+        self.topbar.bkgd(' ', curses.color_pair(TUI.COLOR_PAIRS['top_statusbar'][0]))
 
         # Initialize bottom status bar
         # NOTE: -2 leaves an additional empty line for the command prompt
         self.botbar = curses.newwin(1, self.width, self.height-2, 0)
-        self.botbar.bkgd(' ', curses.color_pair(1))
+        self.botbar.bkgd(' ', curses.color_pair(TUI.COLOR_PAIRS['bottom_statusbar'][0]))
         self.statusbar(self.botbar, self.infoline)
 
         # Initialize command prompt and viewport
@@ -151,8 +178,47 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         """Initialize the color pairs for the curses TUI."""
         # Start colors in curses
         curses.start_color()
-        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_YELLOW)
-        curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_CYAN)
+        # parse user color configuration
+        if 'COLORS' in CONFIG.sections():
+            color_cfg = CONFIG['COLORS']
+            for attr, col in color_cfg.items():
+                if attr in TUI.COLOR_VALUES.keys():
+                    if not curses.can_change_color():
+                        # cannot change curses default colors
+                        continue
+                    # update curses-internal color with HEX-color
+                    rgb_color = tuple(int(col.strip('#')[i:i+2], 16) for i in (0, 2, 4))
+                    # curses colors range from 0 to 1000
+                    curses_color = tuple(col * 1000 // 255 for col in rgb_color)
+                    curses.init_color(TUI.COLOR_VALUES[attr], *curses_color)
+                else:
+                    # check if the attribute fits a TUI element name
+                    for element in TUI.COLOR_PAIRS:
+                        if element == attr[:-3] and attr[-3:] in ('_fg', '_bg'):
+                            # determine whether foreground or background color are specified
+                            ground = 1 if attr[-3:] == '_fg' else 2
+                            TUI.COLOR_PAIRS[element][ground] = col
+
+        # initialize color pairs for TUI elements
+        for idx, foreground, background in TUI.COLOR_PAIRS.values():
+            curses.init_pair(idx, TUI.COLOR_VALUES[foreground], TUI.COLOR_VALUES[background])
+
+    @staticmethod
+    def bind_keys():
+        """Bind keys according to user configuration."""
+        if 'KEY_BINDINGS' in CONFIG.sections():
+            key_bindings = CONFIG['KEY_BINDINGS']
+            for command, key in key_bindings.items():
+                if command not in TUI.COMMANDS.keys():
+                    continue
+                if key == 'ENTER':
+                    TUI.KEYDICT[10] = command  # line feed
+                    TUI.KEYDICT[13] = command  # carriage return
+                    continue
+                if isinstance(key, str):
+                    # map key to its ASCII number
+                    key = ord(key)
+                TUI.KEYDICT[key] = command
 
     @staticmethod
     def statusbar(statusline, text, attr=0):
@@ -224,6 +290,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
 
         # populate help window
         help_win = curses.newpad(help_text.height+2, help_text.width+5)  # offsets account for box
+        help_win.bkgd(' ', curses.color_pair(TUI.COLOR_PAIRS['help'][0]))
         for row, line in enumerate(help_text.lines):
             attr = 0
             if row < 3:
@@ -264,7 +331,8 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                 break
 
             # highlight current line
-            self.viewport.chgat(self.current_line, 0, curses.color_pair(2))
+            self.viewport.chgat(self.current_line, 0,
+                                curses.color_pair(TUI.COLOR_PAIRS['cursor_line'][0]))
 
             # Refresh the screen
             self.viewport.refresh(self.top_line, self.left_edge, 1, 0, self.visible, self.width-1)
@@ -394,7 +462,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
     def update_list(self):
         """Updates the default list view."""
         self.buffer.clear()
-        labels = commands.ListCommand().execute(['--long'], out=self.buffer)
+        labels = commands.ListCommand().execute(self.list_args, out=self.buffer)
         # populate buffer with the list
         self.list_mode = -1
         self.inactive_commands = []

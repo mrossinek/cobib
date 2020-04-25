@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- user configuration options for:
+    - TUI colors
+    - TUI key bindings
+    - TUI default list arguments
+- help window highlighting
+
 
 ## [2.0.0a1] - 2020-04-23
 
