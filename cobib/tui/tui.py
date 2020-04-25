@@ -189,14 +189,9 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                 else:
                     # check if the attribute fits a TUI element name
                     for element in TUI.COLOR_PAIRS:
-                        if element == attr[:-3]:
+                        if element == attr[:-3] and attr[-3:] in ('_fg', '_bg'):
                             # determine whethre foreground or background color are specified
-                            if attr[-3:] == '_fg':
-                                ground = 1
-                            elif attr[-3:] == '_bg':
-                                ground = 2
-                            else:
-                                continue
+                            ground = 1 if attr[-3:] == '_fg' else 2
                             TUI.COLOR_PAIRS[element][ground] = col
 
         # initialize color pairs for TUI elements
