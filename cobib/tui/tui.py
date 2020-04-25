@@ -33,6 +33,8 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         'cursor_line': [1, 'white', 'cyan'],
         'top_statusbar': [2, 'black', 'yellow'],
         'bottom_statusbar': [3, 'black', 'yellow'],
+        'help': [4, 'white', 'red'],
+        # TODO when implementing select command add a color configuration option
     }
 
     # available command dictionary
@@ -200,9 +202,6 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         # initialize color pairs for TUI elements
         for idx, foreground, background in TUI.COLOR_PAIRS.values():
             curses.init_pair(idx, TUI.COLOR_VALUES[foreground], TUI.COLOR_VALUES[background])
-        # TODO further color configuration options:
-        # - (later) selected items
-        # - help window
 
     @staticmethod
     def bind_keys():
@@ -291,6 +290,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
 
         # populate help window
         help_win = curses.newpad(help_text.height+2, help_text.width+5)  # offsets account for box
+        help_win.bkgd(' ', curses.color_pair(TUI.COLOR_PAIRS['help'][0]))
         for row, line in enumerate(help_text.lines):
             attr = 0
             if row < 3:
