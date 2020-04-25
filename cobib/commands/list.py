@@ -62,7 +62,9 @@ class ListCommand(Command):
                         break
         columns = ['ID', 'title']
         if largs.sort and largs.sort not in columns:
-            columns.append(largs.sort)
+            # insert columns which are sorted by at front of list view
+            columns.insert(1, largs.sort)
+        # filtered columns are still appended
         columns.extend([arg[0] for arg in _filter.keys() if arg[0] not in columns])
         widths = [0]*len(columns)
         labels = []
