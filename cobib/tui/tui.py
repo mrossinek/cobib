@@ -104,6 +104,8 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.visible = self.height-3
         # and colors
         TUI.colors()
+        # and user key mappings
+        TUI.bind_keys()
         # and inactive commands
         self.inactive_commands = []
 
@@ -201,6 +203,23 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         # TODO further color configuration options:
         # - (later) selected items
         # - help window
+
+    @staticmethod
+    def bind_keys():
+        """Bind keys according to user configuration."""
+        if 'KEY_BINDINGS' in CONFIG.sections():
+            key_bindings = CONFIG['KEY_BINDINGS']
+            for command, key in key_bindings.items():
+                if command not in TUI.COMMANDS.keys():
+                    continue
+                if key == 'ENTER':
+                    TUI.KEYDICT[10] = command  # line feed
+                    TUI.KEYDICT[13] = command  # carriage return
+                    continue
+                if isinstance(key, str):
+                    # map key to its ascii number
+                    key = ord(key)
+                TUI.KEYDICT[key] = command
 
     @staticmethod
     def statusbar(statusline, text, attr=0):

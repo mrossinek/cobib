@@ -8,6 +8,7 @@ import os
 # the configuration file will be loaded from ~/.config/cobib/config.ini
 # if this file does not exists, defaults are taken from the package data config
 CONFIG = configparser.ConfigParser()
+CONFIG.optionxform = str  # makes option names case-sensitive!
 
 
 def set_config(configpath=None):
