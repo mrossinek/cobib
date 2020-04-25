@@ -195,7 +195,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                     # check if the attribute fits a TUI element name
                     for element in TUI.COLOR_PAIRS:
                         if element == attr[:-3] and attr[-3:] in ('_fg', '_bg'):
-                            # determine whethre foreground or background color are specified
+                            # determine whether foreground or background color are specified
                             ground = 1 if attr[-3:] == '_fg' else 2
                             TUI.COLOR_PAIRS[element][ground] = col
 
@@ -216,7 +216,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                     TUI.KEYDICT[13] = command  # carriage return
                     continue
                 if isinstance(key, str):
-                    # map key to its ascii number
+                    # map key to its ASCII number
                     key = ord(key)
                 TUI.KEYDICT[key] = command
 
