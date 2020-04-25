@@ -110,6 +110,11 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         TUI.bind_keys()
         # and inactive commands
         self.inactive_commands = []
+        # and default list args
+        if 'TUI' in CONFIG.sections() and CONFIG['TUI'].get('default_list_args'):
+            self.list_args = CONFIG['TUI'].get('default_list_args').split(' ')
+        else:
+            self.list_args = ['-l']
 
         # Initialize top status bar
         self.topbar = curses.newwin(1, self.width, 0, 0)
@@ -457,7 +462,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
     def update_list(self):
         """Updates the default list view."""
         self.buffer.clear()
-        labels = commands.ListCommand().execute(['--long'], out=self.buffer)
+        labels = commands.ListCommand().execute(self.list_args, out=self.buffer)
         # populate buffer with the list
         self.list_mode = -1
         self.inactive_commands = []
