@@ -108,7 +108,9 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/deuterium/-/compare/v1.1.0...master
+[Unreleased]: https://gitlab.com/mrossinek/deuterium/-/compare/v2.0.0a2...master
+[2.0.0a2]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0a2
+[2.0.0a1]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0a1
 [1.1.0]: https://gitlab.com/mrossinek/cobib/-/tags/v1.1.0
 [1.0.2]: https://gitlab.com/mrossinek/cobib/-/tags/v1.0.2
 [1.0.1]: https://gitlab.com/mrossinek/cobib/-/tags/v1.0.1
