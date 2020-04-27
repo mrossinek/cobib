@@ -43,14 +43,14 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         'Delete': commands.DeleteCommand.tui,
         'Edit': commands.EditCommand.tui,
         'Export': commands.ExportCommand.tui,
-        'Filter': commands.ListCommand.tui,
+        'Filter': partial(commands.ListCommand.tui, sort_mode=False),
         'Help': lambda self: self.help(),
         'Open': commands.OpenCommand.tui,
         'Quit': lambda self: self.quit(),
         'Search': lambda _: None,  # TODO search command
         'Select': lambda _: None,  # TODO select command
         'Show': commands.ShowCommand.tui,
-        'Sort': partial(commands.ListCommand.tui, args='-s'),
+        'Sort': partial(commands.ListCommand.tui, sort_mode=True),
         'Wrap': lambda self: self.wrap(),
         'bottom': lambda self: self.scroll_y('G'),
         'down': lambda self: self.scroll_y(1),
@@ -414,6 +414,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                 command = self.prompt.instr(0, 1).decode('utf-8').strip()
                 break
             key = self.prompt.getch()
+        command = command.split(' ')
 
         # leave echo mode and make cursor invisible
         curses.noecho()
@@ -424,13 +425,13 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.prompt.refresh()
 
         # process command if it non empty and actually has arguments
-        if command and command.split(' ')[1:]:
+        if command and command[1:]:
             # temporarily disable prints to stdout
             original_stdout = sys.stderr
             sys.stderr = TextBuffer()
             # run command
-            subcmd = getattr(commands, command.split(' ')[0].title()+'Command')()
-            subcmd.execute(command.split(' ')[1:], out=out)
+            subcmd = getattr(commands, command[0].title()+'Command')()
+            subcmd.execute(command[1:], out=out)
             # if error occurred print info to prompt
             if sys.stderr.lines:
                 self.prompt.addstr(0, 0, sys.stderr.lines[0])
@@ -439,9 +440,8 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                 self.update_list()
             # restore stdout
             sys.stderr = original_stdout
-        else:
-            # command was aborted
-            self.update_list()
+        # return command to enable additional handling by function caller
+        return command
 
     def get_current_label(self):
         """Obtain label of currently selected entry."""
@@ -463,6 +463,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         """Updates the default list view."""
         self.buffer.clear()
         labels = commands.ListCommand().execute(self.list_args, out=self.buffer)
+        labels = labels or []  # convert to empty list if labels is None
         # populate buffer with the list
         self.list_mode = -1
         self.inactive_commands = []

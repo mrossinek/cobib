@@ -85,12 +85,51 @@ class ListCommand(Command):
         return labels
 
     @staticmethod
-    def tui(tui, args=''):
+    def tui(tui, sort_mode):
         """TUI command interface"""
         tui.buffer.clear()
+        # update list prompt arguments
+        if sort_mode:
+            try:
+                sort_arg_idx = tui.list_args.index('-s')
+                tui.list_args.pop(sort_arg_idx+1)
+                tui.list_args.pop(sort_arg_idx)
+            except ValueError:
+                pass
+            tui.list_args += ['-s']
         # handle input via prompt
-        tui.prompt_handler('list -l' + ' '*bool(args) + args, out=tui.buffer)
+        command = tui.prompt_handler('list ' + ' '.join(tui.list_args), out=tui.buffer)
+        # after the command has been executed n the prompt handler, the `command` variable will
+        # contain the contents of the prompt
+        if command:
+            if sort_mode:
+                try:
+                    sort_arg_idx = command.index('-s')
+                    if sort_arg_idx+1 >= len(command):
+                        raise ValueError
+                    tui.list_args += [command[sort_arg_idx+1]]
+                except ValueError:
+                    tui.list_args.remove('-s')
+            else:
+                # first, pop all filters from tui.list_args
+                indices_to_pop = []
+                # enumerate words in current list arguments
+                prev_args = list(enumerate(tui.list_args))
+                # iterate in reverse to ensure popping indices remain correct after popping a few
+                prev_args.reverse()
+                for idx, p_arg in prev_args:
+                    if p_arg[:2] in ('++', '--'):
+                        # matches a filter: current idx is type and one larger is the key
+                        indices_to_pop.extend([idx+1, idx])
+                for idx in indices_to_pop:
+                    tui.list_args.pop(idx)
+                # then, add all new filter (type, key) pairs
+                for idx, n_arg in enumerate(command):
+                    if n_arg[:2] in ('++', '--'):
+                        tui.list_args.extend(command[idx:idx+2])
         # populate buffer with the list
         tui.list_mode = -1
         tui.inactive_commands = []
         tui.buffer.view(tui.viewport, tui.visible, tui.width-1)
+        # update database list
+        tui.update_list()

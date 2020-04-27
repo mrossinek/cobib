@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - TUI default list arguments
 - help window highlighting
 
+### Changed
+- sorting and filtering commands remain persistent when updating the list view
+
 
 ## [2.0.0a1] - 2020-04-23
 
