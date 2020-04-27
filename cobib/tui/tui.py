@@ -127,8 +127,10 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.statusbar(self.botbar, self.infoline)
 
         # Initialize command prompt and viewport
-        self.prompt = curses.newwin(1, self.width, self.height-1, 0)
         self.viewport = curses.newpad(1, 1)
+        # NOTE being a window and not a pad, the prompt has a limited width. If this ever causes
+        # problems, change this here and ensure it is being resized when necessary.
+        self.prompt = curses.newwin(1, self.width, self.height-1, 0)
 
         # populate buffer with list of reference entries
         self.buffer = TextBuffer()
@@ -390,8 +392,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
 
     def prompt_handler(self, command, out=None):
         """Handle prompt input."""
-        # enter echo mode and make cursor visible
-        curses.echo()
+        # make cursor visible
         curses.curs_set(1)
 
         # populate prompt line and place cursor
@@ -403,21 +404,39 @@ class TUI:  # pylint: disable=too-many-instance-attributes
 
         key = 0
         command = ''
-        # handle special keys
-        while key != 27:  # exit on ESC
-            if key == 127:  # BACKSPACE
-                cur_y, cur_x = self.prompt.getyx()
-                # replace last three characters with spaces (2 characters from BACKSPACE key)
-                self.prompt.addstr(cur_y, cur_x - 3, '   ')
-                self.prompt.move(cur_y, cur_x - 3)
+        while True:
+            # get current cursor position
+            _, cur_x = self.prompt.getyx()
+            # get next key
+            self.prompt.nodelay(False)
+            key = self.prompt.getch()
+            # handle keys
+            if key == 27:  # ESC
+                self.prompt.nodelay(True)
+                # check if it was an arrow escape sequence
+                self.prompt.getch()
+                arrow = self.prompt.getch()
+                if arrow == -1:
+                    # if not, ESC ends the prompt
+                    break
+                if arrow == 68:  # left arrow key
+                    self.prompt.move(_, cur_x - 1)
+                elif arrow == 67:  # right arrow key
+                    self.prompt.move(_, cur_x + 1)
+            elif key == 127:  # BACKSPACE
+                if cur_x > 1:
+                    self.prompt.delch(_, cur_x - 1)
             elif key in (10, 13):  # ENTER
                 command = self.prompt.instr(0, 1).decode('utf-8').strip()
                 break
-            key = self.prompt.getch()
+            else:
+                # any normal key is simply echoed
+                self.prompt.addstr(_, cur_x, chr(key))
+                self.prompt.move(_, cur_x + 1)
+        # split command into separate arguments for cobib
         command = command.split(' ')
 
         # leave echo mode and make cursor invisible
-        curses.noecho()
         curses.curs_set(0)
 
         # clear prompt line
