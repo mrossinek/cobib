@@ -119,7 +119,7 @@ class ListCommand(Command):
                 prev_args.reverse()
                 for idx, p_arg in prev_args:
                     if p_arg[:2] in ('++', '--'):
-                        # matches a filter: current idx is type and one larger is the key
+                        # matches a filter: current index is type and one larger is the key
                         indices_to_pop.extend([idx+1, idx])
                 for idx in indices_to_pop:
                     tui.list_args.pop(idx)
