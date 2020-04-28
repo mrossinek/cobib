@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- _internal_: refactored the config into a class
+- centralized the database hanlding to improve performance (#12,!9)
+
+### Fixed
+- the `Show` command does not break after scrolling the viewport (#13)
+
 
 ## [2.0.0a2] - 2020-04-27
 
