@@ -49,7 +49,7 @@ class EditCommand(Command):
         assert not os.path.exists(tmp_file.name)
         if prv == nxt:
             return
-        conf_database = dict(CONFIG['DATABASE'])
+        conf_database = CONFIG.config['DATABASE']
         file = os.path.expanduser(conf_database['file'])
         with open(file, 'r') as bib:
             lines = bib.readlines()

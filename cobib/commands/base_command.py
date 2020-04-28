@@ -27,7 +27,7 @@ class Command(ABC):
     # HELPER FUNCTIONS
     @staticmethod
     def _read_database():
-        conf_database = dict(CONFIG['DATABASE'])
+        conf_database = CONFIG.config['DATABASE']
         file = os.path.expanduser(conf_database['file'])
         try:
             bib_data = Entry.from_yaml(Path(file))
@@ -47,7 +47,7 @@ class Command(ABC):
             reduced = '\n'.join(string.splitlines())
             new_lines.append(reduced)
 
-        conf_database = dict(CONFIG['DATABASE'])
+        conf_database = CONFIG.config['DATABASE']
         file = os.path.expanduser(conf_database['file'])
         with open(file, 'a') as bib:
             for line in new_lines:

@@ -17,6 +17,6 @@ class InitCommand(Command):
 
         Initializes the yaml database file at the configured location.
         """
-        conf_database = dict(CONFIG['DATABASE'])
+        conf_database = CONFIG.config['DATABASE']
         file = os.path.expanduser(conf_database['file'])
         open(file, 'w').close()

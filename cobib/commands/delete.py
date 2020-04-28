@@ -31,7 +31,7 @@ class DeleteCommand(Command):
             print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
             return
 
-        conf_database = dict(CONFIG['DATABASE'])
+        conf_database = CONFIG.config['DATABASE']
         file = os.path.expanduser(conf_database['file'])
         with open(file, 'r') as bib:
             lines = bib.readlines()

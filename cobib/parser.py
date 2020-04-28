@@ -55,7 +55,8 @@ class Entry():
         self.label = label
         self.data = data.copy()
         self.escape_special_chars()
-        month_type = CONFIG.get('FORMAT', 'month', fallback=None)
+        if 'FORMAT' in CONFIG.config.keys():
+            month_type = CONFIG.config['FORMAT'].get('month', None)
         if month_type:
             self.convert_month(month_type)
 
