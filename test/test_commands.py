@@ -11,6 +11,7 @@ from shutil import copyfile
 import pytest
 from cobib import commands
 from cobib.config import CONFIG
+from cobib.database import read_database
 
 
 @pytest.fixture
@@ -18,6 +19,7 @@ def setup():
     """Setup"""
     root = os.path.abspath(os.path.dirname(__file__))
     CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    read_database()
 
 
 def test_set_config(setup):

@@ -4,6 +4,7 @@ import argparse
 import sys
 
 from cobib import __version__
+from cobib.config import CONFIG
 from .base_command import ArgumentParser, Command
 
 
@@ -30,9 +31,8 @@ class ShowCommand(Command):
             print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
             return
 
-        bib_data = self._read_database()
         try:
-            entry = bib_data[largs.label]
+            entry = CONFIG.config['BIB_DATA'][largs.label]
             entry_str = entry.to_bibtex()
             print(entry_str, file=out)
         except KeyError:

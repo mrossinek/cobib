@@ -4,6 +4,7 @@ import argparse
 import sys
 from subprocess import Popen
 
+from cobib.config import CONFIG
 from .base_command import ArgumentParser, Command
 
 
@@ -30,9 +31,8 @@ class OpenCommand(Command):
             print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
             return
 
-        bib_data = self._read_database()
         try:
-            entry = bib_data[largs.label]
+            entry = CONFIG.config['BIB_DATA'][largs.label]
             if 'file' not in entry.data.keys() or entry.data['file'] is None:
                 print("Error: There is no file associated with this entry.")
                 sys.exit(1)

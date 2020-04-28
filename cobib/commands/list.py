@@ -6,6 +6,7 @@ import textwrap
 from collections import defaultdict
 from operator import itemgetter
 
+from cobib.config import CONFIG
 from .base_command import ArgumentParser, Command
 
 
@@ -33,9 +34,8 @@ class ListCommand(Command):
         parser.add_argument('-s', '--sort', help="specify column along which to sort the list")
         parser.add_argument('-r', '--reverse', action='store_true',
                             help="reverses the sorting order")
-        bib_data = self._read_database()
         unique_keys = set()
-        for entry in bib_data.values():
+        for entry in CONFIG.config['BIB_DATA'].values():
             unique_keys.update(entry.data.keys())
         for key in sorted(unique_keys):
             parser.add_argument('++'+key, type=str, action='append',
@@ -69,7 +69,7 @@ class ListCommand(Command):
         widths = [0]*len(columns)
         labels = []
         table = []
-        for key, entry in bib_data.items():
+        for key, entry in CONFIG.config['BIB_DATA'].items():
             if entry.matches(_filter, largs.OR):
                 labels.append(key)
                 table.append([entry.data.get(c, '') for c in columns])

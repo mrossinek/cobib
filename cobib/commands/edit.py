@@ -32,9 +32,8 @@ class EditCommand(Command):
             print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
             return
 
-        bib_data = self._read_database()
         try:
-            entry = bib_data[largs.label]
+            entry = CONFIG.config['BIB_DATA'][largs.label]
             prv = entry.to_yaml()
         except KeyError:
             print("Error: No entry with the label '{}' could be found.".format(largs.label))
