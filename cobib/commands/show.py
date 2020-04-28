@@ -49,7 +49,8 @@ class ShowCommand(Command):
         tui.buffer.split()
         tui.buffer.view(tui.viewport, tui.visible, tui.width-1)
 
-        # store previously selected line
+        # reset current cursor position
+        tui.top_line = 0
         tui.current_line = 0
         # update top statusbar
         tui.topstatus = "CoBib v{} - {}".format(__version__, label)

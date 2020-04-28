@@ -172,8 +172,13 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         """Break the key event loop."""
         if self.list_mode == -1:
             raise StopIteration
+        # restore cursor position
         self.current_line = self.list_mode
         self.update_list()
+        # if cursor position is out-of-view (due to e.g. top-line reset in Show command), reset the
+        # top-line such that the current line becomes visible again
+        if self.current_line > self.top_line + self.visible:
+            self.top_line = min(self.current_line, self.buffer.height - self.visible)
 
     @staticmethod
     def colors():
