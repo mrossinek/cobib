@@ -5,6 +5,7 @@ import os
 import sys
 
 from cobib.config import CONFIG
+from cobib.database import read_database
 from .base_command import ArgumentParser, Command
 
 
@@ -58,5 +59,7 @@ class DeleteCommand(Command):
         label = tui.get_current_label()
         # delete selected entry
         DeleteCommand().execute([label])
+        # update bibliography data
+        read_database(fresh=True)
         # update database list
         tui.update_list()

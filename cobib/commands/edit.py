@@ -6,6 +6,7 @@ import sys
 import tempfile
 
 from cobib.config import CONFIG
+from cobib.database import read_database
 from .base_command import ArgumentParser, Command
 
 
@@ -64,6 +65,8 @@ class EditCommand(Command):
                     continue
                 if not entry_to_be_replaced:
                     bib.write(line)
+        # update bibliography data
+        read_database()
 
     @staticmethod
     def tui(tui):

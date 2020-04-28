@@ -107,6 +107,8 @@ def test_add():
     CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
     # ensure database file exists and is empty
     open('/tmp/cobib_test_database.yaml', 'w').close()
+    # freshly read in database to overwrite anything that was read in during setup()
+    read_database(fresh=True)
     # add some data
     commands.AddCommand().execute(['-b', './test/example_literature.bib'])
     # compare with reference file
@@ -131,6 +133,8 @@ def test_add_overwrite_label():
     CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
     # ensure database file exists and is empty
     open('/tmp/cobib_test_database.yaml', 'w').close()
+    # freshly read in database to overwrite anything that was read in during setup()
+    read_database(fresh=True)
     # add some data
     commands.AddCommand().execute(['-b', './test/example_literature.bib'])
     # add potentially duplicate entry
