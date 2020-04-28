@@ -5,6 +5,7 @@ import os
 import sys
 
 from cobib.config import CONFIG
+from cobib.database import read_database
 from .base_command import ArgumentParser, Command
 
 
@@ -31,7 +32,7 @@ class DeleteCommand(Command):
             print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
             return
 
-        conf_database = dict(CONFIG['DATABASE'])
+        conf_database = CONFIG.config['DATABASE']
         file = os.path.expanduser(conf_database['file'])
         with open(file, 'r') as bib:
             lines = bib.readlines()
@@ -58,5 +59,7 @@ class DeleteCommand(Command):
         label = tui.get_current_label()
         # delete selected entry
         DeleteCommand().execute([label])
+        # update bibliography data
+        read_database(fresh=True)
         # update database list
         tui.update_list()

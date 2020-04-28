@@ -6,6 +6,7 @@ import sys
 import tempfile
 
 from cobib.config import CONFIG
+from cobib.database import read_database
 from .base_command import ArgumentParser, Command
 
 
@@ -32,9 +33,8 @@ class EditCommand(Command):
             print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
             return
 
-        bib_data = self._read_database()
         try:
-            entry = bib_data[largs.label]
+            entry = CONFIG.config['BIB_DATA'][largs.label]
             prv = entry.to_yaml()
         except KeyError:
             print("Error: No entry with the label '{}' could be found.".format(largs.label))
@@ -49,7 +49,7 @@ class EditCommand(Command):
         assert not os.path.exists(tmp_file.name)
         if prv == nxt:
             return
-        conf_database = dict(CONFIG['DATABASE'])
+        conf_database = CONFIG.config['DATABASE']
         file = os.path.expanduser(conf_database['file'])
         with open(file, 'r') as bib:
             lines = bib.readlines()
@@ -65,6 +65,8 @@ class EditCommand(Command):
                     continue
                 if not entry_to_be_replaced:
                     bib.write(line)
+        # update bibliography data
+        read_database()
 
     @staticmethod
     def tui(tui):

@@ -111,8 +111,8 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         # and inactive commands
         self.inactive_commands = []
         # and default list args
-        if 'TUI' in CONFIG.sections() and CONFIG['TUI'].get('default_list_args'):
-            self.list_args = CONFIG['TUI'].get('default_list_args').split(' ')
+        if 'TUI' in CONFIG.config.keys() and CONFIG.config['TUI'].get('default_list_args', ''):
+            self.list_args = CONFIG.config['TUI'].get('default_list_args').split(' ')
         else:
             self.list_args = ['-l']
 
@@ -186,8 +186,8 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         # Start colors in curses
         curses.start_color()
         # parse user color configuration
-        if 'COLORS' in CONFIG.sections():
-            color_cfg = CONFIG['COLORS']
+        if 'COLORS' in CONFIG.config.keys():
+            color_cfg = CONFIG.config['COLORS']
             for attr, col in color_cfg.items():
                 if attr in TUI.COLOR_VALUES.keys():
                     if not curses.can_change_color():
@@ -213,8 +213,8 @@ class TUI:  # pylint: disable=too-many-instance-attributes
     @staticmethod
     def bind_keys():
         """Bind keys according to user configuration."""
-        if 'KEY_BINDINGS' in CONFIG.sections():
-            key_bindings = CONFIG['KEY_BINDINGS']
+        if 'KEY_BINDINGS' in CONFIG.config.keys():
+            key_bindings = CONFIG.config['KEY_BINDINGS']
             for command, key in key_bindings.items():
                 if command not in TUI.COMMANDS.keys():
                     continue

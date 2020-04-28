@@ -4,7 +4,7 @@ from os import path
 from pathlib import Path
 import pytest
 from cobib import parser
-from cobib import config
+from cobib.config import CONFIG
 
 EXAMPLE_BIBTEX_FILE = 'test/example_entry.bib'
 EXAMPLE_YAML_FILE = 'test/example_entry.yaml'
@@ -117,8 +117,8 @@ def test_to_yaml():
 def test_parser_from_bibtex_as_string(month_type):
     """Test parsing a bibtex string"""
     root = path.abspath(path.dirname(__file__))
-    config.set_config(Path(root + '/../cobib/docs/debug.ini'))
-    config.CONFIG['FORMAT']['month'] = month_type
+    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    CONFIG.config['FORMAT']['month'] = month_type
     reference = EXAMPLE_ENTRY_DICT.copy()
     if month_type == 'str':
         reference['month'] = 'aug'
@@ -133,8 +133,8 @@ def test_parser_from_bibtex_as_string(month_type):
 def test_parser_from_bibtex_as_file(month_type):
     """Test parsing a bibtex file"""
     root = path.abspath(path.dirname(__file__))
-    config.set_config(Path(root + '/../cobib/docs/debug.ini'))
-    config.CONFIG['FORMAT']['month'] = month_type
+    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    CONFIG.config['FORMAT']['month'] = month_type
     reference = EXAMPLE_ENTRY_DICT.copy()
     if month_type == 'str':
         reference['month'] = 'aug'
@@ -148,8 +148,8 @@ def test_parser_from_bibtex_as_file(month_type):
 def test_parser_from_yaml_as_file(month_type):
     """Test parsing a yaml file"""
     root = path.abspath(path.dirname(__file__))
-    config.set_config(Path(root + '/../cobib/docs/debug.ini'))
-    config.CONFIG['FORMAT']['month'] = month_type
+    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    CONFIG.config['FORMAT']['month'] = month_type
     reference = EXAMPLE_ENTRY_DICT.copy()
     if month_type == 'str':
         reference['month'] = 'aug'
@@ -163,8 +163,8 @@ def test_parser_from_yaml_as_file(month_type):
 def test_parser_from_doi(month_type):
     """Test parsing from doi"""
     root = path.abspath(path.dirname(__file__))
-    config.set_config(Path(root + '/../cobib/docs/debug.ini'))
-    config.CONFIG['FORMAT']['month'] = month_type
+    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    CONFIG.config['FORMAT']['month'] = month_type
     reference = EXAMPLE_ENTRY_DICT.copy()
     if month_type == 'str':
         reference['month'] = 'aug'
@@ -190,8 +190,8 @@ def test_parser_from_arxiv():
 def test_escape_special_chars(month_type):
     """Test escaping special characters"""
     root = path.abspath(path.dirname(__file__))
-    config.set_config(Path(root + '/../cobib/docs/debug.ini'))
-    config.CONFIG['FORMAT']['month'] = month_type
+    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    CONFIG.config['FORMAT']['month'] = month_type
     reference = EXAMPLE_ENTRY_DICT.copy()
     if month_type == 'str':
         reference['month'] = 'aug'

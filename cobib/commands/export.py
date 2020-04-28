@@ -5,6 +5,7 @@ import os
 import sys
 from zipfile import ZipFile
 
+from cobib.config import CONFIG
 from .base_command import ArgumentParser, Command
 from .list import ListCommand
 
@@ -39,8 +40,6 @@ class ExportCommand(Command):
             print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
             return
 
-        bib_data = self._read_database()
-
         if largs.bibtex is None and largs.zip is None:
             return
         if largs.zip is not None:
@@ -50,7 +49,7 @@ class ExportCommand(Command):
 
         try:
             for label in labels:
-                entry = bib_data[label]
+                entry = CONFIG.config['BIB_DATA'][label]
                 if largs.bibtex is not None:
                     entry_str = entry.to_bibtex()
                     largs.bibtex.write(entry_str)

@@ -5,6 +5,7 @@ import os
 import sys
 from collections import OrderedDict
 
+from cobib.database import write_database
 from cobib.parser import Entry
 from .base_command import ArgumentParser, Command
 
@@ -67,7 +68,7 @@ class AddCommand(Command):
             for value in new_entries.values():
                 value.set_tags(largs.tags)
 
-        self._write_database(new_entries)
+        write_database(new_entries)
 
     @staticmethod
     def tui(tui):

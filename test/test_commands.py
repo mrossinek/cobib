@@ -9,23 +9,26 @@ from pathlib import Path
 from shutil import copyfile
 
 import pytest
-from cobib import commands, config
+from cobib import commands
+from cobib.config import CONFIG
+from cobib.database import read_database
 
 
 @pytest.fixture
 def setup():
     """Setup"""
     root = os.path.abspath(os.path.dirname(__file__))
-    config.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    read_database()
 
 
 def test_set_config(setup):
     """Test config setting"""
     # from setup
-    assert config.CONFIG['DATABASE']['file'] == './test/example_literature.yaml'
+    assert CONFIG.config['DATABASE']['file'] == './test/example_literature.yaml'
     # change back to default
-    config.set_config()
-    assert config.CONFIG['DATABASE']['file'] == '~/.local/share/cobib/literature.yaml'
+    CONFIG.set_config()
+    assert CONFIG.config['DATABASE']['file'] == '~/.local/share/cobib/literature.yaml'
 
 
 def test_init():
@@ -34,7 +37,7 @@ def test_init():
     tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
     with open('/tmp/cobib_test_config.ini', 'w') as file:
         file.write(tmp_config)
-    config.set_config(Path('/tmp/cobib_test_config.ini'))
+    CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
     # store current time
     now = float(datetime.now().timestamp())
     commands.InitCommand().execute({})
@@ -101,9 +104,11 @@ def test_add():
     tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
     with open('/tmp/cobib_test_config.ini', 'w') as file:
         file.write(tmp_config)
-    config.set_config(Path('/tmp/cobib_test_config.ini'))
+    CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
     # ensure database file exists and is empty
     open('/tmp/cobib_test_database.yaml', 'w').close()
+    # freshly read in database to overwrite anything that was read in during setup()
+    read_database(fresh=True)
     # add some data
     commands.AddCommand().execute(['-b', './test/example_literature.bib'])
     # compare with reference file
@@ -125,9 +130,11 @@ def test_add_overwrite_label():
     tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
     with open('/tmp/cobib_test_config.ini', 'w') as file:
         file.write(tmp_config)
-    config.set_config(Path('/tmp/cobib_test_config.ini'))
+    CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
     # ensure database file exists and is empty
     open('/tmp/cobib_test_database.yaml', 'w').close()
+    # freshly read in database to overwrite anything that was read in during setup()
+    read_database(fresh=True)
     # add some data
     commands.AddCommand().execute(['-b', './test/example_literature.bib'])
     # add potentially duplicate entry
@@ -152,7 +159,7 @@ def test_delete():
     tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
     with open('/tmp/cobib_test_config.ini', 'w') as file:
         file.write(tmp_config)
-    config.set_config(Path('/tmp/cobib_test_config.ini'))
+    CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
     # copy example database to configured location
     copyfile(Path('./test/example_literature.yaml'), Path('/tmp/cobib_test_database.yaml'))
     # delete some data

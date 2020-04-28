@@ -8,7 +8,8 @@ import sys
 
 from cobib import commands, zsh_helper
 from cobib import __version__
-from cobib.config import set_config
+from cobib.config import CONFIG
+from cobib.database import read_database
 from cobib.tui import tui
 
 
@@ -33,7 +34,8 @@ def main():
 
     args = parser.parse_args()
 
-    set_config(args.config)
+    CONFIG.set_config(args.config)
+    read_database()
     if not args.command:
         tui()
     else:
