@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [2.0.0b0] - 2020-04-28
+
+Pypi: https://pypi.org/project/cobib/2.0.0b0/
+
 ### Changed
 - _internal_: refactored the config into a class
 - centralized the database hanlding to improve performance (#12,!9)
@@ -115,7 +120,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.0.0a2...master
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.0.0b0...master
+[2.0.0b0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0b0
 [2.0.0a2]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0a2
 [2.0.0a1]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0a1
 [1.1.0]: https://gitlab.com/mrossinek/cobib/-/tags/v1.1.0
