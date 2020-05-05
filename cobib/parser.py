@@ -7,7 +7,7 @@ import os
 import re
 import requests
 # third-party
-from beautifulsoup4 import BeautifulSoup
+from bs4 import BeautifulSoup
 from pylatexenc.latexencode import UnicodeToLatexEncoder
 from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
