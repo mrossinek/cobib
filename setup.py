@@ -28,7 +28,7 @@ setup(
     python_requires='>=3.5',
     install_requires=[
         'bibtexparser',
-        'bs4',
+        'beautifulsoup4',
         'pylatexenc',
         'requests',
         'ruamel.yaml',
