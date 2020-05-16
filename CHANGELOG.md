@@ -7,7 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [2.0.0b2] - 2020-05-16
+
+Pypi: https://pypi.org/project/cobib/2.0.0b2/
+
+### Fixed
+- fixed TUI startup
+
+
 ## [2.0.0b1] - 2020-05-16
+
+**Warning**: do NOT use! The TUI is broken in this release!
 
 Pypi: https://pypi.org/project/cobib/2.0.0b1/
 
@@ -129,7 +139,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.0.0b1...master
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.0.0b2...master
+[2.0.0b2]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0b2
 [2.0.0b1]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0b1
 [2.0.0b0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0b0
 [2.0.0a2]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0a2
