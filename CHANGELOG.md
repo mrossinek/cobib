@@ -155,7 +155,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.0.0b3...master
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.0.0b4...master
+[2.0.0b4]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0b4
 [2.0.0b3]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0b3
 [2.0.0b2]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0b2
 [2.0.0b1]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0b1
