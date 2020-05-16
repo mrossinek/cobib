@@ -127,6 +127,8 @@ class ListCommand(Command):
                 for idx, n_arg in enumerate(command):
                     if n_arg[:2] in ('++', '--'):
                         tui.list_args.extend(command[idx:idx+2])
+                # reset current line position to top
+                tui.current_line = 0
         # populate buffer with the list
         tui.list_mode = -1
         tui.inactive_commands = []
