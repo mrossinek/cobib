@@ -1,2 +1,2 @@
 """ CoBib """
-__version__ = '2.0.0b0'
+__version__ = '2.0.0b1'

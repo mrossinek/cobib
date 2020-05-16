@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [2.0.0b1] - 2020-05-16
+
+Pypi: https://pypi.org/project/cobib/2.0.0b1/
+
+### Fixed
+- TUI does not crash when opening an entry with no associated file
+- correctly reset current line positions after filtering and editing
+
+
 ## [2.0.0b0] - 2020-04-28
 
 Pypi: https://pypi.org/project/cobib/2.0.0b0/
@@ -120,7 +129,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.0.0b0...master
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.0.0b1...master
+[2.0.0b1]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0b1
 [2.0.0b0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0b0
 [2.0.0a2]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0a2
 [2.0.0a1]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0a1
