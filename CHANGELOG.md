@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [2.0.0b4] - 2020-05-16
+
+Pypi: https://pypi.org/project/cobib/2.0.0b4/
+
+### Fixed
+- reset viewport position when updating buffer
+
+
 ## [2.0.0b3] - 2020-05-16
 
 Pypi: https://pypi.org/project/cobib/2.0.0b3/
