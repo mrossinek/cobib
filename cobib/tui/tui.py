@@ -132,16 +132,16 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         # problems, change this here and ensure it is being resized when necessary.
         self.prompt = curses.newwin(1, self.width, self.height-1, 0)
 
-        # populate buffer with list of reference entries
-        self.buffer = TextBuffer()
-        self.update_list()
-
         # prepare and start key event loop
         self.current_line = 0
         self.list_mode = -1  # -1: list mode active, >=0: previously selected line
         self.top_line = 0
         self.left_edge = 0
         self.loop()
+
+        # populate buffer with list of reference entries
+        self.buffer = TextBuffer()
+        self.update_list()
 
     def resize_handler(self, signum, frame):  # pylint: disable=unused-argument
         """Handles terminal window resize events."""
@@ -489,6 +489,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         labels = commands.ListCommand().execute(self.list_args, out=self.buffer)
         labels = labels or []  # convert to empty list if labels is None
         # populate buffer with the list
+        self.current_line = self.list_mode
         self.list_mode = -1
         self.inactive_commands = []
         self.buffer.view(self.viewport, self.visible, self.width-1)
