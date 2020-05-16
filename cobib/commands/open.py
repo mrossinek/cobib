@@ -29,7 +29,7 @@ class OpenCommand(Command):
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
             print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
-            return
+            return None
 
         try:
             entry = CONFIG.config['BIB_DATA'][largs.label]
@@ -38,9 +38,8 @@ class OpenCommand(Command):
                 if out is None:
                     # called from TUI
                     return error
-                else:
-                    print(error, file=out)
-                    sys.exit(1)
+                print(error, file=out)
+                sys.exit(1)
             try:
                 Popen(["xdg-open", entry.data['file']], stdin=None, stdout=None, stderr=None,
                       close_fds=True, shell=False)
@@ -52,6 +51,8 @@ class OpenCommand(Command):
                     pass
         except KeyError:
             print("Error: No entry with the label '{}' could be found.".format(largs.label))
+
+        return None
 
     @staticmethod
     def tui(tui):
