@@ -34,8 +34,13 @@ class OpenCommand(Command):
         try:
             entry = CONFIG.config['BIB_DATA'][largs.label]
             if 'file' not in entry.data.keys() or entry.data['file'] is None:
-                print("Error: There is no file associated with this entry.")
-                sys.exit(1)
+                error = "Error: There is no file associated with this entry."
+                if out is None:
+                    # called from TUI
+                    return error
+                else:
+                    print(error, file=out)
+                    sys.exit(1)
             try:
                 Popen(["xdg-open", entry.data['file']], stdin=None, stdout=None, stderr=None,
                       close_fds=True, shell=False)
@@ -57,4 +62,7 @@ class OpenCommand(Command):
         # restore previous list_mode
         tui.list_mode = prev_list_mode
         # populate buffer with entry data
-        OpenCommand().execute([label])
+        error = OpenCommand().execute([label], out=None)
+        if error:
+            tui.prompt.addstr(0, 0, error)
+            tui.prompt.refresh()
