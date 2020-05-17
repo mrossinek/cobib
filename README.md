@@ -17,11 +17,7 @@ Currently CoBib provides the following functionality:
 * exporting a list of references to the biblatex format
 * opening associated files using an external program
 * manually editing entries using the $EDITOR
-
-Future features may include:
-* previewing abstracts directly inside the terminal
-* extracting abstracts from PDFs
-
+* and general database inspection/modification via a curses-based TUI
 
 ## Installation
 ```
@@ -41,10 +37,14 @@ Start by initializing the database with
 ```
 cobib init
 ```
-Afterwards you can `add`, `list`, `edit`, `remove`, `show`, `open` and `export`
-database entries. Type `cobib --help` for further information or
+Afterwards you can simply run `cobib` to start the TUI.
+If you prefer full control from the command line you can also run all commands
+directly via the CLI. Available commands are `add`, `list`, `edit`, `remove`,
+`show`, `open` and `export`. Type `cobib --help` for further information or
 `cobib <subcommand> --help` for more detailed information on the specific
 subcommands.
+
+You can also find more information in the man page.
 
 
 ## Config
@@ -54,3 +54,5 @@ configuration options exist.
 
 You may also specify a different config file at runtime by using the `-c` or
 `--config` command line argument.
+
+You can also find more information in the man page.

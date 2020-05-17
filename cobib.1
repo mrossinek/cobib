@@ -1,0 +1,264 @@
+.TH COBIB 1 2020-05-18 v2.0.0b4
+.SH NAME
+CoBib \- Console-based Bibliography Management
+.SH SYNOPSIS
+.B cobib
+[\fB\-v\fR|\fB\-\-version\fR]
+[\fB\-h\fR|\fB\-\-help\fR]
+[\fB\-c\fR|\fB\-\-config\fR \fI<path>\fR]
+\fB<subcommand>\fR [\fI<args>\fR]
+.SH DESCRIPTION
+CoBib is a console-based bibliography manager written in Python.
+It maintains a plain-text database of literature data in YAML format at
+\fI$HOME/.local/share/cobib/literature.yaml\fR.
+.PP
+CoBib provides a variety of \fBSUBCOMMANDS\fR through which you may
+investigate and manage the database.
+For easy of use it also comes with a curses-based \fBTUI\fR which is
+automatically started when no other subcommand is found (more information is
+provided in that section).
+.SH OPTIONS
+.TP
+.BR \-h ", " \-\-help
+Prints a help message and exits.
+.TP
+.BR \-v ", " \-\-version
+Prints the version information and exits.
+.TP
+.BR \-c ", " \-\-config " " \fI<path>\fR
+Run with an alternate configuration file at \fI<path>\fR.
+.SH SUBCOMMANDS
+All subcommands listed below also provide the \fI\-h\fR and \fI\-\-help\fR
+options which provide additional information for each subcommand.
+.TP
+.B cobib init
+Initializes the literature database.
+The path to this file can be configured in the \fIDATABASE\fR section of the
+configuration file (see also \fBCONFIGURATION\fR).
+.TP
+.B cobib add \fI<args>\fR ...
+Adds a new entry to the database.
+The positional arguments may be used to provide \fItags\fR to associate with the
+newly added entries.
+The \fI<args>\fR may be any of the following:
+.PP
+.in +8n
+.BR \-a ", " \-\-arxiv " " \fI<arxiv\ id>\fR
+.in +4n
+Adds an entry specified by the \fIarXiv\fR id.
+.PP
+.in +8n
+.BR \-b ", " \-\-bibtex " " \fI<path>\fR
+.in +4n
+Adds the bibliography data from the \fIbibtex\fR file at the provided path.
+.PP
+.in +8n
+.BR \-d ", " \-\-doi " " \fI<doi>\fR
+.in +4n
+Adds an entry specified by the \fIDOI\fR.
+.PP
+.in +8n
+.BR \-f ", " \-\-file " " \fI<path>\fR
+.in +4n
+Associate the newly added entry with the \fIfile\fR at the provided path.
+.PP
+.in +8n
+.BR \-l ", " \-\-label  " " \fI<label>\fR
+.in +4n
+Store the newly added entry under the specified \fIlabel\fR.
+.TP
+.B cobib delete \fI<label>\fR
+Deletes the entry with the given \fIlabel\fR.
+.TP
+.B cobib edit \fI<label>\fR
+Opens the entry with the given \fIlabel\fR in the \fI$EDITOR\fR.
+The entry is copied verbatim in \fIYAML\fR format from and to the database file.
+.TP
+.B cobib open \fI<label>\fR
+Opens any associated \fIfile\fR of the entry with the given \fIlabel\fR.
+.TP
+.B cobib show \fI<label>\fR
+Prints the entry with the given \fIlabel\fR in \fIbibtex\fR format to stdout.
+.TP
+.B cobib list \fI<args>\fR
+Lists all entries of the database in a basic table format to stdout which match
+the specified \fBFILTERS\fR (more information is provided in that section).
+Additionally, the following \fI<args>\fR are also allowed:
+.PP
+.in +8n
+.BR \-l ", " \-\-long
+.in +4n
+Print the table in \fIlong\fR format, i.e. without wrapping the lines to fit the
+current terminal width.
+.PP
+.in +8n
+.BR \-s ", " \-\-sort " " \fI<field>\fI
+.in +4n
+Specify the entry field to use as the \fIsorting column\fR of the table.
+.PP
+.in +8n
+.BR \-r ", " \-\-reverse
+.in +4n
+Reverses the sorting order.
+.PP
+.in +8n
+.BR \-x ", " \-\-or
+.in +4n
+Concatenate the filters using logical \fIOR\fR rather than the default
+\fIAND\fR.
+.TP
+.B cobib export \fI<args>\fR ...
+Exports the database to the file configured via the \fIargs\fR.
+The positional arguments may be used to provide \fBFILTERS\fR which the entries
+must match in order to be included in the export.
+The \fI<args>\fR may be any of the following:
+.PP
+.in +8n
+.BR \-b ", " \-\-bibtex " " \fI<path>\fR
+.in +4n
+Export the entries to a \fIbibtex\fR file at the specified path.
+.PP
+.in +8n
+.BR \-z ", " \-\-zip " " \fI<path>\fR
+.in +4n
+Export a \fIbibtex\fR file of the entries and all of the associated files into a
+single \fIZIP\fR file at the specified path.
+.SH FILTERS
+In order to limit the output of the \fIlist\fR and \fIexport\fR commands you can
+apply additional filters via keyword arguments.
+Their availability depends on your database since they are added to the argument
+parser at runtime.
+However, you can find a full list for your specific case with \fIcobib list
+\-\-help\fR.
+.PP
+The general syntax for filtering is the following
+.in +8n
+[\fB++\fR|\fB\-\-\fR]\fB<field>\fR \fI<value>\fR
+.in
+which is to be understood as the following:
+When the keyword argument is started with \fB++\fR the entry must positively
+\fImatch\fR this filter; if started with \fB\-\-\fR it must \fINOT\fR match.
+The \fB<field>\fR may be any available field in your database.
+It should be noted, that this string is matched exactly which means no plurals
+are allowed.
+The \fI<value>\fR finally specifies what is matched against.
+.PP
+In general, multiple filters provided to the \fIlist\fR and \fIexport\fR
+commands are combined with logical \fIAND\fR.
+This may be overwritten by adding the \fI\-x\fR or \fI\-\-or\fR arguments as
+described in the arguments section of the \fIlist\fR command.
+.SH EXAMPLES
+This section provides a few examples of \fBFILTERS\fR as described above.
+.TP
+.B cobib list ++year 2020
+Lists only entries which were published in 2020.
+.TP
+.B cobib list --tags chemistry
+Lists only entries without the `chemistry` tag.
+.TP
+.B cobib list ++year 2019 ++tags quantum
+Lists only entries with the `quantum` tag from the year 2019.
+.TP
+.B cobib list -x ++year 2019 ++year 2020
+Lists only entries published in 2019 or 2020.
+.SH TUI
+The curses-based TUI is started automatically when no other subcommand is
+supplied, i.e. by simply running \fBcobib\fR.
+By default, it lists all entries of the database in a buffer which may be
+scrolled in vim-fashion with \fIh,j,k,l\fR.
+The following default key bindings are available:
+.TP
+.BR q " " quit
+Quits one level of the viewing buffer.
+.TP
+.BR ? " " help
+Opens a small window providing help for the key bindings.
+.TP
+.BR ENTER " " show
+Populates the viewing buffer with a bibtex view of the selected entry.
+.TP
+.BR o " " open
+.TP
+.BR w " " wrap
+Toggles between \fIlong\fR (default) and \fIshort\fR (wrapped) list mode.
+.TP
+.BR a " " add
+Opens a command prompt which allows running the \fBadd\fR command as if outside
+of the TUI.
+.TP
+.BR e " " edit
+.TP
+.BR d " " delete
+.TP
+.BR / " " search
+\fIto be implemented\fR
+.TP
+.BR f " " filter
+Allows adding filters to the list view.
+.TP
+.BR s " " sort
+Allows sorting the list view.
+.TP
+.BR v " " select
+\fIto be implemented\fR
+.TP
+.BR x " " export
+Opens a command prompt which allows running the \fBexport\fR command as if
+outside of the TUI.
+.SH CONFIGURATION
+Cobib can be configured with an \fIINI\fR file placed at
+\fI$HOME/.config/cobib/config.ini\fR
+For more information on this file format take a look at
+https://docs.python.org/3/library/configparser.html
+This section summarizes the sections and respective configuration options.
+.PP
+.BR [DATABASE]
+.TP
+.IR file = $HOME/.local/share/cobib/literature.yaml
+Specifies the path to the database file.
+.PP
+.BR [FORMAT]
+.TP
+.IR month = int
+This field may either be \fIint\fR (default) or \fIstr\fR and it specifies the
+type into which the \fBmonth\fR field should be converted before storing.
+.PP
+.BR [TUI]
+.TP
+.IR default_list_args = \-l
+This field specifies the default arguments to use for the list view.
+.PP
+.BR [KEY_BINDINGS]
+.PP
+In this section you may provide additional key bindings by specifying the name
+of the command to execute as the \fIkey\fR and the key to bind the command to as
+its \fIvalue\fR.
+.PP
+.BR [COLORS]
+.TP
+.IR cursor_line_fg = white
+.TP
+.IR cursor_line_bg = cyan
+.TP
+.IR top_statusbar_fg = black
+.TP
+.IR top_statusbar_bg = yellow
+.TP
+.IR bottom_statusbar_fg = black
+.TP
+.IR bottom_statusbar_bg = yellow
+.SH ENVIRONMENT
+.TP
+$EDITOR
+Specifies the editor program to use for the \fBedit\fR command.
+.SH FILES
+.TP
+$HOME/.config/cobib/config.ini
+The configuration file.
+.TP
+$HOME/.local/share/cobib/literature.yaml
+The default location of the database file.
+.SH SEE ALSO
+The internal help documentation via the \fI\-\-help\fR arguments.
+.PP
+The source code and issue tracker at https://gitlab.com/mrossinek/cobib
