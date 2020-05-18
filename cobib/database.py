@@ -3,6 +3,7 @@
 from collections import OrderedDict
 from pathlib import Path
 import os
+import sys
 
 from cobib.config import CONFIG
 from cobib.parser import Entry
@@ -18,6 +19,9 @@ def read_database(fresh=False):
         CONFIG.config['BIB_DATA'] = Entry.from_yaml(Path(file))
     except AttributeError:
         CONFIG.config['BIB_DATA'] = OrderedDict()
+    except FileNotFoundError:
+        print(f"The database file {file} does not exist! Please run `cobib init`!", file=sys.stderr)
+        sys.exit(1)
 
 
 def write_database(entries):

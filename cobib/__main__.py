@@ -35,6 +35,13 @@ def main():
     args = parser.parse_args()
 
     CONFIG.set_config(args.config)
+    if args.command == 'init':
+        # the database file may not exist yet, thus we ensure to execute the command before trying
+        # to read the database file
+        subcmd = getattr(commands, 'InitCommand')()
+        subcmd.execute(args.args)
+        return
+
     read_database()
     if not args.command:
         tui()
