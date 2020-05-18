@@ -5,6 +5,7 @@ install: build/
 	sudo python setup.py install
 	sudo install -dm 755 /usr/share/zsh/site-functions
 	sudo install -m 644 _cobib /usr/share/zsh/site-functions/
+	sudo install -m 644 cobib.1 /usr/local/share/man/man1/
 
 lint: cobib/ test/
 	pylint -rn cobib test --disable=fixme,duplicate-code

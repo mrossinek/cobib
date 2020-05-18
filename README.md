@@ -20,11 +20,16 @@ Currently CoBib provides the following functionality:
 * and general database inspection/modification via a curses-based TUI
 
 ## Installation
+You can either install cobib via pip: `pip install cobib` or you can download
+the source code and install it manually:
 ```
 git clone https://gitlab.com/mrossinek/cobib
 cd cobib
-python setup.py install
+make install
 ```
+The advantage of the latter is that the crude Zsh completion and man page are
+installed, too. When installing via pip, you can download these separately from
+the source code repository.
 
 This will install the `cobib` package. By default, `cobib` will store your
 database at `~/.local/share/cobib/literature.yaml`
