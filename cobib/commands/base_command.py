@@ -25,6 +25,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
     Source: https://stackoverflow.com/a/5943381
     """
+
     def _get_action_from_name(self, name):
         """Given a name, get the Action instance registered with this parser.
         If only it were made available in the ArgumentError object. It is

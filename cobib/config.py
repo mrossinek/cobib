@@ -8,6 +8,7 @@ import os
 
 class Config:  # pylint: disable=too-few-public-methods
     """Global configuration class"""
+
     def __init__(self):
         # initialize dictionary
         self.config = {}

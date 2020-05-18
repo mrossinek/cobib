@@ -41,6 +41,7 @@ class Entry():
     """Bibliography entry class"""
     class YamlDumper(YAML):
         """Wrapper class for dumping YAML"""
+
         # pylint: disable=arguments-differ,inconsistent-return-statements
         def dump(self, data, stream=None, **kw):
             inefficient = False
