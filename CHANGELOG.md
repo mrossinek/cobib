@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- made `init` command safe against database overwriting
+
 
 ## [2.0.0b4] - 2020-05-16
 

@@ -31,10 +31,16 @@ Run with an alternate configuration file at \fI<path>\fR.
 All subcommands listed below also provide the \fI\-h\fR and \fI\-\-help\fR
 options which provide additional information for each subcommand.
 .TP
-.B cobib init
+.B cobib init \fI<args>\fR
 Initializes the literature database.
 The path to this file can be configured in the \fIDATABASE\fR section of the
 configuration file (see also \fBCONFIGURATION\fR).
+The only available argument is:
+.PP
+.in +8n
+.BR \-f ", " \-\-force
+.in +4n
+Forces the initialization, possibly overwriting any existing database file.
 .TP
 .B cobib add \fI<args>\fR ...
 Adds a new entry to the database.

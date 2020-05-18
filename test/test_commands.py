@@ -50,6 +50,45 @@ def test_init():
     os.remove('/tmp/cobib_test_config.ini')
 
 
+def test_init_safe():
+    """Test init aborts when database file exists"""
+    # use temporary config
+    tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
+    with open('/tmp/cobib_test_config.ini', 'w') as file:
+        file.write(tmp_config)
+    CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
+    # fill database file
+    with open('/tmp/cobib_test_database.yaml', 'w') as file:
+        file.write('test')
+    # try running init
+    commands.InitCommand().execute({})
+    # check init aborted and database file still contains 'test'
+    with open('/tmp/cobib_test_database.yaml', 'r') as file:
+        assert file.read() == 'test'
+    # clean up file system
+    os.remove('/tmp/cobib_test_database.yaml')
+    os.remove('/tmp/cobib_test_config.ini')
+
+
+def test_init_force():
+    """Test init can be forced when database file exists"""
+    # use temporary config
+    tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
+    with open('/tmp/cobib_test_config.ini', 'w') as file:
+        file.write(tmp_config)
+    CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
+    # fill database file
+    with open('/tmp/cobib_test_database.yaml', 'w') as file:
+        file.write('test')
+    # try running init
+    commands.InitCommand().execute(['-f'])
+    # check init was forced and database file was overwritten
+    assert os.stat('/tmp/cobib_test_database.yaml').st_size == 0
+    # clean up file system
+    os.remove('/tmp/cobib_test_database.yaml')
+    os.remove('/tmp/cobib_test_config.ini')
+
+
 def test_list(setup):
     """Test list command"""
     # redirect output of list to string
