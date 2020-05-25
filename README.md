@@ -1,5 +1,7 @@
 # CoBib
 
+[Quickstart](https://mrossinek.gitlab.io/programming/introducing-cobib/)
+
 Welcome to CoBib - the Console Bibliography!
 I have started this project when I was looking into alternatives to popular
 reference managers such as Mendeley, which has more features than I use on a
