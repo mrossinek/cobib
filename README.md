@@ -29,7 +29,8 @@ make install
 ```
 The advantage of the latter is that the crude Zsh completion and man page are
 installed, too. When installing via pip, you can download these separately from
-the source code repository.
+the source code repository and follow the commands of `make install_extras` to
+install them under their respective paths.
 
 This will install the `cobib` package. By default, `cobib` will store your
 database at `~/.local/share/cobib/literature.yaml`
