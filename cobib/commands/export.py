@@ -1,4 +1,4 @@
-"""CoBib export command"""
+"""CoBib export command."""
 
 import argparse
 import os
@@ -11,17 +11,19 @@ from .list import ListCommand
 
 
 class ExportCommand(Command):
-    """Export Command"""
+    """Export Command."""
 
     name = 'export'
 
     def execute(self, args, out=sys.stdout):
-        """export database
+        """Export database.
 
         Exports all entries matched by the filter queries (see the list docs).
         Currently supported exporting formats are:
         * bibtex databases
         * zip archives
+
+        Args: See base class.
         """
         parser = ArgumentParser(prog="export", description="Export subcommand parser.")
         parser.add_argument("-b", "--bibtex", type=argparse.FileType('a'),
@@ -61,6 +63,6 @@ class ExportCommand(Command):
 
     @staticmethod
     def tui(tui):
-        """TUI command interface"""
+        """See base class."""
         # handle input via prompt
         tui.prompt_handler('export')

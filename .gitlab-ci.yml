@@ -21,11 +21,15 @@ before_script:
     - virtualenv venv
     - source venv/bin/activate
     - pip install -r requirements.txt
-    - pip install pylint
+    - pip install pylint pydocstyle
 
 lint:
     script:
         - pylint -rn cobib test --disable=fixme,duplicate-code
+
+doc:
+    script:
+        - pydocstyle --convention=google --match=".*\.py" cobib test
 
 spell:
     script:

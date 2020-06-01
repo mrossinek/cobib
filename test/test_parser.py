@@ -1,4 +1,4 @@
-"""Tests for CoBib's parsing module"""
+"""Tests for CoBib's parsing module."""
 
 from os import path
 from pathlib import Path
@@ -30,45 +30,45 @@ EXAMPLE_ENTRY_DICT = {
 
 
 def test_entry_set_label():
-    """Test label changing"""
+    """Test label changing."""
     # this test may fail if the input dict is not copied
     entry = parser.Entry('article', EXAMPLE_ENTRY_DICT)
-    entry.set_label('Cao2019')
+    entry.set_label = 'Cao2019'
     assert entry.label == 'Cao2019'
     assert entry.data['ID'] == 'Cao2019'
 
 
 def test_entry_set_tags():
-    """Test tags setting"""
+    """Test tags setting."""
     entry = parser.Entry('article', EXAMPLE_ENTRY_DICT)
     # NB: tags must be a list
-    entry.set_tags(['foo'])
+    entry.set_tags = ['foo']
     assert entry.data['tags'] == 'foo'
     # '+' signs are stripped
-    entry.set_tags(['+foo'])
+    entry.set_tags = ['+foo']
     assert entry.data['tags'] == 'foo'
     # also multiple occurrences
-    entry.set_tags(['++foo'])
+    entry.set_tags = ['++foo']
     assert entry.data['tags'] == 'foo'
     # list works as expected
-    entry.set_tags(['foo', 'bar'])
+    entry.set_tags = ['foo', 'bar']
     assert entry.data['tags'] == 'foo, bar'
-    entry.set_tags(['+foo', 'bar'])
+    entry.set_tags = ['+foo', 'bar']
     assert entry.data['tags'] == 'foo, bar'
-    entry.set_tags(['+foo', '+bar'])
+    entry.set_tags = ['+foo', '+bar']
     assert entry.data['tags'] == 'foo, bar'
 
 
 def test_entry_set_file():
-    """Test file setting"""
+    """Test file setting."""
     entry = parser.Entry('article', EXAMPLE_ENTRY_DICT)
-    entry.set_file(EXAMPLE_BIBTEX_FILE)
+    entry.set_file = EXAMPLE_BIBTEX_FILE
     # checks for absolute path
     assert entry.data['file'] == path.abspath(EXAMPLE_BIBTEX_FILE)
 
 
 def test_entry_matches():
-    """Test match filter"""
+    """Test match filter."""
     entry = parser.Entry('article', EXAMPLE_ENTRY_DICT)
     # author must match
     _filter = {('author', True): ['Cao']}
@@ -101,12 +101,12 @@ def test_match_with_wrong_key():
 
 
 def test_to_bibtex():
-    """Test to bibtex conversion"""
+    """Test to bibtex conversion."""
     pytest.skip("Testing this string is too ambigious. Assumed to be tested by bibtexparser.")
 
 
 def test_to_yaml():
-    """Test to yaml conversion"""
+    """Test to yaml conversion."""
     entry = parser.Entry('article', EXAMPLE_ENTRY_DICT)
     yaml_str = entry.to_yaml()
     with open(EXAMPLE_YAML_FILE, 'r') as file:
@@ -114,8 +114,12 @@ def test_to_yaml():
 
 
 @pytest.mark.parametrize('month_type', ['int', 'str'])
-def test_parser_from_bibtex_as_string(month_type):
-    """Test parsing a bibtex string"""
+def test_parser_from_bibtex_as_str(month_type):
+    """Test parsing a bibtex string.
+
+    Args:
+        month_type (str): type to use for storing the 'month' field.
+    """
     root = path.abspath(path.dirname(__file__))
     CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
     CONFIG.config['FORMAT']['month'] = month_type
@@ -131,7 +135,11 @@ def test_parser_from_bibtex_as_string(month_type):
 
 @pytest.mark.parametrize('month_type', ['int', 'str'])
 def test_parser_from_bibtex_as_file(month_type):
-    """Test parsing a bibtex file"""
+    """Test parsing a bibtex file.
+
+    Args:
+        month_type (str): type to use for storing the 'month' field.
+    """
     root = path.abspath(path.dirname(__file__))
     CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
     CONFIG.config['FORMAT']['month'] = month_type
@@ -146,7 +154,11 @@ def test_parser_from_bibtex_as_file(month_type):
 
 @pytest.mark.parametrize('month_type', ['int', 'str'])
 def test_parser_from_yaml_as_file(month_type):
-    """Test parsing a yaml file"""
+    """Test parsing a yaml file.
+
+    Args:
+        month_type (str): type to use for storing the 'month' field.
+    """
     root = path.abspath(path.dirname(__file__))
     CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
     CONFIG.config['FORMAT']['month'] = month_type
@@ -161,7 +173,11 @@ def test_parser_from_yaml_as_file(month_type):
 
 @pytest.mark.parametrize('month_type', ['int', 'str'])
 def test_parser_from_doi(month_type):
-    """Test parsing from doi"""
+    """Test parsing from doi.
+
+    Args:
+        month_type (str): type to use for storing the 'month' field.
+    """
     root = path.abspath(path.dirname(__file__))
     CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
     CONFIG.config['FORMAT']['month'] = month_type
@@ -178,7 +194,7 @@ def test_parser_from_doi(month_type):
 
 
 def test_parser_from_arxiv():
-    """Test parsing from arxiv"""
+    """Test parsing from arxiv."""
     entries = parser.Entry.from_arxiv('1812.09976')
     entry = list(entries.values())[0]
     # cannot assert against EXAMPLE_ENTRY_DICT due to outdated reference on arxiv
@@ -188,7 +204,11 @@ def test_parser_from_arxiv():
 
 @pytest.mark.parametrize('month_type', ['int', 'str'])
 def test_escape_special_chars(month_type):
-    """Test escaping special characters"""
+    """Test escaping special characters.
+
+    Args:
+        month_type (str): type to use for storing the 'month' field.
+    """
     root = path.abspath(path.dirname(__file__))
     CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
     CONFIG.config['FORMAT']['month'] = month_type

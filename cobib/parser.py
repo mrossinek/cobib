@@ -1,12 +1,10 @@
-"""CoBib parsing module"""
+"""CoBib parsing module."""
 
-# IMPORTS
-# standard
 from collections import OrderedDict
 import os
 import re
 import requests
-# third-party
+
 from bs4 import BeautifulSoup
 from pylatexenc.latexencode import UnicodeToLatexEncoder
 from ruamel.yaml import YAML
@@ -15,17 +13,14 @@ import bibtexparser
 
 from cobib.config import CONFIG
 
-# GLOBAL VARIABLES
-# API and HEADER settings according to this resource
-# https://crosscite.org/docs.html
+# API and HEADER settings according to this resource: https://crosscite.org/docs.html
 DOI_URL = "https://doi.org/"
 DOI_HEADER = {'Accept': "application/x-bibtex"}
 # arXiv URL according to docs from here https://arxiv.org/help/oa
 ARXIV_URL = "https://export.arxiv.org/api/query?id_list="
 # DOI regex used for matching DOIs
 DOI_REGEX = r'(10\.[0-9a-zA-Z]+\/(?:(?!["&\'])\S)+)\b'
-# biblatex default types and required values taken from their docs
-# https://ctan.org/pkg/biblatex
+# biblatex default types and required values taken from their docs: https://ctan.org/pkg/biblatex
 BIBTEX_TYPES = {
     'article': ['author', 'title', 'journal', 'year'],
     'book': ['author', 'title', 'year'],
@@ -37,13 +32,17 @@ BIBTEX_TYPES = {
     }
 
 
-class Entry():
-    """Bibliography entry class"""
+class Entry:
+    """Bibliography entry class.
+
+    Handles everything ranging from field manipulation over format conversion to filter matching.
+    """
     class YamlDumper(YAML):
-        """Wrapper class for dumping YAML"""
+        """Wrapper class for YAML dumping."""
 
         # pylint: disable=arguments-differ,inconsistent-return-statements
         def dump(self, data, stream=None, **kw):
+            """See base class."""
             inefficient = False
             if stream is None:
                 inefficient = True
@@ -53,7 +52,13 @@ class Entry():
                 return stream.getvalue()
 
     def __init__(self, label, data):
-        self.label = label
+        """Initializes the Entry object.
+
+        Args:
+            label (str): Database Id used for this entry.
+            data (dict): Dictionary of fields specifying this entry.
+        """
+        self._label = label
         self.data = data.copy()
         self.escape_special_chars()
         if 'FORMAT' in CONFIG.config.keys():
@@ -62,23 +67,49 @@ class Entry():
             self.convert_month(month_type)
 
     def __repr__(self):
+        """Returns the entry in its bibtex format."""
         return self.to_bibtex()
 
+    @property
+    def label(self):
+        """Returns the database Id of this entry."""
+        return self._label
+
+    @label.setter
     def set_label(self, label):
-        """Sets the label"""
-        self.label = label
+        """Sets the database Id of this entry."""
+        self._label = label
         self.data['ID'] = label
 
+    @property
+    def tags(self):
+        """Returns the tags of this entry."""
+        return self.data.get('tags', None)
+
+    @tags.setter
     def set_tags(self, tags):
-        """Sets the tags"""
+        """Sets the tags of this entry."""
         self.data['tags'] = ''.join(tag.strip('+')+', ' for tag in tags).strip(', ')
 
+    @property
+    def file(self):
+        """Returns the associated file of this entry."""
+        return self.data.get('file', None)
+
+    @file.setter
     def set_file(self, file):
-        """Sets the file"""
+        """Sets the associated file of this entry."""
         self.data['file'] = os.path.abspath(file)
 
     def convert_month(self, type_):
-        """Converts the month into the specified type."""
+        """Converts the month into the specified type.
+
+        The month field of an entry may be stored either in string or number format. This function
+        is used to convert between the two options.
+
+        Args:
+            type_ (str): may be either 'str' or 'int' indicating the format of the month field
+        """
         month = self.data.get('month', None)
         if month is None:
             return
@@ -95,7 +126,11 @@ class Entry():
                 self.data['month'] = months[month-1]
 
     def escape_special_chars(self):
-        """Escapes special characters."""
+        """Escapes special characters.
+
+        Special characters should be escaped to ensure proper rendering in LaTeX documents. This
+        function leverages the existing implementation of the pylatexenc module.
+        """
         enc = UnicodeToLatexEncoder(non_ascii_only=True,
                                     replacement_latex_protection='braces-all',
                                     unknown_char_policy='keep')
@@ -104,7 +139,21 @@ class Entry():
                 self.data[key] = enc.unicode_to_latex(value)
 
     def matches(self, _filter, _or):
-        """Check whether the filter is matched"""
+        """Check whether the filter matches.
+
+        CoBib provides an extensive filtering implementation. The filter is specified in the form
+        of a dictionary whose keys consist of pairs of (str, bool) entries where the string
+        indicates the field to match against and the boolean whether a positive (true) or negative
+        (false) match is required. The value obviously refers to what needs to be matched.
+
+        Args:
+            _filter (dict): dictionary describing the filter as explained above.
+            _or (bool): boolean indicating whether logical OR (true) or AND (false) are used to
+                        combine multiple filter items.
+
+        Returns:
+            Boolean indicating whether this entry matches the filter.
+        """
         match_list = []
         for key, values in _filter.items():
             if key[0] not in self.data.keys():
@@ -120,21 +169,29 @@ class Entry():
         return all(m for m in match_list)
 
     def to_bibtex(self):
-        """Returns the Entry in bibtex format"""
+        """Returns the entry in bibtex format."""
         database = bibtexparser.bibdatabase.BibDatabase()
         database.entries = [self.data]
         return bibtexparser.dumps(database)
 
     def to_yaml(self):
-        """Returns the Entry in YAML format"""
+        """Returns the entry in YAML format."""
         yaml = Entry.YamlDumper()
         yaml.explicit_start = True
         yaml.explicit_end = True
-        return yaml.dump({self.label: dict(sorted(self.data.items()))})
+        return yaml.dump({self._label: dict(sorted(self.data.items()))})
 
     @staticmethod
     def from_bibtex(file, string=False):
-        """Creates a new bibliography (dict of Entry instances) from a bibtex source file"""
+        """Creates a new bibliography from a bibtex source file.
+
+        Args:
+            file (str or file): string with bibtex data or path to the bibtex file.
+            string (bool, optional): indicates whether the file argument is of string or file type.
+
+        Returns:
+            An OrderedDict containing the bibliography as per the provided bibtex data.
+        """
         if string:
             database = bibtexparser.loads(file)
         else:
@@ -146,7 +203,14 @@ class Entry():
 
     @staticmethod
     def from_yaml(file):
-        """Creates a new bibliography (dict of Entry instances) from a YAML source file"""
+        """Creates a new bibliography from a YAML source file.
+
+        Args:
+            file (file): path to YAML file from which to load database.
+
+        Returns:
+            An OrderedDict containing the bibliography as per the provided YAML file.
+        """
         yaml = YAML()
         bib = OrderedDict()
         for entry in yaml.load_all(file):
@@ -156,15 +220,28 @@ class Entry():
 
     @staticmethod
     def from_doi(doi):
-        """Queries the bibtex source from a given DOI"""
+        """Queries the bibtex source for a given DOI.
+
+        Args:
+            doi (str): DOI for which to obtain the bibtex data.
+
+        Returns:
+            An OrderedDict containing the bibliographic data of the provided DOI.
+        """
         assert re.match(DOI_REGEX, doi)
         page = requests.get(DOI_URL+doi, headers=DOI_HEADER)
         return Entry.from_bibtex(page.text, string=True)
 
     @staticmethod
     def from_arxiv(arxiv):
-        # pylint: disable=too-many-branches
-        """Queries the bibtex source from a given arxiv ID"""
+        """Queries the bibtex source for a given arxiv ID.
+
+        Args:
+            arxiv (str): arXiv ID for which to obtain the bibtex data.
+
+        Returns:
+            An OrderedDict containing the bibliographic data of the provided arXiv ID.
+        """
         page = requests.get(ARXIV_URL+arxiv)
         xml = BeautifulSoup(page.text, features='html.parser')
         # TODO rewrite this to use a defaultdict(str)

@@ -1,7 +1,6 @@
 #!/usr/bin/python3
-"""CoBib main body"""
+"""CoBib main body."""
 
-# IMPORTS
 import argparse
 import inspect
 import sys
@@ -14,7 +13,10 @@ from cobib.tui import tui
 
 
 def main():
-    """Main function"""
+    """Main executable.
+
+    CoBib's main function used to parse optional keyword arguments and subcommands.
+    """
     if len(sys.argv) > 1 and any([a[0] == '_' for a in sys.argv]):
         # zsh helper function called
         zsh_main()
@@ -51,7 +53,10 @@ def main():
 
 
 def zsh_main():
-    """ ZSH main helper """
+    """ZSH helper.
+
+    Main function used by the ZSH completion script.
+    """
     helper_avail = ['_'+m[0] for m in inspect.getmembers(zsh_helper) if inspect.isfunction(m[1])]
     parser = argparse.ArgumentParser(description="Process ZSH helper call")
     parser.add_argument('helper', help="zsh helper to be called", choices=helper_avail)

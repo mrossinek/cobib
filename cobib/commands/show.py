@@ -1,4 +1,4 @@
-"""CoBib show command"""
+"""CoBib show command."""
 
 import argparse
 import sys
@@ -9,14 +9,16 @@ from .base_command import ArgumentParser, Command
 
 
 class ShowCommand(Command):
-    """Show Command"""
+    """Show Command."""
 
     name = 'show'
 
     def execute(self, args, out=sys.stdout):
-        """show entry
+        """Show entry.
 
         Prints the details of a selected entry in bibtex format to stdout.
+
+        Args: See base class.
         """
         parser = ArgumentParser(prog="show", description="Show subcommand parser.")
         parser.add_argument("label", type=str, help="label of the entry")
@@ -40,7 +42,7 @@ class ShowCommand(Command):
 
     @staticmethod
     def tui(tui):
-        """TUI command interface"""
+        """See base class."""
         # get current label
         label = tui.get_current_label()
         # populate buffer with entry data

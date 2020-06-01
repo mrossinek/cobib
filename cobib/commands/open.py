@@ -1,4 +1,4 @@
-"""CoBib open command"""
+"""CoBib open command."""
 
 import argparse
 import sys
@@ -9,14 +9,16 @@ from .base_command import ArgumentParser, Command
 
 
 class OpenCommand(Command):
-    """Open Command"""
+    """Open Command."""
 
     name = 'open'
 
     def execute(self, args, out=sys.stdout):
-        """open file from entry
+        """Open file from entry.
 
         Opens the associated file of an entry with xdg-open.
+
+        Args: See base class.
         """
         parser = ArgumentParser(prog="open", description="Open subcommand parser.")
         parser.add_argument("label", type=str, help="label of the entry")
@@ -56,7 +58,7 @@ class OpenCommand(Command):
 
     @staticmethod
     def tui(tui):
-        """TUI command interface"""
+        """See base class."""
         prev_list_mode = tui.list_mode
         # get current label
         label = tui.get_current_label()
