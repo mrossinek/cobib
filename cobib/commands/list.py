@@ -1,4 +1,4 @@
-"""Cobib init command"""
+"""Cobib init command."""
 
 import argparse
 import sys
@@ -11,15 +11,16 @@ from .base_command import ArgumentParser, Command
 
 
 class ListCommand(Command):
-    """List Command"""
+    """List Command."""
 
     name = 'list'
 
-    # pylint: disable=too-many-branches,too-many-locals,arguments-differ
     def execute(self, args, out=sys.stdout):
-        """list entries
+        """List entries.
 
         By default, all entries of the database are listed.
+
+        Args: See base class.
         This output will be filterable in the future by providing values for any
         set of table keys.
         """
@@ -86,7 +87,7 @@ class ListCommand(Command):
 
     @staticmethod
     def tui(tui, sort_mode):
-        """TUI command interface"""
+        """See base class."""
         tui.buffer.clear()
         # update list prompt arguments
         if sort_mode:

@@ -13,6 +13,9 @@ install: install_extras
 lint: cobib/ test/
 	pylint -rn cobib test --disable=fixme,duplicate-code
 
+doc: cobib/ test/
+	pydocstyle --convention=google --match=".*\.py" cobib test
+
 spell: cobib/ test/
 	pylint -rn cobib test --disable=all --enable=spelling \
 	    --spelling-dict=en_US --spelling-private-dict-file=.pylintdict

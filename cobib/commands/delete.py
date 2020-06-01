@@ -1,4 +1,4 @@
-"""CoBib delete command"""
+"""CoBib delete command."""
 
 import argparse
 import os
@@ -10,14 +10,16 @@ from .base_command import ArgumentParser, Command
 
 
 class DeleteCommand(Command):
-    """Delete Command"""
+    """Delete Command."""
 
     name = 'delete'
 
     def execute(self, args, out=sys.stdout):
-        """delete entry
+        """Delete entry.
 
         Deletes the entry from the database.
+
+        Args: See base class.
         """
         parser = ArgumentParser(prog="delete", description="Delete subcommand parser.")
         parser.add_argument("label", type=str, help="label of the entry")
@@ -54,7 +56,7 @@ class DeleteCommand(Command):
 
     @staticmethod
     def tui(tui):
-        """TUI command interface"""
+        """See base class."""
         # get current label
         label = tui.get_current_label()
         # delete selected entry

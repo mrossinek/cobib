@@ -1,4 +1,4 @@
-"""CoBib curses interface"""
+"""CoBib curses interface."""
 
 import curses
 import sys
@@ -11,7 +11,7 @@ from cobib.config import CONFIG
 from .buffer import TextBuffer
 
 
-class TUI:  # pylint: disable=too-many-instance-attributes
+class TUI:
     """CoBib's curses-based TUI.
 
     The TUI is implemented as a class to simplify management of different windows/pads and keep a
@@ -61,6 +61,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         'top': lambda self: self.scroll_y(0),
         'up': lambda self: self.scroll_y(-1),
     }
+
     # standard key bindings
     KEYDICT = {
         10: 'Show',  # line feed = ENTER
@@ -92,6 +93,11 @@ class TUI:  # pylint: disable=too-many-instance-attributes
     }
 
     def __init__(self, stdscr):
+        """Initializes the curses-TUI and starts the event loop.
+
+        Args:
+            stdscr (curses.window): the curses standard screen as returned by curses.initscr().
+        """
         self.stdscr = stdscr
 
         # register resize handler
@@ -146,7 +152,12 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.loop()
 
     def resize_handler(self, signum, frame):  # pylint: disable=unused-argument
-        """Handles terminal window resize events."""
+        """Handles terminal window resize events.
+
+        Args:
+            signum (int): signal number.
+            frame: unused argument, required by the function template.
+        """
         # stop curses window
         curses.endwin()
         # clear and refresh for a blank canvas
@@ -171,7 +182,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.viewport.refresh(self.top_line, self.left_edge, 1, 0, self.visible, self.width-1)
 
     def quit(self):
-        """Break the key event loop."""
+        """Breaks the key event loop or quits one viewport level."""
         if self.list_mode == -1:
             raise StopIteration
         self.update_list()
@@ -225,7 +236,13 @@ class TUI:  # pylint: disable=too-many-instance-attributes
 
     @staticmethod
     def statusbar(statusline, text, attr=0):
-        """Update the text in the provided status bar and refresh it."""
+        """Update the text in the provided status bar and refresh it.
+
+        Args:
+            statusline (curses.window): single line height window used as a statusline.
+            text (str): text to place in the statusline.
+            attr (int, optional): attribute number to use for the printed text.
+        """
         statusline.erase()
         _, max_x = statusline.getmaxyx()
         statusline.addnstr(0, 0, text, max_x-1, attr)
@@ -233,7 +250,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
 
     @property
     def infoline(self):
-        """Lists available key bindings."""
+        """Returns a list of the available key bindings."""
         cmds = ["Quit", "Help", "", "Show", "Open", "Wrap", "", "Add", "Edit", "Delete", "",
                 "Search", "Filter", "Sort", "Select", "", "Export"]
         infoline = ''
@@ -250,7 +267,11 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         return infoline.strip()
 
     def help(self):
-        """Help command."""
+        """Help command.
+
+        Opens a new curses window with more detailed information on the configured key bindings and
+        short descriptions of the commands.
+        """
         cmds = ["Quit", "Help", "", "Show", "Open", "Wrap", "", "Add", "Edit", "Delete", "",
                 "Search", "Filter", "Sort", "Select", "", "Export"]
         # setup help strings
@@ -344,7 +365,11 @@ class TUI:  # pylint: disable=too-many-instance-attributes
             key = self.stdscr.getch()
 
     def scroll_y(self, update):
-        """Scroll viewport vertically."""
+        """Scroll viewport vertically.
+
+        Args:
+            update (int or str): the offset specifying the scrolling height.
+        """
         # jump to top
         if update == 0:
             self.top_line = 0
@@ -370,7 +395,11 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                 self.current_line = next_line
 
     def scroll_x(self, update):
-        """Scroll viewport horizontally."""
+        """Scroll viewport horizontally.
+
+        Args:
+            update (int or str): the offset specifying the scrolling width.
+        """
         # jump to beginning
         if update == 0:
             self.left_edge = 0
@@ -392,7 +421,15 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.buffer.view(self.viewport, self.visible, self.width-1)
 
     def prompt_handler(self, command, out=None):
-        """Handle prompt input."""
+        """Handle prompt input.
+
+        Args:
+            command (str or None): the command string to populate the prompt with.
+            out (stream, optional): the output stream to redirect stdout to.
+
+        Returns:
+            A list with the executed command to allow further handling.
+        """
         # make cursor visible
         curses.curs_set(1)
 
@@ -464,7 +501,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         return command
 
     def get_current_label(self):
-        """Obtain label of currently selected entry."""
+        """Returns the label of the currently selected entry."""
         # Two cases are possible: the list and the show mode
         if self.list_mode == -1:
             # In the list mode, the label can be found in the current line

@@ -1,10 +1,10 @@
-"""CoBib auxiliary TextBuffer"""
+"""CoBib auxiliary TextBuffer."""
 
 import textwrap
 
 
 class TextBuffer:
-    """TextBuffer class used as an auxiliary variable to redirect output into.
+    """TextBuffer class used as an auxiliary variable to redirect output.
 
     This buffer class implements a `write` method which allows it to be used as a drop-in source
     for the `file` argument of the `print()` method. Thereby, its output can be gathered in this
@@ -14,13 +14,18 @@ class TextBuffer:
     INDENT = "↪ "
 
     def __init__(self):
+        """Initializes the TextBuffer object."""
         self.lines = []
         self.height = 0
         self.width = 0
         self.wrapped = False
 
     def write(self, string):
-        """Writes a non-empty string into the buffer."""
+        """Writes a non-empty string into the buffer.
+
+        Args:
+            string (str): the string to append to the buffer.
+        """
         if string.strip():
             # only handle non-empty strings
             self.lines.append(string)
@@ -35,7 +40,7 @@ class TextBuffer:
         self.wrapped = False
 
     def split(self):
-        """Split lines at line breaks."""
+        """Split the lines at literal line breaks."""
         copy = self.lines.copy()
         self.lines = []
         self.width = 0
@@ -46,7 +51,11 @@ class TextBuffer:
         self.height = len(self.lines)
 
     def wrap(self, width):
-        """Wrap text in buffer to given width."""
+        """Wrap text in buffer to given width.
+
+        Args:
+            width (int): maximum text width for each line in the buffer.
+        """
         copy = self.lines.copy()
         self.lines = []
         self.width = 0
@@ -67,7 +76,13 @@ class TextBuffer:
         self.wrapped = not self.wrapped
 
     def view(self, pad, visible_height, visible_width):
-        """View buffer in provided curses pad."""
+        """View buffer in provided curses pad.
+
+        Args:
+            pad (curses.window): a re-sizable curses window (aka a pad).
+            visible_height (int): the available height for the pad.
+            visible_width (int): the available width for the pad.
+        """
         # first clear pad
         pad.erase()
         pad.refresh(0, 0, 1, 0, visible_height, visible_width)

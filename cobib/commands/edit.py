@@ -1,4 +1,4 @@
-"""CoBib edit command"""
+"""CoBib edit command."""
 
 import argparse
 import os
@@ -11,14 +11,16 @@ from .base_command import ArgumentParser, Command
 
 
 class EditCommand(Command):
-    """Edit Command"""
+    """Edit Command."""
 
     name = 'edit'
 
-    def execute(self, args, out=sys.stdout):  # pylint: disable=too-many-locals
-        """edit entry
+    def execute(self, args, out=sys.stdout):
+        """Edit entry.
 
         Opens an existing entry for manual editing.
+
+        Args: See base class.
         """
         parser = ArgumentParser(prog="edit", description="Edit subcommand parser.")
         parser.add_argument("label", type=str, help="label of the entry")
@@ -70,7 +72,7 @@ class EditCommand(Command):
 
     @staticmethod
     def tui(tui):
-        """TUI command interface"""
+        """See base class."""
         # get current label
         label = tui.get_current_label()
         # populate buffer with entry data

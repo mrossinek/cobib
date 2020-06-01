@@ -1,4 +1,4 @@
-"""Cobib init command"""
+"""Cobib init command."""
 
 import argparse
 import os
@@ -9,14 +9,16 @@ from .base_command import ArgumentParser, Command
 
 
 class InitCommand(Command):
-    """Init Command"""
+    """Init Command."""
 
     name = 'init'
 
     def execute(self, args, out=sys.stdout):
-        """initialize database
+        """Initialize database.
 
         Initializes the yaml database file at the configured location.
+
+        Args: See base class.
         """
         parser = ArgumentParser(prog="init", description="Init subcommand parser.")
         parser.add_argument('-f', '--force', action='store_true',

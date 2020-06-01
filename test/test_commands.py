@@ -1,4 +1,4 @@
-"""Tests for CoBib's commands"""
+"""Tests for CoBib's commands."""
 # pylint: disable=unused-argument, redefined-outer-name
 
 import os
@@ -16,14 +16,18 @@ from cobib.database import read_database
 
 @pytest.fixture
 def setup():
-    """Setup"""
+    """Setup."""
     root = os.path.abspath(os.path.dirname(__file__))
     CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
     read_database()
 
 
 def test_set_config(setup):
-    """Test config setting"""
+    """Test config setting.
+
+    Args:
+        setup: runs pytest fixture.
+    """
     # from setup
     assert CONFIG.config['DATABASE']['file'] == './test/example_literature.yaml'
     # change back to default
@@ -32,7 +36,7 @@ def test_set_config(setup):
 
 
 def test_init():
-    """Test init command"""
+    """Test init command."""
     # use temporary config
     tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
     with open('/tmp/cobib_test_config.ini', 'w') as file:
@@ -51,7 +55,7 @@ def test_init():
 
 
 def test_init_safe():
-    """Test init aborts when database file exists"""
+    """Test init aborts when database file exists."""
     # use temporary config
     tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
     with open('/tmp/cobib_test_config.ini', 'w') as file:
@@ -71,7 +75,7 @@ def test_init_safe():
 
 
 def test_init_force():
-    """Test init can be forced when database file exists"""
+    """Test init can be forced when database file exists."""
     # use temporary config
     tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
     with open('/tmp/cobib_test_config.ini', 'w') as file:
@@ -90,7 +94,11 @@ def test_init_force():
 
 
 def test_list(setup):
-    """Test list command"""
+    """Test list command.
+
+    Args:
+        setup: runs pytest fixture.
+    """
     # redirect output of list to string
     file = StringIO()
     tags = commands.ListCommand().execute([], out=file)
@@ -108,6 +116,9 @@ def test_list_with_missing_keys(setup):
 
     When a key is queried which is not present in all entries, the list command should return
     normally.
+
+    Args:
+        setup: runs pytest fixture.
     """
     # redirect output of list to string
     file = StringIO()
@@ -122,7 +133,11 @@ def test_list_with_missing_keys(setup):
 
 
 def test_show(setup):
-    """Test show command"""
+    """Test show command.
+
+    Args:
+        setup: runs pytest fixture.
+    """
     file = StringIO()
     commands.ShowCommand().execute(['einstein'], out=file)
     with open('./test/example_literature.bib', 'r') as expected:
@@ -133,12 +148,12 @@ def test_show(setup):
 
 
 def test_open():
-    """Test open command"""
+    """Test open command."""
     pytest.skip("There is currently no meaningful way of testing this.")
 
 
 def test_add():
-    """Test add command"""
+    """Test add command."""
     # use temporary config
     tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
     with open('/tmp/cobib_test_config.ini', 'w') as file:
@@ -193,7 +208,7 @@ def test_add_overwrite_label():
 
 
 def test_delete():
-    """Test delete command"""
+    """Test delete command."""
     # use temporary config
     tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
     with open('/tmp/cobib_test_config.ini', 'w') as file:
@@ -217,12 +232,16 @@ def test_delete():
 
 
 def test_edit():
-    """Test edit command"""
+    """Test edit command."""
     pytest.skip("There is currently no meaningful way of testing this.")
 
 
 def test_export(setup):
-    """Test export command"""
+    """Test export command.
+
+    Args:
+        setup: runs pytest fixture.
+    """
     commands.ExportCommand().execute(['-b', '/tmp/cobib_test_export.bib'])
     with open('/tmp/cobib_test_export.bib', 'r') as file:
         with open('./test/example_literature.bib', 'r') as expected:

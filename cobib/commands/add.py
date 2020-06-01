@@ -1,4 +1,4 @@
-"""CoBib add command"""
+"""CoBib add command."""
 
 import argparse
 import os
@@ -11,14 +11,16 @@ from .base_command import ArgumentParser, Command
 
 
 class AddCommand(Command):
-    """Add Command"""
+    """Add Command."""
 
     name = 'add'
 
     def execute(self, args, out=sys.stdout):
-        """add new entry
+        """Add new entry.
 
         Adds new entries to the database.
+
+        Args: See base class.
         """
         parser = ArgumentParser(prog="add", description="Add subcommand parser.")
         parser.add_argument("-l", "--label", type=str,
@@ -55,24 +57,24 @@ class AddCommand(Command):
         if largs.file is not None:
             assert len(new_entries.values()) == 1
             for value in new_entries.values():
-                value.set_file(largs.file)
+                value.set_file = largs.file
 
         if largs.label is not None:
             assert len(new_entries.values()) == 1
             for value in new_entries.values():
-                value.set_label(largs.label)
+                value.set_label = largs.label
             new_entries = OrderedDict((largs.label, value) for value in new_entries.values())
 
         if largs.tags != []:
             assert len(new_entries.values()) == 1
             for value in new_entries.values():
-                value.set_tags(largs.tags)
+                value.set_tags = largs.tags
 
         write_database(new_entries)
 
     @staticmethod
     def tui(tui):
-        """TUI command interface"""
+        """See base class."""
         # temporarily disable prints to stdout
         original_stdout = sys.stdout
         sys.stdout = open(os.devnull, 'w')

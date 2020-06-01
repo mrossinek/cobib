@@ -1,4 +1,4 @@
-"""CoBib configuration module"""
+"""CoBib configuration module."""
 
 from copy import deepcopy
 import configparser
@@ -6,15 +6,23 @@ import io
 import os
 
 
-class Config:  # pylint: disable=too-few-public-methods
-    """Global configuration class"""
+class Config:
+    """Class used solely for the global configuration object."""
 
     def __init__(self):
-        # initialize dictionary
+        """Initializes the configuration data dictionary."""
         self.config = {}
 
     def set_config(self, configpath=None):
-        """Set config"""
+        """Sets the configuration.
+
+        If a configuration file is provided as a keyword argument it is used instead of the default
+        paths. The configparser module is used to parse the INI configuration file.
+
+        Args:
+            configpath (str or io.TextIOWrapper, optional): the path to an optional configuration
+                                                            file.
+        """
         ini_conf = configparser.ConfigParser()
         ini_conf.optionxform = str  # makes option names case-sensitive!
 
