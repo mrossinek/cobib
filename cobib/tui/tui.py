@@ -122,6 +122,11 @@ class TUI:
         else:
             self.list_args = ['-l']
 
+        if 'TUI' in CONFIG.config.keys() and CONFIG.config['TUI'].get('reverse_order', True):
+            self.list_args += ['-r']
+        else:
+            self.list_args += ['-r']
+
         # Initialize top status bar
         self.topbar = curses.newwin(1, self.width, 0, 0)
         self.topbar.bkgd(' ', curses.color_pair(TUI.COLOR_PAIRS['top_statusbar'][0]))
