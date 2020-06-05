@@ -104,6 +104,8 @@ def test_list(setup, args, expected):
 
     Args:
         setup: runs pytest fixture.
+        args: arguments for the list command call.
+        expected: expected result.
     """
     # redirect output of list to string
     file = StringIO()
