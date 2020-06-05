@@ -93,7 +93,13 @@ def test_init_force():
     os.remove('/tmp/cobib_test_config.ini')
 
 
-def test_list(setup):
+@pytest.mark.parametrize(['args', 'expected'], [
+        [[], ['einstein', 'latexcompanion', 'knuthwebsite']],
+        [['-r'], ['knuthwebsite', 'latexcompanion', 'einstein']],
+        [['-s', 'year'], ['einstein', 'knuthwebsite', 'latexcompanion']],
+        [['-r', '-s', 'year'], ['latexcompanion', 'knuthwebsite', 'einstein']],
+    ])
+def test_list(setup, args, expected):
     """Test list command.
 
     Args:
@@ -101,8 +107,7 @@ def test_list(setup):
     """
     # redirect output of list to string
     file = StringIO()
-    tags = commands.ListCommand().execute([], out=file)
-    expected = ['einstein', 'latexcompanion', 'knuthwebsite']
+    tags = commands.ListCommand().execute(args, out=file)
     assert tags == expected
     for line in file.getvalue().split('\n'):
         if line.startswith('ID') or all([c in '- ' for c in line]):

@@ -21,8 +21,9 @@ class ListCommand(Command):
         By default, all entries of the database are listed.
 
         Args: See base class.
-        This output will be filterable in the future by providing values for any
-        set of table keys.
+
+        Returns:
+            A list with the filtered and sorted labels.
         """
         if '--' in args:
             args.remove('--')
@@ -34,7 +35,7 @@ class ListCommand(Command):
                             help="print table in long format (i.e. wrap and don't shorten lines)")
         parser.add_argument('-s', '--sort', help="specify column along which to sort the list")
         parser.add_argument('-r', '--reverse', action='store_true',
-                            help="reverses the sorting order")
+                            help="reverses the listing order")
         unique_keys = set()
         for entry in CONFIG.config['BIB_DATA'].values():
             unique_keys.update(entry.data.keys())
@@ -80,10 +81,14 @@ class ListCommand(Command):
                     table[-1][1] = textwrap.shorten(table[-1][1], 80, placeholder='...')
                 widths = [max(widths[col], len(table[-1][col])) for col in range(len(widths))]
         if largs.sort:
-            table = sorted(table, key=itemgetter(columns.index(largs.sort)), reverse=largs.reverse)
+            labels, table = zip(*sorted(zip(labels, table), reverse=largs.reverse,
+                                        key=itemgetter(columns.index(largs.sort))))
+        elif largs.reverse:
+            # do not sort, but reverse
+            labels, table = labels[::-1], table[::-1]
         for row in table:
             print('  '.join([f'{col: <{wid}}' for col, wid in zip(row, widths)]), file=out)
-        return labels
+        return list(labels)
 
     @staticmethod
     def tui(tui, sort_mode):
