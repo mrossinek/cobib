@@ -108,6 +108,16 @@ class ListCommand(Command):
         # after the command has been executed n the prompt handler, the `command` variable will
         # contain the contents of the prompt
         if command:
+            # always ensure the 'reverse' and 'or' keyword arguments are consistent
+            if '-r' in command and '-r' not in tui.list_args:
+                tui.list_args.insert(1, '-r')
+            elif '-r' not in command and '-r' in tui.list_args:
+                tui.list_args.remove('-r')
+            if '-x' in command and '-x' not in tui.list_args:
+                tui.list_args.insert(1, '-x')
+            elif '-x' not in command and '-x' in tui.list_args:
+                tui.list_args.remove('-x')
+
             if sort_mode:
                 try:
                     sort_arg_idx = command.index('-s')
