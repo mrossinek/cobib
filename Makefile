@@ -10,6 +10,10 @@ install_extras: _cobib cobib.1
 install: install_extras
 	sudo python setup.py install
 
+.PHONY: dev
+dev:
+	pip install pylint pydocstyle pyenchant pyte
+
 lint: cobib/ test/
 	pylint -rn cobib test --disable=fixme,duplicate-code
 

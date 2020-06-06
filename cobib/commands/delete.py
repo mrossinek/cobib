@@ -65,3 +65,6 @@ class DeleteCommand(Command):
         read_database(fresh=True)
         # update database list
         tui.update_list()
+        # if cursor line is below buffer height, move it one line back up
+        if tui.current_line >= tui.buffer.height:
+            tui.current_line -= 1

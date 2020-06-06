@@ -62,6 +62,23 @@ class TUI:
         'up': lambda self: self.scroll_y(-1),
     }
 
+    # command help strings
+    HELP_DICT = {
+        "Add": "Prompts for a new entry to be added to the database.",
+        "Delete": "Removes the current entry from the database.",
+        "Edit": "Edits the current entry in an external EDITOR.",
+        "Export": "Allows exporting the database to .bib or .zip files.",
+        "Filter": "Allows filtering the list via `++/--` keywords.",
+        "Help": "Displays this help.",
+        "Open": "Opens the associated file of an entry.",
+        "Quit": "Closes current menu and quit's CoBib.",
+        "Search": "**not** implemented yet.",
+        "Select": "**not** implemented yet.",
+        "Show": "Shows the details of an entry.",
+        "Sort": "Prompts for the field to sort against (-r to reverse).",
+        "Wrap": "Wraps the text displayed in the window.",
+    }
+
     # standard key bindings
     KEYDICT = {
         10: 'Show',  # line feed = ENTER
@@ -135,7 +152,7 @@ class TUI:
         # NOTE: -2 leaves an additional empty line for the command prompt
         self.botbar = curses.newwin(1, self.width, self.height-2, 0)
         self.botbar.bkgd(' ', curses.color_pair(TUI.COLOR_PAIRS['bottom_statusbar'][0]))
-        self.statusbar(self.botbar, self.infoline)
+        self.statusbar(self.botbar, self.infoline())
 
         # Initialize command prompt and viewport
         self.viewport = curses.newpad(1, 1)
@@ -178,7 +195,7 @@ class TUI:
         # update bottom statusbar
         self.botbar.resize(1, self.width)
         self.botbar.mvwin(self.height-2, 0)
-        self.statusbar(self.botbar, self.infoline)
+        self.statusbar(self.botbar, self.infoline())
         self.botbar.refresh()
         # update prompt
         self.prompt.resize(1, self.width)
@@ -253,8 +270,8 @@ class TUI:
         statusline.addnstr(0, 0, text, max_x-1, attr)
         statusline.refresh()
 
-    @property
-    def infoline(self):
+    @staticmethod
+    def infoline():
         """Returns a list of the available key bindings."""
         cmds = ["Quit", "Help", "", "Show", "Open", "Wrap", "", "Add", "Edit", "Delete", "",
                 "Search", "Filter", "Sort", "Select", "", "Export"]
@@ -277,24 +294,9 @@ class TUI:
         Opens a new curses window with more detailed information on the configured key bindings and
         short descriptions of the commands.
         """
+        # sorted commands to place in help window
         cmds = ["Quit", "Help", "", "Show", "Open", "Wrap", "", "Add", "Edit", "Delete", "",
                 "Search", "Filter", "Sort", "Select", "", "Export"]
-        # setup help strings
-        help_dict = {
-            "Quit": "Closes current menu and quit's CoBib.",
-            "Help": "Displays this help.",
-            "Show": "Shows the details of an entry.",
-            "Open": "Opens the associated file of an entry.",
-            "Wrap": "Wraps the text displayed in the window for improved readability.",
-            "Add": "Prompts for a new entry to be added to the database.",
-            "Edit": "Edits the current entry in an external EDITOR.",
-            "Delete": "Removes the current entry from the database.",
-            "Search": "**not** implemented yet.",
-            "Filter": "Allows filtering the list using CoBib's `list ++/--` filter options.",
-            "Sort": "Prompts for the field to sort against (use -r to reverse the order).",
-            "Select": "**not** implemented yet.",
-            "Export": "Allows exporting the database to .bib or .zip files.",
-        }
         # populate text buffer with help text
         help_text = TextBuffer()
         for cmd in cmds:
@@ -306,16 +308,15 @@ class TUI:
                         key = 'ENTER' if key in (10, 13) else chr(key)
                         break
                 # write: [key] Command: Description
-                help_text.write("{:^8} {:<8} {}".format('['+key+']', cmd+':', help_dict[cmd]))
+                help_text.write("{:^8} {:<8} {}".format('['+key+']', cmd+':', TUI.HELP_DICT[cmd]))
             else:
                 # add empty line
                 help_text.lines.append('')
                 help_text.height += 1
         # add header section
         help_text.lines.insert(0, "{0:^{1}}".format("CoBib TUI Help", help_text.width))
-        help_text.lines.insert(1, '')
-        help_text.lines.insert(2, "{:^8} {:<8} {}".format('Key', 'Command', 'Description'))
-        help_text.height += 3
+        help_text.lines.insert(1, "{:^8} {:<8} {}".format('Key', 'Command', 'Description'))
+        help_text.height += 2
 
         # populate help window
         help_win = curses.newpad(help_text.height+2, help_text.width+5)  # offsets account for box
@@ -328,8 +329,7 @@ class TUI:
         # display help window
         help_win.box()
         help_h, help_w = help_win.getmaxyx()
-        offset = 4
-        help_win.refresh(0, 0, offset, offset, offset+help_h, offset+help_w)
+        help_win.refresh(0, 0, 1, 1, 1+help_h, 1+help_w)
 
         key = 0
         # loop until quit by user
@@ -424,6 +424,9 @@ class TUI:
         # then, wrap the buffer
         self.buffer.wrap(self.width)
         self.buffer.view(self.viewport, self.visible, self.width-1)
+        # if cursor line is below buffer height, move it one line back up
+        if self.current_line >= self.buffer.height:
+            self.current_line -= 1
 
     def prompt_handler(self, command, out=None):
         """Handle prompt input.
