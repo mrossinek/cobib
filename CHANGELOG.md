@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - respect sort order reversing and filter `XOR`ing from the TUI (#18)
+- `edit` command on Mac OS (#19)
 
 ### Changed
 - made `init` command safe against database overwriting

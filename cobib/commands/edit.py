@@ -45,8 +45,8 @@ class EditCommand(Command):
         tmp_file.flush()
         status = os.system(os.environ['EDITOR'] + ' ' + tmp_file.name)
         assert status == 0
-        tmp_file.seek(0, 0)
-        nxt = ''.join(tmp_file.readlines()[1:])
+        with open(tmp_file.name, 'r') as edited:
+            nxt = ''.join(edited.readlines()[1:])
         tmp_file.close()
         assert not os.path.exists(tmp_file.name)
         if prv == nxt:
