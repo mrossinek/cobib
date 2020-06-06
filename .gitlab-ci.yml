@@ -3,6 +3,8 @@ image: python:latest
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
 variables:
+  TERM: "linux"
+  EDITOR: "vim"
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
 # Pip's cache doesn't store the python packages
@@ -16,12 +18,14 @@ cache:
         - venv/
 before_script:
     - uname -a
+    - apt-get update
+    - apt-get install -y python3-enchant vim
     - python -V  # Print out python version for debugging
     - pip install virtualenv
     - virtualenv venv
     - source venv/bin/activate
     - pip install -r requirements.txt
-    - pip install pylint pydocstyle
+    - pip install pylint pydocstyle pyte pytest
 
 lint:
     script:
@@ -33,12 +37,9 @@ doc:
 
 spell:
     script:
-        - apt-get update
-        - apt-get install -y python3-enchant
         - pylint -rn cobib test --disable=all --enable=spelling
           --spelling-dict='en_US' --spelling-private-dict-file=.pylintdict
 
 test:
     script:
-        - pip install pytest
         - python -m pytest test
