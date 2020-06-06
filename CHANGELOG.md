@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [2.0.0] - 2020-06-06
+
+Pypi: https://pypi.org/project/cobib/2.0.0/
+
 ### Fixed
 - respect sort order reversing and filter `XOR`ing from the TUI (#18)
 - `edit` command on Mac OS (#19)
@@ -163,7 +168,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.0.0b4...master
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.0.0...master
+[2.0.0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0
 [2.0.0b4]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0b4
 [2.0.0b3]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0b3
 [2.0.0b2]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0b2
