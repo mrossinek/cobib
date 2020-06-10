@@ -338,6 +338,7 @@ class TUI:
 
         # close help window
         help_win.clear()
+        self.resize_handler(None, None)
 
     def loop(self):
         """The key-handling event loop."""

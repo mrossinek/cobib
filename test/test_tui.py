@@ -60,6 +60,15 @@ def assert_help_screen(screen):
         assert any("{:<8} {}".format(cmd+':', desc) in line for line in screen.display[4:21])
 
 
+def assert_no_help_window_artefacts(screen):
+    """Asserts issue #20 remains fixed."""
+    assert_list_view(screen, 1, [
+        'dummy_entry_for_scroll_testing', 'knuthwebsite', 'latexcompanion', 'einstein'
+    ])
+    for line in range(5, 22):
+        assert screen.display[line].strip() == ''
+
+
 def assert_scroll(screen, update, direction):
     """Asserts cursor-line position after scrolling.
 
@@ -146,6 +155,7 @@ def assert_export(screen):
             'current': 1, 'expected': [
                 'dummy_entry_for_scroll_testing', 'knuthwebsite', 'latexcompanion', 'einstein'
             ]}],
+        ['?q', assert_no_help_window_artefacts, {}],
         ['?', assert_help_screen, {}],
         ['j', assert_scroll, {'update': 1, 'direction': 'y'}],
         ['jjk', assert_scroll, {'update': 1, 'direction': 'y'}],
