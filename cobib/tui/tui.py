@@ -52,14 +52,8 @@ class TUI:
         'Show': commands.ShowCommand.tui,
         'Sort': partial(commands.ListCommand.tui, sort_mode=True),
         'Wrap': lambda self: self.wrap(),
-        'bottom': lambda self: self.scroll_y('G'),
-        'down': lambda self: self.scroll_y(1),
-        'end': lambda self: self.scroll_x('$'),
-        'home': lambda self: self.scroll_x(0),
-        'left': lambda self: self.scroll_x(-1),
-        'right': lambda self: self.scroll_x(1),
-        'top': lambda self: self.scroll_y(0),
-        'up': lambda self: self.scroll_y(-1),
+        'x': lambda self, update: self.scroll_x(update),
+        'y': lambda self, update: self.scroll_y(update),
     }
 
     # command help strings
@@ -83,24 +77,30 @@ class TUI:
     KEYDICT = {
         10: 'Show',  # line feed = ENTER
         13: 'Show',  # carriage return = ENTER
-        curses.KEY_DOWN: 'down',
-        curses.KEY_LEFT: 'left',
-        curses.KEY_RIGHT: 'right',
-        curses.KEY_UP: 'up',
-        ord('$'): 'end',
+        curses.KEY_DOWN: ('y', 1),
+        curses.KEY_UP: ('y', -1),
+        curses.KEY_NPAGE: ('y', 20),
+        curses.KEY_PPAGE: ('y', -20),
+        ord('j'): ('y', 1),
+        ord('k'): ('y', -1),
+        ord('g'): ('y', 0),
+        ord('G'): ('y', 'G'),
+        2: ('y', -20),  # CTRL-B
+        4: ('y', 10),  # CTRL-D
+        6: ('y', 20),  # CTRL-F
+        21: ('y', -10),  # CTRL-U
+        curses.KEY_LEFT: ('x', -1),
+        curses.KEY_RIGHT: ('x', 1),
+        ord('h'): ('x', -1),
+        ord('l'): ('x', 1),
+        ord('0'): ('x', 0),
+        ord('$'): ('x', '$'),
         ord('/'): 'Search',
-        ord('0'): 'home',
         ord('?'): 'Help',
-        ord('G'): 'bottom',
         ord('a'): 'Add',
         ord('d'): 'Delete',
         ord('e'): 'Edit',
         ord('f'): 'Filter',
-        ord('g'): 'top',
-        ord('h'): 'left',
-        ord('j'): 'down',
-        ord('k'): 'up',
-        ord('l'): 'right',
         ord('o'): 'Open',
         ord('q'): 'Quit',
         ord('s'): 'Sort',
@@ -353,7 +353,10 @@ class TUI:
                 if key in TUI.KEYDICT.keys():
                     cmd = TUI.KEYDICT[key]
                     if cmd not in self.inactive_commands:
-                        TUI.COMMANDS[cmd](self)
+                        if isinstance(cmd, tuple):
+                            TUI.COMMANDS[cmd[0]](self, cmd[1])
+                        else:
+                            TUI.COMMANDS[cmd](self)
                 elif key == curses.KEY_RESIZE:
                     self.resize_handler(None, None)
             except StopIteration:
@@ -385,20 +388,25 @@ class TUI:
             self.top_line = max(self.buffer.height - self.visible, 0)
             self.current_line = self.buffer.height-1
         # scroll up
-        elif update == -1:
+        elif update < 0:
             next_line = self.current_line + update
             if self.top_line > 0 and next_line < self.top_line:
                 self.top_line += update
             if next_line >= 0:
                 self.current_line = next_line
+            else:
+                self.current_line = 0
         # scroll down
-        elif update == 1:
+        elif update > 0:
             next_line = self.current_line + update
-            if next_line - self.top_line == self.visible and \
+            if next_line - self.top_line >= self.visible and \
                     self.top_line + self.visible < self.buffer.height:
                 self.top_line += update
             if next_line < self.buffer.height:
                 self.current_line = next_line
+            else:
+                self.top_line = self.buffer.height - self.visible
+                self.current_line = self.buffer.height - 1
 
     def scroll_x(self, update):
         """Scroll viewport horizontally.
