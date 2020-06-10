@@ -32,8 +32,9 @@ class InitCommand(Command):
             return
 
         conf_database = CONFIG.config['DATABASE']
-        file = os.path.expanduser(conf_database['file'])
+        file = os.path.realpath(os.path.expanduser(conf_database['file']))
         if os.path.exists(file) and not largs.force:
             print("Database file already exists! Use --force to overwrite.", file=sys.stderr)
             return
+        os.makedirs(os.path.dirname(file), exist_ok=True)
         open(file, 'w').close()
