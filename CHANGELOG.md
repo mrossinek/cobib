@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - added half- and full-page scrolling (#22)
 
+### Changed
+- importing from `bibtex` data defaults to **not** ignored non-standard entry types (#28)
+
 ### Fixed
 - `init` command ensures directory of database file exists
 - remove window artefacts after `help` menu is closed (#20)

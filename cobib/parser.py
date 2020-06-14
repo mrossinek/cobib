@@ -192,10 +192,16 @@ class Entry:
         Returns:
             An OrderedDict containing the bibliography as per the provided BibLaTex data.
         """
-        if string:
-            database = bibtexparser.loads(file)
+        bparser = bibtexparser.bparser.BibTexParser()
+        if 'DATABASE' in CONFIG.config.keys():
+            bparser.ignore_non_standard_types = bool(CONFIG.config['DATABASE'].get(
+                'ignore_non_standard_types', False))
         else:
-            database = bibtexparser.load(file)
+            bparser.ignore_non_standard_types = False
+        if string:
+            database = bibtexparser.loads(file, parser=bparser)
+        else:
+            database = bibtexparser.load(file, parser=bparser)
         bib = OrderedDict()
         for entry in database.entries:
             bib[entry['ID']] = Entry(entry['ID'], entry)
