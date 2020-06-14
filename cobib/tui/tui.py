@@ -47,8 +47,10 @@ class TUI:
         'Help': lambda self: self.help(),
         'Open': commands.OpenCommand.tui,
         'Quit': lambda self: self.quit(),
-        'Search': lambda _: None,  # TODO search command
-        'Select': lambda _: None,  # TODO select command
+        # TODO search command
+        'Search': lambda self: self.prompt_warning('The Search command is not implemented yet!'),
+        # TODO select command
+        'Select': lambda self: self.prompt_warning('The Select command is not implemented yet!'),
         'Show': commands.ShowCommand.tui,
         'Sort': partial(commands.ListCommand.tui, sort_mode=True),
         'Wrap': lambda self: self.wrap(),
@@ -516,6 +518,16 @@ class TUI:
             sys.stderr = original_stdout
         # return command to enable additional handling by function caller
         return command
+
+    def prompt_warning(self, msg):
+        """Prints a warning to the command prompt.
+
+        Args:
+            msg (str): message text to print.
+        """
+        self.prompt.clear()
+        self.prompt.insstr(0, 0, f'Warning: {msg}')
+        self.prompt.refresh()
 
     def get_current_label(self):
         """Returns the label of the currently selected entry."""
