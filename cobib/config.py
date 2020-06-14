@@ -31,7 +31,7 @@ class Config:
             if isinstance(configpath, io.TextIOWrapper):
                 configpath = configpath.name
             ini_conf.read(configpath)
-        elif os.path.exists('~/.config/cobib/config.ini'):
+        elif os.path.exists(os.path.expanduser('~/.config/cobib/config.ini')):
             ini_conf.read(os.path.expanduser('~/.config/cobib/config.ini'))
         else:
             root = os.path.abspath(os.path.dirname(__file__))

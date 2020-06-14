@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - `init` command ensures directory of database file exists
 - remove window artefacts after `help` menu is closed (#20)
+- configuration file detection was missing a user home expansion (#31)
 
 ## [2.0.0] - 2020-06-06
 
