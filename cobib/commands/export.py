@@ -20,14 +20,14 @@ class ExportCommand(Command):
 
         Exports all entries matched by the filter queries (see the list docs).
         Currently supported exporting formats are:
-        * bibtex databases
+        * BibLaTex databases
         * zip archives
 
         Args: See base class.
         """
         parser = ArgumentParser(prog="export", description="Export subcommand parser.")
         parser.add_argument("-b", "--bibtex", type=argparse.FileType('a'),
-                            help="BibTeX output file")
+                            help="BibLaTeX output file")
         parser.add_argument("-z", "--zip", type=argparse.FileType('a'),
                             help="zip output file")
         parser.add_argument('list_args', nargs=argparse.REMAINDER)

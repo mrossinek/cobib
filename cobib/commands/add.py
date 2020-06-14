@@ -31,7 +31,7 @@ class AddCommand(Command):
         group_add.add_argument("-a", "--arxiv", type=str,
                                help="arXiv ID of the new references")
         group_add.add_argument("-b", "--bibtex", type=argparse.FileType('r'),
-                               help="BibTeX bibliographic data")
+                               help="BibLaTeX bibliographic data")
         group_add.add_argument("-d", "--doi", type=str,
                                help="DOI of the new references")
         parser.add_argument("tags", nargs=argparse.REMAINDER)

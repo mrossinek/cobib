@@ -16,7 +16,7 @@ class ShowCommand(Command):
     def execute(self, args, out=sys.stdout):
         """Show entry.
 
-        Prints the details of a selected entry in bibtex format to stdout.
+        Prints the details of a selected entry in BibLaTex format to stdout.
 
         Args: See base class.
         """

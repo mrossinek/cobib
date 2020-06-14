@@ -169,7 +169,7 @@ class Entry:
         return all(m for m in match_list)
 
     def to_bibtex(self):
-        """Returns the entry in bibtex format."""
+        """Returns the entry in biblatex format."""
         database = bibtexparser.bibdatabase.BibDatabase()
         database.entries = [self.data]
         return bibtexparser.dumps(database)
@@ -183,14 +183,14 @@ class Entry:
 
     @staticmethod
     def from_bibtex(file, string=False):
-        """Creates a new bibliography from a bibtex source file.
+        """Creates a new bibliography from a BibLaTex source file.
 
         Args:
-            file (str or file): string with bibtex data or path to the bibtex file.
+            file (str or file): string with BibLaTex data or path to the BibLaTex file.
             string (bool, optional): indicates whether the file argument is of string or file type.
 
         Returns:
-            An OrderedDict containing the bibliography as per the provided bibtex data.
+            An OrderedDict containing the bibliography as per the provided BibLaTex data.
         """
         if string:
             database = bibtexparser.loads(file)

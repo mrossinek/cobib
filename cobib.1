@@ -56,7 +56,7 @@ Adds an entry specified by the \fIarXiv\fR id.
 .in +8n
 .BR \-b ", " \-\-bibtex " " \fI<path>\fR
 .in +4n
-Adds the bibliography data from the \fIbibtex\fR file at the provided path.
+Adds the bibliography data from the \fIBibLaTex\fR file at the provided path.
 .PP
 .in +8n
 .BR \-d ", " \-\-doi " " \fI<doi>\fR
@@ -84,7 +84,7 @@ The entry is copied verbatim in \fIYAML\fR format from and to the database file.
 Opens any associated \fIfile\fR of the entry with the given \fIlabel\fR.
 .TP
 .B cobib show \fI<label>\fR
-Prints the entry with the given \fIlabel\fR in \fIbibtex\fR format to stdout.
+Prints the entry with the given \fIlabel\fR in \fIBibLaTex\fR format to stdout.
 .TP
 .B cobib list \fI<args>\fR
 Lists all entries of the database in a basic table format to stdout which match
@@ -122,13 +122,13 @@ The \fI<args>\fR may be any of the following:
 .in +8n
 .BR \-b ", " \-\-bibtex " " \fI<path>\fR
 .in +4n
-Export the entries to a \fIbibtex\fR file at the specified path.
+Export the entries to a \fIBibLaTex\fR file at the specified path.
 .PP
 .in +8n
 .BR \-z ", " \-\-zip " " \fI<path>\fR
 .in +4n
-Export a \fIbibtex\fR file of the entries and all of the associated files into a
-single \fIZIP\fR file at the specified path.
+Export a \fIBibLaTex\fR file of the entries and all of the associated files into
+a single \fIZIP\fR file at the specified path.
 .SH FILTERS
 In order to limit the output of the \fIlist\fR and \fIexport\fR commands you can
 apply additional filters via keyword arguments.
@@ -182,7 +182,7 @@ Quits one level of the viewing buffer.
 Opens a small window providing help for the key bindings.
 .TP
 .BR ENTER " " show
-Populates the viewing buffer with a bibtex view of the selected entry.
+Populates the viewing buffer with a BibLaTex view of the selected entry.
 .TP
 .BR o " " open
 .TP

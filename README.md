@@ -52,6 +52,8 @@ directly via the CLI. Available commands are `add`, `list`, `edit`, `remove`,
 `cobib <subcommand> --help` for more detailed information on the specific
 subcommands.
 
+**Note**: when adding data from a `.bib` file, make sure that it is in the Bib**La**Tex format!
+
 You can also find more information in the man page.
 
 
