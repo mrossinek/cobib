@@ -146,6 +146,12 @@ class TUI:
         else:
             self.list_args += ['-r']
 
+        # load further configuration settings
+        if 'TUI' in CONFIG.config.keys():
+            self.prompt_before_quit = CONFIG.config['TUI'].get('prompt_before_quit', True)
+        else:
+            self.prompt_before_quit = True
+
         # Initialize top status bar
         self.topbar = curses.newwin(1, self.width, 0, 0)
         self.topbar.bkgd(' ', curses.color_pair(TUI.COLOR_PAIRS['top_statusbar'][0]))
@@ -208,7 +214,21 @@ class TUI:
     def quit(self):
         """Breaks the key event loop or quits one viewport level."""
         if self.list_mode == -1:
-            raise StopIteration
+            if self.prompt_before_quit:
+                self.prompt.clear()
+                self.prompt.insstr(0, 0, 'Do you really want to quit CoBib? [y/n] ')
+                self.prompt.refresh()
+                key = 0
+                while True:
+                    if key in (ord('y'), ord('Y')):
+                        raise StopIteration
+                    if key in (ord('n'), ord('N')):
+                        break
+                    key = self.prompt.getch()
+                self.prompt.clear()
+                self.prompt.refresh()
+            else:
+                raise StopIteration
         self.update_list()
 
     @staticmethod

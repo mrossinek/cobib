@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - allow configuring the program used to `open` associated files
+- prompt user before actually quitting CoBib (#33)
 
 
 ## [2.1.0] - 2020-06-14
