@@ -22,6 +22,7 @@ init
 initscr
 io
 msg
+pdf
 pylatexenc
 pytest
 signum

@@ -58,11 +58,8 @@ class OpenCommand(Command):
     @staticmethod
     def tui(tui):
         """See base class."""
-        prev_list_mode = tui.list_mode
         # get current label
-        label = tui.get_current_label()
-        # restore previous list_mode
-        tui.list_mode = prev_list_mode
+        label, _ = tui.get_current_label()
         # populate buffer with entry data
         error = OpenCommand().execute([label], out=None)
         if error:

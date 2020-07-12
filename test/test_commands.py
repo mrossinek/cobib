@@ -2,6 +2,7 @@
 # pylint: disable=unused-argument, redefined-outer-name
 
 import os
+import re
 from datetime import datetime
 from io import StringIO
 from itertools import zip_longest
@@ -259,3 +260,36 @@ def test_export(setup):
                 assert line == truth
     # clean up file system
     os.remove('/tmp/cobib_test_export.bib')
+
+
+@pytest.mark.parametrize(['args', 'expected'], [
+        [['einstein'], ['einstein - 1 match', '@article{einstein,', 'author = {Albert Einstein},']],
+        [['einstein', '-i'], [
+            'einstein - 2 matches', '@article{einstein,', 'author = {Albert Einstein},',
+            'doi = {http://dx.doi.org/10.1002/andp.19053221004},'
+        ]],
+        [['einstein', '-i', '-c', '0'], [
+            'einstein - 2 matches', '@article{einstein,', 'author = {Albert Einstein},'
+        ]],
+        [['einstein', '-i', '-c', '2'], [
+            'einstein - 2 matches', '@article{einstein,', 'author = {Albert Einstein},',
+            'doi = {http://dx.doi.org/10.1002/andp.19053221004},', 'journal = {Annalen der Physik},'
+        ]],
+    ])
+def test_search(setup, args, expected):
+    """Test search command.
+
+    Args:
+        setup: runs pytest fixture.
+        args: arguments for the list command call.
+        expected: expected result.
+    """
+    file = StringIO()
+    commands.SearchCommand().execute(args, out=file)
+    for line, exp in zip_longest(file.getvalue().split('\n'), expected):
+        line = line.replace('\x1b', '')
+        line = re.sub(r'\[[0-9;]+m', '', line)
+        if exp:
+            assert exp in line
+        if line and not (line.endswith('match') or line.endswith('matches')):
+            assert re.match(r'\[[0-9]+\]', line)

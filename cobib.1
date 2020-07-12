@@ -113,6 +113,24 @@ Reverses the sorting order.
 Concatenate the filters using logical \fIOR\fR rather than the default
 \fIAND\fR.
 .TP
+.B cobib search \fI<args>\fR ...
+Searches the database recursively (i.e. including any associated files) for the
+specified keyword.
+The positional arguments may be used to provide \fBFILTERS\fR which the entries
+must match in order to be included in the export.
+Additionally, the following \fI<args>\fR are also allowed:
+.PP
+.in +8n
+.BR \-c ", " \-\-context " " \fI<int>\fI
+.in +4n
+Specify the number of context lines to provide for each match.
+This values defaults to 1.
+.PP
+.in +8n
+.BR \-i ", " \-\-ignore-case
+.in +4n
+Makes the search case-insensitive.
+.TP
 .B cobib export \fI<args>\fR ...
 Exports the database to the file configured via the \fIargs\fR.
 The positional arguments may be used to provide \fBFILTERS\fR which the entries
@@ -198,7 +216,6 @@ of the TUI.
 .BR d " " delete
 .TP
 .BR / " " search
-\fIto be implemented\fR
 .TP
 .BR f " " filter
 Allows adding filters to the list view.
@@ -226,6 +243,9 @@ Specifies the path to the database file.
 .TP
 .IR open = xdg-open (on Linux); open (on Mac OS)
 Specifies the program used to open associated files.
+.TP
+.IR grep = grep
+Specifies the program used to search in associated files.
 .PP
 .BR [FORMAT]
 .TP

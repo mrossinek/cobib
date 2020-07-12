@@ -1,6 +1,7 @@
 """CoBib curses interface."""
 
 import curses
+import re
 import sys
 from functools import partial
 from signal import signal, SIGWINCH
@@ -34,6 +35,8 @@ class TUI:
         'top_statusbar': [2, 'black', 'yellow'],
         'bottom_statusbar': [3, 'black', 'yellow'],
         'help': [4, 'white', 'red'],
+        'search_label': [5, 'blue', 'black'],
+        'search_query': [6, 'red', 'black'],
         # TODO when implementing select command add a color configuration option
     }
 
@@ -47,8 +50,7 @@ class TUI:
         'Help': lambda self: self.help(),
         'Open': commands.OpenCommand.tui,
         'Quit': lambda self: self.quit(),
-        # TODO search command
-        'Search': lambda self: self.prompt_warning('The Search command is not implemented yet!'),
+        'Search': commands.SearchCommand.tui,
         # TODO select command
         'Select': lambda self: self.prompt_warning('The Select command is not implemented yet!'),
         'Show': commands.ShowCommand.tui,
@@ -130,6 +132,7 @@ class TUI:
         self.height, self.width = self.stdscr.getmaxyx()
         self.visible = self.height-3
         # and colors
+        curses.use_default_colors()
         TUI.colors()
         # and user key mappings
         TUI.bind_keys()
@@ -367,9 +370,6 @@ class TUI:
         key = 0
         # key is the last character pressed
         while True:
-            # reset highlight of current line
-            self.viewport.chgat(self.current_line, 0, curses.A_NORMAL)
-
             # handle possible keys
             try:
                 if key in TUI.KEYDICT.keys():
@@ -386,6 +386,9 @@ class TUI:
                 break
 
             # highlight current line
+            current_attrs = []
+            for x_pos in range(0, self.width):
+                current_attrs.append(self.viewport.inch(self.current_line, x_pos))
             self.viewport.chgat(self.current_line, 0,
                                 curses.color_pair(TUI.COLOR_PAIRS['cursor_line'][0]))
 
@@ -394,6 +397,10 @@ class TUI:
 
             # Wait for next input
             key = self.stdscr.getch()
+
+            # reset highlight of current line
+            for x_pos in range(0, self.width):
+                self.viewport.chgat(self.current_line, x_pos, 1, current_attrs[x_pos])
 
     def scroll_y(self, update):
         """Scroll viewport vertically.
@@ -467,7 +474,8 @@ class TUI:
             out (stream, optional): the output stream to redirect stdout to.
 
         Returns:
-            A list with the executed command to allow further handling.
+            A pair with the first element being the list with the executed command to allow further
+            handling and the second element being whatever is returned by the command.
         """
         # make cursor visible
         curses.curs_set(1)
@@ -521,13 +529,14 @@ class TUI:
         self.prompt.refresh()
 
         # process command if it non empty and actually has arguments
+        result = None
         if command and command[1:]:
             # temporarily disable prints to stdout
             original_stdout = sys.stderr
             sys.stderr = TextBuffer()
             # run command
             subcmd = getattr(commands, command[0].title()+'Command')()
-            subcmd.execute(command[1:], out=out)
+            result = subcmd.execute(command[1:], out=out)
             # if error occurred print info to prompt
             if sys.stderr.lines:
                 self.prompt.addstr(0, 0, sys.stderr.lines[0])
@@ -537,7 +546,7 @@ class TUI:
             # restore stdout
             sys.stderr = original_stdout
         # return command to enable additional handling by function caller
-        return command
+        return (command, result)
 
     def prompt_warning(self, msg):
         """Prints a warning to the command prompt.
@@ -550,20 +559,24 @@ class TUI:
         self.prompt.refresh()
 
     def get_current_label(self):
-        """Returns the label of the currently selected entry."""
+        """Returns the label and y position of the currently selected entry."""
+        cur_y, _ = self.viewport.getyx()
         # Two cases are possible: the list and the show mode
         if self.list_mode == -1:
             # In the list mode, the label can be found in the current line
             # or in one of the previous lines if we are on a wrapped line
-            cur_y, _ = self.viewport.getyx()
             while chr(self.viewport.inch(cur_y, 0)) == TextBuffer.INDENT[0]:
                 cur_y -= 1
             label = self.viewport.instr(cur_y, 0).decode('utf-8').split(' ')[0]
-            self.list_mode = cur_y
+        elif re.match(r'\d+ hit',
+                      '-'.join(self.topbar.instr(0, 0).decode('utf-8').split('-')[1:]).strip()):
+            while chr(self.viewport.inch(cur_y, 0)) in ('[', TextBuffer.INDENT[0]):
+                cur_y -= 1
+            label = self.viewport.instr(cur_y, 0).decode('utf-8').split(' ')[0]
         else:
             # In any other mode, the label can be found in the top statusbar
             label = '-'.join(self.topbar.instr(0, 0).decode('utf-8').split('-')[1:]).strip()
-        return label
+        return label, cur_y
 
     def update_list(self):
         """Updates the default list view."""

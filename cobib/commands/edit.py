@@ -74,7 +74,7 @@ class EditCommand(Command):
     def tui(tui):
         """See base class."""
         # get current label
-        label = tui.get_current_label()
+        label, _ = tui.get_current_label()
         # populate buffer with entry data
         EditCommand().execute([label])
         # redraw total screen after closing external editor

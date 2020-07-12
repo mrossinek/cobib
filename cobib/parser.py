@@ -3,13 +3,14 @@
 from collections import OrderedDict
 import os
 import re
-import requests
+import subprocess
 
 from bs4 import BeautifulSoup
 from pylatexenc.latexencode import UnicodeToLatexEncoder
 from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
 import bibtexparser
+import requests
 
 from cobib.config import CONFIG
 
@@ -172,6 +173,52 @@ class Entry:
         if _or:
             return any(m for m in match_list)
         return all(m for m in match_list)
+
+    def search(self, query, context=1, ignore_case=False):
+        """Search entry contents for query string.
+
+        The search will try its best to recursively query all the data associated with this entry
+        for the given query string.
+
+        Args:
+            query (str): text to search for.
+            context (int): number of context lines to provide for each match.
+            ignore_case (bool): if True, ignore case when searching.
+
+        Returns:
+            A list of lists containing the context for each match associated with this entry.
+        """
+        matches = []
+        bibtex = str(self).split('\n')
+        re_flags = re.IGNORECASE if ignore_case else 0
+        for idx, line in enumerate(bibtex):
+            if re.search(rf'{query}', line, flags=re_flags):
+                # add new match
+                matches.append([])
+                # upper context
+                for string in bibtex[max(idx-context, 0):min(idx+1, len(bibtex))]:
+                    if not re.search(rf'{query}', string, flags=re_flags):
+                        matches[-1].append(string)
+                # matching line itself
+                matches[-1].append(line)
+                # lower context
+                for string in bibtex[max(idx+1, 0):min(idx+context+1, len(bibtex))]:
+                    if not re.search(rf'{query}', string, flags=re_flags):
+                        matches[-1].append(string)
+                    else:
+                        break
+
+        if self.file and os.path.exists(self.file):
+            grep_prog = CONFIG.config['DATABASE'].get('grep', None) or 'grep'
+            grep = subprocess.Popen([grep_prog, f'-C{context}', query, self.file],
+                                    stdout=subprocess.PIPE)
+            # extract results
+            results = grep.stdout.read().decode().split('--')
+            for match in results:
+                if match:
+                    matches.append([line.strip() for line in match.split('\n') if line.strip()])
+
+        return matches
 
     def to_bibtex(self):
         """Returns the entry in biblatex format."""
