@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [2.2.0] - 2020-07-12
+
+Pypi: https://pypi.org/project/cobib/2.2.0/
+
 ### Added
 - allow configuring the program used to `open` associated files
 - prompt user before actually quitting CoBib (#33)
@@ -193,7 +198,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.1.0...master
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.2.0...master
+[2.2.0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.2.0
 [2.1.0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.1.0
 [2.0.0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0
 [2.0.0b4]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0b4
