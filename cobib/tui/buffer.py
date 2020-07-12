@@ -12,7 +12,7 @@ class TextBuffer:
     buffer for further usage (such as printing it into a curses pad).
     """
 
-    INDENT = "↪ "
+    INDENT = "↪"
 
     def __init__(self):
         """Initializes the TextBuffer object."""
@@ -61,17 +61,25 @@ class TextBuffer:
         copy = self.lines.copy()
         self.lines = []
         self.width = 0
-        for line in copy:
-            if self.wrapped:
+        if self.wrapped:
+            for line in copy:
                 # unwrap instead
                 if line.startswith(TextBuffer.INDENT):
-                    self.lines[-1] += line[1:]
+                    # Note: insert single space when joining lines and strip INDENT symbol
+                    self.lines[-1] += ' ' + line[1:].strip()
                 else:
                     self.lines.append(line)
                 self.width = max(self.width, len(self.lines[-1]))
-            else:
+        else:
+            # first, determine width of label column
+            label_len = 0
+            for line in copy:
+                label = line.split('  ')[0]
+                label_len = max(len(label)+1, label_len)
+            for line in copy:
+                # then wrap lines with subsequent indents matched to first column width
                 for string in textwrap.wrap(line, width=width-1,
-                                            subsequent_indent=TextBuffer.INDENT):
+                                            subsequent_indent=TextBuffer.INDENT + ' ' * label_len):
                     self.lines.append(string)
                 self.width = width
         self.height = len(self.lines)

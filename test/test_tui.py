@@ -86,7 +86,7 @@ def assert_scroll(screen, update, direction):
 def assert_wrap(screen, state):
     """Asserts the viewport buffer is wrapped."""
     if state:
-        assert screen.display[2][:2] == TextBuffer.INDENT
+        assert screen.display[2][:2] == TextBuffer.INDENT + ' '
     else:
         assert screen.display[2][:2] == 'kn'
 

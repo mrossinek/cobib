@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- when wrapping the TUI lines, indent until after the label column (#26)
+
 
 ## [2.2.0] - 2020-07-12
 
