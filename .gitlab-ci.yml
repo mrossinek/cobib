@@ -25,7 +25,7 @@ before_script:
     - virtualenv venv
     - source venv/bin/activate
     - pip install -r requirements.txt
-    - pip install pylint pydocstyle pyte pytest
+    - pip install pylint pydocstyle pyenchant pyte pytest
 
 lint:
     script:
@@ -37,6 +37,7 @@ doc:
 
 spell:
     script:
+        - python <<< 'import enchant; print(enchant.list_dicts())'
         - pylint -rn cobib test --disable=all --enable=spelling
           --spelling-dict='en_US' --spelling-private-dict-file=.pylintdict
 

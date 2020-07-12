@@ -151,10 +151,6 @@ def assert_export(screen):
             'current': 1, 'expected': [
                 'dummy_entry_for_scroll_testing', 'knuthwebsite', 'latexcompanion', 'einstein'
             ]}],
-        ['?q', assert_list_view, {  # also checks the quit command
-            'current': 1, 'expected': [
-                'dummy_entry_for_scroll_testing', 'knuthwebsite', 'latexcompanion', 'einstein'
-            ]}],
         ['?q', assert_no_help_window_artefacts, {}],
         ['?', assert_help_screen, {}],
         ['j', assert_scroll, {'update': 1, 'direction': 'y'}],
@@ -285,6 +281,32 @@ def test_tui_config_keys(command, key):
         test_tui(None, key, assert_show, {})
     finally:
         DeleteCommand().execute(['dummy_entry_for_scroll_testing'])
+
+
+def assert_quit(screen, prompt):
+    """Asserts the quit prompt."""
+    if prompt:
+        assert screen.display[-1].strip() == 'Do you really want to quit CoBib? [y/n]'
+    else:
+        assert screen.display[-1].strip() == ''
+
+
+@pytest.mark.parametrize(['setting', 'keys'], [
+        [True, 'q'],
+        [False, 'q'],
+    ])
+def test_tui_quit_prompt(setting, keys):
+    """Test the prompt_before_quit setting of the TUI."""
+    # ensure configuration is empty
+    CONFIG.config = {}
+    root = os.path.abspath(os.path.dirname(__file__))
+    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    # set prompt_before_quit setting
+    if 'TUI' not in CONFIG.config.keys():
+        CONFIG.config['TUI'] = {}
+    CONFIG.config['TUI']['prompt_before_quit'] = setting
+    read_database()
+    test_tui(None, keys, assert_quit, {'prompt': setting})
 
 
 def test_tui_resize(setup):
