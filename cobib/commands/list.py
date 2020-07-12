@@ -104,7 +104,7 @@ class ListCommand(Command):
                 pass
             tui.list_args += ['-s']
         # handle input via prompt
-        command = tui.prompt_handler('list ' + ' '.join(tui.list_args), out=tui.buffer)
+        command, _ = tui.prompt_handler('list ' + ' '.join(tui.list_args), out=tui.buffer)
         # after the command has been executed n the prompt handler, the `command` variable will
         # contain the contents of the prompt
         if command:

@@ -44,7 +44,7 @@ class ShowCommand(Command):
     def tui(tui):
         """See base class."""
         # get current label
-        label = tui.get_current_label()
+        label, cur_y = tui.get_current_label()
         # populate buffer with entry data
         tui.buffer.clear()
         ShowCommand().execute([label], out=tui.buffer)
@@ -58,4 +58,5 @@ class ShowCommand(Command):
         tui.topstatus = "CoBib v{} - {}".format(__version__, label)
         tui.statusbar(tui.topbar, tui.topstatus)
         # enter show menu
+        tui.list_mode = cur_y
         tui.inactive_commands = ['Add', 'Filter', 'Search', 'Show', 'Sort']

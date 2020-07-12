@@ -1,5 +1,6 @@
 """CoBib auxiliary TextBuffer."""
 
+import curses
 import textwrap
 
 
@@ -19,6 +20,7 @@ class TextBuffer:
         self.height = 0
         self.width = 0
         self.wrapped = False
+        self.ansi_map = None
 
     def write(self, string):
         """Writes a non-empty string into the buffer.
@@ -75,14 +77,17 @@ class TextBuffer:
         self.height = len(self.lines)
         self.wrapped = not self.wrapped
 
-    def view(self, pad, visible_height, visible_width):
+    def view(self, pad, visible_height, visible_width, ansi_map=None):
         """View buffer in provided curses pad.
 
         Args:
             pad (curses.window): a re-sizable curses window (aka a pad).
             visible_height (int): the available height for the pad.
             visible_width (int): the available width for the pad.
+            ansi_map (dict): optional, dictionary mapping ANSI codes to curses color pairs.
         """
+        if ansi_map:
+            self.ansi_map = ansi_map
         # first clear pad
         pad.erase()
         pad.refresh(0, 0, 1, 0, visible_height, visible_width)
@@ -91,5 +96,18 @@ class TextBuffer:
         pad.resize(self.height+1, max(self.width, visible_width+1))
         # and populate
         for row, line in enumerate(self.lines):
+            start, end, color = -1, -1, -1
+            if self.ansi_map and line.find('\033[') >= 0:
+                end = line.find('\033[0m')
+                line = line.replace("\033[0m", "")
+                for ansi, col in self.ansi_map.items():
+                    if line.find(ansi) >= 0:
+                        color = col
+                        start = line.find(ansi)
+                        line = line.replace(ansi, "")
+                        end -= len(ansi)
+                        break
             pad.addstr(row, 0, line)
+            if color >= 0:
+                pad.chgat(row, start, end-start, curses.color_pair(color))
         pad.refresh(0, 0, 1, 0, visible_height, visible_width)

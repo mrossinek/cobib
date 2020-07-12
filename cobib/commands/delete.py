@@ -58,7 +58,7 @@ class DeleteCommand(Command):
     def tui(tui):
         """See base class."""
         # get current label
-        label = tui.get_current_label()
+        label, _ = tui.get_current_label()
         # delete selected entry
         DeleteCommand().execute([label])
         # update bibliography data
