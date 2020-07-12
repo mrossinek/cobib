@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - allow configuring the program used to `open` associated files
 - prompt user before actually quitting CoBib (#33)
 
+### Fixed
+- the default value of the `open` command was not set correctly
+
 
 ## [2.1.0] - 2020-06-14
 

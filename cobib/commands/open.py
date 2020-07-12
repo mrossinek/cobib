@@ -42,14 +42,12 @@ class OpenCommand(Command):
                     return error
                 print(error, file=out)
                 sys.exit(1)
-                opener = None
-                if 'DATABASE' in CONFIG.config.keys():
-                    opener = CONFIG.config['DATABASE'].get('open', None)
-                if opener is None:
-                    opener = 'xdg-open' if sys.platform.lower() == 'linux' else 'open'
+            opener = None
+            if 'DATABASE' in CONFIG.config.keys():
+                opener = CONFIG.config['DATABASE'].get('open', None)
+            opener = opener or ('xdg-open' if sys.platform.lower() == 'linux' else 'open')
             try:
-                Popen([opener, entry.data['file']], stdin=None, stdout=None, stderr=None,
-                      close_fds=True, shell=False)
+                Popen([opener, entry.data['file']])
             except FileNotFoundError:
                 pass
         except KeyError:
