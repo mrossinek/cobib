@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - current line highlight after viewport width was not correctly reset
+- correctly convert boolean configuration options (#34)
 
 
 ## [2.2.0] - 2020-07-12

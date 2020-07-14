@@ -246,8 +246,8 @@ class Entry:
         """
         bparser = bibtexparser.bparser.BibTexParser()
         if 'DATABASE' in CONFIG.config.keys():
-            bparser.ignore_non_standard_types = bool(CONFIG.config['DATABASE'].get(
-                'ignore_non_standard_types', False))
+            bparser.ignore_non_standard_types = CONFIG.config['DATABASE'].getboolean(
+                'ignore_non_standard_types', False)
         else:
             bparser.ignore_non_standard_types = False
         if string:

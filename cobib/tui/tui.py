@@ -144,14 +144,14 @@ class TUI:
         else:
             self.list_args = ['-l']
 
-        if 'TUI' in CONFIG.config.keys() and CONFIG.config['TUI'].get('reverse_order', True):
+        if 'TUI' in CONFIG.config.keys() and CONFIG.config['TUI'].getboolean('reverse_order', True):
             self.list_args += ['-r']
         else:
             self.list_args += ['-r']
 
         # load further configuration settings
         if 'TUI' in CONFIG.config.keys():
-            self.prompt_before_quit = CONFIG.config['TUI'].get('prompt_before_quit', True)
+            self.prompt_before_quit = CONFIG.config['TUI'].getboolean('prompt_before_quit', True)
         else:
             self.prompt_before_quit = True
 
