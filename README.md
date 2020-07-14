@@ -59,7 +59,7 @@ You can also find more information in the man page.
 
 ## Config
 You can overwrite the default configuration by placing a `config.ini` file at
-`~/.config/cobib/`. Take a look at the [default config](https://gitlab.com/mrossinek/cobib/blob/master/cobib/docs/default.ini) to see what possible
+`~/.config/cobib/`. Take a look at the [example config](https://gitlab.com/mrossinek/cobib/blob/master/cobib/docs/example.ini) to see what possible
 configuration options exist.
 
 You may also specify a different config file at runtime by using the `-c` or

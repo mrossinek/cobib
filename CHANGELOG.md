@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - when wrapping the TUI lines, indent until after the label column (#26)
+- renamed `default.ini` to `example.ini` in the documentation folder
 
 ### Fixed
 - current line highlight after viewport width was not correctly reset
