@@ -25,6 +25,7 @@ msg
 pdf
 pylatexenc
 pytest
+SHA
 signum
 statusbar
 statusline
