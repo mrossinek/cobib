@@ -33,7 +33,8 @@ def test_set_config(setup):
     assert CONFIG.config['DATABASE']['file'] == './test/example_literature.yaml'
     # change back to default
     CONFIG.set_config()
-    assert CONFIG.config['DATABASE']['file'] == '~/.local/share/cobib/literature.yaml'
+    assert CONFIG.config['DATABASE']['file'] == \
+        os.path.expanduser('~/.local/share/cobib/literature.yaml')
 
 
 def test_init():

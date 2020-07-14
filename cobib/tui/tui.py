@@ -139,21 +139,18 @@ class TUI:
         # and inactive commands
         self.inactive_commands = []
         # and default list args
-        if 'TUI' in CONFIG.config.keys() and CONFIG.config['TUI'].get('default_list_args', ''):
+        if CONFIG.config['TUI'].get('default_list_args', ''):
             self.list_args = CONFIG.config['TUI'].get('default_list_args').split(' ')
         else:
             self.list_args = ['-l']
 
-        if 'TUI' in CONFIG.config.keys() and CONFIG.config['TUI'].getboolean('reverse_order', True):
+        if CONFIG.config['TUI'].getboolean('reverse_order', True):
             self.list_args += ['-r']
         else:
             self.list_args += ['-r']
 
         # load further configuration settings
-        if 'TUI' in CONFIG.config.keys():
-            self.prompt_before_quit = CONFIG.config['TUI'].getboolean('prompt_before_quit', True)
-        else:
-            self.prompt_before_quit = True
+        self.prompt_before_quit = CONFIG.config['TUI'].getboolean('prompt_before_quit', True)
 
         # Initialize top status bar
         self.topbar = curses.newwin(1, self.width, 0, 0)
@@ -240,25 +237,24 @@ class TUI:
         # Start colors in curses
         curses.start_color()
         # parse user color configuration
-        if 'COLORS' in CONFIG.config.keys():
-            color_cfg = CONFIG.config['COLORS']
-            for attr, col in color_cfg.items():
-                if attr in TUI.COLOR_VALUES.keys():
-                    if not curses.can_change_color():
-                        # cannot change curses default colors
-                        continue
-                    # update curses-internal color with HEX-color
-                    rgb_color = tuple(int(col.strip('#')[i:i+2], 16) for i in (0, 2, 4))
-                    # curses colors range from 0 to 1000
-                    curses_color = tuple(col * 1000 // 255 for col in rgb_color)
-                    curses.init_color(TUI.COLOR_VALUES[attr], *curses_color)
-                else:
-                    # check if the attribute fits a TUI element name
-                    for element in TUI.COLOR_PAIRS:
-                        if element == attr[:-3] and attr[-3:] in ('_fg', '_bg'):
-                            # determine whether foreground or background color are specified
-                            ground = 1 if attr[-3:] == '_fg' else 2
-                            TUI.COLOR_PAIRS[element][ground] = col
+        color_cfg = CONFIG.config['COLORS']
+        for attr, col in color_cfg.items():
+            if attr in TUI.COLOR_VALUES.keys():
+                if not curses.can_change_color():
+                    # cannot change curses default colors
+                    continue
+                # update curses-internal color with HEX-color
+                rgb_color = tuple(int(col.strip('#')[i:i+2], 16) for i in (0, 2, 4))
+                # curses colors range from 0 to 1000
+                curses_color = tuple(col * 1000 // 255 for col in rgb_color)
+                curses.init_color(TUI.COLOR_VALUES[attr], *curses_color)
+            else:
+                # check if the attribute fits a TUI element name
+                for element in TUI.COLOR_PAIRS:
+                    if element == attr[:-3] and attr[-3:] in ('_fg', '_bg'):
+                        # determine whether foreground or background color are specified
+                        ground = 1 if attr[-3:] == '_fg' else 2
+                        TUI.COLOR_PAIRS[element][ground] = col
 
         # initialize color pairs for TUI elements
         for idx, foreground, background in TUI.COLOR_PAIRS.values():
@@ -267,19 +263,18 @@ class TUI:
     @staticmethod
     def bind_keys():
         """Bind keys according to user configuration."""
-        if 'KEY_BINDINGS' in CONFIG.config.keys():
-            key_bindings = CONFIG.config['KEY_BINDINGS']
-            for command, key in key_bindings.items():
-                if command not in TUI.COMMANDS.keys():
-                    continue
-                if key == 'ENTER':
-                    TUI.KEYDICT[10] = command  # line feed
-                    TUI.KEYDICT[13] = command  # carriage return
-                    continue
-                if isinstance(key, str):
-                    # map key to its ASCII number
-                    key = ord(key)
-                TUI.KEYDICT[key] = command
+        key_bindings = CONFIG.config['KEY_BINDINGS']
+        for command, key in key_bindings.items():
+            if command not in TUI.COMMANDS.keys():
+                continue
+            if key == 'ENTER':
+                TUI.KEYDICT[10] = command  # line feed
+                TUI.KEYDICT[13] = command  # carriage return
+                continue
+            if isinstance(key, str):
+                # map key to its ASCII number
+                key = ord(key)
+            TUI.KEYDICT[key] = command
 
     @staticmethod
     def statusbar(statusline, text, attr=0):

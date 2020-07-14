@@ -285,15 +285,17 @@ def test_tui_config_keys(command, key):
 
 def assert_quit(screen, prompt):
     """Asserts the quit prompt."""
-    if prompt:
+    if prompt == 'True':
         assert screen.display[-1].strip() == 'Do you really want to quit CoBib? [y/n]'
-    else:
+    elif prompt == 'False':
         assert screen.display[-1].strip() == ''
+    else:
+        assert not 'Unexpected prompt setting!'
 
 
 @pytest.mark.parametrize(['setting', 'keys'], [
-        [True, 'q'],
-        [False, 'q'],
+        ['True', 'q'],
+        ['False', 'q'],
     ])
 def test_tui_quit_prompt(setting, keys):
     """Test the prompt_before_quit setting of the TUI."""

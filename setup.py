@@ -24,7 +24,7 @@ setup(
     author_email='rmax@ethz.ch',
     platforms=['any'],
     packages=['cobib'],
-    package_data={'cobib': ['docs/default.ini', 'commands/*', 'tui/*']},
+    package_data={'cobib': ['docs/example.ini', 'commands/*', 'tui/*']},
     python_requires='>=3.5',
     install_requires=[
         'bibtexparser',

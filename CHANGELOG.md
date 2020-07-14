@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - current line highlight after viewport width was not correctly reset
 - correctly convert boolean configuration options (#34)
 - fix crash of TUI in wrap command when viewport is empty (#37)
+- default configuration settings are managed centrally and consistently (#35)
 
 
 ## [2.2.0] - 2020-07-12

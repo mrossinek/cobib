@@ -63,8 +63,7 @@ class Entry:
         self._label = label
         self.data = data.copy()
         self.escape_special_chars(suppress_warnings)
-        if 'FORMAT' in CONFIG.config.keys():
-            month_type = CONFIG.config['FORMAT'].get('month', None)
+        month_type = CONFIG.config['FORMAT'].get('month', None)
         if month_type:
             self.convert_month(month_type)
 
@@ -209,7 +208,7 @@ class Entry:
                         break
 
         if self.file and os.path.exists(self.file):
-            grep_prog = CONFIG.config['DATABASE'].get('grep', None) or 'grep'
+            grep_prog = CONFIG.config['DATABASE'].get('grep')
             grep = subprocess.Popen([grep_prog, f'-C{context}', query, self.file],
                                     stdout=subprocess.PIPE)
             # extract results
@@ -245,11 +244,8 @@ class Entry:
             An OrderedDict containing the bibliography as per the provided BibLaTex data.
         """
         bparser = bibtexparser.bparser.BibTexParser()
-        if 'DATABASE' in CONFIG.config.keys():
-            bparser.ignore_non_standard_types = CONFIG.config['DATABASE'].getboolean(
-                'ignore_non_standard_types', False)
-        else:
-            bparser.ignore_non_standard_types = False
+        bparser.ignore_non_standard_types = CONFIG.config['DATABASE'].getboolean(
+            'ignore_non_standard_types', False)
         if string:
             database = bibtexparser.loads(file, parser=bparser)
         else:

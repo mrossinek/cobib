@@ -43,9 +43,7 @@ class OpenCommand(Command):
                 print(error, file=out)
                 sys.exit(1)
             opener = None
-            if 'DATABASE' in CONFIG.config.keys():
-                opener = CONFIG.config['DATABASE'].get('open', None)
-            opener = opener or ('xdg-open' if sys.platform.lower() == 'linux' else 'open')
+            opener = CONFIG.config['DATABASE'].get('open')
             try:
                 Popen([opener, entry.data['file']])
             except FileNotFoundError:
