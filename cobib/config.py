@@ -17,6 +17,7 @@ DEFAULTS = {
         'ignore_non_standard_types': False,
     },
     'TUI': {
+        'default_list_args': '-l',
         'prompt_before_quit': True,
         'reverse_order': True,
     },

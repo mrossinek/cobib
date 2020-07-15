@@ -139,14 +139,9 @@ class TUI:
         # and inactive commands
         self.inactive_commands = []
         # and default list args
-        if CONFIG.config['TUI'].get('default_list_args', ''):
-            self.list_args = CONFIG.config['TUI'].get('default_list_args').split(' ')
-        else:
-            self.list_args = ['-l']
+        self.list_args = CONFIG.config['TUI'].get('default_list_args').split(' ')
 
         if CONFIG.config['TUI'].getboolean('reverse_order', True):
-            self.list_args += ['-r']
-        else:
             self.list_args += ['-r']
 
         # load further configuration settings
