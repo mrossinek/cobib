@@ -283,7 +283,7 @@ class Entry:
             An OrderedDict containing the bibliographic data of the provided DOI.
         """
         assert re.match(DOI_REGEX, doi)
-        page = requests.get(DOI_URL+doi, headers=DOI_HEADER)
+        page = requests.get(DOI_URL+doi, headers=DOI_HEADER, timeout=5)
         return Entry.from_bibtex(page.text, string=True)
 
     @staticmethod

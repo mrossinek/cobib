@@ -3,6 +3,7 @@
 from os import path
 from pathlib import Path
 import pytest
+from requests.exceptions import ReadTimeout
 from cobib import parser
 from cobib.config import CONFIG
 
@@ -188,7 +189,10 @@ def test_parser_from_doi(month_type):
     # brackets in the escaped special characters of the author field. Thus, we correct for this
     # inconsistency manually before asserting the equality.
     reference['author'] = reference['author'].replace("'a", "'{a}")
-    entries = parser.Entry.from_doi('10.1021/acs.chemrev.8b00803')
+    try:
+        entries = parser.Entry.from_doi('10.1021/acs.chemrev.8b00803')
+    except ReadTimeout:
+        pytest.skip("The requests library experienced a ReadTimeout!")
     entry = list(entries.values())[0]
     assert entry.data == reference
 
