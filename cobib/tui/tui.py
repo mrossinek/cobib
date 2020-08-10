@@ -377,7 +377,7 @@ class TUI:
 
             # highlight current line
             current_attrs = []
-            for x_pos in range(0, self.buffer.width):
+            for x_pos in range(0, max(self.buffer.width, self.width)):
                 current_attrs.append(self.viewport.inch(self.current_line, x_pos))
             self.viewport.chgat(self.current_line, 0,
                                 curses.color_pair(TUI.COLOR_PAIRS['cursor_line'][0]))
@@ -389,7 +389,7 @@ class TUI:
             key = self.stdscr.getch()
 
             # reset highlight of current line
-            for x_pos in range(0, self.buffer.width):
+            for x_pos in range(0, max(self.buffer.width, self.width)):
                 self.viewport.chgat(self.current_line, x_pos, 1, current_attrs[x_pos])
 
     def scroll_y(self, update):
