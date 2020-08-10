@@ -22,7 +22,7 @@ Currently CoBib provides the following functionality:
 * and general database inspection/modification via a curses-based TUI
 
 ## Installation
-You can either install cobib via pip: `pip3 install cobib` or you can download
+You can either install CoBib via pip: `pip3 install cobib` or you can download
 the source code and install it manually:
 ```
 git clone https://gitlab.com/mrossinek/cobib

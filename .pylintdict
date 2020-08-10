@@ -23,6 +23,7 @@ initscr
 io
 msg
 pdf
+py
 pylatexenc
 pytest
 SHA
