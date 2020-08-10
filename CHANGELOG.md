@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [2.2.1] - 2020-06-10
+
+Pypi: https://pypi.org/project/cobib/2.2.1/
+
 ### Changed
 - when wrapping the TUI lines, indent until after the label column (#26)
 - renamed `default.ini` to `example.ini` in the documentation folder
@@ -208,7 +213,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.2.0...master
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.2.1...master
+[2.2.1]: https://gitlab.com/mrossinek/cobib/-/tags/v2.2.1
 [2.2.0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.2.0
 [2.1.0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.1.0
 [2.0.0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0
