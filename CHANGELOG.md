@@ -6,11 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [2.2.2] - 2020-08-13
+
+Pypi: https://pypi.org/project/cobib/2.2.2/
+
 ### Fixed
 - current line highlight if viewport is wider than buffer was not correctly reset
 - the `ignore_non_standard_types` setting had no effect
 
-## [2.2.1] - 2020-06-10
+## [2.2.1] - 2020-08-10
 
 Pypi: https://pypi.org/project/cobib/2.2.1/
 
@@ -216,7 +221,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.2.1...master
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.2.2...master
+[2.2.1]: https://gitlab.com/mrossinek/cobib/-/tags/v2.2.2
 [2.2.1]: https://gitlab.com/mrossinek/cobib/-/tags/v2.2.1
 [2.2.0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.2.0
 [2.1.0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.1.0
