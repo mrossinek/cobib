@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - current line highlight if viewport is wider than buffer was not correctly reset
+- the `ignore_non_standard_types` setting had no effect
 
 ## [2.2.1] - 2020-06-10
 

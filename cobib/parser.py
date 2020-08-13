@@ -244,7 +244,7 @@ class Entry:
             An OrderedDict containing the bibliography as per the provided BibLaTex data.
         """
         bparser = bibtexparser.bparser.BibTexParser()
-        bparser.ignore_non_standard_types = CONFIG.config['DATABASE'].getboolean(
+        bparser.ignore_nonstandard_types = CONFIG.config['DATABASE'].getboolean(
             'ignore_non_standard_types', False)
         if string:
             database = bibtexparser.loads(file, parser=bparser)
