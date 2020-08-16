@@ -2,11 +2,14 @@
 
 from collections import OrderedDict
 from pathlib import Path
+import logging
 import os
 import sys
 
 from cobib.config import CONFIG
 from cobib.parser import Entry
+
+LOGGER = logging.getLogger(__name__)
 
 
 def read_database(fresh=False):
@@ -19,16 +22,19 @@ def read_database(fresh=False):
         fresh (bool, optional): Forcefully reloads the bibliographic data.
     """
     if fresh:
+        LOGGER.info('Update the bibliographic data in memory.')
         # delete data currently in memory
         del CONFIG.config['BIB_DATA']
     conf_database = CONFIG.config['DATABASE']
     file = os.path.expanduser(conf_database['file'])
     try:
+        LOGGER.info('Loading database file: %s', file)
         CONFIG.config['BIB_DATA'] = Entry.from_yaml(Path(file))
     except AttributeError:
+        LOGGER.debug('Initializing an empty database.')
         CONFIG.config['BIB_DATA'] = OrderedDict()
     except FileNotFoundError:
-        print(f"The database file {file} does not exist! Please run `cobib init`!", file=sys.stderr)
+        LOGGER.critical("The database file %s does not exist! Please run `cobib init`!", file)
         sys.exit(1)
 
 
@@ -43,11 +49,12 @@ def write_database(entries):
     """
     if 'BIB_DATA' not in CONFIG.config.keys():
         # if no data in memory, read the database file (the case when using the CLI)
+        LOGGER.info('Reading database file, before trying to write to it.')
         read_database()
     new_lines = []
     for label, entry in entries.items():
         if label in CONFIG.config['BIB_DATA'].keys():
-            print("Error: label '{}' already exists!".format(label))
+            LOGGER.warning("Label %s already exists! Ignoring the new version.", label)
             continue
         string = entry.to_yaml()
         reduced = '\n'.join(string.splitlines())
@@ -59,6 +66,5 @@ def write_database(entries):
         # append new lines to the database file
         with open(file, 'a') as bib:
             for line in new_lines:
+                LOGGER.debug('Appending line to database file: %s', line)
                 bib.write(line+'\n')
-        # update bibliography data
-        read_database(fresh=True)

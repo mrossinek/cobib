@@ -1,6 +1,7 @@
 """CoBib parsing module."""
 
 from collections import OrderedDict
+import logging
 import os
 import re
 import subprocess
@@ -13,6 +14,8 @@ import bibtexparser
 import requests
 
 from cobib.config import CONFIG
+
+LOGGER = logging.getLogger(__name__)
 
 # API and HEADER settings according to this resource: https://crosscite.org/docs.html
 DOI_URL = "https://doi.org/"
@@ -60,6 +63,7 @@ class Entry:
             data (dict): Dictionary of fields specifying this entry.
             suppress_warnings (bool): if True, suppresses warnings.
         """
+        LOGGER.debug('Initializing entry: %s', label)
         self._label = label
         self.data = data.copy()
         self.escape_special_chars(suppress_warnings)
@@ -79,6 +83,7 @@ class Entry:
     @label.setter
     def set_label(self, label):
         """Sets the database Id of this entry."""
+        LOGGER.debug("Changing the label '%s' to '%s'.", self.label, label)
         self._label = label
         self.data['ID'] = label
 
@@ -91,6 +96,7 @@ class Entry:
     def set_tags(self, tags):
         """Sets the tags of this entry."""
         self.data['tags'] = ''.join(tag.strip('+')+', ' for tag in tags).strip(', ')
+        LOGGER.debug("Adding the tags '%s' to '%s'.", self.data['tags'], self.label)
 
     @property
     def file(self):
@@ -101,6 +107,7 @@ class Entry:
     def set_file(self, file):
         """Sets the associated file of this entry."""
         self.data['file'] = os.path.abspath(file)
+        LOGGER.debug("Adding '%s' as the file to '%s'.", self.data['file'], self.label)
 
     def convert_month(self, type_):
         """Converts the month into the specified type.
@@ -119,6 +126,7 @@ class Entry:
         except ValueError:
             pass
         if type(month).__name__ != type_:
+            LOGGER.debug('Converting month type for %s', self.label)
             months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
                       'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
             if isinstance(month, str):
@@ -138,7 +146,8 @@ class Entry:
         enc = UnicodeToLatexEncoder(non_ascii_only=True,
                                     replacement_latex_protection='braces-all',
                                     unknown_char_policy='keep',
-                                    unknown_char_warning=not suppress_warnings)
+                                    unknown_char_warning=not suppress_warnings or
+                                    LOGGER.isEnabledFor(10))  # 10 = DEBUG logging level
         for key, value in self.data.items():
             if isinstance(value, str):
                 self.data[key] = enc.unicode_to_latex(value)
@@ -159,6 +168,7 @@ class Entry:
         Returns:
             Boolean indicating whether this entry matches the filter.
         """
+        LOGGER.debug('Checking whether entry %s matches.', self.label)
         match_list = []
         for key, values in _filter.items():
             if key[0] not in self.data.keys():
@@ -187,6 +197,7 @@ class Entry:
         Returns:
             A list of lists containing the context for each match associated with this entry.
         """
+        LOGGER.debug('Searching entry %s for %s.', self.label, query)
         matches = []
         bibtex = str(self).split('\n')
         re_flags = re.IGNORECASE if ignore_case else 0
@@ -209,6 +220,7 @@ class Entry:
 
         if self.file and os.path.exists(self.file):
             grep_prog = CONFIG.config['DATABASE'].get('grep')
+            LOGGER.debug('Searching associated file %s with %s', self.file, grep_prog)
             grep = subprocess.Popen([grep_prog, f'-C{context}', query, self.file],
                                     stdout=subprocess.PIPE)
             # extract results
@@ -223,6 +235,7 @@ class Entry:
         """Returns the entry in biblatex format."""
         database = bibtexparser.bibdatabase.BibDatabase()
         database.entries = [self.data]
+        LOGGER.debug('Converting entry %s to BibTex format.', self.label)
         return bibtexparser.dumps(database)
 
     def to_yaml(self):
@@ -230,6 +243,7 @@ class Entry:
         yaml = Entry.YamlDumper()
         yaml.explicit_start = True
         yaml.explicit_end = True
+        LOGGER.debug('Converting entry %s to YAML format.', self.label)
         return yaml.dump({self._label: dict(sorted(self.data.items()))})
 
     @staticmethod
@@ -247,8 +261,10 @@ class Entry:
         bparser.ignore_nonstandard_types = CONFIG.config['DATABASE'].getboolean(
             'ignore_non_standard_types', False)
         if string:
+            LOGGER.debug('Loading BibTex string: %s.', file)
             database = bibtexparser.loads(file, parser=bparser)
         else:
+            LOGGER.debug('Loading BibTex data from file: %s.', file)
             database = bibtexparser.load(file, parser=bparser)
         bib = OrderedDict()
         for entry in database.entries:
@@ -267,6 +283,7 @@ class Entry:
         """
         yaml = YAML()
         bib = OrderedDict()
+        LOGGER.debug('Loading YAML data from file: %s.', file)
         for entry in yaml.load_all(file):
             for label, data in entry.items():
                 bib[label] = Entry(label, data)
@@ -283,6 +300,7 @@ class Entry:
             An OrderedDict containing the bibliographic data of the provided DOI.
         """
         assert re.match(DOI_REGEX, doi)
+        LOGGER.info('Gathering BibTex data for DOI: %s.', doi)
         page = requests.get(DOI_URL+doi, headers=DOI_HEADER, timeout=5)
         return Entry.from_bibtex(page.text, string=True)
 
@@ -296,6 +314,7 @@ class Entry:
         Returns:
             An OrderedDict containing the bibliographic data of the provided arXiv ID.
         """
+        LOGGER.info('Gathering BibTex data for arXiv ID: %s.', arxiv)
         page = requests.get(ARXIV_URL+arxiv)
         xml = BeautifulSoup(page.text, features='html.parser')
         # TODO rewrite this to use a defaultdict(str)
@@ -335,7 +354,7 @@ class Entry:
             elif key.name == 'summary':
                 entry['abstract'] = re.sub(r'\s+', ' ', key.contents[0].strip().replace('\n', ' '))
             else:
-                print("The key '{}' of this arXiv entry is not being processed!".format(key.name))
+                LOGGER.warning("The key '%s' of this arXiv entry is not being processed!", key.name)
         if 'doi' in entry.keys():
             entry['ENTRYTYPE'] = 'article'
         else:

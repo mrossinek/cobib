@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Logging functionality has been added. The verbosity level can be controlled via `-v` (INFO) and `-vv` (DEBUG).
+  As soon as the TUI starts, all logging output is redirected to `/tmp/cobib.log`.
+- Command line argument `-l` or `--logfile` can be used to specify the output path of the log. This will overwrite the `/tmp/cobib.log` location.
+
+### Changed
+- `-v` command line argument now refers to `--verbose` rather than `--version`
+- Performance of the `add` command has been improved by not refreshing the database when outside of the TUI.
 
 ## [2.2.2] - 2020-08-13
 
