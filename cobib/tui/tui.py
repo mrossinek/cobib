@@ -1,6 +1,7 @@
 """CoBib curses interface."""
 
 import curses
+import logging
 import re
 import sys
 from functools import partial
@@ -10,6 +11,8 @@ from cobib import __version__
 from cobib import commands
 from cobib.config import CONFIG
 from .buffer import TextBuffer
+
+LOGGER = logging.getLogger(__name__)
 
 
 class TUI:
@@ -119,6 +122,7 @@ class TUI:
         Args:
             stdscr (curses.window): the curses standard screen as returned by curses.initscr().
         """
+        LOGGER.info('Initializing TUI.')
         self.stdscr = stdscr
 
         # register resize handler
@@ -130,11 +134,14 @@ class TUI:
         # Initialize layout
         curses.curs_set(0)
         self.height, self.width = self.stdscr.getmaxyx()
+        LOGGER.debug('stdscr size determined to be %dx%d', self.width, self.height)
         self.visible = self.height-3
         # and colors
+        LOGGER.debug('Initializing colors.')
         curses.use_default_colors()
         TUI.colors()
         # and user key mappings
+        LOGGER.debug('Initializing key bindings.')
         TUI.bind_keys()
         # and inactive commands
         self.inactive_commands = []
@@ -148,11 +155,13 @@ class TUI:
         self.prompt_before_quit = CONFIG.config['TUI'].getboolean('prompt_before_quit', True)
 
         # Initialize top status bar
+        LOGGER.debug('Populating top status bar.')
         self.topbar = curses.newwin(1, self.width, 0, 0)
         self.topbar.bkgd(' ', curses.color_pair(TUI.COLOR_PAIRS['top_statusbar'][0]))
 
         # Initialize bottom status bar
         # NOTE: -2 leaves an additional empty line for the command prompt
+        LOGGER.debug('Populating bottom status bar.')
         self.botbar = curses.newwin(1, self.width, self.height-2, 0)
         self.botbar.bkgd(' ', curses.color_pair(TUI.COLOR_PAIRS['bottom_statusbar'][0]))
         self.statusbar(self.botbar, self.infoline())
@@ -170,11 +179,14 @@ class TUI:
         self.left_edge = 0
 
         # populate buffer with list of reference entries
+        LOGGER.debug('Populating viewport buffer.')
         self.buffer = TextBuffer()
         self.update_list()
 
         # start key event loop
+        LOGGER.debug('Starting key event loop.')
         self.loop()
+        LOGGER.info('Exiting TUI.')
 
     def resize_handler(self, signum, frame):  # pylint: disable=unused-argument
         """Handles terminal window resize events.
@@ -183,6 +195,7 @@ class TUI:
             signum (int): signal number.
             frame: unused argument, required by the function template.
         """
+        LOGGER.debug('Handling resize event.')
         # stop curses window
         curses.endwin()
         # clear and refresh for a blank canvas
@@ -190,6 +203,7 @@ class TUI:
         self.stdscr.refresh()
         # update total dimension data
         self.height, self.width = self.stdscr.getmaxyx()
+        LOGGER.debug('New stdscr dimension determined to be %dx%d', self.width, self.height)
         self.visible = self.height-3
         # update top statusbar
         self.topbar.resize(1, self.width)
@@ -209,6 +223,7 @@ class TUI:
     def quit(self):
         """Breaks the key event loop or quits one viewport level."""
         if self.list_mode == -1:
+            LOGGER.debug('Quitting from lowest level.')
             if self.prompt_before_quit:
                 self.prompt.clear()
                 self.prompt.insstr(0, 0, 'Do you really want to quit CoBib? [y/n] ')
@@ -218,12 +233,14 @@ class TUI:
                     if key in (ord('y'), ord('Y')):
                         raise StopIteration
                     if key in (ord('n'), ord('N')):
+                        LOGGER.info('User aborted quitting.')
                         break
                     key = self.prompt.getch()
                 self.prompt.clear()
                 self.prompt.refresh()
             else:
                 raise StopIteration
+        LOGGER.debug('Quitting higher menu level. Falling back to list view.')
         self.update_list()
 
     @staticmethod
@@ -237,6 +254,7 @@ class TUI:
             if attr in TUI.COLOR_VALUES.keys():
                 if not curses.can_change_color():
                     # cannot change curses default colors
+                    LOGGER.warning('Curses cannot change the default colors. Skipping color setup.')
                     continue
                 # update curses-internal color with HEX-color
                 rgb_color = tuple(int(col.strip('#')[i:i+2], 16) for i in (0, 2, 4))
@@ -253,6 +271,7 @@ class TUI:
 
         # initialize color pairs for TUI elements
         for idx, foreground, background in TUI.COLOR_PAIRS.values():
+            LOGGER.debug('Initiliazing color pair %d', idx)
             curses.init_pair(idx, TUI.COLOR_VALUES[foreground], TUI.COLOR_VALUES[background])
 
     @staticmethod
@@ -260,7 +279,9 @@ class TUI:
         """Bind keys according to user configuration."""
         key_bindings = CONFIG.config['KEY_BINDINGS']
         for command, key in key_bindings.items():
+            LOGGER.info('Binding key %s to the %s command.', key, command)
             if command not in TUI.COMMANDS.keys():
+                LOGGER.warning('Unknown command "%d". Ignoring key binding.', command)
                 continue
             if key == 'ENTER':
                 TUI.KEYDICT[10] = command  # line feed
@@ -309,11 +330,13 @@ class TUI:
         Opens a new curses window with more detailed information on the configured key bindings and
         short descriptions of the commands.
         """
+        LOGGER.debug('Help command triggered.')
         # sorted commands to place in help window
         cmds = ["Quit", "Help", "", "Show", "Open", "Wrap", "", "Add", "Edit", "Delete", "",
                 "Search", "Filter", "Sort", "Select", "", "Export"]
         # populate text buffer with help text
         help_text = TextBuffer()
+        LOGGER.debug('Generating help text.')
         for cmd in cmds:
             if cmd:
                 key = ' '
@@ -334,6 +357,7 @@ class TUI:
         help_text.height += 2
 
         # populate help window
+        LOGGER.debug('Populating help window.')
         help_win = curses.newpad(help_text.height+2, help_text.width+5)  # offsets account for box
         help_win.bkgd(' ', curses.color_pair(TUI.COLOR_PAIRS['help'][0]))
         for row, line in enumerate(help_text.lines):
@@ -349,6 +373,9 @@ class TUI:
         key = 0
         # loop until quit by user
         while key not in (27, ord('q')):  # exit on ESC
+            if key != 0:
+                # do not print warning on initial run (key == 0)
+                LOGGER.warning('Key "%s" does not have an effect in the help view.', key)
             key = self.prompt.getch()
 
         # close help window
@@ -372,6 +399,7 @@ class TUI:
                 elif key == curses.KEY_RESIZE:
                     self.resize_handler(None, None)
             except StopIteration:
+                LOGGER.debug('Stopping key event loop.')
                 # raised by quit command
                 break
 
@@ -387,6 +415,7 @@ class TUI:
 
             # Wait for next input
             key = self.stdscr.getch()
+            LOGGER.debug('Key press registered: %s', str(key))
 
             # reset highlight of current line
             for x_pos in range(0, max(self.buffer.width, self.width)):
@@ -400,14 +429,17 @@ class TUI:
         """
         # jump to top
         if update == 0:
+            LOGGER.debug('Jump to top of viewport.')
             self.top_line = 0
             self.current_line = 0
         # jump to bottom
         elif update == 'G':
+            LOGGER.debug('Jump to bottom of viewport.')
             self.top_line = max(self.buffer.height - self.visible, 0)
             self.current_line = self.buffer.height-1
         # scroll up
         elif update < 0:
+            LOGGER.debug('Scroll viewport up by %d lines.', update)
             next_line = self.current_line + update
             if self.top_line > 0 and next_line < self.top_line:
                 self.top_line += update
@@ -417,6 +449,7 @@ class TUI:
                 self.current_line = 0
         # scroll down
         elif update > 0:
+            LOGGER.debug('Scroll viewport down by %d lines.', update)
             next_line = self.current_line + update
             if next_line - self.top_line >= self.visible and \
                     self.top_line + self.visible < self.buffer.height:
@@ -435,11 +468,14 @@ class TUI:
         """
         # jump to beginning
         if update == 0:
+            LOGGER.debug('Jump to first column of viewport.')
             self.left_edge = 0
         # jump to end
         elif update == '$':
+            LOGGER.debug('Jump to end of viewport.')
             self.left_edge = self.buffer.width - self.width
         else:
+            LOGGER.debug('Scroll viewport horizontally by %d columns.', update)
             next_col = self.left_edge + update
             # limit column such that no empty columns can appear on left or right
             if 0 <= next_col <= self.buffer.width - self.width:
@@ -447,6 +483,7 @@ class TUI:
 
     def wrap(self):
         """Toggles wrapping of the text currently displayed in the viewport."""
+        LOGGER.debug('Wrap command triggered.')
         # first, ensure left_edge is set to 0
         self.left_edge = 0
         # then, wrap the buffer
@@ -467,6 +504,7 @@ class TUI:
             A pair with the first element being the list with the executed command to allow further
             handling and the second element being whatever is returned by the command.
         """
+        LOGGER.debug('Handling input by the user in prompt line.')
         # make cursor visible
         curses.curs_set(1)
 
@@ -492,16 +530,21 @@ class TUI:
                 self.prompt.getch()
                 arrow = self.prompt.getch()
                 if arrow == -1:
+                    LOGGER.debug('Prompt input aborted by the user.')
                     # if not, ESC ends the prompt
                     break
                 if arrow == 68:  # left arrow key
+                    LOGGER.debug('Move cursor left from arrow key input.')
                     self.prompt.move(_, cur_x - 1)
                 elif arrow == 67:  # right arrow key
+                    LOGGER.debug('Move cursor right from arrow key input.')
                     self.prompt.move(_, cur_x + 1)
             elif key == 127:  # BACKSPACE
                 if cur_x > 1:
+                    LOGGER.debug('Delete the previous character in the prompt.')
                     self.prompt.delch(_, cur_x - 1)
             elif key in (10, 13):  # ENTER
+                LOGGER.debug('Execute the command as prompted.')
                 command = self.prompt.instr(0, 1).decode('utf-8').strip()
                 break
             else:
@@ -521,6 +564,7 @@ class TUI:
         # process command if it non empty and actually has arguments
         result = None
         if command and command[1:]:
+            LOGGER.debug('Processing the command: %s', ' '.join(command))
             # temporarily disable prints to stdout
             original_stdout = sys.stderr
             sys.stderr = TextBuffer()
@@ -529,6 +573,7 @@ class TUI:
             result = subcmd.execute(command[1:], out=out)
             # if error occurred print info to prompt
             if sys.stderr.lines:
+                LOGGER.warning('The command "%s" resulted in an error.', ' '.join(command))
                 self.prompt.addstr(0, 0, sys.stderr.lines[0])
                 self.prompt.refresh()
                 # command exited with an error
@@ -545,11 +590,13 @@ class TUI:
             msg (str): message text to print.
         """
         self.prompt.clear()
+        LOGGER.debug('Warning in prompt: %s', msg)
         self.prompt.insstr(0, 0, f'Warning: {msg}')
         self.prompt.refresh()
 
     def get_current_label(self):
         """Returns the label and y position of the currently selected entry."""
+        LOGGER.debug('Obtaining current label "under" cursor.')
         cur_y, _ = self.viewport.getyx()
         # Two cases are possible: the list and the show mode
         if self.list_mode == -1:
@@ -566,10 +613,12 @@ class TUI:
         else:
             # In any other mode, the label can be found in the top statusbar
             label = '-'.join(self.topbar.instr(0, 0).decode('utf-8').split('-')[1:]).strip()
+        LOGGER.debug('Current label at "%s" is "%s".', str(cur_y), label)
         return label, cur_y
 
     def update_list(self):
         """Updates the default list view."""
+        LOGGER.debug('Re-populating the viewport with the list command.')
         self.buffer.clear()
         labels = commands.ListCommand().execute(self.list_args, out=self.buffer)
         labels = labels or []  # convert to empty list if labels is None

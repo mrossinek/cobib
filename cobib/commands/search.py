@@ -1,6 +1,7 @@
 """CoBib search command."""
 
 import argparse
+import logging
 import os
 import re
 import sys
@@ -9,6 +10,8 @@ from cobib import __version__
 from cobib.config import CONFIG
 from .base_command import ArgumentParser, Command
 from .list import ListCommand
+
+LOGGER = logging.getLogger(__name__)
 
 ANSI_COLORS = [
     'black',
@@ -46,6 +49,7 @@ class SearchCommand(Command):
 
         Args: See base class.
         """
+        LOGGER.debug('Starting Search command.')
         parser = ArgumentParser(prog="search", description="Search subcommand parser.")
         parser.add_argument("query", type=str, help="text to search for")
         parser.add_argument("-c", "--context", type=int, default=1,
@@ -65,8 +69,11 @@ class SearchCommand(Command):
             return None
 
         labels = ListCommand().execute(largs.list_args, out=open(os.devnull, 'w'))
+        LOGGER.debug('Available entries to search: %s', labels)
 
         re_flags = re.IGNORECASE if largs.ignore_case else 0
+        LOGGER.debug('The search will be performed case %ssensitive',
+                     'in' if largs.ignore_case else '')
 
         hits = 0
         output = []
@@ -77,6 +84,7 @@ class SearchCommand(Command):
                 continue
 
             hits += len(matches)
+            LOGGER.debug('Entry "%s" includes %d hits.', label, hits)
             title = f"{label} - {len(matches)} match" + ("es" if len(matches) > 1 else "")
             title = title.replace(label, SEARCH_LABEL_ANSI + label + '\033[0m')
             output.append(title)
@@ -93,16 +101,20 @@ class SearchCommand(Command):
     @staticmethod
     def tui(tui):
         """See base class."""
+        LOGGER.debug('Search command triggered from TUI.')
         tui.buffer.clear()
         # handle input via prompt
         command, hits = tui.prompt_handler('search', out=tui.buffer)
         if tui.buffer.lines:
             tui.list_mode, _ = tui.viewport.getyx()
             tui.buffer.split()
-            tui.buffer.view(tui.viewport, tui.visible, tui.width-1,
-                            {SEARCH_LABEL_ANSI: tui.COLOR_PAIRS['search_label'][0],
-                             SEARCH_QUERY_ANSI: tui.COLOR_PAIRS['search_query'][0]})
+            LOGGER.debug('Populating viewport with search results.')
+            ansi_map = {SEARCH_LABEL_ANSI: tui.COLOR_PAIRS['search_label'][0],
+                        SEARCH_QUERY_ANSI: tui.COLOR_PAIRS['search_query'][0]}
+            LOGGER.debug('Using ANSI color map: %s', ansi_map)
+            tui.buffer.view(tui.viewport, tui.visible, tui.width-1, ansi_map)
             # reset current cursor position
+            LOGGER.debug('Resetting cursor position to top.')
             tui.top_line = 0
             tui.current_line = 0
             # update top statusbar
@@ -111,6 +123,8 @@ class SearchCommand(Command):
             tui.statusbar(tui.topbar, tui.topstatus)
         elif command[1:] and not tui.buffer.lines:
             tui.prompt.clear()
-            tui.prompt.addstr(0, 0, f"No search hits for '{' '.join(command[1:])}'!")
+            msg = f"No search hits for '{' '.join(command[1:])}'!"
+            LOGGER.info(msg)
+            tui.prompt.addstr(0, 0, msg)
             tui.prompt.refresh()
             tui.update_list()

@@ -1,11 +1,14 @@
 """CoBib show command."""
 
 import argparse
+import logging
 import sys
 
 from cobib import __version__
 from cobib.config import CONFIG
 from .base_command import ArgumentParser, Command
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ShowCommand(Command):
@@ -20,6 +23,7 @@ class ShowCommand(Command):
 
         Args: See base class.
         """
+        LOGGER.debug('Starting Show command.')
         parser = ArgumentParser(prog="show", description="Show subcommand parser.")
         parser.add_argument("label", type=str, help="label of the entry")
 
@@ -38,17 +42,22 @@ class ShowCommand(Command):
             entry_str = entry.to_bibtex()
             print(entry_str, file=out)
         except KeyError:
-            print("Error: No entry with the label '{}' could be found.".format(largs.label))
+            msg = f"No entry with the label '{largs.label}' could be found."
+            LOGGER.error(msg)
+            print(msg, file=out)
 
     @staticmethod
     def tui(tui):
         """See base class."""
+        LOGGER.debug('Show command triggered from TUI.')
         # get current label
         label, cur_y = tui.get_current_label()
         # populate buffer with entry data
+        LOGGER.debug('Clearing current buffer contents.')
         tui.buffer.clear()
         ShowCommand().execute([label], out=tui.buffer)
         tui.buffer.split()
+        LOGGER.debug('Populating buffer with ShowCommand result.')
         tui.buffer.view(tui.viewport, tui.visible, tui.width-1)
 
         # reset current cursor position

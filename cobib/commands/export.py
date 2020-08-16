@@ -1,6 +1,7 @@
 """CoBib export command."""
 
 import argparse
+import logging
 import os
 import sys
 from zipfile import ZipFile
@@ -8,6 +9,8 @@ from zipfile import ZipFile
 from cobib.config import CONFIG
 from .base_command import ArgumentParser, Command
 from .list import ListCommand
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ExportCommand(Command):
@@ -25,6 +28,7 @@ class ExportCommand(Command):
 
         Args: See base class.
         """
+        LOGGER.debug('Starting Export command.')
         parser = ArgumentParser(prog="export", description="Export subcommand parser.")
         parser.add_argument("-b", "--bibtex", type=argparse.FileType('a'),
                             help="BibLaTeX output file")
@@ -43,20 +47,27 @@ class ExportCommand(Command):
             return
 
         if largs.bibtex is None and largs.zip is None:
+            msg = "No output file specified!"
+            print("Error: " + msg, file=sys.stderr)
+            LOGGER.error(msg)
             return
         if largs.zip is not None:
             largs.zip = ZipFile(largs.zip.name, 'w')
         out = open(os.devnull, 'w')
+        LOGGER.debug('Gathering filtered list of entries to be exported.')
         labels = ListCommand().execute(largs.list_args, out=out)
 
         try:
             for label in labels:
+                LOGGER.debug('Exporting entry "%s".', label)
                 entry = CONFIG.config['BIB_DATA'][label]
                 if largs.bibtex is not None:
                     entry_str = entry.to_bibtex()
                     largs.bibtex.write(entry_str)
                 if largs.zip is not None:
                     if 'file' in entry.data.keys() and entry.data['file'] is not None:
+                        LOGGER.debug('Adding "%s" associated with "%s" to the zip file.',
+                                     entry.data['file'], label)
                         largs.zip.write(entry.data['file'], label+'.pdf')
         except KeyError:
             print("Error: No entry with the label '{}' could be found.".format(largs.label))
@@ -64,5 +75,6 @@ class ExportCommand(Command):
     @staticmethod
     def tui(tui):
         """See base class."""
+        LOGGER.debug('Export command triggered from TUI.')
         # handle input via prompt
         tui.prompt_handler('export')

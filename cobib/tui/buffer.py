@@ -1,7 +1,10 @@
 """CoBib auxiliary TextBuffer."""
 
 import curses
+import logging
 import textwrap
+
+LOGGER = logging.getLogger(__name__)
 
 
 class TextBuffer:
@@ -30,12 +33,14 @@ class TextBuffer:
         """
         if string.strip():
             # only handle non-empty strings
+            LOGGER.debug('Appending string to text buffer: %s', string)
             self.lines.append(string)
             self.height = len(self.lines)
             self.width = max(self.width, len(string))
 
     def clear(self):
         """Clears the buffer."""
+        LOGGER.debug('Clearing text buffer.')
         self.lines = []
         self.height = 0
         self.width = 0
@@ -62,6 +67,7 @@ class TextBuffer:
         self.lines = []
         self.width = 0
         if self.wrapped:
+            LOGGER.debug('Unwrapping text buffer.')
             for line in copy:
                 # unwrap instead
                 if line.startswith(TextBuffer.INDENT):
@@ -71,11 +77,13 @@ class TextBuffer:
                     self.lines.append(line)
                 self.width = max(self.width, len(self.lines[-1]))
         else:
+            LOGGER.debug('Wrapping text buffer.')
             # first, determine width of label column
             label_len = 0
             for line in copy:
                 label = line.split('  ')[0]
                 label_len = max(len(label)+1, label_len)
+            LOGGER.debug('Label column width determined to be %d', label_len)
             for line in copy:
                 # then wrap lines with subsequent indents matched to first column width
                 for string in textwrap.wrap(line, width=width-1,
@@ -95,12 +103,15 @@ class TextBuffer:
             ansi_map (dict): optional, dictionary mapping ANSI codes to curses color pairs.
         """
         if ansi_map:
+            LOGGER.debug('Interpreting ANSI color codes on the fly.')
             self.ansi_map = ansi_map
         # first clear pad
+        LOGGER.debug('Clearing curses pad.')
         pad.erase()
         pad.refresh(0, 0, 1, 0, visible_height, visible_width)
         # then resize
         # NOTE The +1 added onto the height accounts for some weird offset in the curses pad.
+        LOGGER.debug('Adjusting pad size.')
         pad.resize(self.height+1, max(self.width, visible_width+1))
         # and populate
         for row, line in enumerate(self.lines):
@@ -118,4 +129,5 @@ class TextBuffer:
             pad.addstr(row, 0, line)
             if color >= 0:
                 pad.chgat(row, start, end-start, curses.color_pair(color))
+        LOGGER.debug('Viewing curses pad.')
         pad.refresh(0, 0, 1, 0, visible_height, visible_width)

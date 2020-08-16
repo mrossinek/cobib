@@ -25,8 +25,10 @@ def setup():
     CONFIG.config = {}
     root = os.path.abspath(os.path.dirname(__file__))
     CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
-    read_database()
+    # NOTE: normally you would never trigger an Add command before reading the database but in this
+    # controlled testing scenario we can be certain that this is fine
     AddCommand().execute(['-b', './test/dummy_scrolling_entry.bib'])
+    read_database()
     yield setup
     DeleteCommand().execute(['dummy_entry_for_scroll_testing'])
 
@@ -275,8 +277,10 @@ def test_tui_config_keys(command, key):
     # overwrite key binding configuration
     CONFIG.config['KEY_BINDINGS'] = {}
     CONFIG.config['KEY_BINDINGS'][command] = key
-    read_database()
+    # NOTE: normally you would never trigger an Add command before reading the database but in this
+    # controlled testing scenario we can be certain that this is fine
     AddCommand().execute(['-b', './test/dummy_scrolling_entry.bib'])
+    read_database()
     try:
         test_tui(None, key, assert_show, {})
     finally:
