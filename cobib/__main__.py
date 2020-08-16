@@ -47,9 +47,9 @@ def main():
 
     args = parser.parse_args()
 
-    if args.log:
-        LOGGER.info('Switching to FileHandler logger in %s', args.log.name)
-        log_to_file('DEBUG' if args.verbose > 1 else 'INFO', logfile=args.log.name)
+    if args.logfile:
+        LOGGER.info('Switching to FileHandler logger in %s', args.logfile.name)
+        log_to_file('DEBUG' if args.verbose > 1 else 'INFO', logfile=args.logfile.name)
 
     # set logging verbosity level
     if args.verbose == 1:
@@ -69,11 +69,11 @@ def main():
 
     read_database()
     if not args.command:
-        if args.log is None:
+        if args.logfile is None:
             LOGGER.info('Switching to FileHandler logger in %s', '/tmp/cobib.log')
             log_to_file('DEBUG' if args.verbose > 1 else 'INFO')
         else:
-            LOGGER.info('Already logging to %s. NOT switching to "/tmp/cobib.log"', args.log)
+            LOGGER.info('Already logging to %s. NOT switching to "/tmp/cobib.log"', args.logfile)
         tui()
     else:
         subcmd = getattr(commands, args.command.title()+'Command')()
