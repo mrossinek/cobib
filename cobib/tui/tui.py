@@ -90,7 +90,7 @@ class TUI:
         curses.KEY_PPAGE: ('y', -20),
         ord('j'): ('y', 1),
         ord('k'): ('y', -1),
-        ord('g'): ('y', 0),
+        ord('g'): ('y', 'g'),
         ord('G'): ('y', 'G'),
         2: ('y', -20),  # CTRL-B
         4: ('y', 10),  # CTRL-D
@@ -427,8 +427,11 @@ class TUI:
         Args:
             update (int or str): the offset specifying the scrolling height.
         """
+        scrolloff = CONFIG.config['TUI'].getint('scroll_offset', 3)
+        overlap = scrolloff >= self.visible - scrolloff
+        scroll_lock = overlap and self.current_line - self.top_line == self.visible // 2
         # jump to top
-        if update == 0:
+        if update == 'g':
             LOGGER.debug('Jump to top of viewport.')
             self.top_line = 0
             self.current_line = 0
@@ -441,19 +444,26 @@ class TUI:
         elif update < 0:
             LOGGER.debug('Scroll viewport up by %d lines.', update)
             next_line = self.current_line + update
-            if self.top_line > 0 and next_line < self.top_line:
-                self.top_line += update
-            if next_line >= 0:
-                self.current_line = next_line
-            else:
-                self.current_line = 0
+            if self.top_line > 0 and next_line < self.top_line + scrolloff:
+                if scroll_lock or not overlap:
+                    self.top_line += update
+                elif overlap and \
+                        self.current_line - self.top_line > self.visible // 2 and \
+                        next_line - self.top_line < self.visible // 2:
+                    self.top_line = next_line - self.visible // 2
+            self.current_line = max(next_line, 0)
         # scroll down
         elif update > 0:
             LOGGER.debug('Scroll viewport down by %d lines.', update)
             next_line = self.current_line + update
-            if next_line - self.top_line >= self.visible and \
-                    self.top_line + self.visible < self.buffer.height:
-                self.top_line += update
+            if next_line >= self.top_line + self.visible - scrolloff and \
+                    self.buffer.height > self.top_line + self.visible:
+                if scroll_lock or not overlap:
+                    self.top_line += update
+                elif overlap and \
+                        self.current_line - self.top_line < self.visible // 2 and \
+                        next_line - self.top_line > self.visible // 2:
+                    self.top_line = next_line - self.visible // 2
             if next_line < self.buffer.height:
                 self.current_line = next_line
             else:
