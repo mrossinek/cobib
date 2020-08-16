@@ -23,6 +23,7 @@ DEFAULTS = {
         'default_list_args': '-l',
         'prompt_before_quit': True,
         'reverse_order': True,
+        'scroll_offset': 3,
     },
     'KEY_BINDINGS': {
     },

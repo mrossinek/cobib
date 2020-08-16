@@ -81,6 +81,7 @@ def assert_scroll(screen, update, direction):
         assert [c.fg for c in screen.buffer[1 + update].values()] == ['white'] * term_width
         assert [c.bg for c in screen.buffer[1 + update].values()] == ['cyan'] * term_width
     elif direction == 'x':
+        # TODO actually use the update information
         assert [c.fg for c in screen.buffer[1].values()] == ['white'] * term_width
         assert [c.bg for c in screen.buffer[1].values()] == ['cyan'] * term_width
 
@@ -155,14 +156,6 @@ def assert_export(screen):
             ]}],
         ['?q', assert_no_help_window_artefacts, {}],
         ['?', assert_help_screen, {}],
-        ['j', assert_scroll, {'update': 1, 'direction': 'y'}],
-        ['jjk', assert_scroll, {'update': 1, 'direction': 'y'}],
-        ['G', assert_scroll, {'update': 3, 'direction': 'y'}],
-        ['Gg', assert_scroll, {'update': 0, 'direction': 'y'}],
-        ['l', assert_scroll, {'update': 1, 'direction': 'x'}],
-        ['llh', assert_scroll, {'update': 1, 'direction': 'x'}],
-        ['$', assert_scroll, {'update': 23, 'direction': 'x'}],
-        ['$0', assert_scroll, {'update': 0, 'direction': 'x'}],
         ['w', assert_wrap, {'state': True}],
         ['ww', assert_wrap, {'state': False}],
         ['\n', assert_show, {}],
@@ -351,3 +344,35 @@ def test_tui_resize(setup):
         ])
         # the terminal should be wide enough to contain the full information text
         assert screen.display[-2].strip() == TUI.infoline()
+
+
+@pytest.mark.parametrize(['keys', 'assertion', 'assertion_kwargs'], [
+        # vertical scrolling
+        ['G', assert_scroll, {'update': 20, 'direction': 'y'}],
+        ['Gg', assert_scroll, {'update': 0, 'direction': 'y'}],
+        ['j', assert_scroll, {'update': 1, 'direction': 'y'}],
+        ['jjk', assert_scroll, {'update': 1, 'direction': 'y'}],
+        # assert scrolloff value of `3` is respected
+        [''.join(['j'] * 20), assert_scroll, {'update': 17, 'direction': 'y'}],
+        [''.join(['j'] * 21), assert_scroll, {'update': 18, 'direction': 'y'}],
+        [''.join(['j'] * 22), assert_scroll, {'update': 19, 'direction': 'y'}],
+        ['G' + ''.join(['k'] * 20), assert_scroll, {'update': 3, 'direction': 'y'}],
+        ['G' + ''.join(['k'] * 21), assert_scroll, {'update': 2, 'direction': 'y'}],
+        ['G' + ''.join(['k'] * 22), assert_scroll, {'update': 1, 'direction': 'y'}],
+        # horizontal scrolling
+        ['l', assert_scroll, {'update': 1, 'direction': 'x'}],
+        ['llh', assert_scroll, {'update': 1, 'direction': 'x'}],
+        ['$', assert_scroll, {'update': 23, 'direction': 'x'}],
+        ['$0', assert_scroll, {'update': 0, 'direction': 'x'}],
+    ])
+def test_tui_scrolling(keys, assertion, assertion_kwargs):
+    """Test TUI scrolling behavior."""
+    # ensure configuration is empty
+    CONFIG.config = {}
+    root = os.path.abspath(os.path.dirname(__file__))
+    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    # overwrite database file
+    CONFIG.config['DATABASE'] = {}
+    CONFIG.config['DATABASE']['file'] = './test/scrolling_database.yaml'
+    read_database()
+    test_tui(None, keys, assertion, assertion_kwargs)

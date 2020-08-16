@@ -1,6 +1,7 @@
 CLI
 ESC
 OrderedDict
+SHA
 TUI
 TextBuffer
 TextIOWrapper
@@ -27,7 +28,7 @@ pdf
 py
 pylatexenc
 pytest
-SHA
+scrolloff
 signum
 statusbar
 statusline
