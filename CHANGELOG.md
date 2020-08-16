@@ -230,7 +230,7 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 
 
 [Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.2.2...master
-[2.2.1]: https://gitlab.com/mrossinek/cobib/-/tags/v2.2.2
+[2.2.2]: https://gitlab.com/mrossinek/cobib/-/tags/v2.2.2
 [2.2.1]: https://gitlab.com/mrossinek/cobib/-/tags/v2.2.1
 [2.2.0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.2.0
 [2.1.0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.1.0
