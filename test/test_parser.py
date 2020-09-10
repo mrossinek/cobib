@@ -114,7 +114,7 @@ def test_to_bibtex():
 def test_to_yaml():
     """Test to yaml conversion."""
     CONFIG.set_config()
-    entry = parser.Entry('article', EXAMPLE_ENTRY_DICT)
+    entry = parser.Entry(EXAMPLE_ENTRY_DICT['ID'], EXAMPLE_ENTRY_DICT)
     yaml_str = entry.to_yaml()
     with open(EXAMPLE_YAML_FILE, 'r') as file:
         assert yaml_str == file.read()
@@ -226,6 +226,21 @@ def test_escape_special_chars(month_type):
     if month_type == 'str':
         reference['month'] = 'aug'
     with open('test/example_entry_unescaped.bib', 'r') as bibtex_file:
+        entries = parser.Entry.from_bibtex(bibtex_file, string=False)
+        entry = list(entries.values())[0]
+        assert entry.data == reference
+
+
+def test_unchanged_umlaut_in_label():
+    """Test unchanged Umlaut in labels."""
+    root = path.abspath(path.dirname(__file__))
+    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    reference = {
+        'ENTRYTYPE': 'book',
+        'ID': 'LaTeX_Einführung',
+        'title': 'LaTeX Einf{\\"u}hrung',
+    }
+    with open('test/example_entry_umlaut.bib', 'r') as bibtex_file:
         entries = parser.Entry.from_bibtex(bibtex_file, string=False)
         entry = list(entries.values())[0]
         assert entry.data == reference

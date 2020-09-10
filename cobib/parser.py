@@ -63,6 +63,7 @@ class Entry:
             data (dict): Dictionary of fields specifying this entry.
             suppress_warnings (bool): if True, suppresses warnings.
         """
+        label = str(label)
         LOGGER.debug('Initializing entry: %s', label)
         self._label = label
         self.data = data.copy()
@@ -70,6 +71,11 @@ class Entry:
         month_type = CONFIG.config['FORMAT'].get('month', None)
         if month_type:
             self.convert_month(month_type)
+        if self.data['ID'] != self._label:
+            # sanity check for matching label and ID
+            LOGGER.warning("Mismatching label '%s' and ID '%s'. Overwriting ID with label.",
+                           self._label, self.data['ID'])
+            self.set_label = self._label
 
     def __repr__(self):
         """Returns the entry in its bibtex format."""
@@ -85,6 +91,7 @@ class Entry:
         """Sets the database Id of this entry."""
         LOGGER.debug("Changing the label '%s' to '%s'.", self.label, label)
         self._label = label
+        LOGGER.debug("Changing the ID '%s' to '%s'.", self.data['ID'], label)
         self.data['ID'] = label
 
     @property
@@ -149,6 +156,10 @@ class Entry:
                                     unknown_char_warning=not suppress_warnings or
                                     LOGGER.isEnabledFor(10))  # 10 = DEBUG logging level
         for key, value in self.data.items():
+            if key == 'ID':
+                # do NOT encode label
+                self.data[key] = value
+                continue
             if isinstance(value, str):
                 self.data[key] = enc.unicode_to_latex(value)
 
