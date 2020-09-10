@@ -81,7 +81,77 @@ class Config:
         for section in ini_conf.sections():
             self.config[section] = deepcopy(ini_conf[section])
 
-    # TODO config validation
+    def validate(self):
+        """Validates the configuration at runtime."""
+        LOGGER.info('Validating the runtime configuration.')
+
+        # DATABASE section
+        LOGGER.debug('Validing the DATABASE configuration section.')
+        self._assert(self.config.get('DATABASE', None) is not None,
+                     "Missing DATABASE section.")
+        self._assert(isinstance(self.config.get('DATABASE', {}).get('file', None), str),
+                     "DATABASE/file should be a string.")
+        self._assert(isinstance(self.config.get('DATABASE', {}).get('open', None), str),
+                     "DATABASE/open should be a string.")
+        self._assert(isinstance(self.config.get('DATABASE', {}).get('grep', None), str),
+                     "DATABASE/grep should be a string.")
+
+        # FORMAT section
+        LOGGER.debug('Validing the FORMAT configuration section.')
+        self._assert(self.config.get('FORMAT', None) is not None,
+                     "Missing FORMAT section.")
+        self._assert(self.config.get('FORMAT', {}).get('month', None) in ('int', 'str'),
+                     "FORMAT/month should be either 'int' or 'str'.")
+        self._assert(isinstance(
+            self.config.get('FORMAT', {}).getboolean('ignore_non_standard_types', None), bool),
+                     "FORMAT/ignore_non_standard_types should be a boolean.")
+
+        # TUI section
+        LOGGER.debug('Validing the TUI configuration section.')
+        self._assert(self.config.get('TUI', None) is not None,
+                     "Missing TUI section.")
+        self._assert(isinstance(self.config.get('TUI', {}).get('default_list_args', None), str),
+                     "TUI/default_list_args should be a string.")
+        self._assert(isinstance(
+            self.config.get('TUI', {}).getboolean('prompt_before_quit', None), bool),
+                     "TUI/prompt_before_quit should be a boolean.")
+        self._assert(isinstance(
+            self.config.get('TUI', {}).getboolean('reverse_order', None), bool),
+                     "TUI/reverse_order should be a boolean.")
+        self._assert(isinstance(
+            self.config.get('TUI', {}).getint('scroll_offset', None), int),
+                     "TUI/scroll_offset should be an integer.")
+
+        # KEY_BINDINGS section
+        LOGGER.debug('Validing the KEY_BINDINGS configuration section.')
+        self._assert(self.config.get('KEY_BINDINGS', None) is not None,
+                     "Missing KEY_BINDINGS section.")
+        # actual key bindings are asserted when mapped by the TUI instance
+
+        # COLORS section
+        LOGGER.debug('Validing the COLORS configuration section.')
+        self._assert(self.config.get('COLORS', None) is not None,
+                     "Missing COLORS section.")
+        for name in DEFAULTS['COLORS']:
+            self._assert(name in self.config.get('COLORS', {}).keys(),
+                         f"Missing value for COLORS/{name}")
+        available_colors = ('black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white')
+        for name, color in self.config.get('COLORS', {}).items():
+            if name not in DEFAULTS['COLORS']:
+                LOGGER.warning('Ignoring unknown TUI color: %s', name)
+            self._assert(color in available_colors or
+                         (len(color.strip('#')) == 6 and color.strip('#').isdigit()),
+                         f"Unknown color specification: {color}")
+
+    @staticmethod
+    def _assert(expression, error):
+        """Asserts the expression is True.
+
+        Raises:
+            RuntimeError with the specified error string.
+        """
+        if not expression:
+            raise RuntimeError(error)
 
 
 CONFIG = Config()

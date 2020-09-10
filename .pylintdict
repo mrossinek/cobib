@@ -28,6 +28,7 @@ pdf
 py
 pylatexenc
 pytest
+runtime
 scrolloff
 signum
 statusbar

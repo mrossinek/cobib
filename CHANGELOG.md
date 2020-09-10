@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   As soon as the TUI starts, all logging output is redirected to `/tmp/cobib.log`.
 - Command line argument `-l` or `--logfile` can be used to specify the output path of the log. This will overwrite the `/tmp/cobib.log` location.
 - the `TUI/scroll_offset` setting was added. It defaults to `3` and behaves similar to Vim's `scrolloff` setting.
+- Configuration validation has been added. This extends the logging functionality to support more runtime debug information.
 
 ### Changed
 - `-v` command line argument now refers to `--verbose` rather than `--version`
