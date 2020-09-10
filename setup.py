@@ -9,6 +9,8 @@ with open(os.path.join(HERE, 'README.md'), 'r', encoding='utf-8') as f:
     README = f.read()
 with open(os.path.join(HERE, 'cobib/__init__.py'), 'r') as f:
     VERSION = re.search(r"__version__ = '([\S]+)'", f.read()).group(1)
+with open(os.path.join(HERE, 'requirements.txt'), 'r') as f:
+    REQUIREMENTS = f.read().strip().split('\n')
 
 setup(
     name='cobib',
@@ -26,13 +28,7 @@ setup(
     packages=['cobib'],
     package_data={'cobib': ['docs/example.ini', 'commands/*', 'tui/*']},
     python_requires='>=3.5',
-    install_requires=[
-        'bibtexparser',
-        'beautifulsoup4',
-        'pylatexenc',
-        'requests',
-        'ruamel.yaml',
-    ],
+    install_requires=REQUIREMENTS,
     entry_points={
         'console_scripts': [
             'cobib = cobib.__main__:main'
