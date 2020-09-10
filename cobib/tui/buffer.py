@@ -56,8 +56,9 @@ class TextBuffer:
         self.width = 0
         for line in copy:
             for string in line.split('\n'):
-                self.lines.append(string)
-                self.width = max(self.width, len(string))
+                if string.strip():
+                    self.lines.append(string)
+                    self.width = max(self.width, len(string))
         self.height = len(self.lines)
 
     def wrap(self, width):

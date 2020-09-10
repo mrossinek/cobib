@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - clearing the prompt, aborts the command execution
 
+### Fixed
+- search command correctly handles missing arguments in TUI (#43)
+
 ## [2.3.1] - 2020-09-10
 
 Pypi: https://pypi.org/project/cobib/2.3.1/

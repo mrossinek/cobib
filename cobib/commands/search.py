@@ -110,7 +110,7 @@ class SearchCommand(Command):
         tui.buffer.clear()
         # handle input via prompt
         command, hits = tui.prompt_handler('search', out=tui.buffer)
-        if tui.buffer.lines:
+        if tui.buffer.lines and hits is not None:
             tui.list_mode, _ = tui.viewport.getyx()
             tui.buffer.split()
             LOGGER.debug('Populating viewport with search results.')
@@ -126,7 +126,7 @@ class SearchCommand(Command):
             tui.topstatus = "CoBib v{} - {} hit{}".format(__version__, hits,
                                                           "s" if hits > 1 else "")
             tui.statusbar(tui.topbar, tui.topstatus)
-        elif command[1:] and not tui.buffer.lines:
+        elif command[1:]:
             tui.prompt.clear()
             msg = f"No search hits for '{' '.join(command[1:])}'!"
             LOGGER.info(msg)
