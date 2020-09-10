@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `-v` command line argument now refers to `--verbose` rather than `--version`
 - Performance of the `add` command has been improved by not refreshing the database when outside of the TUI.
 
+### Fixed
+- bug when resizing causes the window width to become greater than the buffer width (#39)
+
 ## [2.2.2] - 2020-08-13
 
 Pypi: https://pypi.org/project/cobib/2.2.2/
