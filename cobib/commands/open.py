@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import os
 import sys
 from subprocess import Popen
 
@@ -51,7 +52,7 @@ class OpenCommand(Command):
             opener = CONFIG.config['DATABASE'].get('open')
             try:
                 LOGGER.error('Opening "%s" with %s.', entry.data['file'], opener)
-                Popen([opener, entry.data['file']])
+                Popen([opener, os.path.abspath(entry.data['file'])])
             except FileNotFoundError:
                 pass
         except KeyError:

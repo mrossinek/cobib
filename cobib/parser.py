@@ -156,8 +156,8 @@ class Entry:
                                     unknown_char_warning=not suppress_warnings or
                                     LOGGER.isEnabledFor(10))  # 10 = DEBUG logging level
         for key, value in self.data.items():
-            if key == 'ID':
-                # do NOT encode label
+            if key in ('ID', 'file'):
+                # do NOT these fields and keep any special characters
                 self.data[key] = value
                 continue
             if isinstance(value, str):

@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - bug when resizing causes the window width to become greater than the buffer width (#39)
 - do not escape special characters in labels (#40)
+- avoid special character encoding in file paths
 
 ## [2.2.2] - 2020-08-13
 
