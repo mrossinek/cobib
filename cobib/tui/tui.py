@@ -532,6 +532,10 @@ class TUI:
                 if cur_x > 1:
                     LOGGER.debug('Delete the previous character in the prompt.')
                     self.prompt.delch(_, cur_x - 1)
+                else:
+                    LOGGER.debug('Prompt input aborted by the user.')
+                    command = ''
+                    break
             elif key in (10, 13):  # ENTER
                 LOGGER.debug('Execute the command as prompted.')
                 command = self.prompt.instr(0, 1).decode('utf-8').strip()
@@ -552,7 +556,7 @@ class TUI:
 
         # process command if it non empty and actually has arguments
         result = None
-        if command:
+        if command and command[0]:
             LOGGER.debug('Processing the command: %s', ' '.join(command))
             # temporarily disable prints to stdout and stderr
             original_stdout = sys.stdout

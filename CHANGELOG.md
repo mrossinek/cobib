@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- clearing the prompt, aborts the command execution
 
 ## [2.3.1] - 2020-09-10
 
