@@ -56,7 +56,11 @@ class SearchCommand(Command):
                             help="number of context lines to provide for each match")
         parser.add_argument("-i", "--ignore-case", action="store_true",
                             help="ignore case for searching")
-        parser.add_argument('list_args', nargs='*')
+        parser.add_argument('list_arg', nargs='*',
+                            help="Any arguments for the List subcommand." +
+                            "\nUse this to add filters to specify a subset of searched entries." +
+                            "\nYou can add a '--' before the List arguments to ensure separation." +
+                            "\nSee also `list --help` for more information on the List arguments.")
 
         if not args:
             parser.print_usage(sys.stderr)
@@ -68,7 +72,7 @@ class SearchCommand(Command):
             print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
             return None
 
-        labels = ListCommand().execute(largs.list_args, out=open(os.devnull, 'w'))
+        labels = ListCommand().execute(largs.list_arg, out=open(os.devnull, 'w'))
         LOGGER.debug('Available entries to search: %s', labels)
 
         re_flags = re.IGNORECASE if largs.ignore_case else 0

@@ -38,7 +38,9 @@ class AddCommand(Command):
                                help="BibLaTeX bibliographic data")
         group_add.add_argument("-d", "--doi", type=str,
                                help="DOI of the new references")
-        parser.add_argument("tags", nargs=argparse.REMAINDER)
+        parser.add_argument("tags", nargs=argparse.REMAINDER,
+                            help="A list of space-separated tags to associate with this entry." +
+                            "\nYou can use quotes to specify tags with spaces in them.")
         if not args:
             parser.print_usage(sys.stderr)
             sys.exit(1)

@@ -34,7 +34,11 @@ class ExportCommand(Command):
                             help="BibLaTeX output file")
         parser.add_argument("-z", "--zip", type=argparse.FileType('a'),
                             help="zip output file")
-        parser.add_argument('list_args', nargs='*')
+        parser.add_argument('list_arg', nargs='*',
+                            help="Any arguments for the List subcommand." +
+                            "\nUse this to add filters to specify a subset of exported entries." +
+                            "\nYou can add a '--' before the List arguments to ensure separation." +
+                            "\nSee also `list --help` for more information on the List arguments.")
 
         if not args:
             parser.print_usage(sys.stderr)
@@ -55,7 +59,7 @@ class ExportCommand(Command):
             largs.zip = ZipFile(largs.zip.name, 'w')
         out = open(os.devnull, 'w')
         LOGGER.debug('Gathering filtered list of entries to be exported.')
-        labels = ListCommand().execute(largs.list_args, out=out)
+        labels = ListCommand().execute(largs.list_arg, out=out)
 
         try:
             for label in labels:
