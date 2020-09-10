@@ -37,9 +37,11 @@ class TUI:
         'cursor_line': [1, 'white', 'cyan'],
         'top_statusbar': [2, 'black', 'yellow'],
         'bottom_statusbar': [3, 'black', 'yellow'],
-        'help': [4, 'white', 'red'],
-        'search_label': [5, 'blue', 'black'],
-        'search_query': [6, 'red', 'black'],
+        'popup_help': [4, 'white', 'green'],
+        'popup_stdout': [5, 'white', 'blue'],
+        'popup_stderr': [6, 'white', 'red'],
+        'search_label': [7, 'blue', 'black'],
+        'search_query': [8, 'red', 'black'],
         # TODO when implementing select command add a color configuration option
     }
 
@@ -356,31 +358,8 @@ class TUI:
         help_text.lines.insert(1, "{:^8} {:<8} {}".format('Key', 'Command', 'Description'))
         help_text.height += 2
 
-        # populate help window
-        LOGGER.debug('Populating help window.')
-        help_win = curses.newpad(help_text.height+2, help_text.width+5)  # offsets account for box
-        help_win.bkgd(' ', curses.color_pair(TUI.COLOR_PAIRS['help'][0]))
-        for row, line in enumerate(help_text.lines):
-            attr = 0
-            if row < 3:
-                attr = curses.A_BOLD
-            help_win.addstr(row+1, 2, line, attr)
-        # display help window
-        help_win.box()
-        help_h, help_w = help_win.getmaxyx()
-        help_win.refresh(0, 0, 1, 1, 1+help_h, 1+help_w)
-
-        key = 0
-        # loop until quit by user
-        while key not in (27, ord('q')):  # exit on ESC
-            if key != 0:
-                # do not print warning on initial run (key == 0)
-                LOGGER.warning('Key "%s" does not have an effect in the help view.', key)
-            key = self.prompt.getch()
-
-        # close help window
-        help_win.clear()
-        self.resize_handler(None, None)
+        # open help popup
+        self.popup(help_text, background=TUI.COLOR_PAIRS['popup_help'][0])
 
     def loop(self):
         """The key-handling event loop."""
@@ -573,25 +552,80 @@ class TUI:
 
         # process command if it non empty and actually has arguments
         result = None
-        if command and command[1:]:
+        if command:
             LOGGER.debug('Processing the command: %s', ' '.join(command))
-            # temporarily disable prints to stdout
-            original_stdout = sys.stderr
+            # temporarily disable prints to stdout and stderr
+            original_stdout = sys.stdout
+            original_stderr = sys.stderr
+            sys.stdout = TextBuffer()
             sys.stderr = TextBuffer()
             # run command
             subcmd = getattr(commands, command[0].title()+'Command')()
-            result = subcmd.execute(command[1:], out=out)
+            try:
+                result = subcmd.execute(command[1:], out=out)
+            except SystemExit:
+                pass
             # if error occurred print info to prompt
             if sys.stderr.lines:
                 LOGGER.warning('The command "%s" resulted in an error.', ' '.join(command))
-                self.prompt.addstr(0, 0, sys.stderr.lines[0])
-                self.prompt.refresh()
+                sys.stderr.split()
+                LOGGER.info('sys.stderr contains:\n%s', '\n'.join(sys.stderr.lines))
+                if sys.stderr.height > 1:
+                    self.popup(sys.stderr, background=TUI.COLOR_PAIRS['popup_stderr'][0])
+                else:
+                    self.prompt.addstr(0, 0, sys.stderr.lines[0])
+                    self.prompt.refresh()
                 # command exited with an error
                 self.update_list()
-            # restore stdout
-            sys.stderr = original_stdout
+            elif sys.stdout.lines:
+                LOGGER.info('A message to stdout from "%s" was intercepted.', ' '.join(command))
+                sys.stdout.split()
+                LOGGER.info('sys.stdout contains:\n%s', '\n'.join(sys.stdout.lines))
+                if sys.stdout.height > 1:
+                    self.popup(sys.stdout, background=TUI.COLOR_PAIRS['popup_stdout'][0])
+                else:
+                    self.prompt.addstr(0, 0, sys.stdout.lines[0])
+                    self.prompt.refresh()
+            # restore stdout and stderr
+            sys.stdout = original_stdout
+            sys.stderr = original_stderr
         # return command to enable additional handling by function caller
         return (command, result)
+
+    def popup(self, buffer, background=None):
+        """Creates a popup window.
+
+        Args:
+            buffer (TextBuffer): the TextBuffer object which populates the window contents.
+            background (int): the curses color pair number with which to highlight the window.
+        """
+        LOGGER.debug('Populating popup window.')
+        popup_win = curses.newpad(buffer.height+2, self.width)
+        if background is not None:
+            # setting background color
+            popup_win.bkgd(' ', curses.color_pair(background))
+        for row, line in enumerate(buffer.lines):
+            # populating popup window with text lines
+            popup_win.addstr(row+1, 1, line)
+        # displaying popup window
+        popup_win.box()
+        popup_h, popup_w = popup_win.getmaxyx()
+        # computing height offset
+        height_offset = self.height - buffer.height-4
+        popup_win.refresh(0, 0, height_offset, 0, height_offset+popup_h, popup_w)
+
+        key = 0
+        # loop until quit by user
+        while key not in (27, ord('q')):  # exit on ESC
+            if key != 0:
+                # do not print warning on initial run (key == 0)
+                self.prompt.addstr(0, 0, 'To quit the popup window, press "q".')
+                self.prompt.refresh()
+            key = self.prompt.getch()
+
+        # close popup window
+        popup_win.clear()
+        self.resize_handler(None, None)
 
     def prompt_warning(self, msg):
         """Prints a warning to the command prompt.

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Command line argument `-l` or `--logfile` can be used to specify the output path of the log. This will overwrite the `/tmp/cobib.log` location.
 - the `TUI/scroll_offset` setting was added. It defaults to `3` and behaves similar to Vim's `scrolloff` setting.
 - Configuration validation has been added. This extends the logging functionality to support more runtime debug information.
+- popup window support: stdout and stderr messages are presented in a popup similarly to the help window
 
 ### Changed
 - `-v` command line argument now refers to `--verbose` rather than `--version`

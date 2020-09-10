@@ -38,6 +38,12 @@ DEFAULTS = {
         'search_label_bg': 'black',
         'search_query_fg': 'red',
         'search_query_bg': 'black',
+        'popup_help_fg': 'white',
+        'popup_help_bg': 'green',
+        'popup_stdout_fg': 'white',
+        'popup_stdout_bg': 'blue',
+        'popup_stderr_fg': 'white',
+        'popup_stderr_bg': 'red',
     },
 }
 

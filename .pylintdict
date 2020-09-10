@@ -33,6 +33,7 @@ scrolloff
 signum
 statusbar
 statusline
+stderr
 stdout
 stdscr
 str

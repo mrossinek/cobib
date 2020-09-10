@@ -38,6 +38,9 @@ class TextBuffer:
             self.height = len(self.lines)
             self.width = max(self.width, len(string))
 
+    def flush(self):
+        """Compatibility function."""
+
     def clear(self):
         """Clears the buffer."""
         LOGGER.debug('Clearing text buffer.')
