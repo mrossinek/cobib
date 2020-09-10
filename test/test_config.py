@@ -41,6 +41,7 @@ def test_missing_section(setup, section):
         ['DATABASE', 'file'],
         ['DATABASE', 'open'],
         ['DATABASE', 'grep'],
+        ['DATABASE', 'search_ignore_case'],
         ['FORMAT', 'month'],
         ['FORMAT', 'ignore_non_standard_types'],
         ['TUI', 'default_list_args'],

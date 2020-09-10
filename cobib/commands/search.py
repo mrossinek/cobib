@@ -75,15 +75,16 @@ class SearchCommand(Command):
         labels = ListCommand().execute(largs.list_arg, out=open(os.devnull, 'w'))
         LOGGER.debug('Available entries to search: %s', labels)
 
-        re_flags = re.IGNORECASE if largs.ignore_case else 0
-        LOGGER.debug('The search will be performed case %ssensitive',
-                     'in' if largs.ignore_case else '')
+        ignore_case = CONFIG.config['DATABASE'].getboolean('search_ignore_case', False) or \
+            largs.ignore_case
+        re_flags = re.IGNORECASE if ignore_case else 0
+        LOGGER.debug('The search will be performed case %ssensitive', 'in' if ignore_case else '')
 
         hits = 0
         output = []
         for label in labels:
             entry = CONFIG.config['BIB_DATA'][label]
-            matches = entry.search(largs.query, largs.context, largs.ignore_case)
+            matches = entry.search(largs.query, largs.context, ignore_case)
             if not matches:
                 continue
 

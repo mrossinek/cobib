@@ -14,6 +14,7 @@ DEFAULTS = {
         'file': os.path.expanduser('~/.local/share/cobib/literature.yaml'),
         'open': 'xdg-open' if sys.platform.lower() == 'linux' else 'open',
         'grep': 'grep',
+        'search_ignore_case': False,
     },
     'FORMAT': {
         'month': 'int',
@@ -101,6 +102,9 @@ class Config:
                      "DATABASE/open should be a string.")
         self._assert(isinstance(self.config.get('DATABASE', {}).get('grep', None), str),
                      "DATABASE/grep should be a string.")
+        self._assert(isinstance(
+            self.config.get('DATABASE', {}).getboolean('search_ignore_case', None), bool),
+                     "DATABASE/search_ignore_case should be a boolean.")
 
         # FORMAT section
         LOGGER.debug('Validing the FORMAT configuration section.')

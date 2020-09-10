@@ -263,28 +263,39 @@ def test_export(setup):
     os.remove('/tmp/cobib_test_export.bib')
 
 
-@pytest.mark.parametrize(['args', 'expected'], [
-        [['einstein'], ['einstein - 1 match', '@article{einstein,', 'author = {Albert Einstein},']],
+@pytest.mark.parametrize(['args', 'expected', 'config_overwrite'], [
+        [['einstein'], ['einstein - 1 match', '@article{einstein,', 'author = {Albert Einstein},'],
+         'False'],
         [['einstein', '-i'], [
             'einstein - 2 matches', '@article{einstein,', 'author = {Albert Einstein},',
             'doi = {http://dx.doi.org/10.1002/andp.19053221004},'
-        ]],
+        ], 'False'],
         [['einstein', '-i', '-c', '0'], [
             'einstein - 2 matches', '@article{einstein,', 'author = {Albert Einstein},'
-        ]],
+        ], 'False'],
         [['einstein', '-i', '-c', '2'], [
             'einstein - 2 matches', '@article{einstein,', 'author = {Albert Einstein},',
             'doi = {http://dx.doi.org/10.1002/andp.19053221004},', 'journal = {Annalen der Physik},'
-        ]],
+        ], 'False'],
+        [['einstein'], [
+            'einstein - 2 matches', '@article{einstein,', 'author = {Albert Einstein},',
+            'doi = {http://dx.doi.org/10.1002/andp.19053221004},'
+        ], 'True'],
+        [['einstein', '-i'], [
+            'einstein - 2 matches', '@article{einstein,', 'author = {Albert Einstein},',
+            'doi = {http://dx.doi.org/10.1002/andp.19053221004},'
+        ], 'True'],
     ])
-def test_search(setup, args, expected):
+def test_search(setup, args, expected, config_overwrite):
     """Test search command.
 
     Args:
         setup: runs pytest fixture.
         args: arguments for the list command call.
         expected: expected result.
+        config_overwrite: with what to overwrite the DATABASE/ignore_search_case config option.
     """
+    CONFIG.config['DATABASE']['search_ignore_case'] = config_overwrite
     file = StringIO()
     commands.SearchCommand().execute(args, out=file)
     for line, exp in zip_longest(file.getvalue().split('\n'), expected):

@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- option to default to case-insensitive searching (`DATABASE/search_ignore_case`)
+
 ### Changed
 - clearing the prompt, aborts the command execution
 
