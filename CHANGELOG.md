@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [2.3.2] - 2020-09-10
+
+Pypi: https://pypi.org/project/cobib/2.3.2/
+
 ### Added
 - option to default to case-insensitive searching (`DATABASE/search_ignore_case`)
 
@@ -257,7 +262,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.3.1...master
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.3.2...master
+[2.3.2]: https://gitlab.com/mrossinek/cobib/-/tags/v2.3.2
 [2.3.1]: https://gitlab.com/mrossinek/cobib/-/tags/v2.3.1
 [2.3.0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.3.0
 [2.2.2]: https://gitlab.com/mrossinek/cobib/-/tags/v2.2.2
