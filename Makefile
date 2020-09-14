@@ -2,13 +2,13 @@ build: cobib/
 	python3 setup.py build
 
 install_extras: _cobib cobib.1
-	sudo install -dm 755 /usr/share/zsh/site-functions
-	sudo install -m 644 _cobib /usr/share/zsh/site-functions/
-	sudo install -dm 755 /usr/local/share/man/man1
-	sudo install -m 644 cobib.1 /usr/local/share/man/man1/
+	install -dm 755 /usr/share/zsh/site-functions
+	install -m 644 _cobib /usr/share/zsh/site-functions/
+	install -dm 755 /usr/local/share/man/man1
+	install -m 644 cobib.1 /usr/local/share/man/man1/
 
 install: install_extras
-	sudo python3 setup.py install
+	python3 setup.py install
 
 .PHONY: dev
 dev:
