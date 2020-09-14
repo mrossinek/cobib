@@ -1,9 +1,11 @@
+prefix?=/usr
+
 build: cobib/
 	python3 setup.py build
 
 install_extras: _cobib cobib.1
-	install -Dm644 _cobib $(DESTDIR)/usr/share/zsh/site-functions/_cobib
-	install -Dm644 cobib.1 $(DESTDIR)/usr/local/share/man/man1/cobib.1
+	install -Dm644 _cobib $(DESTDIR)$(prefix)/share/zsh/site-functions/_cobib
+	install -Dm644 cobib.1 $(DESTDIR)$(prefix)/share/man/man1/cobib.1
 
 install: install_extras
 	python3 setup.py install
