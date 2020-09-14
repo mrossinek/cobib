@@ -2,10 +2,8 @@ build: cobib/
 	python3 setup.py build
 
 install_extras: _cobib cobib.1
-	install -dm 755 $(DESTDIR)/usr/share/zsh/site-functions
-	install -m 644 _cobib $(DESTDIR)/usr/share/zsh/site-functions/
-	install -dm 755 $(DESTDIR)/usr/local/share/man/man1
-	install -m 644 cobib.1 $(DESTDIR)/usr/local/share/man/man1/
+	install -Dm644 _cobib $(DESTDIR)/usr/share/zsh/site-functions/_cobib
+	install -Dm644 cobib.1 $(DESTDIR)/usr/local/share/man/man1/cobib.1
 
 install: install_extras
 	python3 setup.py install
