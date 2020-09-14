@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- another AUR package installation error
+
 
 ## [2.3.3] - 2020-09-14
 
