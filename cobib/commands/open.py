@@ -3,8 +3,9 @@
 import argparse
 import logging
 import os
+import subprocess
 import sys
-from subprocess import Popen
+from urllib.parse import urlparse
 
 from cobib.config import CONFIG
 from .base_command import ArgumentParser, Command
@@ -46,19 +47,29 @@ class OpenCommand(Command):
                 if out is None:
                     # called from TUI
                     return msg
-                print('Error: ' + msg, file=out)
                 sys.exit(1)
             opener = None
             opener = CONFIG.config['DATABASE'].get('open')
             try:
-                LOGGER.error('Opening "%s" with %s.', entry.data['file'], opener)
-                Popen([opener, os.path.abspath(entry.data['file'])])
-            except FileNotFoundError:
-                pass
+                LOGGER.debug('Parsing "%s" for URLs.', entry.data['file'])
+                url = urlparse(entry.data['file'])
+                if url.scheme:
+                    # actual URL
+                    url = url.geturl()
+                else:
+                    # assume we are talking about a file and thus get its absolute path
+                    url = os.path.abspath(url.geturl())
+                LOGGER.debug('Opening "%s" with %s.', url, opener)
+                err = subprocess.Popen([opener, url], stderr=subprocess.PIPE)
+                err = err.stderr.read().decode()
+                if err:
+                    raise FileNotFoundError(err)
+            except FileNotFoundError as err:
+                LOGGER.error(err)
+                return str(err)
         except KeyError:
-            print("Error: No entry with the label '{}' could be found.".format(largs.label))
+            msg = "Error: No entry with the label '{}' could be found.".format(largs.label)
             LOGGER.error(msg)
-            print(msg, file=out)
 
         return None
 
