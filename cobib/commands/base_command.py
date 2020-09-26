@@ -62,4 +62,4 @@ class ArgumentParser(argparse.ArgumentParser):
         exc = sys.exc_info()[1]
         if exc:
             raise exc
-        super(ArgumentParser, self).error(message)
+        super().error(message)
