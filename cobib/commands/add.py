@@ -6,9 +6,11 @@ import os
 import sys
 from collections import OrderedDict
 
+from cobib.config import CONFIG
 from cobib.database import read_database, write_database
 from cobib.parser import Entry
 from .base_command import ArgumentParser, Command
+from .edit import EditCommand
 
 LOGGER = logging.getLogger(__name__)
 
@@ -53,15 +55,27 @@ class AddCommand(Command):
 
         new_entries = OrderedDict()
 
+        edit_entries = False
         if largs.bibtex is not None:
             LOGGER.debug("Adding entries from BibLaTeX '%s'.", largs.bibtex)
             new_entries = Entry.from_bibtex(largs.bibtex)
-        if largs.arxiv is not None:
+        elif largs.arxiv is not None:
             LOGGER.debug("Adding entries from arXiv '%s'.", largs.arxiv)
             new_entries = Entry.from_arxiv(largs.arxiv)
-        if largs.doi is not None:
+        elif largs.doi is not None:
             LOGGER.debug("Adding entries from DOI '%s'.", largs.doi)
             new_entries = Entry.from_doi(largs.doi)
+        elif largs.label is not None:
+            LOGGER.warning("No input to parse. Creating new entry '%s' manually.", largs.label)
+            new_entries = {
+                largs.label: Entry(largs.label,
+                                   {'ID': largs.label,
+                                    'ENTRYTYPE': CONFIG.config['FORMAT']['default_entry_type']})
+                }
+            edit_entries = True
+        else:
+            LOGGER.error("Neither an input to parse nor a label for manual creation specified!")
+            return
 
         if largs.label is not None:
             assert len(new_entries.values()) == 1
@@ -82,10 +96,21 @@ class AddCommand(Command):
                 # logging done by cobib/parser.py
                 value.set_tags = largs.tags
 
-        write_database(new_entries)
+        # Write the new entries to the database. This destructively overwrite the variable with a
+        # list of labels of the entries which have actually been added to the database.
+        new_entries = write_database(new_entries)
 
-        for value in new_entries.values():
-            msg = f"'{value.label}' was added to the database."
+        if edit_entries:
+            if largs.label not in new_entries:
+                msg = f"You tried to add a new entry '{largs.label}' which already exists!\n" \
+                    + f"Please use `cobib edit {largs.label}` instead!"
+                LOGGER.warning(msg)
+            else:
+                read_database(fresh=True)
+                EditCommand().execute([largs.label])
+
+        for label in new_entries:
+            msg = f"'{label}' was added to the database."
             print(msg)
             LOGGER.info(msg)
 

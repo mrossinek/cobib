@@ -46,12 +46,16 @@ def write_database(entries):
 
     Args:
         entries (list[Entry]): list of new bibliography entries
+
+    Returns:
+        A list of the actually written entries.
     """
     if 'BIB_DATA' not in CONFIG.config.keys():
         # if no data in memory, read the database file (the case when using the CLI)
         LOGGER.info('Reading database file, before trying to write to it.')
         read_database()
     new_lines = []
+    new_entries = []
     for label, entry in entries.items():
         if label in CONFIG.config['BIB_DATA'].keys():
             LOGGER.warning("Label %s already exists! Ignoring the new version.", label)
@@ -59,6 +63,7 @@ def write_database(entries):
         string = entry.to_yaml()
         reduced = '\n'.join(string.splitlines())
         new_lines.append(reduced)
+        new_entries.append(label)
 
     if new_lines:
         conf_database = CONFIG.config['DATABASE']
@@ -68,3 +73,5 @@ def write_database(entries):
             for line in new_lines:
                 LOGGER.debug('Appending line to database file: %s', line)
                 bib.write(line+'\n')
+
+    return new_entries
