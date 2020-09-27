@@ -8,6 +8,7 @@ import tempfile
 
 from cobib.config import CONFIG
 from cobib.database import read_database
+from cobib.parser import Entry
 from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
@@ -28,6 +29,8 @@ class EditCommand(Command):
         LOGGER.debug('Starting Edit command.')
         parser = ArgumentParser(prog="edit", description="Edit subcommand parser.")
         parser.add_argument("label", type=str, help="label of the entry")
+        parser.add_argument("-a", "--add", action='store_true',
+                            help="if specified, will add a new entry for unknown labels")
 
         if not args:
             parser.print_usage(sys.stderr)
@@ -42,15 +45,26 @@ class EditCommand(Command):
         try:
             entry = CONFIG.config['BIB_DATA'][largs.label]
             prv = entry.to_yaml()
+            if largs.add:
+                LOGGER.warning("Entry '%s' already exists! Ignoring the `--add` argument.",
+                               largs.label)
+                largs.add = False
         except KeyError:
-            # TODO we could handle this case as an addition of a new entry rather than exiting
-            msg = f"No entry with the label '{largs.label}' could be found."
-            print("Error: " + msg, file=sys.stderr)
-            LOGGER.error(msg)
-            return
+            # No entry for given label found
+            if largs.add:
+                # add a new entry for the unknown label
+                entry = Entry(largs.label,
+                              {'ID': largs.label,
+                               'ENTRYTYPE': CONFIG.config['FORMAT']['default_entry_type']})
+                prv = entry.to_yaml()
+            else:
+                msg = f"No entry with the label '{largs.label}' could be found.\n" \
+                    + "Use `--add` to add a new entry with this label."
+                LOGGER.error(msg)
+                return
 
         LOGGER.debug('Creating temporary file.')
-        tmp_file = tempfile.NamedTemporaryFile(mode='w+', suffix='.yaml')
+        tmp_file = tempfile.NamedTemporaryFile(mode='w+', prefix='cobib-', suffix='.yaml')
         tmp_file.write(prv)
         tmp_file.flush()
         LOGGER.debug('Starting editor "%s".', os.environ['EDITOR'])
@@ -82,8 +96,13 @@ class EditCommand(Command):
                     continue
                 if not entry_to_be_replaced:
                     bib.write(line)
-        # update bibliography data
-        read_database()
+            if largs.add:
+                # append new entry
+                bib.write('---\n')
+                bib.writelines(nxt)
+                msg = f"'{largs.label}' was added to the database."
+                print(msg)
+                LOGGER.info(msg)
 
     @staticmethod
     def tui(tui):
@@ -93,6 +112,8 @@ class EditCommand(Command):
         label, _ = tui.get_current_label()
         # populate buffer with entry data
         EditCommand().execute([label])
+        # update bibliography data
+        read_database()
         # redraw total screen after closing external editor
         LOGGER.debug('Manually redrawing TUI to clear out any editor artefacts.')
         tui.resize_handler(None, None)
