@@ -127,9 +127,7 @@ class SearchCommand(Command):
                                                           "s" if hits > 1 else "")
             tui.statusbar(tui.topbar, tui.topstatus)
         elif command[1:]:
-            tui.prompt.clear()
             msg = f"No search hits for '{' '.join(command[1:])}'!"
             LOGGER.info(msg)
-            tui.prompt.addstr(0, 0, msg)
-            tui.prompt.refresh()
+            tui.prompt_print(msg)
             tui.update_list()

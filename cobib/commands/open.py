@@ -82,5 +82,4 @@ class OpenCommand(Command):
         # populate buffer with entry data
         error = OpenCommand().execute([label], out=None)
         if error:
-            tui.prompt.addstr(0, 0, error)
-            tui.prompt.refresh()
+            tui.prompt_print(error)

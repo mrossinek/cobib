@@ -57,7 +57,8 @@ class TUI:
         'Quit': lambda self: self.quit(),
         'Search': commands.SearchCommand.tui,
         # TODO select command
-        'Select': lambda self: self.prompt_warning('The Select command is not implemented yet!'),
+        'Select': lambda self:
+            self.prompt_print('Warning: The Select command is not implemented yet!'),
         'Show': commands.ShowCommand.tui,
         'Sort': partial(commands.ListCommand.tui, sort_mode=True),
         'Wrap': lambda self: self.wrap(),
@@ -170,9 +171,8 @@ class TUI:
 
         # Initialize command prompt and viewport
         self.viewport = curses.newpad(1, 1)
-        # NOTE being a window and not a pad, the prompt has a limited width. If this ever causes
-        # problems, change this here and ensure it is being resized when necessary.
-        self.prompt = curses.newwin(1, self.width, self.height-1, 0)
+        # The prompt is a pad to allow command/error prompts to exceed the terminal width.
+        self.prompt = curses.newpad(1, self.width)
 
         # prepare key event loop
         self.list_mode = -1  # -1: list mode active, >=0: previously selected line
@@ -218,7 +218,7 @@ class TUI:
         self.botbar.refresh()
         # update prompt
         self.prompt.resize(1, self.width)
-        self.prompt.mvwin(self.height-1, 0)
+        self.prompt.refresh(0, 0, self.height-1, 0, self.height, self.width-1)
         # update viewport
         self.viewport.refresh(self.top_line, self.left_edge, 1, 0, self.visible, self.width-1)
 
@@ -229,7 +229,7 @@ class TUI:
             if self.prompt_before_quit:
                 self.prompt.clear()
                 self.prompt.insstr(0, 0, 'Do you really want to quit CoBib? [y/n] ')
-                self.prompt.refresh()
+                self.prompt.refresh(0, 0, self.height-1, 0, self.height, self.width-1)
                 key = 0
                 while True:
                     if key in (ord('y'), ord('Y')):
@@ -239,7 +239,7 @@ class TUI:
                         break
                     key = self.prompt.getch()
                 self.prompt.clear()
-                self.prompt.refresh()
+                self.prompt.refresh(0, 0, self.height-1, 0, self.height, self.width-1)
             else:
                 raise StopIteration
         LOGGER.debug('Quitting higher menu level. Falling back to list view.')
@@ -482,6 +482,29 @@ class TUI:
         if self.buffer.height and self.current_line >= self.buffer.height:
             self.current_line -= 1
 
+    def prompt_print(self, text):
+        """Handle printing text to the prompt line.
+
+        This function also handles a bug in curses which disallows 'newline'-characters [1].
+        Thus, if this is the case, the first line is printed in the prompt and the total text is
+        also presented in a popup window. The reason for the duplicate information is too provide a
+        little context on the previous message once the popup window has been closed.
+
+        [1] https://docs.python.org/3/library/curses.html#curses.window.addstr
+
+        Args:
+            text (str or list): the test to print to the prompt.
+        """
+        lines = text.strip().split('\n') if isinstance(text, str) else text
+        self.prompt.clear()
+        self.prompt.resize(1, max(len(lines[0]), self.width))
+        self.prompt.addstr(0, 0, lines[0])
+        self.prompt.refresh(0, 0, self.height-1, 0, self.height, self.width-1)
+        if len(lines) > 1:
+            buffer = TextBuffer()
+            buffer.write(text)
+            self.popup(buffer, background=TUI.COLOR_PAIRS['popup_stderr'][0])
+
     def prompt_handler(self, command, out=None):
         """Handle prompt input.
 
@@ -500,9 +523,10 @@ class TUI:
         # populate prompt line and place cursor
         prompt_line = ":" if command is None else f":{command} "
         self.prompt.clear()
+        self.prompt.resize(1, max(len(prompt_line)+2, self.width))
         self.prompt.addstr(0, 0, prompt_line)
         self.prompt.move(0, len(prompt_line))
-        self.prompt.refresh()
+        self.prompt.refresh(0, 0, self.height-1, 0, self.height, self.width-1)
 
         key = 0
         command = ''
@@ -542,8 +566,11 @@ class TUI:
                 break
             else:
                 # any normal key is simply echoed
+                self.prompt.resize(1, max(cur_x + 2, self.width))
                 self.prompt.addstr(_, cur_x, chr(key))
                 self.prompt.move(_, cur_x + 1)
+            self.prompt.refresh(0, max(0, cur_x - self.width + 2),
+                                self.height-1, 0, self.height, self.width-1)
         # split command into separate arguments for cobib
         command = command.split(' ')
 
@@ -552,7 +579,7 @@ class TUI:
 
         # clear prompt line
         self.prompt.clear()
-        self.prompt.refresh()
+        self.prompt.refresh(0, 0, self.height-1, 0, self.height, self.width-1)
 
         # process command if it non empty and actually has arguments
         result = None
@@ -577,8 +604,7 @@ class TUI:
                 if sys.stderr.height > 1:
                     self.popup(sys.stderr, background=TUI.COLOR_PAIRS['popup_stderr'][0])
                 else:
-                    self.prompt.addstr(0, 0, sys.stderr.lines[0])
-                    self.prompt.refresh()
+                    self.prompt_print(sys.stderr.lines)
                 # command exited with an error
                 self.update_list()
             elif sys.stdout.lines:
@@ -588,8 +614,7 @@ class TUI:
                 if sys.stdout.height > 1:
                     self.popup(sys.stdout, background=TUI.COLOR_PAIRS['popup_stdout'][0])
                 else:
-                    self.prompt.addstr(0, 0, sys.stdout.lines[0])
-                    self.prompt.refresh()
+                    self.prompt_print(sys.stdout.lines)
             # restore stdout and stderr
             sys.stdout = original_stdout
             sys.stderr = original_stderr
@@ -623,24 +648,12 @@ class TUI:
         while key not in (27, ord('q')):  # exit on ESC
             if key != 0:
                 # do not print warning on initial run (key == 0)
-                self.prompt.addstr(0, 0, 'To quit the popup window, press "q".')
-                self.prompt.refresh()
+                self.prompt_print('To quit the popup window, press "q".')
             key = self.prompt.getch()
 
         # close popup window
         popup_win.clear()
         self.resize_handler(None, None)
-
-    def prompt_warning(self, msg):
-        """Prints a warning to the command prompt.
-
-        Args:
-            msg (str): message text to print.
-        """
-        self.prompt.clear()
-        LOGGER.debug('Warning in prompt: %s', msg)
-        self.prompt.insstr(0, 0, f'Warning: {msg}')
-        self.prompt.refresh()
 
     def get_current_label(self):
         """Returns the label and y position of the currently selected entry."""
