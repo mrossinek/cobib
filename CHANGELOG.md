@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- the `FORMAT/default_entry_type` option used for manual entry addition
+- a **manual** insertion mode available through `edit -a new_label` and `add -l new_label`
+
 ### Fixed
 - support URLs in file field during `open` command (#47)
 - the TUI no longer crashes when encountering long prompt inputs (#48)
