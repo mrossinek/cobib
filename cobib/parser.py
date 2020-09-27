@@ -334,13 +334,9 @@ class Entry:
         LOGGER.info('Gathering BibTex data for arXiv ID: %s.', arxiv)
         page = requests.get(ARXIV_URL+arxiv)
         xml = BeautifulSoup(page.text, features='html.parser')
-        # TODO rewrite this to use a defaultdict(str)
         entry = {}
         entry['archivePrefix'] = 'arXiv'
         for key in xml.feed.entry.findChildren(recursive=False):
-            # TODO key.name == 'category'
-            # TODO key.name == 'link'
-            # TODO key.name == 'updated'
             if key.name == 'arxiv:doi':
                 entry['doi'] = str(key.contents[0])
             elif key.name == 'id':
@@ -349,11 +345,11 @@ class Entry:
             elif key.name == 'primary_category':
                 entry['primaryClass'] = str(key.attrs['term'])
             elif key.name == 'published':
-                entry['year'] = key.contents[0].split('-')[0]
+                entry['year'] = int(key.contents[0].split('-')[0])
                 if 'ID' in entry.keys():
-                    entry['ID'] = entry['ID'] + entry['year']
+                    entry['ID'] = entry['ID'] + str(entry['year'])
                 else:
-                    entry['ID'] = entry['year']
+                    entry['ID'] = str(entry['year'])
             elif key.name == 'title':
                 entry['title'] = re.sub(r'\s+', ' ', key.contents[0].strip().replace('\n', ' '))
             elif key.name == 'author':

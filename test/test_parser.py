@@ -218,11 +218,17 @@ def test_parser_from_isbn():
 
 def test_parser_from_arxiv():
     """Test parsing from arxiv."""
+    root = path.abspath(path.dirname(__file__))
+    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    reference = EXAMPLE_ENTRY_DICT.copy()
     entries = parser.Entry.from_arxiv('1812.09976')
     entry = list(entries.values())[0]
-    # cannot assert against EXAMPLE_ENTRY_DICT due to outdated reference on arxiv
-    # thus, we simply assert that the data dictionary is not empty
-    assert entry.data
+    assert entry.label == 'Cao2018'
+    assert entry.data['archivePrefix'] == 'arXiv'
+    assert entry.data['arxivid'].startswith('1812.09976')
+    assert entry.data['author'] == reference['author']
+    assert entry.data['title'] == reference['title']
+    assert entry.data['year'] == 2018
 
 
 @pytest.mark.parametrize('month_type', ['int', 'str'])
