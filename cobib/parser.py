@@ -1,6 +1,6 @@
 """CoBib parsing module."""
 
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 import json
 import logging
 import os

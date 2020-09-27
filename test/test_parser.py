@@ -204,7 +204,7 @@ def test_parser_from_doi(month_type):
 
 
 def test_parser_from_isbn():
-    """Test parsing from isbn."""
+    """Test parsing from ISBN."""
     root = path.abspath(path.dirname(__file__))
     CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
     entries = parser.Entry.from_isbn('978-1-449-35573-9')
