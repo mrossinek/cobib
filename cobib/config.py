@@ -19,6 +19,7 @@ DEFAULTS = {
     'FORMAT': {
         'month': 'int',
         'ignore_non_standard_types': False,
+        'default_entry_type': 'article',
     },
     'TUI': {
         'default_list_args': '-l',
@@ -115,6 +116,8 @@ class Config:
         self._assert(isinstance(
             self.config.get('FORMAT', {}).getboolean('ignore_non_standard_types', None), bool),
                      "FORMAT/ignore_non_standard_types should be a boolean.")
+        self._assert(isinstance(self.config.get('FORMAT', {}).get('default_entry_type', None), str),
+                     "FORMAT/default_entry_type should be a string.")
 
         # TUI section
         LOGGER.debug('Validing the TUI configuration section.')
