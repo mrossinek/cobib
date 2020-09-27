@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - the `FORMAT/default_entry_type` option used for manual entry addition
 - a **manual** insertion mode available through `edit -a new_label` and `add -l new_label`
+- a ISBN-based parser for adding new entries (#45)
 
 ### Fixed
 - support URLs in file field during `open` command (#47)

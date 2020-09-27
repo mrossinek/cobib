@@ -203,6 +203,19 @@ def test_parser_from_doi(month_type):
     assert entry.data == reference
 
 
+def test_parser_from_isbn():
+    """Test parsing from isbn."""
+    root = path.abspath(path.dirname(__file__))
+    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    entries = parser.Entry.from_isbn('978-1-449-35573-9')
+    entry = list(entries.values())[0]
+    assert entry.label == 'Lutz2013'
+    assert entry.data['author'] == 'Mark Lutz'
+    assert entry.data['pages'] == 1540
+    assert entry.data['title'] == 'Learning Python'
+    assert entry.data['year'] == 2013
+
+
 def test_parser_from_arxiv():
     """Test parsing from arxiv."""
     entries = parser.Entry.from_arxiv('1812.09976')

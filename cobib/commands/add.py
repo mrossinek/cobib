@@ -40,6 +40,8 @@ class AddCommand(Command):
                                help="BibLaTeX bibliographic data")
         group_add.add_argument("-d", "--doi", type=str,
                                help="DOI of the new references")
+        group_add.add_argument("-i", "--isbn", type=str,
+                               help="ISBN of the new references")
         parser.add_argument("tags", nargs=argparse.REMAINDER,
                             help="A list of space-separated tags to associate with this entry." +
                             "\nYou can use quotes to specify tags with spaces in them.")
@@ -65,6 +67,9 @@ class AddCommand(Command):
         elif largs.doi is not None:
             LOGGER.debug("Adding entries from DOI '%s'.", largs.doi)
             new_entries = Entry.from_doi(largs.doi)
+        elif largs.isbn is not None:
+            LOGGER.debug("Adding entries from ISBN '%s'.", largs.isbn)
+            new_entries = Entry.from_isbn(largs.isbn)
         elif largs.label is not None:
             LOGGER.warning("No input to parse. Creating new entry '%s' manually.", largs.label)
             new_entries = {

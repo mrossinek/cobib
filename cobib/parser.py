@@ -1,6 +1,7 @@
 """CoBib parsing module."""
 
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
+import json
 import logging
 import os
 import re
@@ -20,10 +21,15 @@ LOGGER = logging.getLogger(__name__)
 # API and HEADER settings according to this resource: https://crosscite.org/docs.html
 DOI_URL = "https://doi.org/"
 DOI_HEADER = {'Accept': "application/x-bibtex"}
-# arXiv URL according to docs from here https://arxiv.org/help/oa
-ARXIV_URL = "https://export.arxiv.org/api/query?id_list="
 # DOI regex used for matching DOIs
 DOI_REGEX = r'(10\.[0-9a-zA-Z]+\/(?:(?!["&\'])\S)+)\b'
+# arXiv URL according to docs from here https://arxiv.org/help/oa
+ARXIV_URL = "https://export.arxiv.org/api/query?id_list="
+# ISBN regex used for matching ISBNs (adapted from https://github.com/xlcnd/isbnlib)
+ISBN_REGEX = re.compile(r'97[89]{1}(?:-?\d){10}|\d{9}[0-9X]{1}|'
+                        r'[-0-9X]{10,16}', re.I | re.M | re.S)
+# ISBN-API: https://openlibrary.org/dev/docs/api/books
+ISBN_URL = "https://openlibrary.org/api/books?bibkeys=ISBN:"
 # biblatex default types and required values taken from their docs: https://ctan.org/pkg/biblatex
 BIBTEX_TYPES = {
     'article': ['author', 'title', 'journal', 'year'],
@@ -372,6 +378,49 @@ class Entry:
             entry['ENTRYTYPE'] = 'unpublished'
         # strip last 'and' from author field
         entry['author'] = entry['author'][:-5]
+        bib = OrderedDict()
+        bib[entry['ID']] = Entry(entry['ID'], entry)
+        return bib
+
+    @staticmethod
+    def from_isbn(isbn):
+        """Queries the bibtex source for a given ISBN.
+
+        Args:
+            isbn (str): ISBN for which to obtain the bibtex data.
+
+        Returns:
+            An OrderedDict containing the bibliographic data of the provided ISBN.
+        """
+        assert re.match(ISBN_REGEX, isbn)
+        LOGGER.info('Gathering BibTex data for ISBN: %s.', isbn)
+        isbn_plain = ''.join([i for i in isbn if i.isdigit()])
+        page = requests.get(ISBN_URL+isbn_plain+'&jscmd=data&format=json', timeout=5)
+        contents = dict(json.loads(page.content))
+        entry = {}
+        for key, value in contents[list(contents.keys())[0]].items():
+            if key in ['title', 'url']:
+                entry[key] = value
+            elif key == 'number_of_pages':
+                entry['pages'] = value
+            elif key == 'publish_date':
+                entry['date'] = value
+                try:
+                    entry['year'] = int(re.search(r'\d{4}', value).group())
+                    if 'ID' in entry.keys():
+                        entry['ID'] += str(entry['year'])
+                    else:
+                        entry['ID'] = str(entry['year'])
+                except AttributeError:
+                    pass
+            elif key == 'authors':
+                if 'ID' in entry.keys():
+                    entry['ID'] = value[0]['name'].split()[-1] + entry['ID']
+                else:
+                    entry['ID'] = value[0]['name'].split()[-1]
+                entry['author'] = ' and'.join([a['name'] for a in value])
+            elif key == 'publishers':
+                entry['publisher'] = ' and'.join([a['name'] for a in value])
         bib = OrderedDict()
         bib[entry['ID']] = Entry(entry['ID'], entry)
         return bib
