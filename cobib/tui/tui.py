@@ -57,8 +57,7 @@ class TUI:
         'Quit': lambda self: self.quit(),
         'Search': commands.SearchCommand.tui,
         # TODO select command
-        'Select': lambda self:
-            self.prompt_print('Warning: The Select command is not implemented yet!'),
+        'Select': lambda self: self.prompt_print('Warning: The Select command is not implemented!'),
         'Show': commands.ShowCommand.tui,
         'Sort': partial(commands.ListCommand.tui, sort_mode=True),
         'Wrap': lambda self: self.wrap(),
