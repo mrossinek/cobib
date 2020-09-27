@@ -71,7 +71,7 @@ class EditCommand(Command):
         entry_to_be_replaced = False
         with open(file, 'w') as bib:
             for line in lines:
-                if line.startswith(largs.label):
+                if line.startswith(largs.label + ':'):
                     LOGGER.debug('Entry "%s" found. Starting to replace lines.', largs.label)
                     entry_to_be_replaced = True
                     continue
