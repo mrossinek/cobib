@@ -9,6 +9,17 @@ import sys
 
 LOGGER = logging.getLogger(__name__)
 
+ANSI_COLORS = [
+    'black',
+    'red',
+    'green',
+    'yellow',
+    'blue',
+    'magenta',
+    'cyan',
+    'white',
+]
+
 DEFAULTS = {
     'DATABASE': {
         'file': os.path.expanduser('~/.local/share/cobib/literature.yaml'),
@@ -150,10 +161,11 @@ class Config:
                          f"Missing value for COLORS/{name}")
         available_colors = ('black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white')
         for name, color in self.config.get('COLORS', {}).items():
-            if name not in DEFAULTS['COLORS']:
+            if name not in DEFAULTS['COLORS'] and name not in available_colors:
                 LOGGER.warning('Ignoring unknown TUI color: %s', name)
             self._assert(color in available_colors or
-                         (len(color.strip('#')) == 6 and color.strip('#').isdigit()),
+                         (len(color.strip('#')) == 6 and
+                          tuple(int(color.strip('#')[i:i+2], 16) for i in (0, 2, 4))),
                          f"Unknown color specification: {color}")
 
     @staticmethod
@@ -165,6 +177,21 @@ class Config:
         """
         if not expression:
             raise RuntimeError(error)
+
+    def get_ansi_color(self, name):
+        """Returns an ANSI color code for the named color.
+
+        Args:
+            name (str): a named color as specified in the configuration *excluding* the `_fg` or
+                        `_bg` suffix.
+
+        Returns:
+            A string representing the foreground and background ANSI color code.
+        """
+        fg_color = 30 + ANSI_COLORS.index(self.config['COLORS'].get(name + '_fg'))
+        bg_color = 40 + ANSI_COLORS.index(self.config['COLORS'].get(name + '_bg'))
+
+        return f'\033[{fg_color};{bg_color}m'
 
 
 CONFIG = Config()

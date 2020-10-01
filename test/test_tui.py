@@ -247,7 +247,6 @@ def test_tui_config_color():
     root = os.path.abspath(os.path.dirname(__file__))
     CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
     # overwrite color configuration
-    CONFIG.config['COLORS'] = {}
     CONFIG.config['COLORS']['top_statusbar_bg'] = 'red'
     CONFIG.config['COLORS']['top_statusbar_fg'] = 'blue'
     CONFIG.config['COLORS']['bottom_statusbar_bg'] = 'green'
@@ -269,7 +268,6 @@ def test_tui_config_keys(command, key):
     root = os.path.abspath(os.path.dirname(__file__))
     CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
     # overwrite key binding configuration
-    CONFIG.config['KEY_BINDINGS'] = {}
     CONFIG.config['KEY_BINDINGS'][command] = key
     # NOTE: normally you would never trigger an Add command before reading the database but in this
     # controlled testing scenario we can be certain that this is fine
@@ -302,8 +300,6 @@ def test_tui_quit_prompt(setting, keys):
     root = os.path.abspath(os.path.dirname(__file__))
     CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
     # set prompt_before_quit setting
-    if 'TUI' not in CONFIG.config.keys():
-        CONFIG.config['TUI'] = {}
     CONFIG.config['TUI']['prompt_before_quit'] = setting
     read_database()
     test_tui(None, keys, assert_quit, {'prompt': setting})
@@ -373,7 +369,6 @@ def test_tui_scrolling(keys, assertion, assertion_kwargs):
     root = os.path.abspath(os.path.dirname(__file__))
     CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
     # overwrite database file
-    CONFIG.config['DATABASE'] = {}
     CONFIG.config['DATABASE']['file'] = './test/scrolling_database.yaml'
     read_database()
     test_tui(None, keys, assertion, assertion_kwargs)

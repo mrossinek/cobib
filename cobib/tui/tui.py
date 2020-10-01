@@ -33,17 +33,19 @@ class TUI:
         'yellow': curses.COLOR_YELLOW,
     }
 
-    COLOR_PAIRS = {
-        'cursor_line': [1, 'white', 'cyan'],
-        'top_statusbar': [2, 'black', 'yellow'],
-        'bottom_statusbar': [3, 'black', 'yellow'],
-        'popup_help': [4, 'white', 'green'],
-        'popup_stdout': [5, 'white', 'blue'],
-        'popup_stderr': [6, 'white', 'red'],
-        'search_label': [7, 'blue', 'black'],
-        'search_query': [8, 'red', 'black'],
+    COLOR_NAMES = [
+        'cursor_line',
+        'top_statusbar',
+        'bottom_statusbar',
+        'popup_help',
+        'popup_stdout',
+        'popup_stderr',
+        'search_label',
+        'search_query',
         # TODO when implementing select command add a color configuration option
-    }
+    ]
+
+    ANSI_MAP = {}
 
     # available command dictionary
     COMMANDS = {
@@ -159,13 +161,13 @@ class TUI:
         # Initialize top status bar
         LOGGER.debug('Populating top status bar.')
         self.topbar = curses.newwin(1, self.width, 0, 0)
-        self.topbar.bkgd(' ', curses.color_pair(TUI.COLOR_PAIRS['top_statusbar'][0]))
+        self.topbar.bkgd(' ', curses.color_pair(TUI.COLOR_NAMES.index('top_statusbar') + 1))
 
         # Initialize bottom status bar
         # NOTE: -2 leaves an additional empty line for the command prompt
         LOGGER.debug('Populating bottom status bar.')
         self.botbar = curses.newwin(1, self.width, self.height-2, 0)
-        self.botbar.bkgd(' ', curses.color_pair(TUI.COLOR_PAIRS['bottom_statusbar'][0]))
+        self.botbar.bkgd(' ', curses.color_pair(TUI.COLOR_NAMES.index('bottom_statusbar') + 1))
         self.statusbar(self.botbar, self.infoline())
 
         # Initialize command prompt and viewport
@@ -251,6 +253,7 @@ class TUI:
         curses.start_color()
         # parse user color configuration
         color_cfg = CONFIG.config['COLORS']
+        colors = {col: {} for col in TUI.COLOR_NAMES}
         for attr, col in color_cfg.items():
             if attr in TUI.COLOR_VALUES.keys():
                 if not curses.can_change_color():
@@ -263,17 +266,19 @@ class TUI:
                 curses_color = tuple(col * 1000 // 255 for col in rgb_color)
                 curses.init_color(TUI.COLOR_VALUES[attr], *curses_color)
             else:
-                # check if the attribute fits a TUI element name
-                for element in TUI.COLOR_PAIRS:
-                    if element == attr[:-3] and attr[-3:] in ('_fg', '_bg'):
-                        # determine whether foreground or background color are specified
-                        ground = 1 if attr[-3:] == '_fg' else 2
-                        TUI.COLOR_PAIRS[element][ground] = col
+                if attr[:-3] not in TUI.COLOR_NAMES:
+                    LOGGER.warning('Detected unknown TUI color name specification: %s', attr[:-3])
+                    continue
+                colors[attr[:-3]][attr[-2:]] = col
 
         # initialize color pairs for TUI elements
-        for idx, foreground, background in TUI.COLOR_PAIRS.values():
-            LOGGER.debug('Initiliazing color pair %d', idx)
-            curses.init_pair(idx, TUI.COLOR_VALUES[foreground], TUI.COLOR_VALUES[background])
+        for idx, attr in enumerate(TUI.COLOR_NAMES):
+            foreground = colors[attr].get('fg', 'white')
+            background = colors[attr].get('bg', 'black')
+            LOGGER.debug('Initiliazing color pair %d for %s', idx + 1, attr)
+            curses.init_pair(idx + 1, TUI.COLOR_VALUES[foreground], TUI.COLOR_VALUES[background])
+            LOGGER.debug('Adding ANSI color code for %s', attr)
+            TUI.ANSI_MAP[CONFIG.get_ansi_color(attr)] = TUI.COLOR_NAMES.index(attr) + 1
 
     @staticmethod
     def bind_keys():
@@ -358,7 +363,7 @@ class TUI:
         help_text.height += 2
 
         # open help popup
-        self.popup(help_text, background=TUI.COLOR_PAIRS['popup_help'][0])
+        self.popup(help_text, background=TUI.COLOR_NAMES.index('popup_help'))
 
     def loop(self):
         """The key-handling event loop."""
@@ -386,7 +391,7 @@ class TUI:
             for x_pos in range(0, self.viewport.getmaxyx()[1]):
                 current_attrs.append(self.viewport.inch(self.current_line, x_pos))
             self.viewport.chgat(self.current_line, 0,
-                                curses.color_pair(TUI.COLOR_PAIRS['cursor_line'][0]))
+                                curses.color_pair(TUI.COLOR_NAMES.index('cursor_line') + 1))
 
             # Refresh the screen
             self.viewport.refresh(self.top_line, self.left_edge, 1, 0, self.visible, self.width-1)
@@ -502,7 +507,7 @@ class TUI:
         if len(lines) > 1:
             buffer = TextBuffer()
             buffer.write(text)
-            self.popup(buffer, background=TUI.COLOR_PAIRS['popup_stderr'][0])
+            self.popup(buffer, background=TUI.COLOR_NAMES.index('popup_stderr'))
 
     def prompt_handler(self, command, out=None):
         """Handle prompt input.
@@ -601,7 +606,7 @@ class TUI:
                 sys.stderr.split()
                 LOGGER.info('sys.stderr contains:\n%s', '\n'.join(sys.stderr.lines))
                 if sys.stderr.height > 1:
-                    self.popup(sys.stderr, background=TUI.COLOR_PAIRS['popup_stderr'][0])
+                    self.popup(sys.stderr, background=TUI.COLOR_NAMES.index('popup_stderr'))
                 else:
                     self.prompt_print(sys.stderr.lines)
                 # command exited with an error
@@ -611,7 +616,7 @@ class TUI:
                 sys.stdout.split()
                 LOGGER.info('sys.stdout contains:\n%s', '\n'.join(sys.stdout.lines))
                 if sys.stdout.height > 1:
-                    self.popup(sys.stdout, background=TUI.COLOR_PAIRS['popup_stdout'][0])
+                    self.popup(sys.stdout, background=TUI.COLOR_NAMES.index('popup_stdout'))
                 else:
                     self.prompt_print(sys.stdout.lines)
             # restore stdout and stderr
@@ -631,7 +636,7 @@ class TUI:
         popup_win = curses.newpad(buffer.height+2, self.width)
         if background is not None:
             # setting background color
-            popup_win.bkgd(' ', curses.color_pair(background))
+            popup_win.bkgd(' ', curses.color_pair(background + 1))
         for row, line in enumerate(buffer.lines):
             # populating popup window with text lines
             popup_win.addstr(row+1, 1, line)

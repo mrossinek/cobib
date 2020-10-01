@@ -13,28 +13,6 @@ from .list import ListCommand
 
 LOGGER = logging.getLogger(__name__)
 
-ANSI_COLORS = [
-    'black',
-    'red',
-    'green',
-    'yellow',
-    'blue',
-    'magenta',
-    'cyan',
-    'white',
-]
-
-if 'COLORS' not in CONFIG.config.keys():
-    CONFIG.config['COLORS'] = {}
-
-SEARCH_LABEL_FG = 30 + ANSI_COLORS.index(CONFIG.config['COLORS'].get('search_label_fg', 'blue'))
-SEARCH_LABEL_BG = 40 + ANSI_COLORS.index(CONFIG.config['COLORS'].get('search_label_bg', 'black'))
-SEARCH_QUERY_FG = 30 + ANSI_COLORS.index(CONFIG.config['COLORS'].get('search_query_fg', 'red'))
-SEARCH_QUERY_BG = 40 + ANSI_COLORS.index(CONFIG.config['COLORS'].get('search_query_bg', 'black'))
-
-SEARCH_LABEL_ANSI = f'\033[{SEARCH_LABEL_FG};{SEARCH_LABEL_BG}m'
-SEARCH_QUERY_ANSI = f'\033[{SEARCH_QUERY_FG};{SEARCH_QUERY_BG}m'
-
 
 class SearchCommand(Command):
     """Search Command."""
@@ -91,12 +69,13 @@ class SearchCommand(Command):
             hits += len(matches)
             LOGGER.debug('Entry "%s" includes %d hits.', label, hits)
             title = f"{label} - {len(matches)} match" + ("es" if len(matches) > 1 else "")
-            title = title.replace(label, SEARCH_LABEL_ANSI + label + '\033[0m')
+            title = title.replace(label, CONFIG.get_ansi_color('search_label') + label + '\033[0m')
             output.append(title)
 
             for idx, match in enumerate(matches):
                 for line in match:
-                    line = re.sub(rf'({largs.query})', SEARCH_QUERY_ANSI + r'\1' + '\033[0m',
+                    line = re.sub(rf'({largs.query})',
+                                  CONFIG.get_ansi_color('search_query') + r'\1' + '\033[0m',
                                   line, flags=re_flags)
                     output.append(f"[{idx+1}]\t".expandtabs(8) + line)
 
@@ -114,10 +93,7 @@ class SearchCommand(Command):
             tui.list_mode, _ = tui.viewport.getyx()
             tui.buffer.split()
             LOGGER.debug('Populating viewport with search results.')
-            ansi_map = {SEARCH_LABEL_ANSI: tui.COLOR_PAIRS['search_label'][0],
-                        SEARCH_QUERY_ANSI: tui.COLOR_PAIRS['search_query'][0]}
-            LOGGER.debug('Using ANSI color map: %s', ansi_map)
-            tui.buffer.view(tui.viewport, tui.visible, tui.width-1, ansi_map)
+            tui.buffer.view(tui.viewport, tui.visible, tui.width-1, tui.ANSI_MAP)
             # reset current cursor position
             LOGGER.debug('Resetting cursor position to top.')
             tui.top_line = 0

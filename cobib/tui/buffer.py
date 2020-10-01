@@ -121,13 +121,14 @@ class TextBuffer:
         for row, line in enumerate(self.lines):
             start, end, color = -1, -1, -1
             if self.ansi_map and line.find('\033[') >= 0:
+                LOGGER.debug('Applying ANSI color map.')
                 end = line.find('\033[0m')
-                line = line.replace("\033[0m", "")
+                line = line.replace('\033[0m', '')
                 for ansi, col in self.ansi_map.items():
                     if line.find(ansi) >= 0:
                         color = col
                         start = line.find(ansi)
-                        line = line.replace(ansi, "")
+                        line = line.replace(ansi, '')
                         end -= len(ansi)
                         break
             pad.addstr(row, 0, line)
