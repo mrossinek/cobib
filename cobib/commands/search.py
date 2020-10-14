@@ -60,10 +60,11 @@ class SearchCommand(Command):
 
         hits = 0
         output = []
-        for label in labels:
+        for label in labels.copy():
             entry = CONFIG.config['BIB_DATA'][label]
             matches = entry.search(largs.query, largs.context, ignore_case)
             if not matches:
+                labels.remove(label)
                 continue
 
             hits += len(matches)
@@ -80,7 +81,7 @@ class SearchCommand(Command):
                     output.append(f"[{idx+1}]\t".expandtabs(8) + line)
 
         print('\n'.join(output), file=out)
-        return hits
+        return (hits, labels)
 
     @staticmethod
     def tui(tui):
@@ -88,10 +89,20 @@ class SearchCommand(Command):
         LOGGER.debug('Search command triggered from TUI.')
         tui.buffer.clear()
         # handle input via prompt
-        command, hits = tui.prompt_handler('search', out=tui.buffer)
+        command, (hits, labels) = tui.prompt_handler('search', out=tui.buffer)
         if tui.buffer.lines and hits is not None:
             tui.list_mode, _ = tui.viewport.getyx()
             tui.buffer.split()
+            LOGGER.debug('Applying selection highlighting in search results.')
+            for label in labels:
+                if label not in tui.selection:
+                    continue
+                # we match the label including its 'search_label' highlight to ensure that we really
+                # only match this specific occurrence of whatever the label may be
+                tui.buffer.replace(range(tui.buffer.height),
+                                   CONFIG.get_ansi_color('search_label') + label + '\033[0m',
+                                   CONFIG.get_ansi_color('search_label') +
+                                   CONFIG.get_ansi_color('selection') + label + '\033[0m\033[0m')
             LOGGER.debug('Populating viewport with search results.')
             tui.buffer.view(tui.viewport, tui.visible, tui.width-1, tui.ANSI_MAP)
             # reset current cursor position
@@ -102,6 +113,7 @@ class SearchCommand(Command):
             tui.topstatus = "CoBib v{} - {} hit{}".format(__version__, hits,
                                                           "s" if hits > 1 else "")
             tui.statusbar(tui.topbar, tui.topstatus)
+            tui.inactive_commands = ['Add', 'Filter', 'Sort']
         elif command[1:]:
             msg = f"No search hits for '{' '.join(command[1:])}'!"
             LOGGER.info(msg)

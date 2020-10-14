@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - the `FORMAT/default_entry_type` option used for manual entry addition
 - a **manual** insertion mode available through `edit -a new_label` and `add -l new_label`
 - a ISBN-based parser for adding new entries (#45)
+- the TUI-based `select` command (and corresponding settings) (#8,!18)
+- the `--selection` argument for the `export` command (!18)
+
+### Changed
+- TUI color highlighting is now prioritized (!17)
 
 ### Fixed
 - support URLs in file field during `open` command (#47)

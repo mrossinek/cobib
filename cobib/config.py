@@ -57,6 +57,8 @@ DEFAULTS = {
         'popup_stdout_bg': 'blue',
         'popup_stderr_fg': 'white',
         'popup_stderr_bg': 'red',
+        'selection_fg': 'white',
+        'selection_bg': 'magenta',
     },
 }
 

@@ -1,4 +1,4 @@
-.TH COBIB 1 2020-09-14 v2.3.4
+.TH COBIB 1 2020-10-11 v2.3.4
 .SH NAME
 CoBib \- Console-based Bibliography Management
 .SH SYNOPSIS
@@ -134,7 +134,9 @@ Makes the search case-insensitive.
 .B cobib export \fI<args>\fR ...
 Exports the database to the file configured via the \fIargs\fR.
 The positional arguments may be used to provide \fBFILTERS\fR which the entries
-must match in order to be included in the export.
+must match in order to be included in the export \fIor\fR to provide a list of
+labels of the entries which are to be exported (this requires the \fI-s\fR flag
+to be set).
 The \fI<args>\fR may be any of the following:
 .PP
 .in +8n
@@ -147,6 +149,13 @@ Export the entries to a \fIBibLaTex\fR file at the specified path.
 .in +4n
 Export a \fIBibLaTex\fR file of the entries and all of the associated files into
 a single \fIZIP\fR file at the specified path.
+.PP
+.in +8n
+.BR \-s ", " \-\-selection
+.in +4n
+This boolean flag enables the \fIselection\fR mode in which the positional args
+are interpreted as a list of labels which are to be exported. The name for this
+argument is a result of the TUI's selection interface.
 .SH FILTERS
 In order to limit the output of the \fIlist\fR and \fIexport\fR commands you can
 apply additional filters via keyword arguments.
@@ -203,6 +212,7 @@ Opens a small window providing help for the key bindings.
 Populates the viewing buffer with a BibLaTex view of the selected entry.
 .TP
 .BR o " " open
+Respects the \fIselection\fR.
 .TP
 .BR w " " wrap
 Toggles between \fIlong\fR (default) and \fIshort\fR (wrapped) list mode.
@@ -214,6 +224,7 @@ of the TUI.
 .BR e " " edit
 .TP
 .BR d " " delete
+Respects the \fIselection\fR.
 .TP
 .BR / " " search
 .TP
@@ -224,11 +235,11 @@ Allows adding filters to the list view.
 Allows sorting the list view.
 .TP
 .BR v " " select
-\fIto be implemented\fR
 .TP
 .BR x " " export
 Opens a command prompt which allows running the \fBexport\fR command as if
-outside of the TUI.
+outside of the TUI. If a \fIselection\fR is present, the \fI-s\fR argument will
+be set automatically.
 .SH CONFIGURATION
 Cobib can be configured with an \fIINI\fR file placed at
 \fI$HOME/.config/cobib/config.ini\fR
@@ -322,6 +333,10 @@ its \fIvalue\fR.
 .IR popup_stderr_fg = white
 .TP
 .IR popup_stderr_bg = red
+.TP
+.IR selection_fg = white
+.TP
+.IR selection_bg = magenta
 .SH ENVIRONMENT
 .TP
 $EDITOR

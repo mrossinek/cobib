@@ -34,11 +34,16 @@ class ExportCommand(Command):
                             help="BibLaTeX output file")
         parser.add_argument("-z", "--zip", type=argparse.FileType('a'),
                             help="zip output file")
+        parser.add_argument("-s", "--selection", action="store_true",
+                            help="TUI only: interprets `list_arg` as the list of selected entries.")
         parser.add_argument('list_arg', nargs='*',
                             help="Any arguments for the List subcommand." +
                             "\nUse this to add filters to specify a subset of exported entries." +
                             "\nYou can add a '--' before the List arguments to ensure separation." +
-                            "\nSee also `list --help` for more information on the List arguments.")
+                            "\nSee also `list --help` for more information on the List arguments." +
+                            "\nNote: when a selection has been made inside the TUI, this list is " +
+                            "interpreted as a list of entry labels used for exporting. This also " +
+                            "requires the --selection argument to be set.")
 
         if not args:
             parser.print_usage(sys.stderr)
@@ -58,8 +63,12 @@ class ExportCommand(Command):
         if largs.zip is not None:
             largs.zip = ZipFile(largs.zip.name, 'w')
         out = open(os.devnull, 'w')
-        LOGGER.debug('Gathering filtered list of entries to be exported.')
-        labels = ListCommand().execute(largs.list_arg, out=out)
+        if largs.selection:
+            LOGGER.info('Selection from TUI given. Interpreting `list_arg` as a list of labels')
+            labels = largs.list_arg
+        else:
+            LOGGER.debug('Gathering filtered list of entries to be exported.')
+            labels = ListCommand().execute(largs.list_arg, out=out)
 
         try:
             for label in labels:
@@ -81,4 +90,7 @@ class ExportCommand(Command):
         """See base class."""
         LOGGER.debug('Export command triggered from TUI.')
         # handle input via prompt
-        tui.prompt_handler('export')
+        if tui.selection:
+            tui.prompt_handler('export -s', pass_selection=True)
+        else:
+            tui.prompt_handler('export')

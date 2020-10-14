@@ -57,8 +57,11 @@ class ShowCommand(Command):
         tui.buffer.clear()
         ShowCommand().execute([label], out=tui.buffer)
         tui.buffer.split()
+        if label in tui.selection:
+            LOGGER.debug('Current entry is selected. Applying highlighting.')
+            tui.buffer.replace(0, label, CONFIG.get_ansi_color('selection') + label + '\033[0m')
         LOGGER.debug('Populating buffer with ShowCommand result.')
-        tui.buffer.view(tui.viewport, tui.visible, tui.width-1)
+        tui.buffer.view(tui.viewport, tui.visible, tui.width-1, tui.ANSI_MAP)
 
         # reset current cursor position
         tui.top_line = 0
