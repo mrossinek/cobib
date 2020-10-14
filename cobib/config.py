@@ -193,7 +193,7 @@ class Config:
         fg_color = 30 + ANSI_COLORS.index(self.config['COLORS'].get(name + '_fg'))
         bg_color = 40 + ANSI_COLORS.index(self.config['COLORS'].get(name + '_bg'))
 
-        return f'\033[{fg_color};{bg_color}m'
+        return f'\x1b[{fg_color};{bg_color}m'
 
 
 CONFIG = Config()

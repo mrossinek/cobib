@@ -2,6 +2,7 @@
 
 import curses
 import logging
+import re
 import textwrap
 
 LOGGER = logging.getLogger(__name__)
@@ -119,6 +120,8 @@ class TextBuffer:
             visible_width (int): the available width for the pad.
             ansi_map (dict): optional, dictionary mapping ANSI codes to curses color pairs.
         """
+        # a regex to detect ANSI color codes
+        ansi_regex = re.compile(r'(\x1b\[(\d+)[;]*(\d+)*m)')
         if ansi_map:
             LOGGER.debug('Interpreting ANSI color codes on the fly.')
             self.ansi_map = ansi_map
@@ -133,25 +136,49 @@ class TextBuffer:
         # and populate
         for row, line in enumerate(self.lines):
             start, end, color = -1, -1, -1
-            if self.ansi_map and line.find('\033[') >= 0:
+            if self.ansi_map:
                 LOGGER.debug('Applying ANSI color map.')
-                while line.find('\033[0m') >= 0:
-                    # remove ANSI color reset codes and update end position
-                    end = line.find('\033[0m')
-                    line = line.replace('\033[0m', '', 1)
-                while line.find('\033[') >= 0:
-                    # as long as we can find ANSI color codes, these will be start codes
-                    for ansi, col in self.ansi_map.items():
-                        if line.find(ansi) >= 0:
-                            # by using the maximum of the current color and the found ANSI color we
-                            # can ensure that we use the one with the highest priority
-                            color = max(col, color)
-                            start = line.find(ansi)
-                            line = line.replace(ansi, '')
-                            end -= len(ansi)
-                            break
+                # This list will store the spanned regions for each ANSI color pair.
+                # Its entries will be [curses color pair number, start, end].
+                color_spans = []
+                # The index below is used to keep track of the oldest (i.e. lowest in index) color
+                # span which has not been closed yet. This means that we work with the assumption
+                # that ANSI color codes always occur in pairs (even though a single \x1b[0m sequence
+                # could terminate multiple open spans).
+                lowest_incomplete_color_span = 0
+
+                # In order to correctly trim the old line while piecing together the new one we need
+                # to keep track of the previously encountered end position.
+                prev_end = 0
+                new_line = ''
+
+                # iterate over all ANSI color code matches on the current line
+                for match in ansi_regex.finditer(line):
+                    # add everything preceding the current match to the new line
+                    new_line += line[:match.start()-prev_end]
+                    # trim the current line from everything in front of the match and itself
+                    line = line[match.end()-prev_end:]
+                    # store the current end position to use as an offset on the next match
+                    prev_end = match.end()
+
+                    # handle ANSI color code
+                    if match[0] == '\x1b[0m':
+                        # a closing sequence completes the lowest incomplete color span
+                        # Note: as mentioned above, we work under the assumption that all ANSI color
+                        # codes occur in pairs!
+                        color_spans[lowest_incomplete_color_span][2] = len(new_line)
+                        lowest_incomplete_color_span += 1
+                    else:
+                        # else we create a new color span
+                        color_spans.append([self.ansi_map[match[0]], len(new_line), None])
+
+                # anything left from the original line needs to be added to the new one
+                new_line += line
+                # and finally the new line replaces the original one
+                line = new_line
+
             pad.addstr(row, 0, line)
-            if color >= 0:
+            for color, start, end in sorted(color_spans):
                 pad.chgat(row, start, end-start, curses.color_pair(color))
         LOGGER.debug('Viewing curses pad.')
         pad.refresh(0, 0, 1, 0, visible_height, visible_width)

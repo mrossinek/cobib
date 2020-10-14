@@ -59,7 +59,7 @@ class ShowCommand(Command):
         tui.buffer.split()
         if label in tui.selection:
             LOGGER.debug('Current entry is selected. Applying highlighting.')
-            tui.buffer.replace(0, label, CONFIG.get_ansi_color('selection') + label + '\033[0m')
+            tui.buffer.replace(0, label, CONFIG.get_ansi_color('selection') + label + '\x1b[0m')
         LOGGER.debug('Populating buffer with ShowCommand result.')
         tui.buffer.view(tui.viewport, tui.visible, tui.width-1, tui.ANSI_MAP)
 

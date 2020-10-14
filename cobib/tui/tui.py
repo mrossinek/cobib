@@ -510,11 +510,11 @@ class TUI:
             # will surely only include the one label which we actually want to operate on.
             offset = '  ' if self.list_mode == -1 else ''
             self.buffer.replace(cur_y, label + offset,
-                                CONFIG.get_ansi_color('selection') + label + '\033[0m' + offset)
+                                CONFIG.get_ansi_color('selection') + label + '\x1b[0m' + offset)
         else:
             LOGGER.info("Removing '%s' from the selection.", label)
             self.selection.remove(label)
-            self.buffer.replace(cur_y, CONFIG.get_ansi_color('selection') + label + '\033[0m',
+            self.buffer.replace(cur_y, CONFIG.get_ansi_color('selection') + label + '\x1b[0m',
                                 label)
         # update buffer view
         self.buffer.view(self.viewport, self.visible, self.width-1, self.ANSI_MAP)
@@ -741,7 +741,7 @@ class TUI:
             # Also: this step may become a performance bottleneck because we replace inside the
             # whole buffer for each selected label!
             self.buffer.replace(range(self.buffer.height), label + '  ',
-                                CONFIG.get_ansi_color('selection') + label + '\033[0m  ')
+                                CONFIG.get_ansi_color('selection') + label + '\x1b[0m  ')
         # display buffer in viewport
         self.buffer.view(self.viewport, self.visible, self.width-1, self.ANSI_MAP)
         # update top statusbar

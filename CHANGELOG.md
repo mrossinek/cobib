@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - support URLs in file field during `open` command (#47)
 - the TUI no longer crashes when encountering long prompt inputs (#48)
 - the `edit` command can handle labels which start with common substrings (#46)
+- support multiple ANSI colors on a single line (#50)
 
 
 ## [2.3.4] - 2020-09-14

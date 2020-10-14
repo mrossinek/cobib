@@ -70,13 +70,13 @@ class SearchCommand(Command):
             hits += len(matches)
             LOGGER.debug('Entry "%s" includes %d hits.', label, hits)
             title = f"{label} - {len(matches)} match" + ("es" if len(matches) > 1 else "")
-            title = title.replace(label, CONFIG.get_ansi_color('search_label') + label + '\033[0m')
+            title = title.replace(label, CONFIG.get_ansi_color('search_label') + label + '\x1b[0m')
             output.append(title)
 
             for idx, match in enumerate(matches):
                 for line in match:
                     line = re.sub(rf'({largs.query})',
-                                  CONFIG.get_ansi_color('search_query') + r'\1' + '\033[0m',
+                                  CONFIG.get_ansi_color('search_query') + r'\1' + '\x1b[0m',
                                   line, flags=re_flags)
                     output.append(f"[{idx+1}]\t".expandtabs(8) + line)
 
@@ -100,9 +100,9 @@ class SearchCommand(Command):
                 # we match the label including its 'search_label' highlight to ensure that we really
                 # only match this specific occurrence of whatever the label may be
                 tui.buffer.replace(range(tui.buffer.height),
-                                   CONFIG.get_ansi_color('search_label') + label + '\033[0m',
+                                   CONFIG.get_ansi_color('search_label') + label + '\x1b[0m',
                                    CONFIG.get_ansi_color('search_label') +
-                                   CONFIG.get_ansi_color('selection') + label + '\033[0m\033[0m')
+                                   CONFIG.get_ansi_color('selection') + label + '\x1b[0m\x1b[0m')
             LOGGER.debug('Populating viewport with search results.')
             tui.buffer.view(tui.viewport, tui.visible, tui.width-1, tui.ANSI_MAP)
             # reset current cursor position
