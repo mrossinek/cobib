@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [2.4.0] - 2020-10-14
+
+Pypi: https://pypi.org/project/cobib/2.4.0/
+
 ### Added
 - the `FORMAT/default_entry_type` option used for manual entry addition
 - a **manual** insertion mode available through `edit -a new_label` and `add -l new_label`
@@ -293,7 +298,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.3.4...master
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.4.0...master
+[2.4.0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.4.0
 [2.3.4]: https://gitlab.com/mrossinek/cobib/-/tags/v2.3.4
 [2.3.3]: https://gitlab.com/mrossinek/cobib/-/tags/v2.3.3
 [2.3.2]: https://gitlab.com/mrossinek/cobib/-/tags/v2.3.2
