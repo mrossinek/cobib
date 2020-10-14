@@ -34,15 +34,15 @@ class TUI:
     }
 
     COLOR_NAMES = [
-        'cursor_line',
         'top_statusbar',
         'bottom_statusbar',
+        'search_label',
+        'search_query',
+        'cursor_line',
         'popup_help',
         'popup_stdout',
         'popup_stderr',
-        'search_label',
-        'search_query',
-        # TODO when implementing select command add a color configuration option
+        'selection',
     ]
 
     ANSI_MAP = {}
@@ -58,8 +58,7 @@ class TUI:
         'Open': commands.OpenCommand.tui,
         'Quit': lambda self: self.quit(),
         'Search': commands.SearchCommand.tui,
-        # TODO select command
-        'Select': lambda self: self.prompt_print('Warning: The Select command is not implemented!'),
+        'Select': lambda self: self.select(),
         'Show': commands.ShowCommand.tui,
         'Sort': partial(commands.ListCommand.tui, sort_mode=True),
         'Wrap': lambda self: self.wrap(),
@@ -151,6 +150,8 @@ class TUI:
         self.inactive_commands = []
         # and default list args
         self.list_args = CONFIG.config['TUI'].get('default_list_args').split(' ')
+        # and empty selection
+        self.selection = set()
 
         if CONFIG.config['TUI'].getboolean('reverse_order', True):
             self.list_args += ['-r']
@@ -387,11 +388,18 @@ class TUI:
                 break
 
             # highlight current line
-            current_attrs = []
+            current_colors = []
             for x_pos in range(0, self.viewport.getmaxyx()[1]):
-                current_attrs.append(self.viewport.inch(self.current_line, x_pos))
-            self.viewport.chgat(self.current_line, 0,
-                                curses.color_pair(TUI.COLOR_NAMES.index('cursor_line') + 1))
+                x_ch = self.viewport.inch(self.current_line, x_pos)
+                current_colors.append(x_ch)
+                # x_ch is the character at the queried position. The bottom 8 bits are the character
+                # proper, and upper bits are the attributes.
+                # Source: https://docs.python.org/3/library/curses.html#curses.window.inch
+                # Thus, we can find the color attribute by striping the last 8 bits.
+                x_attr = x_ch >> 8
+                if x_attr <= TUI.COLOR_NAMES.index('cursor_line'):
+                    self.viewport.chgat(self.current_line, x_pos, 1,
+                                        curses.color_pair(TUI.COLOR_NAMES.index('cursor_line') + 1))
 
             # Refresh the screen
             self.viewport.refresh(self.top_line, self.left_edge, 1, 0, self.visible, self.width-1)
@@ -402,7 +410,7 @@ class TUI:
 
             # reset highlight of current line
             for x_pos in range(0, self.viewport.getmaxyx()[1]):
-                self.viewport.chgat(self.current_line, x_pos, 1, current_attrs[x_pos])
+                self.viewport.chgat(self.current_line, x_pos, 1, current_colors[x_pos])
 
     def scroll_y(self, update):
         """Scroll viewport vertically.
@@ -486,6 +494,31 @@ class TUI:
         if self.buffer.height and self.current_line >= self.buffer.height:
             self.current_line -= 1
 
+    def select(self):
+        """Toggles selection of the current label."""
+        LOGGER.debug('Select command triggered.')
+        # get current label
+        label, cur_y = self.get_current_label()
+        # toggle selection
+        if label not in self.selection:
+            LOGGER.info("Adding '%s' to the selection.", label)
+            self.selection.add(label)
+            # Note, that we use an additional two spaces to attempt to uniquely identify the label
+            # in the list mode. Otherwise it might be possible that the same text (as used for the
+            # label) can occur elsewhere in the buffer.
+            # We do not need this outside of the list view because then the line indexed by `cur_y`
+            # will surely only include the one label which we actually want to operate on.
+            offset = '  ' if self.list_mode == -1 else ''
+            self.buffer.replace(cur_y, label + offset,
+                                CONFIG.get_ansi_color('selection') + label + '\033[0m' + offset)
+        else:
+            LOGGER.info("Removing '%s' from the selection.", label)
+            self.selection.remove(label)
+            self.buffer.replace(cur_y, CONFIG.get_ansi_color('selection') + label + '\033[0m',
+                                label)
+        # update buffer view
+        self.buffer.view(self.viewport, self.visible, self.width-1, self.ANSI_MAP)
+
     def prompt_print(self, text):
         """Handle printing text to the prompt line.
 
@@ -509,12 +542,14 @@ class TUI:
             buffer.write(text)
             self.popup(buffer, background=TUI.COLOR_NAMES.index('popup_stderr'))
 
-    def prompt_handler(self, command, out=None):
+    def prompt_handler(self, command, out=None, pass_selection=False):
         """Handle prompt input.
 
         Args:
             command (str or None): the command string to populate the prompt with.
             out (stream, optional): the output stream to redirect stdout to.
+            pass_selection (boolean, optional): whether to the pass the current TUI selection in the
+                                                executed command arguments.
 
         Returns:
             A pair with the first element being the list with the executed command to allow further
@@ -597,6 +632,9 @@ class TUI:
             # run command
             subcmd = getattr(commands, command[0].title()+'Command')()
             try:
+                if pass_selection:
+                    command += ['--']
+                    command.extend(list(self.selection))
                 result = subcmd.execute(command[1:], out=out)
             except SystemExit:
                 pass
@@ -678,6 +716,8 @@ class TUI:
         else:
             # In any other mode, the label can be found in the top statusbar
             label = '-'.join(self.topbar.instr(0, 0).decode('utf-8').split('-')[1:]).strip()
+            # We also set cur_y to 0 for the select command to find it
+            cur_y = 0
         LOGGER.debug('Current label at "%s" is "%s".', str(cur_y), label)
         return label, cur_y
 
@@ -695,8 +735,15 @@ class TUI:
         self.top_line = 0
         self.left_edge = 0
         self.inactive_commands = []
+        # highlight current selection
+        for label in self.selection:
+            # Note: the two spaces are explained in the `select()` method.
+            # Also: this step may become a performance bottleneck because we replace inside the
+            # whole buffer for each selected label!
+            self.buffer.replace(range(self.buffer.height), label + '  ',
+                                CONFIG.get_ansi_color('selection') + label + '\033[0m  ')
         # display buffer in viewport
-        self.buffer.view(self.viewport, self.visible, self.width-1)
+        self.buffer.view(self.viewport, self.visible, self.width-1, self.ANSI_MAP)
         # update top statusbar
         self.topstatus = "CoBib v{} - {} Entries".format(__version__, len(labels))
         self.statusbar(self.topbar, self.topstatus)

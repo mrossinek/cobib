@@ -149,6 +149,46 @@ def assert_export(screen, contents):
     # actual command execution is tested by the test_commands.test_export unittest
 
 
+def assert_search_view(screen, label, search, selected):
+    """Asserts the search screen contents."""
+    term_width = len(screen.buffer[0])
+    if selected:
+        assert [c.bg for c in screen.buffer[1].values()] == \
+            ['magenta'] * len(label) + \
+            ['default'] * (term_width - len(label))
+    else:
+        assert [c.fg for c in screen.buffer[1].values()] == \
+            ['blue'] * len(label) + \
+            ['default'] * (term_width - len(label))
+    offset = screen.display[2].index(search)
+    assert [c.fg for c in screen.buffer[2].values()] == \
+        ['default'] * offset + \
+        ['red'] * len(search) + \
+        ['default'] * (term_width - len(search) - offset)
+
+
+def assert_select_list_view(screen, current, selected, labels):
+    """Asserts the selection in the list view of the TUI."""
+    term_width = len(screen.buffer[0])
+    for sel, lab in zip(selected, labels):
+        assert [c.bg for c in screen.buffer[sel].values()] == ['magenta'] * len(lab) + \
+                ['cyan' if sel == current else 'default'] * (term_width - len(lab))
+
+
+def assert_select_show_view(screen, current):
+    """Asserts the selection in the show view."""
+    label_len = len('dummy_entry_for_scroll_testing')
+    with open('./test/dummy_scrolling_entry.bib', 'r') as source:
+        for idx, (screen_line, source_line) in enumerate(zip(screen.display[1:5],
+                                                             source.readlines())):
+            if idx == 0:
+                assert [c.bg for c in screen.buffer[1].values()] == \
+                    ['cyan' if current else 'default'] * 6 + \
+                    ['magenta'] * label_len + \
+                    ['cyan' if current else 'default'] * (len(screen.buffer[0]) - label_len - 6)
+            assert screen_line.strip() in source_line.strip()
+
+
 @pytest.mark.parametrize(['keys', 'assertion', 'assertion_kwargs'], [
         ['', assert_list_view, {
             'current': 1, 'expected': [
@@ -182,8 +222,38 @@ def assert_export(screen, contents):
             'o', lambda _: None, {},
             marks=[pytest.mark.skip("There is currently no meaningful way of testing this.")]
         ),
-        ['/', lambda _: None, {}],  # TODO unittest Search command
-        ['v', lambda _: None, {}],  # TODO unittest Select command
+        ['/einstein\njj', assert_search_view, {
+            'label': 'einstein',
+            'search': 'einstein',
+            'selected': False
+        }],
+        ['/einstein\njjv', assert_search_view, {
+            'label': 'einstein',
+            'search': 'einstein',
+            'selected': True
+        }],
+        ['Gv/einstein\njj', assert_search_view, {
+            'label': 'einstein',
+            'search': 'einstein',
+            'selected': True
+        }],
+        ['/einstein\nvq', assert_select_list_view, {'current': 1, 'selected': [4],
+                                                    'labels': ['einstein']}],
+        ['v', assert_select_list_view, {'current': 1, 'selected': [1],
+                                        'labels': ['dummy_entry_for_scroll_testing']}],
+        ['vj', assert_select_list_view, {'current': 2, 'selected': [1],
+                                         'labels': ['dummy_entry_for_scroll_testing']}],
+        ['jvjv', assert_select_list_view, {'current': 3, 'selected': [2, 3],
+                                           'labels': ['knuthwebsite', 'latexcompanion']}],
+        ['vv', assert_list_view, {  # assert that re-selection toggles
+            'current': 1, 'expected': [
+                'dummy_entry_for_scroll_testing', 'knuthwebsite', 'latexcompanion', 'einstein'
+            ]}],
+        ['v\n', assert_select_show_view, {'current': True}],
+        ['\nv', assert_select_show_view, {'current': True}],
+        ['\nvj', assert_select_show_view, {'current': False}],
+        ['\nvq', assert_select_list_view, {'current': 1, 'selected': [1],
+                                           'labels': ['dummy_entry_for_scroll_testing']}],
     ])
 def test_tui(setup, keys, assertion, assertion_kwargs):
     """Test TUI.

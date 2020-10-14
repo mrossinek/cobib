@@ -216,7 +216,11 @@ def test_add_overwrite_label():
     os.remove('/tmp/cobib_test_config.ini')
 
 
-def test_delete():
+@pytest.mark.parametrize(['labels'], [
+        ['knuthwebsite'],
+        [['knuthwebsite', 'latexcompanion']],
+    ])
+def test_delete(labels):
     """Test delete command."""
     # use temporary config
     tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
@@ -227,7 +231,7 @@ def test_delete():
     copyfile(Path('./test/example_literature.yaml'), Path('/tmp/cobib_test_database.yaml'))
     # delete some data
     # NOTE: for testing simplicity we delete the last entry
-    commands.DeleteCommand().execute(['knuthwebsite'])
+    commands.DeleteCommand().execute(labels)
     with open('/tmp/cobib_test_database.yaml', 'r') as file:
         with open('./test/example_literature.yaml', 'r') as expected:
             # NOTE: do NOT use zip_longest to omit last entry (thus, we deleted the last one)
@@ -261,6 +265,28 @@ def test_export(setup):
                 assert line == truth
     # clean up file system
     os.remove('/tmp/cobib_test_export.bib')
+
+
+def test_export_selection(setup):
+    """Test the `selection` interface of the export command.
+
+    Args:
+        setup: runs pytest fixture.
+    """
+    commands.ExportCommand().execute(['-b', '/tmp/cobib_test_export_s.bib', '-s', '--', 'einstein'])
+    with open('/tmp/cobib_test_export_s.bib', 'r') as file:
+        with open('./test/example_literature.bib', 'r') as expected:
+            for line, truth in zip_longest(file, expected):
+                print(line, truth)
+                if truth[0] == '%':
+                    # ignore comments
+                    continue
+                if truth.strip() == '@book{latexcompanion,':
+                    # reached next entry
+                    break
+                assert line == truth
+    # clean up file system
+    os.remove('/tmp/cobib_test_export_s.bib')
 
 
 @pytest.mark.parametrize(['args', 'expected', 'config_overwrite'], [

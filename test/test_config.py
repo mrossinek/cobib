@@ -65,6 +65,8 @@ def test_missing_section(setup, section):
         ['COLORS', 'popup_stdout_bg'],
         ['COLORS', 'popup_stderr_fg'],
         ['COLORS', 'popup_stderr_bg'],
+        ['COLORS', 'selection_fg'],
+        ['COLORS', 'selection_bg'],
     ])
 def test_database_section(setup, section, field):
     """Test raised RuntimeError for missing config fields."""
@@ -91,6 +93,8 @@ def test_database_section(setup, section, field):
         ['popup_stdout_bg'],
         ['popup_stderr_fg'],
         ['popup_stderr_bg'],
+        ['selection_fg'],
+        ['selection_bg'],
     ])
 def test_valid_tui_colors(setup, color):
     """Test curses color specification validation."""

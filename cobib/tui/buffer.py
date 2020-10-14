@@ -38,6 +38,19 @@ class TextBuffer:
             self.height = len(self.lines)
             self.width = max(self.width, len(string))
 
+    def replace(self, lines, old_str, new_str):
+        """Replaces the old string with the new in the given lines.
+
+        Args:
+            lines (int or list): index or indices on which lines to do the replacement.
+            old_str (str): old string to be replaced.
+            new_str (str): new string to be inserted.
+        """
+        if isinstance(lines, int):
+            lines = [lines]
+        for idx in lines:
+            self.lines[idx] = self.lines[idx].replace(old_str, new_str)
+
     def flush(self):
         """Compatibility function."""
 
@@ -122,15 +135,21 @@ class TextBuffer:
             start, end, color = -1, -1, -1
             if self.ansi_map and line.find('\033[') >= 0:
                 LOGGER.debug('Applying ANSI color map.')
-                end = line.find('\033[0m')
-                line = line.replace('\033[0m', '')
-                for ansi, col in self.ansi_map.items():
-                    if line.find(ansi) >= 0:
-                        color = col
-                        start = line.find(ansi)
-                        line = line.replace(ansi, '')
-                        end -= len(ansi)
-                        break
+                while line.find('\033[0m') >= 0:
+                    # remove ANSI color reset codes and update end position
+                    end = line.find('\033[0m')
+                    line = line.replace('\033[0m', '', 1)
+                while line.find('\033[') >= 0:
+                    # as long as we can find ANSI color codes, these will be start codes
+                    for ansi, col in self.ansi_map.items():
+                        if line.find(ansi) >= 0:
+                            # by using the maximum of the current color and the found ANSI color we
+                            # can ensure that we use the one with the highest priority
+                            color = max(col, color)
+                            start = line.find(ansi)
+                            line = line.replace(ansi, '')
+                            end -= len(ansi)
+                            break
             pad.addstr(row, 0, line)
             if color >= 0:
                 pad.chgat(row, start, end-start, curses.color_pair(color))
