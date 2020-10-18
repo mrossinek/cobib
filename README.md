@@ -39,6 +39,14 @@ database at `~/.local/share/cobib/literature.yaml`
 
 To see how you can change this, see [Config](#Config).
 
+### Windows
+Please note that Windows is *not* supported!
+This is due to the fact that [Python under Windows does not ship with the `curses` module][1].
+
+However, if you are using Windows 10 you should be able to install and use CoBib
+within the Linux subsystem.
+
+[1]: https://docs.python.org/3/howto/curses.html#what-is-curses
 
 ## Usage
 Start by initializing the database with
@@ -66,3 +74,5 @@ You may also specify a different config file at runtime by using the `-c` or
 `--config` command line argument.
 
 You can also find more information in the man page.
+
+[//]: # ( vim: set ft=markdown: )
