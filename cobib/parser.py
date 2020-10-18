@@ -398,11 +398,12 @@ class Entry:
             if key in ['title', 'url']:
                 entry[key] = value
             elif key == 'number_of_pages':
-                entry['pages'] = value
+                # we explicitly convert to a string to prevent type errors in the bibtexparser
+                entry['pages'] = str(value)
             elif key == 'publish_date':
                 entry['date'] = value
                 try:
-                    entry['year'] = int(re.search(r'\d{4}', value).group())
+                    entry['year'] = re.search(r'\d{4}', value).group()
                     if 'ID' in entry.keys():
                         entry['ID'] += str(entry['year'])
                     else:
@@ -417,6 +418,8 @@ class Entry:
                 entry['author'] = ' and'.join([a['name'] for a in value])
             elif key == 'publishers':
                 entry['publisher'] = ' and'.join([a['name'] for a in value])
+        # set entry-type do 'book'
+        entry['ENTRYTYPE'] = 'book'
         bib = OrderedDict()
         bib[entry['ID']] = Entry(entry['ID'], entry)
         return bib

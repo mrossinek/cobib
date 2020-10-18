@@ -10,6 +10,7 @@ arxiv
 attr
 biblatex
 bibtex
+bibtexparser
 bool
 boolean
 cobib
