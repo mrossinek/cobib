@@ -643,6 +643,8 @@ class TUI:
                 LOGGER.warning('The command "%s" resulted in an error.', ' '.join(command))
                 sys.stderr.split()
                 LOGGER.info('sys.stderr contains:\n%s', '\n'.join(sys.stderr.lines))
+                # wrap before checking the height:
+                sys.stderr.wrap(self.width)
                 if sys.stderr.height > 1:
                     self.popup(sys.stderr, background=TUI.COLOR_NAMES.index('popup_stderr'))
                 else:
@@ -653,6 +655,8 @@ class TUI:
                 LOGGER.info('A message to stdout from "%s" was intercepted.', ' '.join(command))
                 sys.stdout.split()
                 LOGGER.info('sys.stdout contains:\n%s', '\n'.join(sys.stdout.lines))
+                # wrap before checking the height:
+                sys.stdout.wrap(self.width)
                 if sys.stdout.height > 1:
                     self.popup(sys.stdout, background=TUI.COLOR_NAMES.index('popup_stdout'))
                 else:

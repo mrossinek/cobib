@@ -101,6 +101,11 @@ class TextBuffer:
             for line in copy:
                 label = line.split('  ')[0]
                 label_len = max(len(label)+1, label_len)
+                if label_len > width:
+                    LOGGER.debug('Label column width would exceed actual width. Continuing without '
+                                 'a label column.')
+                    label_len = 1
+                    break
             LOGGER.debug('Label column width determined to be %d', label_len)
             for line in copy:
                 # then wrap lines with subsequent indents matched to first column width
