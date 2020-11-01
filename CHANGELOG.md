@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [2.4.1] - 2020-11-01
+
+Pypi: https://pypi.org/project/cobib/2.4.1/
+
 ### Fixed
 - ISBN parser was missing the ENTRYTYPE and did not use strings for number fields
 - the ISBN parser can now handle empty entries (#53)
@@ -304,7 +309,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.4.0...master
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.4.1...master
+[2.4.1]: https://gitlab.com/mrossinek/cobib/-/tags/v2.4.1
 [2.4.0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.4.0
 [2.3.4]: https://gitlab.com/mrossinek/cobib/-/tags/v2.3.4
 [2.3.3]: https://gitlab.com/mrossinek/cobib/-/tags/v2.3.3
