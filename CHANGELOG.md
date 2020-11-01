@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - ISBN parser was missing the ENTRYTYPE and did not use strings for number fields
+- the ISBN parser can now handle empty entries (#53)
 
 
 ## [2.4.0] - 2020-10-14

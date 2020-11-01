@@ -123,15 +123,8 @@ class AddCommand(Command):
     def tui(tui):
         """See base class."""
         LOGGER.debug('Add command triggered from TUI.')
-        # temporarily disable prints to stdout
-        original_stdout = sys.stdout
-        LOGGER.debug('Redirecting stdout.')
-        sys.stdout = open(os.devnull, 'w')
         # handle input via prompt
         tui.prompt_handler('add')
-        # restore stdout
-        sys.stdout.close()
-        sys.stdout = original_stdout
         # update database list
         LOGGER.debug('Updating list after Add command.')
         read_database(fresh=True)

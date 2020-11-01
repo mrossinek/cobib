@@ -6,6 +6,7 @@ import logging
 import os
 import re
 import subprocess
+import sys
 
 from bs4 import BeautifulSoup
 from pylatexenc.latexencode import UnicodeToLatexEncoder
@@ -393,6 +394,13 @@ class Entry:
         isbn_plain = ''.join([i for i in isbn if i.isdigit()])
         page = requests.get(ISBN_URL+isbn_plain+'&jscmd=data&format=json', timeout=5)
         contents = dict(json.loads(page.content))
+        if not contents:
+            msg = f'No data was found for ISBN: {isbn}. If you think this is an error and the ' + \
+                  'openlibrary API should provide an entry, please file a bug report. Otherwise' + \
+                  ' please try adding this entry manually until more APIs are available in CoBib.'
+            LOGGER.warning(msg)
+            print(msg, file=sys.stderr)
+            return {}
         entry = {}
         for key, value in contents[list(contents.keys())[0]].items():
             if key in ['title', 'url']:
