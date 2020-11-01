@@ -4,6 +4,7 @@ import argparse
 import logging
 import os
 import re
+import shlex
 import sys
 
 from cobib import __version__
@@ -89,8 +90,9 @@ class SearchCommand(Command):
         LOGGER.debug('Search command triggered from TUI.')
         tui.buffer.clear()
         # handle input via prompt
-        command, (hits, labels) = tui.prompt_handler('search', out=tui.buffer)
-        if tui.buffer.lines and hits is not None:
+        command, results = tui.prompt_handler('search', out=tui.buffer)
+        if tui.buffer.lines and results is not None:
+            hits, labels = results
             tui.list_mode, _ = tui.viewport.getyx()
             tui.buffer.split()
             LOGGER.debug('Applying selection highlighting in search results.')
@@ -115,7 +117,7 @@ class SearchCommand(Command):
             tui.statusbar(tui.topbar, tui.topstatus)
             tui.inactive_commands = ['Add', 'Filter', 'Sort']
         elif command[1:]:
-            msg = f"No search hits for '{' '.join(command[1:])}'!"
+            msg = f"No search hits for '{shlex.join(command[1:])}'!"
             LOGGER.info(msg)
             tui.prompt_print(msg)
             tui.update_list()

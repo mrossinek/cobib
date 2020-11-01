@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ISBN parser was missing the ENTRYTYPE and did not use strings for number fields
 - the ISBN parser can now handle empty entries (#53)
 - the TUI will not crash on stdout/stderr messages exceeding the window width
+- the TUI respects quoted strings in the prompt handler (#52)
 
 
 ## [2.4.0] - 2020-10-14

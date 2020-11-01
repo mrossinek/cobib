@@ -3,6 +3,7 @@
 import curses
 import logging
 import re
+import shlex
 import sys
 from functools import partial
 from signal import signal, SIGWINCH
@@ -611,7 +612,7 @@ class TUI:
             self.prompt.refresh(0, max(0, cur_x - self.width + 2),
                                 self.height-1, 0, self.height, self.width-1)
         # split command into separate arguments for cobib
-        command = command.split(' ')
+        command = shlex.split(command)
 
         # leave echo mode and make cursor invisible
         curses.curs_set(0)
