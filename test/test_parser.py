@@ -218,7 +218,7 @@ def test_parser_from_isbn():
 
 # regression test for https://gitlab.com/mrossinek/cobib/-/issues/53
 def test_parser_from_isbn_empty():
-    """Test parsning an empty ISBN."""
+    """Test parsing an empty ISBN."""
     root = path.abspath(path.dirname(__file__))
     CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
     entries = parser.Entry.from_isbn('3860704443')
