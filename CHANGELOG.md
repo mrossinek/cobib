@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- always store years as strings to be compatible with bibtexparser
+
 
 ## [2.4.1] - 2020-11-01
 

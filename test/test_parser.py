@@ -238,7 +238,7 @@ def test_parser_from_arxiv():
     assert entry.data['arxivid'].startswith('1812.09976')
     assert entry.data['author'] == reference['author']
     assert entry.data['title'] == reference['title']
-    assert entry.data['year'] == 2018
+    assert entry.data['year'] == '2018'
 
 
 @pytest.mark.parametrize('month_type', ['int', 'str'])

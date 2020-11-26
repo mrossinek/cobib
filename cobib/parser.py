@@ -350,7 +350,10 @@ class Entry:
             elif key.name == 'primary_category':
                 entry['primaryClass'] = str(key.attrs['term'])
             elif key.name == 'published':
-                entry['year'] = int(key.contents[0].split('-')[0])
+                # The year must also be stored as a string for compatibility reasons with
+                # bibtexparser. However, we perform a conversion to an integer first, to ensure that
+                # the year can actually be represented as such.
+                entry['year'] = str(int(key.contents[0].split('-')[0]))
                 if 'ID' in entry.keys():
                     entry['ID'] = entry['ID'] + str(entry['year'])
                 else:
