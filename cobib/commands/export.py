@@ -91,6 +91,6 @@ class ExportCommand(Command):
         LOGGER.debug('Export command triggered from TUI.')
         # handle input via prompt
         if tui.selection:
-            tui.prompt_handler('export -s', pass_selection=True)
+            tui.execute_command('export -s', pass_selection=True)
         else:
-            tui.prompt_handler('export')
+            tui.execute_command('export')

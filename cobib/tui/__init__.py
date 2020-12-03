@@ -2,11 +2,13 @@
 
 import curses
 
-from .tui import TextBuffer
+from .buffer import TextBuffer, InputBuffer
 from .tui import TUI
 
 
-__all__ = ["TextBuffer", "TUI"]
+__all__ = ["TUI",
+           "TextBuffer",
+           "InputBuffer"]
 
 
 def tui():
