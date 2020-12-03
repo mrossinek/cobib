@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- support for multiple associated files (#42,!19)
+- interactive menu when opening an entry with multiple associated files (!19)
+
 ### Fixed
 - always store years as strings to be compatible with bibtexparser
 
@@ -13,10 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.4.1] - 2020-11-01
 
 Pypi: https://pypi.org/project/cobib/2.4.1/
-
-### Added
-- support for multiple associated files (#42,!19)
-- interactive menu when opening an entry with multiple associated files (!19)
 
 ### Fixed
 - ISBN parser was missing the ENTRYTYPE and did not use strings for number fields
