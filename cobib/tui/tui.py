@@ -11,7 +11,7 @@ from signal import signal, SIGWINCH
 from cobib import __version__
 from cobib import commands
 from cobib.config import CONFIG
-from .buffer import TextBuffer
+from .buffer import TextBuffer, InputBuffer
 
 LOGGER = logging.getLogger(__name__)
 
@@ -230,8 +230,11 @@ class TUI:
         if self.list_mode == -1:
             LOGGER.debug('Quitting from lowest level.')
             if self.prompt_before_quit:
+                msg = 'Do you really want to quit CoBib? [y/n] '
+                curses.curs_set(1)
                 self.prompt.clear()
-                self.prompt.insstr(0, 0, 'Do you really want to quit CoBib? [y/n] ')
+                self.prompt.insstr(0, 0, msg)
+                self.prompt.move(0, len(msg))
                 self.prompt.refresh(0, 0, self.height-1, 0, self.height, self.width-1)
                 key = 0
                 while True:
@@ -239,6 +242,7 @@ class TUI:
                         raise StopIteration
                     if key in (ord('n'), ord('N')):
                         LOGGER.info('User aborted quitting.')
+                        curses.curs_set(0)
                         break
                     key = self.prompt.getch()
                 self.prompt.clear()
@@ -365,7 +369,7 @@ class TUI:
         help_text.height += 2
 
         # open help popup
-        self.popup(help_text, background=TUI.COLOR_NAMES.index('popup_help'))
+        help_text.popup(self, background=TUI.COLOR_NAMES.index('popup_help'))
 
     def loop(self):
         """The key-handling event loop."""
@@ -518,7 +522,7 @@ class TUI:
             self.buffer.replace(cur_y, CONFIG.get_ansi_color('selection') + label + '\x1b[0m',
                                 label)
         # update buffer view
-        self.buffer.view(self.viewport, self.visible, self.width-1, self.ANSI_MAP)
+        self.buffer.view(self.viewport, self.visible, self.width-1, ansi_map=self.ANSI_MAP)
 
     def prompt_print(self, text):
         """Handle printing text to the prompt line.
@@ -541,27 +545,24 @@ class TUI:
         if len(lines) > 1:
             buffer = TextBuffer()
             buffer.write(text)
-            self.popup(buffer, background=TUI.COLOR_NAMES.index('popup_stderr'))
+            buffer.popup(self, background=TUI.COLOR_NAMES.index('popup_stderr'))
 
-    def prompt_handler(self, command, out=None, pass_selection=False):
+    def prompt_handler(self, command, symbol=":"):
         """Handle prompt input.
 
         Args:
             command (str or None): the command string to populate the prompt with.
-            out (stream, optional): the output stream to redirect stdout to.
-            pass_selection (boolean, optional): whether to the pass the current TUI selection in the
-                                                executed command arguments.
+            symbol (str, optional): the prompt symbol.
 
         Returns:
-            A pair with the first element being the list with the executed command to allow further
-            handling and the second element being whatever is returned by the command.
+            The final user command.
         """
         LOGGER.debug('Handling input by the user in prompt line.')
         # make cursor visible
         curses.curs_set(1)
 
         # populate prompt line and place cursor
-        prompt_line = ":" if command is None else f":{command} "
+        prompt_line = symbol if command is None else f"{symbol}{command} "
         self.prompt.clear()
         self.prompt.resize(1, max(len(prompt_line)+2, self.width))
         self.prompt.addstr(0, 0, prompt_line)
@@ -611,9 +612,6 @@ class TUI:
                 self.prompt.move(_, cur_x + 1)
             self.prompt.refresh(0, max(0, cur_x - self.width + 2),
                                 self.height-1, 0, self.height, self.width-1)
-        # split command into separate arguments for cobib
-        command = shlex.split(command)
-
         # leave echo mode and make cursor invisible
         curses.curs_set(0)
 
@@ -621,15 +619,38 @@ class TUI:
         self.prompt.clear()
         self.prompt.refresh(0, 0, self.height-1, 0, self.height, self.width-1)
 
+        return command
+
+    def execute_command(self, command, out=None, pass_selection=False, skip_prompt=False):
+        """Executes a command.
+
+        Args:
+            command (str or None): the command to execute.
+            out (stream, optional): the output stream to redirect stdout to.
+            pass_selection (boolean, optional): whether to the pass the current TUI selection in the
+                                                executed command arguments.
+            skip_prompt (boolean, optional): whether to skip the user prompt for further commands.
+
+        Returns:
+            A pair with the first element being the list with the executed command to allow further
+            handling and the second element being whatever is returned by the command.
+        """
+        if not skip_prompt:
+            command = self.prompt_handler(command)
+            # split command into separate arguments for cobib
+            command = shlex.split(command)
+
         # process command if it non empty and actually has arguments
         result = None
         if command and command[0]:
             LOGGER.debug('Processing the command: %s', ' '.join(command))
-            # temporarily disable prints to stdout and stderr
+            # temporarily disable prints to stdout, stderr and stdin
+            original_stdin = sys.stdin
             original_stdout = sys.stdout
             original_stderr = sys.stderr
             sys.stdout = TextBuffer()
             sys.stderr = TextBuffer()
+            sys.stdin = InputBuffer(buffer=sys.stdout, tui=self)
             # run command
             subcmd = getattr(commands, command[0].title()+'Command')()
             try:
@@ -647,7 +668,7 @@ class TUI:
                 # wrap before checking the height:
                 sys.stderr.wrap(self.width)
                 if sys.stderr.height > 1:
-                    self.popup(sys.stderr, background=TUI.COLOR_NAMES.index('popup_stderr'))
+                    sys.stderr.popup(self, background=TUI.COLOR_NAMES.index('popup_stderr'))
                 else:
                     self.prompt_print(sys.stderr.lines)
                 # command exited with an error
@@ -659,48 +680,15 @@ class TUI:
                 # wrap before checking the height:
                 sys.stdout.wrap(self.width)
                 if sys.stdout.height > 1:
-                    self.popup(sys.stdout, background=TUI.COLOR_NAMES.index('popup_stdout'))
+                    sys.stdout.popup(self, background=TUI.COLOR_NAMES.index('popup_stdout'))
                 else:
                     self.prompt_print(sys.stdout.lines)
-            # restore stdout and stderr
+            # restore stdout, stderr and stdin
             sys.stdout = original_stdout
             sys.stderr = original_stderr
+            sys.stdin = original_stdin
         # return command to enable additional handling by function caller
         return (command, result)
-
-    def popup(self, buffer, background=None):
-        """Creates a popup window.
-
-        Args:
-            buffer (TextBuffer): the TextBuffer object which populates the window contents.
-            background (int): the curses color pair number with which to highlight the window.
-        """
-        LOGGER.debug('Populating popup window.')
-        popup_win = curses.newpad(buffer.height+2, self.width)
-        if background is not None:
-            # setting background color
-            popup_win.bkgd(' ', curses.color_pair(background + 1))
-        for row, line in enumerate(buffer.lines):
-            # populating popup window with text lines
-            popup_win.addstr(row+1, 1, line)
-        # displaying popup window
-        popup_win.box()
-        popup_h, popup_w = popup_win.getmaxyx()
-        # computing height offset
-        height_offset = self.height - buffer.height-4
-        popup_win.refresh(0, 0, height_offset, 0, height_offset+popup_h, popup_w)
-
-        key = 0
-        # loop until quit by user
-        while key not in (27, ord('q')):  # exit on ESC
-            if key != 0:
-                # do not print warning on initial run (key == 0)
-                self.prompt_print('To quit the popup window, press "q".')
-            key = self.prompt.getch()
-
-        # close popup window
-        popup_win.clear()
-        self.resize_handler(None, None)
 
     def get_current_label(self):
         """Returns the label and y position of the currently selected entry."""
@@ -748,7 +736,7 @@ class TUI:
             self.buffer.replace(range(self.buffer.height), label + '  ',
                                 CONFIG.get_ansi_color('selection') + label + '\x1b[0m  ')
         # display buffer in viewport
-        self.buffer.view(self.viewport, self.visible, self.width-1, self.ANSI_MAP)
+        self.buffer.view(self.viewport, self.visible, self.width-1, ansi_map=self.ANSI_MAP)
         # update top statusbar
         self.topstatus = "CoBib v{} - {} Entries".format(__version__, len(labels))
         self.statusbar(self.topbar, self.topstatus)

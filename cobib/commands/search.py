@@ -90,7 +90,7 @@ class SearchCommand(Command):
         LOGGER.debug('Search command triggered from TUI.')
         tui.buffer.clear()
         # handle input via prompt
-        command, results = tui.prompt_handler('search', out=tui.buffer)
+        command, results = tui.execute_command('search', out=tui.buffer)
         if tui.buffer.lines and results is not None:
             hits, labels = results
             tui.list_mode, _ = tui.viewport.getyx()
@@ -106,7 +106,7 @@ class SearchCommand(Command):
                                    CONFIG.get_ansi_color('search_label') +
                                    CONFIG.get_ansi_color('selection') + label + '\x1b[0m\x1b[0m')
             LOGGER.debug('Populating viewport with search results.')
-            tui.buffer.view(tui.viewport, tui.visible, tui.width-1, tui.ANSI_MAP)
+            tui.buffer.view(tui.viewport, tui.visible, tui.width-1, ansi_map=tui.ANSI_MAP)
             # reset current cursor position
             LOGGER.debug('Resetting cursor position to top.')
             tui.top_line = 0

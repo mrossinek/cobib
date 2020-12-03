@@ -3,6 +3,7 @@
 
 import os
 import re
+import sys
 from datetime import datetime
 from io import StringIO
 from itertools import zip_longest
@@ -156,9 +157,52 @@ def test_show(setup):
             assert line == truth.strip('\n')
 
 
-def test_open():
-    """Test open command."""
-    pytest.skip("There is currently no meaningful way of testing this.")
+@pytest.fixture
+def open_setup():
+    """Setup for OpenCommand testing."""
+    # ensure configuration is empty
+    CONFIG.config = {}
+    root = os.path.abspath(os.path.dirname(__file__))
+    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    # NOTE: normally you would never trigger an Add command before reading the database but in this
+    # controlled testing scenario we can be certain that this is fine
+    commands.AddCommand().execute(['-b', './test/dummy_multi_file_entry.bib'])
+    read_database()
+    yield setup
+    # clean up
+    commands.DeleteCommand().execute(['dummy_multi_file_entry'])
+
+
+def test_open(open_setup):
+    """Test open command.
+
+    Args:
+        open_setup: runs pytest fixture.
+    """
+    # pylint: disable=missing-class-docstring
+    class DummyStdin:
+        # pylint: disable=missing-function-docstring
+        def readline(self):
+            # pylint: disable=no-self-use
+            return '\n'
+    # replace sys.stdout and sys.stdin
+    original_stdout = sys.stdout
+    original_stdin = sys.stdin
+    sys.stdout = StringIO()
+    sys.stdin = DummyStdin()
+    commands.OpenCommand().execute(['dummy_multi_file_entry'])
+    expected = [
+        "  1: [file] /tmp/a.txt",
+        "  2: [file] /tmp/b.txt",
+        "  3: [url] https://www.duckduckgo.com",
+        "  4: [url] https://www.google.com",
+        "Entry to open [Type 'help' for more info]: ",
+    ]
+    for line, truth in zip_longest(sys.stdout.getvalue().split('\n'), expected):
+        assert line == truth
+    # clean up
+    sys.stdout = original_stdout
+    sys.stdin = original_stdin
 
 
 def test_add():

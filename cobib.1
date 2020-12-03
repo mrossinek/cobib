@@ -67,6 +67,7 @@ Adds an entry specified by the \fIDOI\fR.
 .BR \-f ", " \-\-file " " \fI<path>\fR
 .in +4n
 Associate the newly added entry with the \fIfile\fR at the provided path.
+As of version 2.5 you can specify multiple files, too.
 .PP
 .in +8n
 .BR \-l ", " \-\-label  " " \fI<label>\fR
@@ -82,6 +83,8 @@ The entry is copied verbatim in \fIYAML\fR format from and to the database file.
 .TP
 .B cobib open \fI<label>\fR
 Opens any associated \fIfile\fR of the entry with the given \fIlabel\fR.
+If multiple files are associated with the entry, the user can choose which file(s) to open through
+an interactive menu.
 .TP
 .B cobib show \fI<label>\fR
 Prints the entry with the given \fIlabel\fR in \fIBibLaTex\fR format to stdout.

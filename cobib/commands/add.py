@@ -30,8 +30,8 @@ class AddCommand(Command):
         parser = ArgumentParser(prog="add", description="Add subcommand parser.")
         parser.add_argument("-l", "--label", type=str,
                             help="the label for the new database entry")
-        parser.add_argument("-f", "--file", type=str,
-                            help="a file associated with this entry")
+        parser.add_argument("-f", "--file", type=str, nargs="+", action="extend",
+                            help="files associated with this entry")
         group_add = parser.add_mutually_exclusive_group()
         group_add.add_argument("-a", "--arxiv", type=str,
                                help="arXiv ID of the new references")
@@ -123,7 +123,7 @@ class AddCommand(Command):
         """See base class."""
         LOGGER.debug('Add command triggered from TUI.')
         # handle input via prompt
-        tui.prompt_handler('add')
+        tui.execute_command('add')
         # update database list
         LOGGER.debug('Updating list after Add command.')
         read_database(fresh=True)

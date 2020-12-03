@@ -218,10 +218,6 @@ def assert_select_show_view(screen, current):
             'current': 1, 'expected': [
                 'latexcompanion', 'knuthwebsite', 'einstein', 'dummy_entry_for_scroll_testing'
             ]}],
-        pytest.param(
-            'o', lambda _: None, {},
-            marks=[pytest.mark.skip("There is currently no meaningful way of testing this.")]
-        ),
         ['/einstein\njj', assert_search_view, {
             'label': 'einstein',
             'search': 'einstein',
@@ -373,6 +369,31 @@ def test_tui_quit_prompt(setting, keys):
     CONFIG.config['TUI']['prompt_before_quit'] = setting
     read_database()
     test_tui(None, keys, assert_quit, {'prompt': setting})
+
+
+def assert_open(screen):
+    """Asserts the open menu."""
+    assert '1: [file] /tmp/a.txt' in screen.display[16]
+    assert '2: [file] /tmp/b.txt' in screen.display[17]
+    assert '3: [url] https://www.duckduckgo.com' in screen.display[18]
+    assert '4: [url] https://www.google.com' in screen.display[19]
+    assert "Entry to open [Type 'help' for more info]:" in screen.display[20]
+
+
+def test_tui_open_menu():
+    """Test the open prompt menu for multiple associated files."""
+    # ensure configuration is empty
+    CONFIG.config = {}
+    root = os.path.abspath(os.path.dirname(__file__))
+    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    # NOTE: normally you would never trigger an Add command before reading the database but in this
+    # controlled testing scenario we can be certain that this is fine
+    AddCommand().execute(['-b', './test/dummy_multi_file_entry.bib'])
+    read_database()
+    try:
+        test_tui(None, 'o', assert_open, {})
+    finally:
+        DeleteCommand().execute(['dummy_multi_file_entry'])
 
 
 def test_tui_resize(setup):

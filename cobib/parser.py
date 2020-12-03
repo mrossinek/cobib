@@ -120,7 +120,11 @@ class Entry:
     @file.setter
     def set_file(self, file):
         """Sets the associated file of this entry."""
-        self.data['file'] = os.path.abspath(file)
+        if isinstance(file, list):
+            file = ', '.join([os.path.abspath(f) for f in file])
+        else:
+            file = os.path.abspath(file)
+        self.data['file'] = file
         LOGGER.debug("Adding '%s' as the file to '%s'.", self.data['file'], self.label)
 
     def convert_month(self, type_):

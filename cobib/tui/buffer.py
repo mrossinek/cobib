@@ -70,9 +70,8 @@ class TextBuffer:
         self.width = 0
         for line in copy:
             for string in line.split('\n'):
-                if string.strip():
-                    self.lines.append(string)
-                    self.width = max(self.width, len(string))
+                self.lines.append(string)
+                self.width = max(self.width, len(string))
         self.height = len(self.lines)
 
     def wrap(self, width):
@@ -116,14 +115,26 @@ class TextBuffer:
         self.height = len(self.lines)
         self.wrapped = not self.wrapped
 
-    def view(self, pad, visible_height, visible_width, ansi_map=None):
+    # pylint: disable=too-many-arguments
+    def view(self, pad, smaxrow, smaxcol,
+             pminrow=0, pmincol=0,
+             sminrow=1, smincol=0,
+             ansi_map=None,
+             background=None,
+             box=False):
         """View buffer in provided curses pad.
 
         Args:
             pad (curses.window): a re-sizable curses window (aka a pad).
-            visible_height (int): the available height for the pad.
-            visible_width (int): the available width for the pad.
+            smaxrow (int): the available height for the pad.
+            smaxcol (int): the available width for the pad.
+            pminrow (int): the upper display position in the pad.
+            pmincol (int): the left display position in the pad.
+            sminrow (int): the upper display position of the pad.
+            smincol (int): the left display position of the pad.
             ansi_map (dict): optional, dictionary mapping ANSI codes to curses color pairs.
+            background (int): the curses color pair number with which to highlight the window.
+            box (bool): whether to print a frame around the window.
         """
         # a regex to detect ANSI color codes
         ansi_regex = re.compile(r'(\x1b\[(\d+)[;]*(\d+)*m)')
@@ -133,19 +144,19 @@ class TextBuffer:
         # first clear pad
         LOGGER.debug('Clearing curses pad.')
         pad.erase()
-        pad.refresh(0, 0, 1, 0, visible_height, visible_width)
+        pad.refresh(pminrow, pmincol, sminrow, smincol, smaxrow, smaxcol)
         # then resize
-        # NOTE The +1 added onto the height accounts for some weird offset in the curses pad.
         LOGGER.debug('Adjusting pad size.')
-        pad.resize(self.height+1, max(self.width, visible_width+1))
+        # NOTE The +1 added onto the height accounts for some weird offset in the curses pad.
+        pad.resize(self.height+(2 if box else 1), max(self.width, smaxcol+(0 if box else 1)))
         # and populate
         for row, line in enumerate(self.lines):
             start, end, color = -1, -1, -1
+            # This list will store the spanned regions for each ANSI color pair.
+            # Its entries will be [curses color pair number, start, end].
+            color_spans = []
             if self.ansi_map:
                 LOGGER.debug('Applying ANSI color map.')
-                # This list will store the spanned regions for each ANSI color pair.
-                # Its entries will be [curses color pair number, start, end].
-                color_spans = []
                 # The index below is used to keep track of the oldest (i.e. lowest in index) color
                 # span which has not been closed yet. This means that we work with the assumption
                 # that ANSI color codes always occur in pairs (even though a single \x1b[0m sequence
@@ -182,8 +193,80 @@ class TextBuffer:
                 # and finally the new line replaces the original one
                 line = new_line
 
-            pad.addstr(row, 0, line)
+            pad.addstr(row+(1 if box else 0), (1 if box else 0), line)
             for color, start, end in sorted(color_spans):
                 pad.chgat(row, start, end-start, curses.color_pair(color))
+        # apply decorations
+        if background is not None:
+            # setting background color
+            pad.bkgd(' ', curses.color_pair(background + 1))
+        if box:
+            pad.box()
         LOGGER.debug('Viewing curses pad.')
-        pad.refresh(0, 0, 1, 0, visible_height, visible_width)
+        pad.refresh(pminrow, pmincol, sminrow, smincol, smaxrow, smaxcol)
+
+    def popup(self, tui, background=None):
+        """Displays the buffer in a popup window.
+
+        Args:
+            tui (TUI): the TUI instance in which the popup is displayed.
+            background (int): the curses color pair number with which to highlight the window.
+        """
+        LOGGER.debug('Create popup window.')
+        popup_win = curses.newpad(self.height+2, tui.width)
+        # computing height offset
+        height_offset = tui.height - self.height-4
+        # view popup window
+        self.view(popup_win, height_offset+self.height+2, tui.width,
+                  sminrow=height_offset,
+                  background=background, box=True)
+
+        key = 0
+        # loop until quit by user
+        while key not in (27, ord('q')):  # exit on ESC
+            if key != 0:
+                # do not print warning on initial run (key == 0)
+                tui.prompt_print('To quit the popup window, press "q".')
+            key = tui.prompt.getch()
+
+        # close popup window
+        popup_win.clear()
+        tui.resize_handler(None, None)
+
+
+class InputBuffer:
+    """InputBuffer class used to replace `sys.stdin` and handle user interaction.
+
+    This buffer class implements a `readline` method which allows it to be used as a drop-in
+    replacement for `sys.stdin`. It is constructed with a reference to the replacement of
+    `sys.stdout` and the TUI instance.
+    """
+
+    def __init__(self, buffer, tui):
+        """Initializes the InputBuffer object.
+
+        Args:
+            buffer (TextBuffer): the current `sys.stdout` replacement.
+            tui (TUI): the current TUI instance.
+        """
+        self.buffer = buffer
+        self.tui = tui
+
+    def readline(self):
+        """Reads an input from the user mimicking `sys.stdin`."""
+        self.buffer.split()
+        LOGGER.debug('Create popup window.')
+        popup_win = curses.newpad(self.buffer.height+2, self.tui.width)
+        # view popup window
+        height_offset = self.tui.height - self.buffer.height-4
+        self.buffer.view(popup_win, height_offset+self.buffer.height+2, self.tui.width,
+                         sminrow=height_offset, box=True)
+
+        user_input = self.tui.prompt_handler(None, symbol="> ")
+
+        # close popup window
+        popup_win.clear()
+        self.buffer.clear()
+        self.tui.resize_handler(None, None)
+
+        return user_input
