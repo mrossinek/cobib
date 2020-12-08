@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - support for multiple associated files (#42,!19)
 - interactive menu when opening an entry with multiple associated files (!19)
 
+### Deprecated
+- The `--force` argument to the `init` command has been deprecated. I don't think there is any
+  benefit to providing the user the option to nuke their database file from the CLI. Instead,
+  they can simply edit the file manually.
+
 ### Fixed
 - always store years as strings to be compatible with bibtexparser
 - handle invalid arXiv or DOI IDs gracefully (#57)

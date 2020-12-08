@@ -77,6 +77,7 @@ def test_init_safe():
     os.remove('/tmp/cobib_test_config.ini')
 
 
+# DEPRECATD: to be removed in v2.6
 def test_init_force():
     """Test init can be forced when database file exists."""
     # use temporary config
@@ -88,9 +89,10 @@ def test_init_force():
     with open('/tmp/cobib_test_database.yaml', 'w') as file:
         file.write('test')
     # try running init
-    commands.InitCommand().execute(['-f'])
-    # check init was forced and database file was overwritten
-    assert os.stat('/tmp/cobib_test_database.yaml').st_size == 0
+    with pytest.deprecated_call():
+        commands.InitCommand().execute(['-f'])
+        # check init was forced and database file was overwritten
+        assert os.stat('/tmp/cobib_test_database.yaml').st_size == 0
     # clean up file system
     os.remove('/tmp/cobib_test_database.yaml')
     os.remove('/tmp/cobib_test_config.ini')
