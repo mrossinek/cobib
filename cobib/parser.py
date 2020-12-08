@@ -321,9 +321,21 @@ class Entry:
         Returns:
             An OrderedDict containing the bibliographic data of the provided DOI.
         """
-        assert re.match(DOI_REGEX, doi)
+        try:
+            assert re.match(DOI_REGEX, doi)
+        except AssertionError:
+            msg = f"'{doi}' is not a valid DOI."
+            LOGGER.warning(msg)
+            print(msg, file=sys.stderr)
+            return {}
         LOGGER.info('Gathering BibTex data for DOI: %s.', doi)
-        page = requests.get(DOI_URL+doi, headers=DOI_HEADER, timeout=5)
+        try:
+            page = requests.get(DOI_URL+doi, headers=DOI_HEADER, timeout=10)
+        except requests.exceptions.ReadTimeout as exc:
+            msg = 'The DOI API timed out: ' + str(exc)
+            LOGGER.warning(msg)
+            print(msg, file=sys.stderr)
+            return {}
         return Entry.from_bibtex(page.text, string=True)
 
     @staticmethod
@@ -339,6 +351,12 @@ class Entry:
         LOGGER.info('Gathering BibTex data for arXiv ID: %s.', arxiv)
         page = requests.get(ARXIV_URL+arxiv)
         xml = BeautifulSoup(page.text, features='html.parser')
+        if xml.feed.entry.title.contents[0] == 'Error':
+            msg = 'The arXiv API returned the following error: ' + \
+                  xml.feed.entry.summary.contents[0]
+            LOGGER.warning(msg)
+            print(msg, file=sys.stderr)
+            return {}
         entry = {}
         entry['archivePrefix'] = 'arXiv'
         for key in xml.feed.entry.findChildren(recursive=False):

@@ -3,7 +3,6 @@
 from os import path
 from pathlib import Path
 import pytest
-from requests.exceptions import ReadTimeout
 from cobib import parser
 from cobib.config import CONFIG
 
@@ -195,12 +194,20 @@ def test_parser_from_doi(month_type):
     # brackets in the escaped special characters of the author field. Thus, we correct for this
     # inconsistency manually before asserting the equality.
     reference['author'] = reference['author'].replace("'a", "'{a}")
-    try:
-        entries = parser.Entry.from_doi('10.1021/acs.chemrev.8b00803')
-    except ReadTimeout:
+    entries = parser.Entry.from_doi('10.1021/acs.chemrev.8b00803')
+    if entries == {}:
         pytest.skip("The requests library experienced a ReadTimeout!")
     entry = list(entries.values())[0]
     assert entry.data == reference
+
+
+def test_parser_from_doi_invalid():
+    """Test parsing an invalid DOI."""
+    root = path.abspath(path.dirname(__file__))
+    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    entries = parser.Entry.from_doi('1812.09976')
+    assert not entries
+    assert entries == {}
 
 
 def test_parser_from_isbn():
@@ -239,6 +246,16 @@ def test_parser_from_arxiv():
     assert entry.data['author'] == reference['author']
     assert entry.data['title'] == reference['title']
     assert entry.data['year'] == '2018'
+
+
+# regression test for https://gitlab.com/mrossinek/cobib/-/issues/57
+def test_parser_from_arxiv_invalid():
+    """Test parsing an invalid arXiv ID."""
+    root = path.abspath(path.dirname(__file__))
+    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    entries = parser.Entry.from_arxiv('10.1021/acs.chemrev.8b00803')
+    assert not entries
+    assert entries == {}
 
 
 @pytest.mark.parametrize('month_type', ['int', 'str'])

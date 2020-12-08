@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - always store years as strings to be compatible with bibtexparser
+- handle invalid arXiv or DOI IDs gracefully (#57)
 
 
 ## [2.4.1] - 2020-11-01
