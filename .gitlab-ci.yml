@@ -43,4 +43,4 @@ spell:
 
 test:
     script:
-        - python -m pytest test
+        - python -m pytest --verbose test
