@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [2.5.0] - 2020-12-08
+
+Pypi: https://pypi.org/project/cobib/2.5.0/
+
 ### Added
 - support for multiple associated files (#42,!19)
 - interactive menu when opening an entry with multiple associated files (!19)
@@ -322,7 +327,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.4.1...master
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.5.0...master
+[2.5.0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.5.0
 [2.4.1]: https://gitlab.com/mrossinek/cobib/-/tags/v2.4.1
 [2.4.0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.4.0
 [2.3.4]: https://gitlab.com/mrossinek/cobib/-/tags/v2.3.4

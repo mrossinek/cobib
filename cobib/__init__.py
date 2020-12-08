@@ -2,7 +2,7 @@
 import os
 import subprocess
 
-__version__ = '2.4.1'
+__version__ = '2.5.0'
 
 if os.path.exists(os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/.git'):
     # if installed from source, append HEAD commit SHA to version info as metadata
