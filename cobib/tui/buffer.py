@@ -74,11 +74,12 @@ class TextBuffer:
                 self.width = max(self.width, len(string))
         self.height = len(self.lines)
 
-    def wrap(self, width):
+    def wrap(self, width, label_column=True):
         """Wrap text in buffer to given width.
 
         Args:
             width (int): maximum text width for each line in the buffer.
+            label_column (bool, optional): whether to determine a label column width.
         """
         copy = self.lines.copy()
         self.lines = []
@@ -95,17 +96,21 @@ class TextBuffer:
                 self.width = max(self.width, len(self.lines[-1]))
         else:
             LOGGER.debug('Wrapping text buffer.')
-            # first, determine width of label column
-            label_len = 0
-            for line in copy:
-                label = line.split('  ')[0]
-                label_len = max(len(label)+1, label_len)
-                if label_len > width:
-                    LOGGER.debug('Label column width would exceed actual width. Continuing without '
-                                 'a label column.')
-                    label_len = 1
-                    break
-            LOGGER.debug('Label column width determined to be %d', label_len)
+            if label_column:
+                # first, determine width of label column
+                label_len = 0
+                for line in copy:
+                    label = line.split('  ')[0]
+                    label_len = max(len(label)+1, label_len)
+                    if label_len > width:
+                        LOGGER.debug('Label column width would exceed actual width. Continuing'
+                                     'without a label column.')
+                        label_len = 1
+                        break
+                LOGGER.debug('Label column width determined to be %d', label_len)
+            else:
+                label_len = 2
+                LOGGER.debug('Usig default label column width %d', label_len)
             for line in copy:
                 # then wrap lines with subsequent indents matched to first column width
                 for string in textwrap.wrap(line, width=width-1,
@@ -216,6 +221,8 @@ class TextBuffer:
         popup_win = curses.newpad(self.height+2, tui.width)
         # computing height offset
         height_offset = tui.height - self.height-4
+        # wrap buffer prior to viewing
+        self.wrap(tui.width, label_column=False)
         # view popup window
         self.view(popup_win, height_offset+self.height+2, tui.width,
                   sminrow=height_offset,
@@ -259,6 +266,9 @@ class InputBuffer:
         popup_win = curses.newpad(self.buffer.height+2, self.tui.width)
         # view popup window
         height_offset = self.tui.height - self.buffer.height-4
+        # wrap buffer prior to viewing
+        self.buffer.wrap(self.tui.width, label_column=False)
+        # view buffer
         self.buffer.view(popup_win, height_offset+self.buffer.height+2, self.tui.width,
                          sminrow=height_offset, box=True)
 
