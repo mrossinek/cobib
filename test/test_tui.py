@@ -57,9 +57,9 @@ def assert_list_view(screen, current, expected):
 
 def assert_help_screen(screen):
     """Asserts the contents of the Help screen."""
-    assert "CoBib TUI Help" in screen.display[2]
+    assert "CoBib TUI Help" in screen.display[6]
     for cmd, desc in TUI.HELP_DICT.items():
-        assert any("{:<8} {}".format(cmd+':', desc) in line for line in screen.display[4:21])
+        assert any("{:<8} {}".format(cmd+':', desc) in line for line in screen.display[8:25])
 
 
 def assert_no_help_window_artefacts(screen):

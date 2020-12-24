@@ -344,25 +344,20 @@ class TUI:
         """
         LOGGER.debug('Help command triggered.')
         # sorted commands to place in help window
-        cmds = ["Quit", "Help", "", "Show", "Open", "Wrap", "", "Add", "Edit", "Delete", "",
-                "Search", "Filter", "Sort", "Select", "", "Export"]
+        cmds = ["Quit", "Help", "Show", "Open", "Wrap", "Add", "Edit", "Delete",
+                "Search", "Filter", "Sort", "Select", "Export"]
         # populate text buffer with help text
         help_text = TextBuffer()
         LOGGER.debug('Generating help text.')
         for cmd in cmds:
-            if cmd:
-                key = ' '
-                for key, command in TUI.KEYDICT.items():
-                    if cmd == command:
-                        # find mapped key
-                        key = 'ENTER' if key in (10, 13) else chr(key)
-                        break
-                # write: [key] Command: Description
-                help_text.write("{:^8} {:<8} {}".format('['+key+']', cmd+':', TUI.HELP_DICT[cmd]))
-            else:
-                # add empty line
-                help_text.lines.append('')
-                help_text.height += 1
+            key = ' '
+            for key, command in TUI.KEYDICT.items():
+                if cmd == command:
+                    # find mapped key
+                    key = 'ENTER' if key in (10, 13) else chr(key)
+                    break
+            # write: [key] Command: Description
+            help_text.write("{:^8} {:<8} {}".format('['+key+']', cmd+':', TUI.HELP_DICT[cmd]))
         # add header section
         help_text.lines.insert(0, "{0:^{1}}".format("CoBib TUI Help", help_text.width))
         help_text.lines.insert(1, "{:^8} {:<8} {}".format('Key', 'Command', 'Description'))
