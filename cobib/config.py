@@ -23,6 +23,7 @@ ANSI_COLORS = [
 DEFAULTS = {
     'DATABASE': {
         'file': os.path.expanduser('~/.local/share/cobib/literature.yaml'),
+        'git': False,
         'open': 'xdg-open' if sys.platform.lower() == 'linux' else 'open',
         'grep': 'grep',
         'search_ignore_case': False,
@@ -112,6 +113,8 @@ class Config:
                      "Missing DATABASE section.")
         self._assert(isinstance(self.config.get('DATABASE', {}).get('file', None), str),
                      "DATABASE/file should be a string.")
+        self._assert(isinstance(self.config.get('DATABASE', {}).getboolean('git', None), bool),
+                     "DATABASE/git should be a boolean.")
         self._assert(isinstance(self.config.get('DATABASE', {}).get('open', None), str),
                      "DATABASE/open should be a string.")
         self._assert(isinstance(self.config.get('DATABASE', {}).get('grep', None), str),

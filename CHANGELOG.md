@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Git integration (#44, !20):
+    - will automatically track any changes done to the database file with git
+    - must be enabled by setting the `DATABASE/git` option to `True` **and** running `cobib init --git`
+    - Note, that you must have at least set a `name` and `email` in the git config!
+
 ### Fixed
 - gracefully handle multiple terminal sizing issues with regards to popups (#58)
 
