@@ -149,6 +149,8 @@ class TextBuffer:
         # first clear pad
         LOGGER.debug('Clearing curses pad.')
         pad.erase()
+        LOGGER.debug('Pad view parameters:')
+        LOGGER.debug((pminrow, pmincol, sminrow, smincol, smaxrow, smaxcol))
         pad.refresh(pminrow, pmincol, sminrow, smincol, smaxrow, smaxcol)
         # then resize
         LOGGER.debug('Adjusting pad size.')
@@ -224,7 +226,7 @@ class TextBuffer:
         # wrap buffer prior to viewing
         self.wrap(tui.width, label_column=False)
         # view popup window
-        self.view(popup_win, height_offset+self.height+2, tui.width,
+        self.view(popup_win, min(height_offset+self.height+2, tui.height-1), tui.width,
                   sminrow=height_offset,
                   background=background, box=True)
 

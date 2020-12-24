@@ -233,6 +233,8 @@ class TUI:
                 msg = 'Do you really want to quit CoBib? [y/n] '
                 curses.curs_set(1)
                 self.prompt.clear()
+                if len(msg) >= self.prompt.getmaxyx()[1] - 2:
+                    self.prompt.resize(1, len(msg) + 2)
                 self.prompt.insstr(0, 0, msg)
                 self.prompt.move(0, len(msg))
                 self.prompt.refresh(0, 0, self.height-1, 0, self.height, self.width-1)
