@@ -53,6 +53,11 @@ Start by initializing the database with
 ```
 cobib init
 ```
+If you would like CoBib to track your database with git, you should use
+```
+cobib init --git
+```
+and enable the `DATABASE/git` option (see also [Config](#Config)).
 Afterwards you can simply run `cobib` to start the TUI.
 If you prefer full control from the command line you can also run all commands
 directly via the CLI. Available commands are `add`, `list`, `edit`, `remove`,

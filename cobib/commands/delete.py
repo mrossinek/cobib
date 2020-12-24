@@ -44,6 +44,7 @@ class DeleteCommand(Command):
             lines = bib.readlines()
         entry_to_be_deleted = False
         current_label = None
+        deleted_entries = []
         buffer = []
         for line in lines:
             if any([line.startswith(label + ':') for label in largs.labels]):
@@ -54,6 +55,7 @@ class DeleteCommand(Command):
                 continue
             if entry_to_be_deleted and line.startswith('...'):
                 LOGGER.debug('Reached end of entry "%s".', current_label)
+                deleted_entries.append(current_label)
                 entry_to_be_deleted = False
                 continue
             if not entry_to_be_deleted:
@@ -61,6 +63,14 @@ class DeleteCommand(Command):
         with open(file, 'w') as bib:
             for line in buffer:
                 bib.write(line)
+
+        self.git(args=vars(largs))
+
+        for label in deleted_entries:
+            msg = f"'{label}' was removed from the database."
+            print(msg)
+            LOGGER.info(msg)
+
 
     @staticmethod
     def tui(tui):

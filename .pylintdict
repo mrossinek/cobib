@@ -51,6 +51,7 @@ subcommands
 sys
 tui
 unittest
+unittests
 viewport
 xdg
 yaml

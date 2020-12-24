@@ -21,7 +21,7 @@ def read_database(fresh=False):
     Args:
         fresh (bool, optional): Forcefully reloads the bibliographic data.
     """
-    if fresh:
+    if fresh and 'BIB_DATA' in CONFIG.config.keys():
         LOGGER.info('Update the bibliographic data in memory.')
         # delete data currently in memory
         del CONFIG.config['BIB_DATA']

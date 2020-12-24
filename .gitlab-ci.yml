@@ -43,4 +43,6 @@ spell:
 
 test:
     script:
+        - git config --global user.email "cobib@cobib.org"
+        - git config --global user.name "CoBib"
         - python -m pytest --verbose test
