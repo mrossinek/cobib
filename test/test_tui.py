@@ -55,11 +55,13 @@ def assert_list_view(screen, current, expected):
     assert screen.display[-1].strip() == ""
 
 
-def assert_help_screen(screen):
+def assert_help_screen(screen, offset=6, only_title=False):
     """Asserts the contents of the Help screen."""
-    assert "CoBib TUI Help" in screen.display[6]
-    for cmd, desc in TUI.HELP_DICT.items():
-        assert any("{:<8} {}".format(cmd+':', desc) in line for line in screen.display[8:25])
+    assert "CoBib TUI Help" in screen.display[offset]
+    if not only_title:
+        for cmd, desc in TUI.HELP_DICT.items():
+            assert any("{:<8} {}".format(cmd+':', desc) in line for line in
+                       screen.display[2+offset:19+offset])
 
 
 def assert_no_help_window_artefacts(screen):
@@ -396,8 +398,24 @@ def test_tui_open_menu():
         DeleteCommand().execute(['dummy_multi_file_entry'])
 
 
-def test_tui_resize(setup):
-    """Test TUI resize handling."""
+@pytest.mark.parametrize(['keys', 'assertion', 'assertion_kwargs'], [
+        ['', assert_list_view, {
+            'current': 1, 'expected': [
+                'dummy_entry_for_scroll_testing', 'knuthwebsite', 'latexcompanion', 'einstein'
+            ]}],
+        ['?', assert_help_screen, {'offset': 1, 'only_title': True}],
+    ])
+def test_tui_resize(setup, keys, assertion, assertion_kwargs):
+    """Test TUI resize handling.
+
+    Includes a regression test against #58 by opening the help popup.
+
+    Args:
+        setup: runs pytest fixture.
+        keys (str): keys to be send to the CoBib TUI.
+        assertion (Callable): function to run the assertions for the key to be tested.
+        assertion_kwargs (dict): additional keyword arguments for assertion function.
+    """
     # create pseudo-terminal
     pid, f_d = os.forkpty()
     if pid == 0:
@@ -405,10 +423,13 @@ def test_tui_resize(setup):
         curses.wrapper(TUI)
     else:
         # resize pseudo terminal
-        fcntl.ioctl(f_d, termios.TIOCSWINSZ, array('h', [10, 120, 1200, 220]))
+        fcntl.ioctl(f_d, termios.TIOCSWINSZ, array('h', [10, 45, 1200, 220]))
         # parent process sets up virtual screen of identical size
-        screen = pyte.Screen(120, 10)
+        screen = pyte.Screen(45, 10)
         stream = pyte.ByteStream(screen)
+        # send keys char-wise to TUI
+        for key in keys:
+            os.write(f_d, str.encode(key))
         # scrape pseudo-terminal's screen
         while True:
             try:
@@ -427,11 +448,7 @@ def test_tui_resize(setup):
                     break
         for line in screen.display:
             print(line)
-        assert_list_view(screen, 1, [
-            'dummy_entry_for_scroll_testing', 'knuthwebsite', 'latexcompanion', 'einstein'
-        ])
-        # the terminal should be wide enough to contain the full information text
-        assert screen.display[-2].strip() == TUI.infoline()
+        assertion(screen, **assertion_kwargs)
 
 
 @pytest.mark.parametrize(['keys', 'assertion', 'assertion_kwargs'], [
