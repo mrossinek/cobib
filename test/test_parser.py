@@ -171,10 +171,10 @@ def test_parser_from_yaml_as_file(month_type):
     reference = EXAMPLE_ENTRY_DICT.copy()
     if month_type == 'str':
         reference['month'] = 'aug'
-    with open(EXAMPLE_YAML_FILE, 'r') as yaml_file:
-        entries = parser.Entry.from_yaml(yaml_file)
-        entry = list(entries.values())[0]
-        assert entry.data == reference
+    # with open(EXAMPLE_YAML_FILE, 'r') as yaml_file:
+    entries = parser.Entry.from_yaml(EXAMPLE_YAML_FILE)
+    entry = list(entries.values())[0]
+    assert entry.data == reference
 
 
 @pytest.mark.parametrize('month_type', ['int', 'str'])

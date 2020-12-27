@@ -10,8 +10,7 @@ import sys
 
 from bs4 import BeautifulSoup
 from pylatexenc.latexencode import UnicodeToLatexEncoder
-from ruamel.yaml import YAML
-from ruamel.yaml.compat import StringIO
+from ruamel import yaml
 import bibtexparser
 import requests
 
@@ -48,7 +47,7 @@ class Entry:
 
     Handles everything ranging from field manipulation over format conversion to filter matching.
     """
-    class YamlDumper(YAML):
+    class YamlDumper(yaml.YAML):
         """Wrapper class for YAML dumping."""
 
         # pylint: disable=arguments-differ,inconsistent-return-statements
@@ -57,8 +56,8 @@ class Entry:
             inefficient = False
             if stream is None:
                 inefficient = True
-                stream = StringIO()
-            YAML.dump(self, data, stream, **kw)
+                stream = yaml.compat.StringIO()
+            yaml.YAML.dump(self, data, stream, **kw)
             if inefficient:
                 return stream.getvalue()
 
@@ -262,11 +261,11 @@ class Entry:
 
     def to_yaml(self):
         """Returns the entry in YAML format."""
-        yaml = Entry.YamlDumper()
-        yaml.explicit_start = True
-        yaml.explicit_end = True
+        yml = Entry.YamlDumper()
+        yml.explicit_start = True
+        yml.explicit_end = True
         LOGGER.debug('Converting entry %s to YAML format.', self.label)
-        return yaml.dump({self._label: dict(sorted(self.data.items()))})
+        return yml.dump({self._label: dict(sorted(self.data.items()))})
 
     @staticmethod
     def from_bibtex(file, string=False):
@@ -303,12 +302,12 @@ class Entry:
         Returns:
             An OrderedDict containing the bibliography as per the provided YAML file.
         """
-        yaml = YAML()
         bib = OrderedDict()
         LOGGER.debug('Loading YAML data from file: %s.', file)
-        for entry in yaml.load_all(file):
-            for label, data in entry.items():
-                bib[label] = Entry(label, data)
+        with open(file, 'r') as database:
+            for entry in yaml.safe_load_all(database):
+                for label, data in entry.items():
+                    bib[label] = Entry(label, data)
         return bib
 
     @staticmethod
