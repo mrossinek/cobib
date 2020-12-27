@@ -85,7 +85,7 @@ class DeleteCommand(Command):
             label, _ = tui.get_current_label()
             labels = [label]
         # delete selected entry
-        DeleteCommand().execute(labels)
+        tui.execute_command(['delete'] + labels, skip_prompt=True)
         # update database list
         LOGGER.debug('Updating list after Delete command.')
         read_database(fresh=True)
