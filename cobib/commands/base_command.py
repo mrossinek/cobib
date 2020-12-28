@@ -62,7 +62,6 @@ class Command(ABC):
         if args:
             msg += '\n\n'
             msg += json.dumps(args, indent=2, default=str)
-            print(msg)
 
         commands = [
             f'cd {root}',
