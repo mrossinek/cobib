@@ -50,7 +50,7 @@ class TextBuffer:
         if isinstance(lines, int):
             lines = [lines]
         for idx in lines:
-            self.lines[idx] = self.lines[idx].replace(old_str, new_str)
+            self.lines[idx] = re.sub(old_str, new_str, self.lines[idx])
 
     def flush(self):
         """Compatibility function."""

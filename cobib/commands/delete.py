@@ -71,7 +71,6 @@ class DeleteCommand(Command):
             print(msg)
             LOGGER.info(msg)
 
-
     @staticmethod
     def tui(tui):
         """See base class."""
@@ -82,14 +81,14 @@ class DeleteCommand(Command):
             tui.selection.clear()
         else:
             # get current label
-            label, _ = tui.get_current_label()
+            label, _ = tui.viewport.get_current_label()
             labels = [label]
         # delete selected entry
         tui.execute_command(['delete'] + labels, skip_prompt=True)
         # update database list
         LOGGER.debug('Updating list after Delete command.')
         read_database(fresh=True)
-        tui.update_list()
+        tui.viewport.update_list()
         # if cursor line is below buffer height, move it one line back up
-        if tui.current_line >= tui.buffer.height:
-            tui.current_line -= 1
+        if tui.STATE.current_line >= tui.viewport.buffer.height:
+            tui.STATE.current_line -= 1
