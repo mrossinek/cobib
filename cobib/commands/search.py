@@ -88,36 +88,40 @@ class SearchCommand(Command):
     def tui(tui):
         """See base class."""
         LOGGER.debug('Search command triggered from TUI.')
-        tui.buffer.clear()
+        tui.viewport.clear()
         # handle input via prompt
-        command, results = tui.execute_command('search', out=tui.buffer)
-        if tui.buffer.lines and results is not None:
+        command, results = tui.execute_command('search', out=tui.viewport.buffer)
+        if tui.viewport.buffer.lines and results is not None:
             hits, labels = results
-            tui.list_mode, _ = tui.viewport.getyx()
-            tui.buffer.split()
+            tui.STATE.mode = 'search'
+            cur_y, _ = tui.viewport.pad.getyx()
+            tui.STATE.previous_line = cur_y
+            tui.viewport.buffer.split()
             LOGGER.debug('Applying selection highlighting in search results.')
             for label in labels:
                 if label not in tui.selection:
                     continue
                 # we match the label including its 'search_label' highlight to ensure that we really
                 # only match this specific occurrence of whatever the label may be
-                tui.buffer.replace(range(tui.buffer.height),
-                                   CONFIG.get_ansi_color('search_label') + label + '\x1b[0m',
-                                   CONFIG.get_ansi_color('search_label') +
-                                   CONFIG.get_ansi_color('selection') + label + '\x1b[0m\x1b[0m')
+                tui.viewport.buffer.replace(range(tui.viewport.buffer.height),
+                                            re.escape(CONFIG.get_ansi_color('search_label'))
+                                            + label + re.escape('\x1b[0m'),
+                                            CONFIG.get_ansi_color('search_label') +
+                                            CONFIG.get_ansi_color('selection')
+                                            + label + '\x1b[0m\x1b[0m')
             LOGGER.debug('Populating viewport with search results.')
-            tui.buffer.view(tui.viewport, tui.visible, tui.width-1, ansi_map=tui.ANSI_MAP)
+            tui.viewport.view(ansi_map=tui.ANSI_MAP)
             # reset current cursor position
             LOGGER.debug('Resetting cursor position to top.')
-            tui.top_line = 0
-            tui.current_line = 0
+            tui.STATE.top_line = 0
+            tui.STATE.current_line = 0
             # update top statusbar
-            tui.topstatus = "CoBib v{} - {} hit{}".format(__version__, hits,
-                                                          "s" if hits > 1 else "")
-            tui.statusbar(tui.topbar, tui.topstatus)
-            tui.inactive_commands = ['Add', 'Filter', 'Sort']
+            tui.STATE.topstatus = "CoBib v{} - {} hit{}".format(__version__, hits,
+                                                                "s" if hits > 1 else "")
+            tui.statusbar(tui.topbar, tui.STATE.topstatus)
+            tui.STATE.inactive_commands = ['Add', 'Filter', 'Sort']
         elif command[1:]:
             msg = f"No search hits for '{shlex.join(command[1:])}'!"
             LOGGER.info(msg)
             tui.prompt_print(msg)
-            tui.update_list()
+            tui.viewport.update_list()

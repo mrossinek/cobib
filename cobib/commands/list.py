@@ -110,51 +110,53 @@ class ListCommand(Command):
         """See base class."""
         LOGGER.debug('List command triggered from TUI.')
         LOGGER.debug('Clearing current buffer contents.')
-        tui.buffer.clear()
+        tui.viewport.clear()
         # update list prompt arguments
         if sort_mode:
             try:
-                sort_arg_idx = tui.list_args.index('-s')
-                LOGGER.debug('Removing previous sort argument: "%s"', tui.list_args[sort_arg_idx+1])
-                tui.list_args.pop(sort_arg_idx+1)
-                tui.list_args.pop(sort_arg_idx)
+                sort_arg_idx = tui.STATE.list_args.index('-s')
+                LOGGER.debug('Removing previous sort argument: "%s"',
+                             tui.STATE.list_args[sort_arg_idx+1])
+                tui.STATE.list_args.pop(sort_arg_idx+1)
+                tui.STATE.list_args.pop(sort_arg_idx)
             except ValueError:
                 pass
-            tui.list_args += ['-s']
+            tui.STATE.list_args += ['-s']
         # handle input via prompt
-        command, _ = tui.execute_command('list ' + ' '.join(tui.list_args), out=tui.buffer)
+        command, _ = tui.execute_command('list ' + ' '.join(tui.STATE.list_args),
+                                         out=tui.viewport.buffer)
         # after the command has been executed n the prompt handler, the `command` variable will
         # contain the contents of the prompt
         LOGGER.debug('Post-process ListCommand arguments for consistent prompt.')
         if command:
             # always ensure the 'reverse' and 'or' keyword arguments are consistent
-            if '-r' in command and '-r' not in tui.list_args:
+            if '-r' in command and '-r' not in tui.STATE.list_args:
                 LOGGER.debug('Adding "reverse" list argument.')
-                tui.list_args.insert(1, '-r')
-            elif '-r' not in command and '-r' in tui.list_args:
+                tui.STATE.list_args.insert(1, '-r')
+            elif '-r' not in command and '-r' in tui.STATE.list_args:
                 LOGGER.debug('Removing "reverse" list argument.')
-                tui.list_args.remove('-r')
-            if '-x' in command and '-x' not in tui.list_args:
+                tui.STATE.list_args.remove('-r')
+            if '-x' in command and '-x' not in tui.STATE.list_args:
                 LOGGER.debug('Adding "OR" list argument.')
-                tui.list_args.insert(1, '-x')
-            elif '-x' not in command and '-x' in tui.list_args:
+                tui.STATE.list_args.insert(1, '-x')
+            elif '-x' not in command and '-x' in tui.STATE.list_args:
                 LOGGER.debug('Removing "OR" list argument.')
-                tui.list_args.remove('-x')
+                tui.STATE.list_args.remove('-x')
 
             if sort_mode:
                 try:
                     sort_arg_idx = command.index('-s')
                     if sort_arg_idx+1 >= len(command):
                         raise ValueError
-                    tui.list_args += [command[sort_arg_idx+1]]
-                    LOGGER.debug('Using sort argument: "%s"', tui.list_args[-1])
+                    tui.STATE.list_args += [command[sort_arg_idx+1]]
+                    LOGGER.debug('Using sort argument: "%s"', tui.STATE.list_args[-1])
                 except ValueError:
-                    tui.list_args.remove('-s')
+                    tui.STATE.list_args.remove('-s')
             else:
-                # first, pop all filters from tui.list_args
+                # first, pop all filters from tui.STATE.list_args
                 indices_to_pop = []
                 # enumerate words in current list arguments
-                prev_args = list(enumerate(tui.list_args))
+                prev_args = list(enumerate(tui.STATE.list_args))
                 # iterate in reverse to ensure popping indices remain correct after popping a few
                 prev_args.reverse()
                 for idx, p_arg in prev_args:
@@ -162,21 +164,22 @@ class ListCommand(Command):
                         # matches a filter: current index is type and one larger is the key
                         LOGGER.debug(prev_args)
                         LOGGER.debug('Removing filter from prompt: "%s"',
-                                     ' '.join(tui.list_args[idx:idx+2]))
+                                     ' '.join(tui.STATE.list_args[idx:idx+2]))
                         indices_to_pop.extend([idx+1, idx])
                 for idx in indices_to_pop:
-                    tui.list_args.pop(idx)
+                    tui.STATE.list_args.pop(idx)
                 # then, add all new filter (type, key) pairs
                 for idx, n_arg in enumerate(command):
                     if n_arg[:2] in ('++', '--'):
                         LOGGER.debug('Adding filter to prompt: "%s"', ' '.join(command[idx:idx+2]))
-                        tui.list_args.extend(command[idx:idx+2])
+                        tui.STATE.list_args.extend(command[idx:idx+2])
                 # reset current line position to top
-                tui.current_line = 0
+                tui.STATE.current_line = 0
         # populate buffer with the list
         LOGGER.debug('Populating buffer with ListCommand results.')
-        tui.list_mode = -1
-        tui.inactive_commands = []
-        tui.buffer.view(tui.viewport, tui.visible, tui.width-1)
+        tui.STATE.mode = 'list'
+        tui.STATE.previous_line = -1
+        tui.STATE.inactive_commands = []
+        tui.viewport.view()
         # update database list
-        tui.update_list()
+        tui.viewport.update_list()

@@ -129,4 +129,4 @@ class AddCommand(Command):
         # update database list
         LOGGER.debug('Updating list after Add command.')
         read_database(fresh=True)
-        tui.update_list()
+        tui.viewport.update_list()

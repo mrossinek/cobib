@@ -145,6 +145,6 @@ class OpenCommand(Command):
             labels = list(tui.selection)
         else:
             # get current label
-            label, _ = tui.get_current_label()
+            label, _ = tui.viewport.get_current_label()
             labels = [label]
         tui.execute_command(['open'] + labels, skip_prompt=True)

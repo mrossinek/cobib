@@ -111,7 +111,7 @@ class EditCommand(Command):
         """See base class."""
         LOGGER.debug('Edit command triggered from TUI.')
         # get current label
-        label, _ = tui.get_current_label()
+        label, _ = tui.viewport.get_current_label()
         # populate buffer with entry data
         EditCommand().execute([label])
         # update bibliography data
@@ -120,4 +120,4 @@ class EditCommand(Command):
         LOGGER.debug('Manually redrawing TUI to clear out any editor artefacts.')
         tui.resize_handler(None, None)
         # update database list
-        tui.update_list()
+        tui.viewport.update_list()

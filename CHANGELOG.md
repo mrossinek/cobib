@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - must be enabled by setting the `DATABASE/git` option to `True` **and** running `cobib init --git`
     - Note, that you must have at least set a `name` and `email` in the git config!
 
+### Changed
+- the viewport history is preserved correctly (#21,!22)
+    - this allows performing a search while showing an entry and reverts back to the correct view after quitting the search
+    - the changes mainly involved refactoring of the `cobib/tui` module
+
 ### Fixed
 - gracefully handle multiple terminal sizing issues with regards to popups (#58)
 - catch messages on `stdout` during deletion from TUI

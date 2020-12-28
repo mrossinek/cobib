@@ -51,24 +51,26 @@ class ShowCommand(Command):
         """See base class."""
         LOGGER.debug('Show command triggered from TUI.')
         # get current label
-        label, cur_y = tui.get_current_label()
+        label, cur_y = tui.viewport.get_current_label()
         # populate buffer with entry data
         LOGGER.debug('Clearing current buffer contents.')
-        tui.buffer.clear()
-        ShowCommand().execute([label], out=tui.buffer)
-        tui.buffer.split()
+        tui.viewport.clear()
+        ShowCommand().execute([label], out=tui.viewport.buffer)
+        tui.viewport.buffer.split()
         if label in tui.selection:
             LOGGER.debug('Current entry is selected. Applying highlighting.')
-            tui.buffer.replace(0, label, CONFIG.get_ansi_color('selection') + label + '\x1b[0m')
+            tui.viewport.buffer.replace(0, label,
+                                        CONFIG.get_ansi_color('selection') + label + '\x1b[0m')
         LOGGER.debug('Populating buffer with ShowCommand result.')
-        tui.buffer.view(tui.viewport, tui.visible, tui.width-1, ansi_map=tui.ANSI_MAP)
+        tui.viewport.view(ansi_map=tui.ANSI_MAP)
 
         # reset current cursor position
-        tui.top_line = 0
-        tui.current_line = 0
+        tui.STATE.top_line = 0
+        tui.STATE.current_line = 0
         # update top statusbar
-        tui.topstatus = "CoBib v{} - {}".format(__version__, label)
-        tui.statusbar(tui.topbar, tui.topstatus)
+        tui.STATE.topstatus = "CoBib v{} - {}".format(__version__, label)
+        tui.statusbar(tui.topbar, tui.STATE.topstatus)
         # enter show menu
-        tui.list_mode = cur_y
-        tui.inactive_commands = ['Add', 'Filter', 'Search', 'Show', 'Sort']
+        tui.STATE.mode = 'show'
+        tui.STATE.previous = cur_y
+        tui.STATE.inactive_commands = ['Add', 'Filter', 'Show', 'Sort']
