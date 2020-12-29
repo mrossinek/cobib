@@ -1,10 +1,11 @@
-.TH COBIB 1 2020-12-08 v2.5.0
+.TH COBIB 1 2020-12-29 v2.5.0
 .SH NAME
 CoBib \- Console-based Bibliography Management
 .SH SYNOPSIS
 .B cobib
-[\fB\-v\fR|\fB\-\-version\fR]
+[\fB\-\-version\fR]
 [\fB\-h\fR|\fB\-\-help\fR]
+[\fB\-v\fR|\fB\-\-verbose\fR]
 [\fB\-c\fR|\fB\-\-config\fR \fI<path>\fR]
 \fB<subcommand>\fR [\fI<args>\fR]
 .SH DESCRIPTION
@@ -19,11 +20,18 @@ automatically started when no other subcommand is found (more information is
 provided in that section).
 .SH OPTIONS
 .TP
+.BR \-\-version
+Prints the version information and exits.
+.TP
 .BR \-h ", " \-\-help
 Prints a help message and exits.
 .TP
-.BR \-v ", " \-\-version
-Prints the version information and exits.
+.BR \-v ", " \-\-verbose
+Increases the verbosity level of the logging. This option may be provided up to
+two times (increasing the logging to \fIinfo\fR and \fIdebug\fR, respectively).
+By default, the verbosity of CoBib's CLI is set to \fIwarning\fR but if the TUI
+is started, logging will be increased to \fIinfo\fR and redirected to
+\fI/tmp/cobib.log\fR.
 .TP
 .BR \-c ", " \-\-config " " \fI<path>\fR
 Run with an alternate configuration file at \fI<path>\fR.
@@ -220,21 +228,23 @@ Opens a small window providing help for the key bindings.
 Populates the viewing buffer with a BibLaTex view of the selected entry.
 .TP
 .BR o " " open
-Respects the \fIselection\fR.
+Opens the current (or \fIselected\fR) label(s).
 .TP
 .BR w " " wrap
-Toggles between \fIlong\fR (default) and \fIshort\fR (wrapped) list mode.
+Toggles wrapping of the viewing buffer.
 .TP
 .BR a " " add
 Opens a command prompt which allows running the \fBadd\fR command as if outside
 of the TUI.
 .TP
 .BR e " " edit
+Opens the current label in an external editor.
 .TP
 .BR d " " delete
-Respects the \fIselection\fR.
+Deletes the current (or \fIselected\fR) label(s).
 .TP
 .BR / " " search
+Opens a search prompt and views the results in the viewing buffer.
 .TP
 .BR f " " filter
 Allows adding filters to the list view.
@@ -243,6 +253,7 @@ Allows adding filters to the list view.
 Allows sorting the list view.
 .TP
 .BR v " " select
+Adds the current label to the \fIselection\fR.
 .TP
 .BR x " " export
 Opens a command prompt which allows running the \fBexport\fR command as if
