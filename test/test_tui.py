@@ -147,10 +147,9 @@ def assert_editor(screen):
             assert source_line.strip() in screen_line.strip()
 
 
-def assert_export(screen, contents):
-    """Asserts the export prompt."""
+def assert_prompt(screen, contents):
+    """Asserts the prompt line contents."""
     assert screen.display[-1].strip() == contents
-    # actual command execution is tested by the test_commands.test_export unittest
 
 
 def assert_search_view(screen, label, search, selected):
@@ -206,8 +205,9 @@ def assert_select_show_view(screen, current):
         ['a-b ./test/example_entry.bib\n', assert_add, {}],
         ['d', assert_delete, {}],
         ['Ge', assert_editor, {}],
-        ['x', assert_export, {'contents': ":export"}],
-        ['x' + 100 * 'j', assert_export, {'contents': 'j' * 79}],  # regression-test on #48
+        ['x', assert_prompt, {'contents': ":export"}],
+        [':', assert_prompt, {'contents': ":"}],
+        [':' + 100 * 'j', assert_prompt, {'contents': 'j' * 79}],  # regression-test on #48
         ['f++ID einstein\n', assert_list_view, {
             'current': 1, 'expected': ['einstein']}],
         ['f--ID einstein\n', assert_list_view, {
