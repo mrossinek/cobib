@@ -35,6 +35,9 @@ is started, logging will be increased to \fIinfo\fR and redirected to
 .TP
 .BR \-c ", " \-\-config " " \fI<path>\fR
 Run with an alternate configuration file at \fI<path>\fR.
+.TP
+.BR \-l ", " \-\-log " " \fI<path>\fR
+Run with an alternate log file at \fI<path>\fR.
 .SH SUBCOMMANDS
 All subcommands listed below also provide the \fI\-h\fR and \fI\-\-help\fR
 options which provide additional information for each subcommand.
@@ -77,6 +80,11 @@ Adds the bibliography data from the \fIBibLaTex\fR file at the provided path.
 Adds an entry specified by the \fIDOI\fR.
 .PP
 .in +8n
+.BR \-i ", " \-\-isbn " " \fI<doi>\fR
+.in +4n
+Adds an entry specified by the \fIISBN\fR.
+.PP
+.in +8n
 .BR \-f ", " \-\-file " " \fI<path>\fR
 .in +4n
 Associate the newly added entry with the \fIfile\fR at the provided path.
@@ -93,6 +101,11 @@ Deletes the entry with the given \fIlabel\fR.
 .B cobib edit \fI<label>\fR
 Opens the entry with the given \fIlabel\fR in the \fI$EDITOR\fR.
 The entry is copied verbatim in \fIYAML\fR format from and to the database file.
+.PP
+.in +8n
+.BR \-a ", " \-\-add " " \fI<path>\fR
+.in +4n
+Allows editing a non-existing label to manually add it to the database.
 .TP
 .B cobib undo \fI<args>\fR
 If you enabled the git-integration of CoBib (available since v2.6.0) you can
