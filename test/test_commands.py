@@ -318,6 +318,58 @@ def test_edit():
     pytest.skip("There is currently no meaningful way of testing this.")
 
 
+def test_undo(database_setup, caplog):
+    """Test undo command."""
+    git = database_setup
+    if not git:
+        commands.UndoCommand().execute([])
+        for record in caplog.records:
+            if record.name == 'cobib.commands.undo':
+                assert record.levelname == 'ERROR'
+                assert 'git-tracking' in record.msg
+    else:
+        commands.AddCommand().execute(['-b', './test/example_literature.bib'])
+        commands.UndoCommand().execute([])
+        assert os.stat('/tmp/cobib_test/database.yaml').st_size == 0
+        # get last commit message
+        proc = subprocess.Popen(['git', '-C', '/tmp/cobib_test', 'show',
+                                 '--format=format:%B', '--no-patch', 'HEAD'],
+                                stdout=subprocess.PIPE)
+        message, _ = proc.communicate()
+        # decode it
+        message = message.decode('utf-8').split('\n')
+        # assert subject line
+        assert 'Undo' in message[0]
+
+
+def test_redo(database_setup, caplog):
+    """Test redo command."""
+    git = database_setup
+    if not git:
+        commands.RedoCommand().execute([])
+        for record in caplog.records:
+            if record.name == 'cobib.commands.redo':
+                assert record.levelname == 'ERROR'
+                assert 'git-tracking' in record.msg
+    else:
+        commands.AddCommand().execute(['-b', './test/example_literature.bib'])
+        commands.UndoCommand().execute([])
+        commands.RedoCommand().execute([])
+        with open('/tmp/cobib_test/database.yaml', 'r') as file:
+            with open('./test/example_literature.yaml', 'r') as expected:
+                for line, truth in zip_longest(file, expected):
+                    assert line == truth
+        # get last commit message
+        proc = subprocess.Popen(['git', '-C', '/tmp/cobib_test', 'show',
+                                 '--format=format:%B', '--no-patch', 'HEAD'],
+                                stdout=subprocess.PIPE)
+        message, _ = proc.communicate()
+        # decode it
+        message = message.decode('utf-8').split('\n')
+        # assert subject line
+        assert 'Redo' in message[0]
+
+
 def test_export(setup):
     """Test export command.
 

@@ -55,10 +55,12 @@ def assert_list_view(screen, current, expected):
     assert screen.display[-1].strip() == ""
 
 
-def assert_help_screen(screen, offset=6, only_title=False):
+def assert_help_screen(screen, only_title=False):
     """Asserts the contents of the Help screen."""
-    assert "CoBib TUI Help" in screen.display[offset]
+    header_check = ["CoBib TUI Help" in line for line in screen.display]
+    assert any(header_check)
     if not only_title:
+        offset = header_check.index(True)
         for cmd, desc in TUI.HELP_DICT.items():
             assert any("{:<8} {}".format(cmd+':', desc) in line for line in
                        screen.display[2+offset:19+offset])
@@ -403,7 +405,7 @@ def test_tui_open_menu():
             'current': 1, 'expected': [
                 'dummy_entry_for_scroll_testing', 'knuthwebsite', 'latexcompanion', 'einstein'
             ]}],
-        ['?', assert_help_screen, {'offset': 1, 'only_title': True}],
+        ['?', assert_help_screen, {'only_title': True}],
     ])
 def test_tui_resize(setup, keys, assertion, assertion_kwargs):
     """Test TUI resize handling.

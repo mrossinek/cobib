@@ -35,6 +35,7 @@ pytest
 readline
 runtime
 scrolloff
+sha
 signum
 smaxcol
 smaxrow

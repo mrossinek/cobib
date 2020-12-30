@@ -94,6 +94,23 @@ Deletes the entry with the given \fIlabel\fR.
 Opens the entry with the given \fIlabel\fR in the \fI$EDITOR\fR.
 The entry is copied verbatim in \fIYAML\fR format from and to the database file.
 .TP
+.B cobib undo \fI<args>\fR
+If you enabled the git-integration of CoBib (available since v2.6.0) you can
+undo the changes done to your database file by commands such as add, edit and
+delete. See also \fIDATABASE/git\fR in the \fBCONFIGURATION\fR section for more
+information.
+.PP
+.in +8n
+.BR \-f ", " \-\-force
+.in +4n
+Overwrites the check for an auto-committed change. Thus, the undo command will
+now undo the last commit with a message that does not start with "Undo".
+.TP
+.B cobib redo
+If you enabled the git-integration of CoBib (available since v2.6.0) you can
+reapply the last undone changes (see above). See also \fIDATABASE/git\fR in the
+\fBCONFIGURATION\fR section for more information.
+.TP
 .B cobib open \fI<label>\fR
 Opens any associated \fIfile\fR of the entry with the given \fIlabel\fR.
 If multiple files are associated with the entry, the user can choose which file(s) to open through
@@ -242,6 +259,14 @@ Opens the current label in an external editor.
 .TP
 .BR d " " delete
 Deletes the current (or \fIselected\fR) label(s).
+.TP
+.BR u " " undo
+Undoes the last auto-committed change to the database file.
+This requires the git-integration (since v2.6.0) to be enabled!
+.TP
+.BR r " " redo
+Reapplies the last undone change.
+This requires the git-integration (since v2.6.0) to be enabled!
 .TP
 .BR / " " search
 Opens a search prompt and views the results in the viewing buffer.

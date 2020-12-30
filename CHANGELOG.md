@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - will automatically track any changes done to the database file with git
     - must be enabled by setting the `DATABASE/git` option to `True` **and** running `cobib init --git`
     - Note, that you must have at least set a `name` and `email` in the git config!
+- Undo/Redo commands to operate on git history of the database (#59,!23)
+    - for obvious reasons these commands require the Git integration (see above) to be enabled
 
 ### Changed
 - the viewport history is preserved correctly (#21,!22)
