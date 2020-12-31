@@ -113,7 +113,7 @@ def test_init(init_setup, safe):
         # and assert that it is indeed a folder
         assert os.path.isdir('/tmp/cobib_test/.git')
         # assert the git commit message
-        assert_git_commit_message('init', {'git': True, 'force': False})
+        assert_git_commit_message('init', {'git': True})
     # clean up file system
     os.remove('/tmp/cobib_test/database.yaml')
 

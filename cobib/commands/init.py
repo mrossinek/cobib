@@ -4,7 +4,6 @@ import argparse
 import logging
 import os
 import sys
-import warnings
 
 from cobib.config import CONFIG
 from .base_command import ArgumentParser, Command
@@ -28,19 +27,12 @@ class InitCommand(Command):
         parser = ArgumentParser(prog="init", description="Init subcommand parser.")
         parser.add_argument('-g', '--git', action='store_true',
                             help="initialize git repository")
-        parser.add_argument('-f', '--force', action='store_true',
-                            help="DEPRECATED! This argument will be removed in v2.6")
 
         try:
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
             print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
             return
-
-        if largs.force:
-            msg = 'The "force" argument has been deprecated and is in the process of being removed.'
-            warnings.warn(msg, DeprecationWarning)
-            LOGGER.warning(msg)
 
         conf_database = CONFIG.config['DATABASE']
         file = os.path.realpath(os.path.expanduser(conf_database['file']))

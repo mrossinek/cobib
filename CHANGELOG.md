@@ -32,6 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - catch messages on `stdout` during deletion from TUI
 - added missing help strings to the TUI help menu
 
+### Removed
+- The `--force` argument to the `init` command has now been removed (after being deprecated in v2.5.0).
+
 
 ## [2.5.0] - 2020-12-08
 
