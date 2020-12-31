@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - the `Prompt` command inside of the TUI:
     - allows executing arbitrary CoBib CLI commands
     - the default key binding is `:`
+- the `Modify` command: (#60,!24)
+    - allows bulk modification of multiple entries in a `<field>:<value>` format
+    - for now, this will **always** overwrite the field with the new value!
+    - an extension to appending values is planned for a later release
+    - the set of entries to be modified can be specified just like with the `export` command through `list`-command filters or manual selection (by setting the `--selection` flag)
 
 ### Changed
 - the viewport history is preserved correctly (#21,!22)

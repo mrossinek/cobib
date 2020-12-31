@@ -5,6 +5,7 @@ SHA
 TUI
 TextBuffer
 TextIOWrapper
+argparse
 args
 arxiv
 attr

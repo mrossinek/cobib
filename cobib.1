@@ -107,6 +107,33 @@ The entry is copied verbatim in \fIYAML\fR format from and to the database file.
 .in +4n
 Allows editing a non-existing label to manually add it to the database.
 .TP
+.B cobib modify \fI<modification>\fR \fI<args>\fR ...
+Applies a modification to multiple entries at once.
+The positional arguments may be used to provide \fBFILTERS\fR which the entries
+must match in order to be modified \fIor\fR to provide a list of labels of the
+entries which are to be modified (this requires the \fI-s\fR flag to be set).
+The \fI<args>\fR may be any of the following:
+.PP
+.in +8n
+.BR \fI<modification>\fR
+.in +4n
+The modification must be provided in the format \fI<field>:<value>\fR and will
+set the field of all selected entries to the given value.
+.PP
+.in +8n
+.BR \-a ", " \-\-append
+.in +4n
+This is \fBNOT\fR implemented yet. However, in the future this will provide the
+possibility to append the new value to the modified field rather than
+overwriting it.
+.PP
+.in +8n
+.BR \-s ", " \-\-selection
+.in +4n
+This boolean flag enables the \fIselection\fR mode in which the positional args
+are interpreted as a list of labels which are to be exported. The name for this
+argument is a result of the TUI's selection interface.
+.TP
 .B cobib undo \fI<args>\fR
 If you enabled the git-integration of CoBib (available since v2.6.0) you can
 undo the changes done to your database file by commands such as add, edit and
@@ -178,7 +205,7 @@ This values defaults to 1.
 Makes the search case-insensitive.
 .TP
 .B cobib export \fI<args>\fR ...
-Exports the database to the file configured via the \fIargs\fR.
+Exports the database.
 The positional arguments may be used to provide \fBFILTERS\fR which the entries
 must match in order to be included in the export \fIor\fR to provide a list of
 labels of the entries which are to be exported (this requires the \fI-s\fR flag
@@ -267,11 +294,16 @@ Toggles wrapping of the viewing buffer.
 Opens a command prompt which allows running the \fBadd\fR command as if outside
 of the TUI.
 .TP
+.BR d " " delete
+Deletes the current (or \fIselected\fR) label(s).
+.TP
 .BR e " " edit
 Opens the current label in an external editor.
 .TP
-.BR d " " delete
-Deletes the current (or \fIselected\fR) label(s).
+.BR m " " modify
+Opens a command prompt which allows running the \fBmodify\fR command as if
+outside of the TUI. If a \fIselection\fR is present, the \fI-s\fR argument will
+be set automatically.
 .TP
 .BR u " " undo
 Undoes the last auto-committed change to the database file.

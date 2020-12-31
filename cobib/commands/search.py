@@ -35,11 +35,11 @@ class SearchCommand(Command):
                             help="number of context lines to provide for each match")
         parser.add_argument("-i", "--ignore-case", action="store_true",
                             help="ignore case for searching")
-        parser.add_argument('list_arg', nargs='*',
-                            help="Any arguments for the List subcommand." +
-                            "\nUse this to add filters to specify a subset of searched entries." +
-                            "\nYou can add a '--' before the List arguments to ensure separation." +
-                            "\nSee also `list --help` for more information on the List arguments.")
+        parser.add_argument('filter', nargs='*',
+                            help="You can specify filters as used by the `list` command in order "
+                            "to select a subset of labels to be modified. To ensure this works as "
+                            "expected you should add the pseudo-argument '--' before the list of "
+                            "filters. See also `list --help` for more information.")
 
         if not args:
             parser.print_usage(sys.stderr)
@@ -51,7 +51,7 @@ class SearchCommand(Command):
             print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
             return None
 
-        labels = ListCommand().execute(largs.list_arg, out=open(os.devnull, 'w'))
+        labels = ListCommand().execute(largs.filter, out=open(os.devnull, 'w'))
         LOGGER.debug('Available entries to search: %s', labels)
 
         ignore_case = CONFIG.config['DATABASE'].getboolean('search_ignore_case', False) or \

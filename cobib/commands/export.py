@@ -35,15 +35,13 @@ class ExportCommand(Command):
         parser.add_argument("-z", "--zip", type=argparse.FileType('a'),
                             help="zip output file")
         parser.add_argument("-s", "--selection", action="store_true",
-                            help="TUI only: interprets `list_arg` as the list of selected entries.")
-        parser.add_argument('list_arg', nargs='*',
-                            help="Any arguments for the List subcommand." +
-                            "\nUse this to add filters to specify a subset of exported entries." +
-                            "\nYou can add a '--' before the List arguments to ensure separation." +
-                            "\nSee also `list --help` for more information on the List arguments." +
-                            "\nNote: when a selection has been made inside the TUI, this list is " +
-                            "interpreted as a list of entry labels used for exporting. This also " +
-                            "requires the --selection argument to be set.")
+                            help="When specified, the `filter` argument will be interpreted as "
+                            "a list of entry labels rather than arguments for the `list` command.")
+        parser.add_argument('filter', nargs='*',
+                            help="You can specify filters as used by the `list` command in order "
+                            "to select a subset of labels to be modified. To ensure this works as "
+                            "expected you should add the pseudo-argument '--' before the list of "
+                            "filters. See also `list --help` for more information.")
 
         if not args:
             parser.print_usage(sys.stderr)
@@ -64,11 +62,11 @@ class ExportCommand(Command):
             largs.zip = ZipFile(largs.zip.name, 'w')
         out = open(os.devnull, 'w')
         if largs.selection:
-            LOGGER.info('Selection from TUI given. Interpreting `list_arg` as a list of labels')
-            labels = largs.list_arg
+            LOGGER.info('Selection given. Interpreting `filter` as a list of labels')
+            labels = largs.filter
         else:
             LOGGER.debug('Gathering filtered list of entries to be exported.')
-            labels = ListCommand().execute(largs.list_arg, out=out)
+            labels = ListCommand().execute(largs.filter, out=out)
 
         try:
             for label in labels:
