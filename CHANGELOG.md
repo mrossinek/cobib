@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - the viewport history is preserved correctly (#21,!22)
     - this allows performing a search while showing an entry and reverts back to the correct view after quitting the search
     - the changes mainly involved refactoring of the `cobib/tui` module
+- the **positional** argument of the `modify` and `search` has been renamed internally from `list_arg` to `filter`
+    - this should not have any visible effect to an end-user but may be relevant to developers
 
 ### Fixed
 - gracefully handle multiple terminal sizing issues with regards to popups (#58)
