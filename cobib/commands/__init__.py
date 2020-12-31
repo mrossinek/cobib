@@ -6,6 +6,7 @@ from .edit import EditCommand
 from .export import ExportCommand
 from .init import InitCommand
 from .list import ListCommand
+from .modify import ModifyCommand
 from .open import OpenCommand
 from .redo import RedoCommand
 from .search import SearchCommand
@@ -20,6 +21,7 @@ __all__ = [
     "ExportCommand",
     "InitCommand",
     "ListCommand",
+    "ModifyCommand",
     "OpenCommand",
     "RedoCommand",
     "SearchCommand",
