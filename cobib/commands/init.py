@@ -69,6 +69,19 @@ class InitCommand(Command):
                       'your configuration file!'
                 print(msg, file=sys.stderr)
                 LOGGER.warning(msg)
+            # First, check whether git is configured correctly.
+            print('Checking `git config --get user.name`:', end=' ', flush=True)
+            name_set = os.waitstatus_to_exitcode(os.system('git config --get user.name'))
+            print()
+            print('Checking `git config --get user.email`:', end=' ', flush=True)
+            email_set = os.waitstatus_to_exitcode(os.system('git config --get user.email'))
+            print()
+            if name_set != 0 or email_set != 0:
+                msg = 'In order to use git you must configure your name and email first! For ' + \
+                      'more information please consult `man gittutorial`.'
+                print(msg, file=sys.stderr)
+                LOGGER.warning(msg)
+                sys.exit(1)
             LOGGER.debug('Initializing git repository in "%s"', root)
             os.system(f'git init {root}')
             self.git(args=vars(largs), force=True)
