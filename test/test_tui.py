@@ -28,7 +28,7 @@ def setup():
     # NOTE: normally you would never trigger an Add command before reading the database but in this
     # controlled testing scenario we can be certain that this is fine
     AddCommand().execute(['-b', './test/dummy_scrolling_entry.bib'])
-    read_database()
+    read_database(fresh=True)
     yield setup
     DeleteCommand().execute(['dummy_entry_for_scroll_testing'])
 
