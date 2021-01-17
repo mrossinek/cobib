@@ -4,7 +4,6 @@
 import argparse
 import inspect
 import logging
-import logging.config
 import sys
 
 from cobib import commands, zsh_helper
