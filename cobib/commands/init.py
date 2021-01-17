@@ -5,7 +5,7 @@ import logging
 import os
 import sys
 
-from cobib.config import CONFIG
+from cobib.config import config
 from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
@@ -34,8 +34,7 @@ class InitCommand(Command):
             print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
             return
 
-        conf_database = CONFIG.config['DATABASE']
-        file = os.path.realpath(os.path.expanduser(conf_database['file']))
+        file = os.path.realpath(os.path.expanduser(config.database.file))
         root = os.path.dirname(file)
 
         file_exists = os.path.exists(file)
@@ -63,7 +62,7 @@ class InitCommand(Command):
             open(file, 'w').close()
 
         if largs.git:
-            if not conf_database.getboolean('git'):
+            if not config.database.git:
                 msg = 'You are about to initialize the git tracking of your database, but this ' + \
                       'will only have effect if you also enable the DATABASE/git setting in ' + \
                       'your configuration file!'

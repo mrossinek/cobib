@@ -6,7 +6,7 @@ import os
 import subprocess
 import sys
 
-from cobib.config import CONFIG
+from cobib.config import config
 from cobib.database import read_database
 from .base_command import ArgumentParser, Command
 
@@ -25,8 +25,7 @@ class RedoCommand(Command):
 
         Args: See base class.
         """
-        conf_database = CONFIG.config['DATABASE']
-        git_tracked = conf_database.getboolean('git')
+        git_tracked = config.database.git
         if not git_tracked:
             msg = "You must enable CoBib's git-tracking in order to use the `Redo` command. " + \
                 "Please refer to the man-page for more information on how to do so."
@@ -34,7 +33,7 @@ class RedoCommand(Command):
             LOGGER.error(msg)
             return
 
-        file = os.path.realpath(os.path.expanduser(conf_database['file']))
+        file = os.path.realpath(os.path.expanduser(config.database.file))
         root = os.path.dirname(file)
         if not os.path.exists(os.path.join(root, '.git')):
             msg = "You have configured, but not initialized CoBib's git-tracking. " + \
@@ -94,7 +93,7 @@ class RedoCommand(Command):
         tui.execute_command(['redo'], skip_prompt=True)
         # update database list
         LOGGER.debug('Updating list after Redo command.')
-        read_database(fresh=True)
+        read_database()
         tui.viewport.update_list()
         # if cursor line is below buffer height, move it one line back up
         if tui.STATE.current_line >= tui.viewport.buffer.height:

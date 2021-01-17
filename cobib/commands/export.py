@@ -6,7 +6,7 @@ import os
 import sys
 from zipfile import ZipFile
 
-from cobib.config import CONFIG
+from cobib.config import config
 from .base_command import ArgumentParser, Command
 from .list import ListCommand
 
@@ -71,7 +71,7 @@ class ExportCommand(Command):
         try:
             for label in labels:
                 LOGGER.debug('Exporting entry "%s".', label)
-                entry = CONFIG.config['BIB_DATA'][label]
+                entry = config.bibliography[label]
                 if largs.bibtex is not None:
                     entry_str = entry.to_bibtex()
                     largs.bibtex.write(entry_str)

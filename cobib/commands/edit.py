@@ -6,7 +6,7 @@ import os
 import sys
 import tempfile
 
-from cobib.config import CONFIG
+from cobib.config import config
 from cobib.database import read_database
 from cobib.parser import Entry
 from .base_command import ArgumentParser, Command
@@ -43,7 +43,7 @@ class EditCommand(Command):
             return
 
         try:
-            entry = CONFIG.config['BIB_DATA'][largs.label]
+            entry = config.bibliography[largs.label]
             prv = entry.to_yaml()
             if largs.add:
                 LOGGER.warning("Entry '%s' already exists! Ignoring the `--add` argument.",
@@ -55,7 +55,7 @@ class EditCommand(Command):
                 # add a new entry for the unknown label
                 entry = Entry(largs.label,
                               {'ID': largs.label,
-                               'ENTRYTYPE': CONFIG.config['FORMAT']['default_entry_type']})
+                               'ENTRYTYPE': config.format.default_entry_type})
                 prv = entry.to_yaml()
             else:
                 msg = f"No entry with the label '{largs.label}' could be found.\n" \
@@ -78,8 +78,7 @@ class EditCommand(Command):
         if prv == nxt:
             LOGGER.info('No changes detected.')
             return
-        conf_database = CONFIG.config['DATABASE']
-        file = os.path.expanduser(conf_database['file'])
+        file = os.path.expanduser(config.database.file)
         with open(file, 'r') as bib:
             lines = bib.readlines()
         entry_to_be_replaced = False

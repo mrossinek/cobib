@@ -5,7 +5,7 @@ import logging
 import sys
 from collections import OrderedDict
 
-from cobib.config import CONFIG
+from cobib.config import config
 from cobib.database import read_database, write_database
 from cobib.parser import Entry
 from .base_command import ArgumentParser, Command
@@ -74,7 +74,7 @@ class AddCommand(Command):
             new_entries = {
                 largs.label: Entry(largs.label,
                                    {'ID': largs.label,
-                                    'ENTRYTYPE': CONFIG.config['FORMAT']['default_entry_type']})
+                                    'ENTRYTYPE': config.format.default_entry_type})
                 }
             edit_entries = True
         else:
@@ -110,7 +110,7 @@ class AddCommand(Command):
                     + f"Please use `cobib edit {largs.label}` instead!"
                 LOGGER.warning(msg)
             else:
-                read_database(fresh=True)
+                read_database()
                 EditCommand().execute([largs.label])
 
         self.git(args=vars(largs))
@@ -128,5 +128,5 @@ class AddCommand(Command):
         tui.execute_command('add')
         # update database list
         LOGGER.debug('Updating list after Add command.')
-        read_database(fresh=True)
+        read_database()
         tui.viewport.update_list()

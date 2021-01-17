@@ -5,7 +5,7 @@ import logging
 import os
 import sys
 
-from cobib.config import CONFIG
+from cobib.config import config
 from .base_command import ArgumentParser, Command
 from .list import ListCommand
 
@@ -83,11 +83,10 @@ class ModifyCommand(Command):
 
         for label in labels:
             try:
-                entry = CONFIG.config['BIB_DATA'][label]
+                entry = config.bibliography[label]
                 entry.data[field] = value
 
-                conf_database = CONFIG.config['DATABASE']
-                file = os.path.expanduser(conf_database['file'])
+                file = os.path.expanduser(config.database.file)
                 with open(file, 'r') as bib:
                     lines = bib.readlines()
                 entry_to_be_replaced = False

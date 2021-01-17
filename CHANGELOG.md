@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - `init --git` will not initialize a repository unless git has configured both, `name` and `email`
+- the `INI`-style configuration is replaced with a `Python`-based configuration (#54,!25)
+    - for guidance on how to migrate an existing configuration please read https://mrossinek.gitlab.io/programming/cobibs-new-configuration/
+
+### Deprecated
+- the `INI`-style configuration is deprecated
+    - new configuration options will not be added to this style
+    - only bugs which fully break usability will be fixed with regards to this configuration style
+    - legacy-support will be fully removed on 1.1.2022
+
+### Fixed
+- the ZSH helper utilities now respect the `-c`, `-l`, and `-v` command line options
+
+### Removed
+- the `read_database()` function no longer takes the `fresh` argument
 
 
 ## [2.6.0] - 2020-12-31

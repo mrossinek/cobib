@@ -5,7 +5,7 @@ import logging
 import sys
 
 from cobib import __version__
-from cobib.config import CONFIG
+from cobib.config import config
 from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ class ShowCommand(Command):
             return
 
         try:
-            entry = CONFIG.config['BIB_DATA'][largs.label]
+            entry = config.bibliography[largs.label]
             entry_str = entry.to_bibtex()
             print(entry_str, file=out)
         except KeyError:
@@ -60,7 +60,7 @@ class ShowCommand(Command):
         if label in tui.selection:
             LOGGER.debug('Current entry is selected. Applying highlighting.')
             tui.viewport.buffer.replace(0, label,
-                                        CONFIG.get_ansi_color('selection') + label + '\x1b[0m')
+                                        config.get_ansi_color('selection') + label + '\x1b[0m')
         LOGGER.debug('Populating buffer with ShowCommand result.')
         tui.viewport.view(ansi_map=tui.ANSI_MAP)
 

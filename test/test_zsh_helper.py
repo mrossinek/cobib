@@ -1,8 +1,10 @@
 """Tests for CoBib's zsh helper functions."""
 
 import os
+from itertools import zip_longest
 from pathlib import Path
 from cobib import zsh_helper
+from cobib.config import config
 import cobib
 
 
@@ -17,13 +19,25 @@ def test_list_commands():
 def test_list_tags():
     """Test listing tags."""
     root = os.path.abspath(os.path.dirname(__file__))
-    tags = zsh_helper.list_tags({'config': Path(root + '/../cobib/docs/debug.ini')})
+    config.load(Path(root + '/debug.py'))
+    tags = zsh_helper.list_tags()
     assert tags == ['einstein', 'latexcompanion', 'knuthwebsite']
 
 
 def test_list_filters():
     """Test listing filters."""
     root = os.path.abspath(os.path.dirname(__file__))
-    filters = zsh_helper.list_filters({'config': Path(root + '/../cobib/docs/debug.ini')})
+    config.load(Path(root + '/debug.py'))
+    filters = zsh_helper.list_filters()
     assert filters == {'publisher', 'ENTRYTYPE', 'address', 'ID', 'journal', 'doi', 'year', 'title',
                        'author', 'pages', 'number', 'volume', 'url'}
+
+
+def test_example_config():
+    """Test printing the example config."""
+    root = os.path.abspath(os.path.dirname(__file__))
+    config.load(Path(root + '/debug.py'))
+    example = zsh_helper.example_config()
+    with open(root + '/../cobib/config/example.py', 'r') as expected:
+        for line, truth in zip_longest(example, expected):
+            assert line == truth.strip()

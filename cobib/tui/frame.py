@@ -7,7 +7,7 @@ import re
 
 from cobib import __version__
 from cobib.commands import ListCommand
-from cobib.config import CONFIG
+from cobib.config import config
 from .buffer import TextBuffer
 from .state import Mode, STATE
 
@@ -47,7 +47,7 @@ class Frame:
         """Reverts the frame to the previous state."""
         self.buffer, state = self.history.pop()
         STATE.update(state)
-        self.buffer.replace(range(self.buffer.height), re.escape(CONFIG.get_ansi_color('selection'))
+        self.buffer.replace(range(self.buffer.height), re.escape(config.get_ansi_color('selection'))
                             + r'(.+)' + re.escape('\x1b[0m'), r'\1')
         # highlight current selection
         for label in self.tui.selection:
@@ -56,14 +56,14 @@ class Frame:
             if STATE.mode == Mode.SEARCH.value:
                 # Note: the inclusion of the search label is explained in the `SearchCommand`.
                 self.buffer.replace(range(self.buffer.height),
-                                    re.escape(CONFIG.get_ansi_color('search_label')) + label
+                                    re.escape(config.get_ansi_color('search_label')) + label
                                     + re.escape('\x1b[0m'),
-                                    CONFIG.get_ansi_color('search_label') +
-                                    CONFIG.get_ansi_color('selection') + label + '\x1b[0m\x1b[0m')
+                                    config.get_ansi_color('search_label') +
+                                    config.get_ansi_color('selection') + label + '\x1b[0m\x1b[0m')
             else:
                 # Note: the two spaces are explained in the `select()` method.
                 self.buffer.replace(range(self.buffer.height), label + '  ',
-                                    CONFIG.get_ansi_color('selection') + label + '\x1b[0m  ')
+                                    config.get_ansi_color('selection') + label + '\x1b[0m  ')
         self.view(ansi_map=self.tui.ANSI_MAP)
         self.tui.statusbar(self.tui.topbar, STATE.topstatus)
 
@@ -96,7 +96,7 @@ class Frame:
         Args:
             update (int or str): the offset specifying the scrolling height.
         """
-        scrolloff = CONFIG.config['TUI'].getint('scroll_offset', 3)
+        scrolloff = config.tui.scroll_offset
         overlap = scrolloff >= self.height - scrolloff
         scroll_lock = overlap and STATE.current_line - STATE.top_line == self.height // 2
         # jump to top
@@ -216,7 +216,7 @@ class Frame:
             # Also: this step may become a performance bottleneck because we replace inside the
             # whole buffer for each selected label!
             self.buffer.replace(range(self.buffer.height), label + '  ',
-                                CONFIG.get_ansi_color('selection') + label + '\x1b[0m  ')
+                                config.get_ansi_color('selection') + label + '\x1b[0m  ')
         # display buffer in viewport
         self.view(ansi_map=self.tui.ANSI_MAP)
         # update top statusbar

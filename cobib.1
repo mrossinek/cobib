@@ -1,4 +1,4 @@
-.TH COBIB 1 2020-12-31 v2.6.0
+.TH COBIB 1 2021-01-17 v2.6.0+dev
 .SH NAME
 CoBib \- Console-based Bibliography Management
 .SH SYNOPSIS
@@ -333,121 +333,191 @@ be set automatically.
 .BR : " " prompt
 Opens a command prompt allowing the user to execute an arbitrary CoBib CLI command.
 .SH CONFIGURATION
-Cobib can be configured with an \fIINI\fR file placed at
-\fI$HOME/.config/cobib/config.ini\fR
-For more information on this file format take a look at
-https://docs.python.org/3/library/configparser.html
-This section summarizes the sections and respective configuration options.
+Since version 3.0, CoBib can be configured directly via \fIPython\fR. To do so,
+you must place the configuration file at \fI$HOME/.config/cobib/config.py\fR.
+If you don't have a configuration file yet, you can get started by copying the
+well-documented example configuration to the right location via:
+.in +4n
+    \fIcobib _example_config > ~/.config/cobib/config.py\fR
+.in -4n
+If you do have an old configuration file (prior to v3.0) and would like some
+guidance on how to migrate it, please read this short blog post of mine:
+https://mrossinek.gitlab.io/programming/cobibs-new-configuration/
 .PP
-.BR [DATABASE]
+The following section summarizes the syntax and all possibly settings, for
+completeness.
 .TP
-.IR file = $HOME/.local/share/cobib/literature.yaml
-Specifies the path to the database file.
+.BR Configuration " " Syntax
+Internally, CoBib's configuration is nothing but a (nested) Python dictionary.
+Thus, after importing the config with
+.in +4n
+    \fIfrom cobib.config import config\fR
+.in -4n
+it is very straight forward to change any setting by simply changing the value
+stored in the dictionary. For example:
+.in +4n
+    \fIconfig['database']['git'] = True\fR
+.in -4n
+However, for ease of use, all of the fields are also exposed as attributes. This
+means, the same can be achieved via:
+.in +4n
+    \fIconfig.database.git = True\fR
+.in -4n
+.PP
+.BR COMMANDS
 .TP
-.IR git = False
+.IR config.commands.edit.default_entry_type = 'article'
+This setting indicates the default entry type which will be used for manually
+entered entries.
+.TP
+.IR config.commands.open.command = 'xdg-open' " (on Linux); " 'open' " (on Mac OS)"
+Specifies the program used to open associated files.
+.TP
+.IR config.commands.search.grep = 'grep'
+Specifies the program used to search in associated files.
+.TP
+.IR config.commands.search.ignore_case = False
+This boolean setting indicates whether search defaults to be case-insensitive.
+.PP
+.BR DATABASE
+.TP
+.IR config.database.file = '~/.local/share/cobib/literature.yaml'
+This setting sets the path to the database file. You can use \fI~\fR to
+represent your \fI$HOME\fR directory.
+.TP
+.IR config.database.git = False
 This boolean field indicates whether the database file should automatically be
 tracked in a git repository.
 Note, that you must initialize the git-tracking with \fIcobib init --git\fR. If
 you already have an existing database file, it will be preserved. Nonetheless,
 it is a good idea to make a backup before doing so, just in case.
 Also be sure to at least set a \fIname\fR and \fIemail\fR in the git config!
-.PP
 .TP
-.IR open = xdg-open " (on Linux); " open " (on Mac OS)"
-Specifies the program used to open associated files.
-.TP
-.IR grep = grep
-Specifies the program used to search in associated files.
-.TP
-.IR search_ignore_case = False
-This boolean field indicates whether search defaults to be case-insensitive.
-.PP
-.BR [FORMAT]
-.TP
-.IR month = int
+.IR config.database.format.month = int
 This field may either be \fIint\fR (default) or \fIstr\fR and it specifies the
 type into which the \fBmonth\fR field should be converted before storing.
-.TP
-.IR ignore_non_standard_types = False
-This boolean field indicates whether non-standard BibLaTex entry types should be
-ignored or not.
-.TP
-.IR default_entry_type = article
-This field indicates the default entry type which will be used for manually
-entered entries.
 .PP
-.BR [TUI]
+.BR PARSERS
 .TP
-.IR default_list_args = \-l
-This field specifies the default arguments to use for the list view.
+.IR config.parsers.bibtex.ignore_non_standard_types = False
+This boolean setting indicates whether non-standard BibLaTex entry types should
+be ignored or not.
+.PP
+.BR TUI
 .TP
-.IR prompt_before_quit = True
-This field specifies whether the user is prompted to verify the final quit
+.IR config.tui.default_list_args = ['\-l']
+This can be set to a list of default arguments to use for the TUI's list view.
+.TP
+.IR config.tui.prompt_before_quit = True
+This setting specifies whether the user is prompted to verify the final quit
 operation.
 .TP
-.IR reverse_order = True
-This field specifies whether the database is listed in reverse order by default.
-This is useful because in this way the latest added entries will be at the top.
+.IR config.tui.reverse_order = True
+This setting specifies whether the database is listed in reverse order by
+default. This is useful because the most recently added entries will be at the
+top.
 .TP
-.IR scroll_offset = 3
-This field specifies the scrolling offset used to prevent the cursor line to coming too close to the
-ends of the screen while scrolling.
-The intent of this setting is to provide a similar behavior as the 'scrolloff' option available in
-Vim.
+.IR config.tui.scroll_offset = 3
+This setting specifies the scrolling offset used to prevent the cursor line from
+coming too close to the ends of the screen while scrolling.  The intent of this
+setting is to provide a similar behavior as the 'scrolloff' option available in
+Vim. Note, that you can pin the cursor line to the center of the screen by
+setting this option to a very large value (e.g. 99).
 .PP
-.BR [KEY_BINDINGS]
+.BR TUI.COLORS
+With the following settings you can change the look of the TUI. Each of these
+settings accepts any of the following color names: \fIblack\fR, \fIred\fR,
+\fIgreen\fR, \fIyellow\fR, \fIblue\fR, \fImagenta\fR, \fIcyan\fR and
+\fIwhite\fR.
+.TP
+.IR config.tui.colors.cursor_line_fg = 'white'
+.TP
+.IR config.tui.colors.cursor_line_bg = 'cyan'
+.TP
+.IR config.tui.colors.top_statusbar_fg = 'black'
+.TP
+.IR config.tui.colors.top_statusbar_bg = 'yellow'
+.TP
+.IR config.tui.colors.bottom_statusbar_fg = 'black'
+.TP
+.IR config.tui.colors.bottom_statusbar_bg = 'yellow'
+.TP
+.IR config.tui.colors.search_label_fg = 'blue'
+.TP
+.IR config.tui.colors.search_label_bg = 'black'
+.TP
+.IR config.tui.colors.search_query_fg = 'red'
+.TP
+.IR config.tui.colors.search_query_bg = 'black'
+.TP
+.IR config.tui.colors.popup_help_fg = 'white'
+.TP
+.IR config.tui.colors.popup_help_bg = 'green'
+.TP
+.IR config.tui.colors.popup_stdout_fg = 'white'
+.TP
+.IR config.tui.colors.popup_stdout_bg = 'blue'
+.TP
+.IR config.tui.colors.popup_stderr_fg = 'white'
+.TP
+.IR config.tui.colors.popup_stderr_bg = 'red'
+.TP
+.IR config.tui.colors.selection_fg = 'white'
+.TP
+.IR config.tui.colors.selection_bg = 'magenta'
 .PP
-In this section you may provide additional key bindings by specifying the name
-of the command to execute as the \fIkey\fR and the key to bind the command to as
-its \fIvalue\fR.
+.BR TUI.KEY_BINDINGS
+You can change the default key bindings of the TUI by overwriting any of the
+following settings with a different key. Any setting will interpret the provided
+string as a single character whose ASCII value is used for triggering the
+command.
+The only exception is the \fIENTER\fR string, which will be internally mapped to
+the ASCII codes 10 (\fIline feed\fR) and 13 (\fIcarriage return\fR).
+.TP
+.IR config.tui.key_bindings.prompt = ':'
+.TP
+.IR config.tui.key_bindings.search = '/'
+.TP
+.IR config.tui.key_bindings.help = '?'
+.TP
+.IR config.tui.key_bindings.add = 'a'
+.TP
+.IR config.tui.key_bindings.delete = 'd'
+.TP
+.IR config.tui.key_bindings.edit = 'e'
+.TP
+.IR config.tui.key_bindings.filter = 'f'
+.TP
+.IR config.tui.key_bindings.modify = 'm'
+.TP
+.IR config.tui.key_bindings.open = 'o'
+.TP
+.IR config.tui.key_bindings.quit = 'q'
+.TP
+.IR config.tui.key_bindings.redo = 'r'
+.TP
+.IR config.tui.key_bindings.sort = 's'
+.TP
+.IR config.tui.key_bindings.undo = 'u'
+.TP
+.IR config.tui.key_bindings.select = 'v'
+.TP
+.IR config.tui.key_bindings.wrap = 'w'
+.TP
+.IR config.tui.key_bindings.export = 'x'
+.TP
+.IR config.tui.key_bindings.show = 'ENTER'
 .PP
-.BR [COLORS]
-.TP
-.IR cursor_line_fg = white
-.TP
-.IR cursor_line_bg = cyan
-.TP
-.IR top_statusbar_fg = black
-.TP
-.IR top_statusbar_bg = yellow
-.TP
-.IR bottom_statusbar_fg = black
-.TP
-.IR bottom_statusbar_bg = yellow
-.TP
-.IR search_label_fg = blue
-.TP
-.IR search_label_bg = black
-.TP
-.IR search_query_fg = red
-.TP
-.IR search_query_bg = black
-.TP
-.IR popup_help_fg = white
-.TP
-.IR popup_help_bg = green
-.TP
-.IR popup_stdout_fg = white
-.TP
-.IR popup_stdout_bg = blue
-.TP
-.IR popup_stderr_fg = white
-.TP
-.IR popup_stderr_bg = red
-.TP
-.IR selection_fg = white
-.TP
-.IR selection_bg = magenta
 .SH ENVIRONMENT
 .TP
-$EDITOR
+.IR $EDITOR
 Specifies the editor program to use for the \fBedit\fR command.
 .SH FILES
 .TP
-$HOME/.config/cobib/config.ini
+.IR $HOME/.config/cobib/config.ini
 The configuration file.
 .TP
-$HOME/.local/share/cobib/literature.yaml
+.IR $HOME/.local/share/cobib/literature.yaml
 The default location of the database file.
 .SH SEE ALSO
 The internal help documentation via the \fI\-\-help\fR arguments.
