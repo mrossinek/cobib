@@ -13,7 +13,7 @@ import pyte
 import pytest
 from cobib import __version__ as version
 from cobib.commands import AddCommand, DeleteCommand
-from cobib.config import CONFIG
+from cobib.config import config
 from cobib.database import read_database
 from cobib.tui import TextBuffer, TUI
 
@@ -21,16 +21,20 @@ from cobib.tui import TextBuffer, TUI
 @pytest.fixture
 def setup():
     """Setup."""
-    # ensure configuration is empty
-    CONFIG.config = {}
     root = os.path.abspath(os.path.dirname(__file__))
-    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    config.load(Path(root + '/debug.py'))
     # NOTE: normally you would never trigger an Add command before reading the database but in this
     # controlled testing scenario we can be certain that this is fine
     AddCommand().execute(['-b', './test/dummy_scrolling_entry.bib'])
-    read_database(fresh=True)
+    read_database()
     yield setup
     DeleteCommand().execute(['dummy_entry_for_scroll_testing'])
+    # clean up config
+    config.defaults()
+    try:
+        del config.bibliography
+    except KeyError:
+        pass
 
 
 def assert_list_view(screen, current, expected):
@@ -312,33 +316,37 @@ def assert_config_color(screen, colors):
 
 def test_tui_config_color():
     """Test TUI color configuration."""
-    # ensure configuration is empty
-    CONFIG.config = {}
     root = os.path.abspath(os.path.dirname(__file__))
-    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    config.load(Path(root + '/debug.py'))
     # overwrite color configuration
-    CONFIG.config['COLORS']['top_statusbar_bg'] = 'red'
-    CONFIG.config['COLORS']['top_statusbar_fg'] = 'blue'
-    CONFIG.config['COLORS']['bottom_statusbar_bg'] = 'green'
-    CONFIG.config['COLORS']['bottom_statusbar_fg'] = 'magenta'
-    CONFIG.config['COLORS']['cursor_line_bg'] = 'white'
-    CONFIG.config['COLORS']['cursor_line_fg'] = 'black'
+    config.tui.colors.top_statusbar_bg = 'red'
+    config.tui.colors.top_statusbar_fg = 'blue'
+    config.tui.colors.bottom_statusbar_bg = 'green'
+    config.tui.colors.bottom_statusbar_fg = 'magenta'
+    config.tui.colors.cursor_line_bg = 'white'
+    config.tui.colors.cursor_line_fg = 'black'
     read_database()
-    test_tui(None, '', assert_config_color, {'colors': CONFIG.config['COLORS']})
+    try:
+        test_tui(None, '', assert_config_color, {'colors': config.tui.colors})
+    finally:
+        # clean up config
+        config.defaults()
+        try:
+            del config.bibliography
+        except KeyError:
+            pass
 
 
 @pytest.mark.parametrize(['command', 'key'], [
-        ['Show', 'p'],  # previously unused key
-        ['Show', 'o'],  # should overwrite previously used key with other command
+        ['show', 'p'],  # previously unused key
+        ['show', 'o'],  # should overwrite previously used key with other command
     ])
 def test_tui_config_keys(command, key):
     """Test TUI key binding configuration."""
-    # ensure configuration is empty
-    CONFIG.config = {}
     root = os.path.abspath(os.path.dirname(__file__))
-    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    config.load(Path(root + '/debug.py'))
     # overwrite key binding configuration
-    CONFIG.config['KEY_BINDINGS'][command] = key
+    config.tui.key_bindings[command] = key
     # NOTE: normally you would never trigger an Add command before reading the database but in this
     # controlled testing scenario we can be certain that this is fine
     AddCommand().execute(['-b', './test/dummy_scrolling_entry.bib'])
@@ -347,32 +355,45 @@ def test_tui_config_keys(command, key):
         test_tui(None, key, assert_show, {})
     finally:
         DeleteCommand().execute(['dummy_entry_for_scroll_testing'])
+        # clean up config
+        config.defaults()
+        try:
+            del config.bibliography
+        except KeyError:
+            pass
 
 
 def assert_quit(screen, prompt):
     """Asserts the quit prompt."""
-    if prompt == 'True':
+    if prompt is True:
         assert screen.display[-1].strip() == 'Do you really want to quit CoBib? [y/n]'
-    elif prompt == 'False':
+    elif prompt is False:
         assert screen.display[-1].strip() == ''
     else:
         assert not 'Unexpected prompt setting!'
 
 
 @pytest.mark.parametrize(['setting', 'keys'], [
-        ['True', 'q'],
-        ['False', 'q'],
+        [True, 'q'],
+        [False, 'q'],
     ])
 def test_tui_quit_prompt(setting, keys):
     """Test the prompt_before_quit setting of the TUI."""
-    # ensure configuration is empty
-    CONFIG.config = {}
     root = os.path.abspath(os.path.dirname(__file__))
-    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    config.load(Path(root + '/debug.py'))
     # set prompt_before_quit setting
-    CONFIG.config['TUI']['prompt_before_quit'] = setting
+    config.tui.prompt_before_quit = setting
     read_database()
-    test_tui(None, keys, assert_quit, {'prompt': setting})
+    try:
+        test_tui(None, keys, assert_quit, {'prompt': setting})
+    finally:
+        DeleteCommand().execute(['dummy_entry_for_scroll_testing'])
+        # clean up config
+        config.defaults()
+        try:
+            del config.bibliography
+        except KeyError:
+            pass
 
 
 def assert_open(screen):
@@ -386,10 +407,8 @@ def assert_open(screen):
 
 def test_tui_open_menu():
     """Test the open prompt menu for multiple associated files."""
-    # ensure configuration is empty
-    CONFIG.config = {}
     root = os.path.abspath(os.path.dirname(__file__))
-    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    config.load(Path(root + '/debug.py'))
     # NOTE: normally you would never trigger an Add command before reading the database but in this
     # controlled testing scenario we can be certain that this is fine
     AddCommand().execute(['-b', './test/dummy_multi_file_entry.bib'])
@@ -398,6 +417,12 @@ def test_tui_open_menu():
         test_tui(None, 'o', assert_open, {})
     finally:
         DeleteCommand().execute(['dummy_multi_file_entry'])
+        # clean up config
+        config.defaults()
+        try:
+            del config.bibliography
+        except KeyError:
+            pass
 
 
 @pytest.mark.parametrize(['keys', 'assertion', 'assertion_kwargs'], [
@@ -474,11 +499,17 @@ def test_tui_resize(setup, keys, assertion, assertion_kwargs):
     ])
 def test_tui_scrolling(keys, assertion, assertion_kwargs):
     """Test TUI scrolling behavior."""
-    # ensure configuration is empty
-    CONFIG.config = {}
     root = os.path.abspath(os.path.dirname(__file__))
-    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    config.load(Path(root + '/debug.py'))
     # overwrite database file
-    CONFIG.config['DATABASE']['file'] = './test/scrolling_database.yaml'
+    config.database.file = './test/scrolling_database.yaml'
     read_database()
-    test_tui(None, keys, assertion, assertion_kwargs)
+    try:
+        test_tui(None, keys, assertion, assertion_kwargs)
+    finally:
+        # clean up config
+        config.defaults()
+        try:
+            del config.bibliography
+        except KeyError:
+            pass

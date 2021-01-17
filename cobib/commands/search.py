@@ -8,7 +8,7 @@ import shlex
 import sys
 
 from cobib import __version__
-from cobib.config import CONFIG
+from cobib.config import config
 from .base_command import ArgumentParser, Command
 from .list import ListCommand
 
@@ -54,15 +54,14 @@ class SearchCommand(Command):
         labels = ListCommand().execute(largs.filter, out=open(os.devnull, 'w'))
         LOGGER.debug('Available entries to search: %s', labels)
 
-        ignore_case = CONFIG.config['DATABASE'].getboolean('search_ignore_case', False) or \
-            largs.ignore_case
+        ignore_case = config.commands.search.ignore_case or largs.ignore_case
         re_flags = re.IGNORECASE if ignore_case else 0
         LOGGER.debug('The search will be performed case %ssensitive', 'in' if ignore_case else '')
 
         hits = 0
         output = []
         for label in labels.copy():
-            entry = CONFIG.config['BIB_DATA'][label]
+            entry = config.bibliography[label]
             matches = entry.search(largs.query, largs.context, ignore_case)
             if not matches:
                 labels.remove(label)
@@ -71,13 +70,13 @@ class SearchCommand(Command):
             hits += len(matches)
             LOGGER.debug('Entry "%s" includes %d hits.', label, hits)
             title = f"{label} - {len(matches)} match" + ("es" if len(matches) > 1 else "")
-            title = title.replace(label, CONFIG.get_ansi_color('search_label') + label + '\x1b[0m')
+            title = title.replace(label, config.get_ansi_color('search_label') + label + '\x1b[0m')
             output.append(title)
 
             for idx, match in enumerate(matches):
                 for line in match:
                     line = re.sub(rf'({largs.query})',
-                                  CONFIG.get_ansi_color('search_query') + r'\1' + '\x1b[0m',
+                                  config.get_ansi_color('search_query') + r'\1' + '\x1b[0m',
                                   line, flags=re_flags)
                     output.append(f"[{idx+1}]\t".expandtabs(8) + line)
 
@@ -104,10 +103,10 @@ class SearchCommand(Command):
                 # we match the label including its 'search_label' highlight to ensure that we really
                 # only match this specific occurrence of whatever the label may be
                 tui.viewport.buffer.replace(range(tui.viewport.buffer.height),
-                                            re.escape(CONFIG.get_ansi_color('search_label'))
+                                            re.escape(config.get_ansi_color('search_label'))
                                             + label + re.escape('\x1b[0m'),
-                                            CONFIG.get_ansi_color('search_label') +
-                                            CONFIG.get_ansi_color('selection')
+                                            config.get_ansi_color('search_label') +
+                                            config.get_ansi_color('selection')
                                             + label + '\x1b[0m\x1b[0m')
             LOGGER.debug('Populating viewport with search results.')
             tui.viewport.view(ansi_map=tui.ANSI_MAP)

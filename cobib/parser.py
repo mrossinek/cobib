@@ -14,7 +14,7 @@ from ruamel import yaml
 import bibtexparser
 import requests
 
-from cobib.config import CONFIG
+from cobib.config import config
 
 LOGGER = logging.getLogger(__name__)
 
@@ -74,7 +74,7 @@ class Entry:
         self._label = label
         self.data = data.copy()
         self.escape_special_chars(suppress_warnings)
-        month_type = CONFIG.config['FORMAT'].get('month', None)
+        month_type = config.database.format.month
         if month_type:
             self.convert_month(month_type)
         if self.data['ID'] != self._label:
@@ -142,7 +142,7 @@ class Entry:
             month = int(month)
         except ValueError:
             pass
-        if type(month).__name__ != type_:
+        if not isinstance(month, type_):
             LOGGER.debug('Converting month type for %s', self.label)
             months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
                       'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
@@ -240,7 +240,7 @@ class Entry:
                         break
 
         if self.file and os.path.exists(self.file):
-            grep_prog = CONFIG.config['DATABASE'].get('grep')
+            grep_prog = config.commands.search.grep
             LOGGER.debug('Searching associated file %s with %s', self.file, grep_prog)
             grep = subprocess.Popen([grep_prog, f'-C{context}', query, self.file],
                                     stdout=subprocess.PIPE)
@@ -279,8 +279,7 @@ class Entry:
             An OrderedDict containing the bibliography as per the provided BibLaTex data.
         """
         bparser = bibtexparser.bparser.BibTexParser()
-        bparser.ignore_nonstandard_types = CONFIG.config['DATABASE'].getboolean(
-            'ignore_non_standard_types', False)
+        bparser.ignore_nonstandard_types = config.parsers.bibtex.ignore_non_standard_types
         if string:
             LOGGER.debug('Loading BibTex string: %s.', file)
             database = bibtexparser.loads(file, parser=bparser)

@@ -4,7 +4,7 @@ import logging
 
 from enum import Enum
 
-from cobib.config import CONFIG
+from cobib.config import config
 
 LOGGER = logging.getLogger(__name__)
 
@@ -35,14 +35,14 @@ class State:
         self.inactive_commands = []
         self.topstatus = ''
 
-        # these cannot be set yet, because the CONFIG has not been fully populated at the time of
+        # these cannot be set yet, because the `config` has not been fully populated at the time of
         # creation of the STATE singleton
         self.list_args = []
 
     def initialize(self):
         """Initialize configuration-dependent settings."""
-        self.list_args = CONFIG.config['TUI'].get('default_list_args').split(' ')
-        if CONFIG.config['TUI'].getboolean('reverse_order', True):
+        self.list_args = config.tui.default_list_args
+        if config.tui.reverse_order:
             self.list_args += ['-r']
 
     def update(self, state):

@@ -8,7 +8,7 @@ import shlex
 import sys
 from abc import ABC, abstractmethod
 
-from cobib.config import CONFIG
+from cobib.config import config
 
 LOGGER = logging.getLogger(__name__)
 
@@ -42,12 +42,11 @@ class Command(ABC):
             args (optional, dict): a dictionary containing the command arguments.
             force (boolean): whether to ignore the configuration setting.
         """
-        conf_database = CONFIG.config['DATABASE']
-        git_tracked = conf_database.getboolean('git')
+        git_tracked = config.database.git
         if not git_tracked and not force:
             return
 
-        file = os.path.realpath(os.path.expanduser(conf_database['file']))
+        file = os.path.realpath(os.path.expanduser(config.database.file))
         root = os.path.dirname(file)
 
         if not os.path.exists(os.path.join(root, '.git')):

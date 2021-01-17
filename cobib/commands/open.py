@@ -8,7 +8,7 @@ import sys
 from collections import defaultdict
 from urllib.parse import urlparse
 
-from cobib.config import CONFIG
+from cobib.config import config
 from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ class OpenCommand(Command):
             count = 0
             # first: find all possible things to open
             try:
-                entry = CONFIG.config['BIB_DATA'][label]
+                entry = config.bibliography[label]
                 for field in ('file', 'url'):
                     if field in entry.data.keys() and entry.data[field]:
                         for val in entry.data[field].split(','):
@@ -125,7 +125,7 @@ class OpenCommand(Command):
     @staticmethod
     def _open_url(url):
         """Opens a URL."""
-        opener = CONFIG.config['DATABASE'].get('open', None)
+        opener = config.commands.open.command
         try:
             url = url.geturl() if url.scheme else os.path.abspath(url.geturl())
             LOGGER.debug('Opening "%s" with %s.', url, opener)

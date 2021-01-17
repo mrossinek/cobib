@@ -14,7 +14,7 @@ from shutil import rmtree
 
 import pytest
 from cobib import commands
-from cobib.config import CONFIG
+from cobib.config import config
 from cobib.database import read_database
 
 
@@ -39,46 +39,45 @@ def assert_git_commit_message(command, args):
 def setup():
     """Setup."""
     root = os.path.abspath(os.path.dirname(__file__))
-    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
-    CONFIG.validate()
+    config.load(Path(root + '/debug.py'))
+    config.validate()
     read_database()
-
-
-def test_set_config(setup):
-    """Test config setting.
-
-    Args:
-        setup: runs pytest fixture.
-    """
-    # from setup
-    assert CONFIG.config['DATABASE']['file'] == './test/example_literature.yaml'
-    # change back to default
-    CONFIG.set_config()
-    CONFIG.validate()
-    assert CONFIG.config['DATABASE']['file'] == \
-        os.path.expanduser('~/.local/share/cobib/literature.yaml')
+    yield setup
+    # clean up config
+    config.defaults()
+    try:
+        del config.bibliography
+    except KeyError:
+        pass
 
 
 @pytest.fixture(params=[False, True])
 def init_setup(request):
     """Setup for InitCommand testing."""
     # use temporary config
-    tmp_config = "[DATABASE]\nfile=/tmp/cobib_test/database.yaml\n"
+    tmp_config = '\n'.join([
+        "from cobib.config import config",
+        "config.database.file = '/tmp/cobib_test/database.yaml'"
+    ])
     if request.param:
-        tmp_config += 'git=True\n'
-    with open('/tmp/cobib_test_config.ini', 'w') as file:
+        tmp_config += '\nconfig.database.git = True'
+    with open('/tmp/cobib_test_config.py', 'w') as file:
         file.write(tmp_config)
-    # ensure configuration is empty
-    CONFIG.config = {}
     # load config
-    CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
-    CONFIG.validate()
+    config.load(Path('/tmp/cobib_test_config.py'))
+    config.validate()
     # yielding the arguments allows re-using them inside of the actual test function
     yield request.param
     # clean up file system
-    os.remove('/tmp/cobib_test_config.ini')
+    os.remove('/tmp/cobib_test_config.py')
     if request.param:
         rmtree('/tmp/cobib_test/.git')
+    # clean up config
+    config.defaults()
+    try:
+        del config.bibliography
+    except KeyError:
+        pass
 
 
 @pytest.mark.parametrize(['safe'], [
@@ -182,11 +181,9 @@ def test_show(setup):
 @pytest.fixture
 def open_setup():
     """Setup for OpenCommand testing."""
-    # ensure configuration is empty
-    CONFIG.config = {}
     root = os.path.abspath(os.path.dirname(__file__))
-    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
-    CONFIG.validate()
+    config.load(Path(root + '/debug.py'))
+    config.validate()
     # NOTE: normally you would never trigger an Add command before reading the database but in this
     # controlled testing scenario we can be certain that this is fine
     commands.AddCommand().execute(['-b', './test/dummy_multi_file_entry.bib'])
@@ -194,6 +191,12 @@ def open_setup():
     yield setup
     # clean up
     commands.DeleteCommand().execute(['dummy_multi_file_entry'])
+    # clean up config
+    config.defaults()
+    try:
+        del config.bibliography
+    except KeyError:
+        pass
 
 
 def test_open(open_setup):
@@ -235,8 +238,6 @@ def database_setup(init_setup):
     # initialize database
     # NOTE: if the InitCommand fails, all tests depending on this will fail, too
     commands.InitCommand().execute(['--git'] if git else [])
-    # freshly read in database to overwrite anything that was read in during setup()
-    read_database(fresh=True)
     # yield the parameter to allow re-use in actual test function
     yield git
     # clean up file system
@@ -321,7 +322,7 @@ def test_modify(database_setup, modification, filters, selection, append=False):
     git = database_setup
     # NOTE: again, we depend on AddCommand to work.
     commands.AddCommand().execute(['-b', './test/example_literature.bib'])
-    read_database(fresh=True)
+    read_database()
     # modify some data
     args = [modification, '--'] + filters
     if selection:
@@ -329,7 +330,7 @@ def test_modify(database_setup, modification, filters, selection, append=False):
     if append:
         args = ['-a'] + args
     commands.ModifyCommand().execute(args)
-    assert CONFIG.config['BIB_DATA']['einstein'].data['tags'] == 'test'
+    assert config.bibliography['einstein'].data['tags'] == 'test'
     if git:
         # assert the git commit message
         assert_git_commit_message('modify', {'append': append,
@@ -438,26 +439,26 @@ def test_export_selection(setup):
 
 @pytest.mark.parametrize(['args', 'expected', 'config_overwrite'], [
         [['einstein'], ['einstein - 1 match', '@article{einstein,', 'author = {Albert Einstein},'],
-         'False'],
+         False],
         [['einstein', '-i'], [
             'einstein - 2 matches', '@article{einstein,', 'author = {Albert Einstein},',
             'doi = {http://dx.doi.org/10.1002/andp.19053221004},'
-        ], 'False'],
+        ], False],
         [['einstein', '-i', '-c', '0'], [
             'einstein - 2 matches', '@article{einstein,', 'author = {Albert Einstein},'
-        ], 'False'],
+        ], False],
         [['einstein', '-i', '-c', '2'], [
             'einstein - 2 matches', '@article{einstein,', 'author = {Albert Einstein},',
             'doi = {http://dx.doi.org/10.1002/andp.19053221004},', 'journal = {Annalen der Physik},'
-        ], 'False'],
+        ], False],
         [['einstein'], [
             'einstein - 2 matches', '@article{einstein,', 'author = {Albert Einstein},',
             'doi = {http://dx.doi.org/10.1002/andp.19053221004},'
-        ], 'True'],
+        ], True],
         [['einstein', '-i'], [
             'einstein - 2 matches', '@article{einstein,', 'author = {Albert Einstein},',
             'doi = {http://dx.doi.org/10.1002/andp.19053221004},'
-        ], 'True'],
+        ], True],
     ])
 def test_search(setup, args, expected, config_overwrite):
     """Test search command.
@@ -468,7 +469,7 @@ def test_search(setup, args, expected, config_overwrite):
         expected: expected result.
         config_overwrite: with what to overwrite the DATABASE/ignore_search_case config option.
     """
-    CONFIG.config['DATABASE']['search_ignore_case'] = config_overwrite
+    config.commands.search.ignore_case = config_overwrite
     file = StringIO()
     commands.SearchCommand().execute(args, out=file)
     for line, exp in zip_longest(file.getvalue().split('\n'), expected):

@@ -5,7 +5,7 @@ import logging
 import os
 import sys
 
-from cobib.config import CONFIG
+from cobib.config import config
 from cobib.database import read_database
 from .base_command import ArgumentParser, Command
 
@@ -38,8 +38,7 @@ class DeleteCommand(Command):
             print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
             return
 
-        conf_database = CONFIG.config['DATABASE']
-        file = os.path.expanduser(conf_database['file'])
+        file = os.path.expanduser(config.database.file)
         with open(file, 'r') as bib:
             lines = bib.readlines()
         entry_to_be_deleted = False
@@ -87,7 +86,7 @@ class DeleteCommand(Command):
         tui.execute_command(['delete'] + labels, skip_prompt=True)
         # update database list
         LOGGER.debug('Updating list after Delete command.')
-        read_database(fresh=True)
+        read_database()
         tui.viewport.update_list()
         # if cursor line is below buffer height, move it one line back up
         if tui.STATE.current_line >= tui.viewport.buffer.height:

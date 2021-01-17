@@ -9,7 +9,7 @@ from functools import partial
 from signal import signal, SIGWINCH
 
 from cobib import commands
-from cobib.config import CONFIG
+from cobib.config import config
 from .buffer import TextBuffer, InputBuffer
 from .frame import Frame
 from .state import Mode, STATE
@@ -95,8 +95,6 @@ class TUI:
 
     # standard key bindings
     KEYDICT = {
-        10: 'Show',  # line feed = ENTER
-        13: 'Show',  # carriage return = ENTER
         curses.KEY_DOWN: ('y', 1),
         curses.KEY_UP: ('y', -1),
         curses.KEY_NPAGE: ('y', 20),
@@ -115,22 +113,6 @@ class TUI:
         ord('l'): ('x', 1),
         ord('0'): ('x', 0),
         ord('$'): ('x', '$'),
-        ord(':'): 'Prompt',
-        ord('/'): 'Search',
-        ord('?'): 'Help',
-        ord('a'): 'Add',
-        ord('d'): 'Delete',
-        ord('e'): 'Edit',
-        ord('f'): 'Filter',
-        ord('m'): 'Modify',
-        ord('o'): 'Open',
-        ord('q'): 'Quit',
-        ord('r'): 'Redo',
-        ord('s'): 'Sort',
-        ord('u'): 'Undo',
-        ord('v'): 'Select',
-        ord('w'): 'Wrap',
-        ord('x'): 'Export',
     }
 
     def __init__(self, stdscr):
@@ -165,7 +147,7 @@ class TUI:
         self.STATE = STATE  # pylint: disable=invalid-name
         STATE.initialize()
         # load further configuration settings
-        self.prompt_before_quit = CONFIG.config['TUI'].getboolean('prompt_before_quit', True)
+        self.prompt_before_quit = config.tui.prompt_before_quit
 
         # the selection needs to be tracked outside of the State in order to persist across
         # different views
@@ -266,7 +248,7 @@ class TUI:
         # Start colors in curses
         curses.start_color()
         # parse user color configuration
-        color_cfg = CONFIG.config['COLORS']
+        color_cfg = config.tui.colors
         colors = {col: {} for col in TUI.COLOR_NAMES}
         for attr, col in color_cfg.items():
             if attr in TUI.COLOR_VALUES.keys():
@@ -292,13 +274,13 @@ class TUI:
             LOGGER.debug('Initiliazing color pair %d for %s', idx + 1, attr)
             curses.init_pair(idx + 1, TUI.COLOR_VALUES[foreground], TUI.COLOR_VALUES[background])
             LOGGER.debug('Adding ANSI color code for %s', attr)
-            TUI.ANSI_MAP[CONFIG.get_ansi_color(attr)] = TUI.COLOR_NAMES.index(attr) + 1
+            TUI.ANSI_MAP[config.get_ansi_color(attr)] = TUI.COLOR_NAMES.index(attr) + 1
 
     @staticmethod
     def bind_keys():
         """Bind keys according to user configuration."""
-        key_bindings = CONFIG.config['KEY_BINDINGS']
-        for command, key in key_bindings.items():
+        for command, key in config.tui.key_bindings.items():
+            command = command.title()
             LOGGER.info('Binding key %s to the %s command.', key, command)
             if command not in TUI.COMMANDS.keys():
                 LOGGER.warning('Unknown command "%d". Ignoring key binding.', command)
@@ -333,11 +315,8 @@ class TUI:
         for cmd in TUI.HELP_DICT:
             if cmd:
                 # get associated key for this command
-                for key, command in TUI.KEYDICT.items():
-                    if cmd == command:
-                        key = 'ENTER' if key in (10, 13) else chr(key)
-                        infoline += " {}:{}".format(key, cmd)
-                        break
+                key = config.tui.key_bindings[cmd.lower()]
+                infoline += " {}:{}".format(key, cmd)
             else:
                 infoline += "  "
         return infoline.strip()
@@ -430,12 +409,12 @@ class TUI:
             # We do not need this outside of the list view because then the line indexed by `cur_y`
             # will surely only include the one label which we actually want to operate on.
             offset = '  ' if STATE.mode == Mode.LIST.value else ''
-            self.viewport.buffer.replace(cur_y, label + offset, CONFIG.get_ansi_color('selection')
+            self.viewport.buffer.replace(cur_y, label + offset, config.get_ansi_color('selection')
                                          + label + '\x1b[0m' + offset)
         else:
             LOGGER.info("Removing '%s' from the selection.", label)
             self.selection.remove(label)
-            self.viewport.buffer.replace(cur_y, re.escape(CONFIG.get_ansi_color('selection'))
+            self.viewport.buffer.replace(cur_y, re.escape(config.get_ansi_color('selection'))
                                          + label + re.escape('\x1b[0m'), label)
         # update buffer view
         self.viewport.view(ansi_map=self.ANSI_MAP)

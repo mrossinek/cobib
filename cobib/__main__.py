@@ -9,7 +9,7 @@ import sys
 
 from cobib import commands, zsh_helper
 from cobib import __version__
-from cobib.config import CONFIG
+from cobib.config import config
 from cobib.database import read_database
 from cobib.logging import log_to_stream, log_to_file
 from cobib.tui import tui
@@ -59,12 +59,7 @@ def main():
         logging.getLogger().setLevel(logging.DEBUG)
         LOGGER.info('Logging level set to DEBUG.')
 
-    CONFIG.set_config(args.config)
-    try:
-        CONFIG.validate()
-    except RuntimeError as exc:
-        LOGGER.error(exc)
-        sys.exit(1)
+    config.load(args.config)
 
     if args.command == 'init':
         # the database file may not exist yet, thus we ensure to execute the command before trying
@@ -91,16 +86,36 @@ def zsh_main():
 
     Main function used by the ZSH completion script.
     """
-    helper_avail = ['_'+m[0] for m in inspect.getmembers(zsh_helper) if inspect.isfunction(m[1])]
+    available_helpers = ['_'+m[0] for m in inspect.getmembers(zsh_helper)
+                         if inspect.isfunction(m[1])]
     parser = argparse.ArgumentParser(description="Process ZSH helper call")
-    parser.add_argument('helper', help="zsh helper to be called", choices=helper_avail)
+    parser.add_argument('helper', help="zsh helper to be called", choices=available_helpers)
     parser.add_argument('args', nargs=argparse.REMAINDER)
+    parser.add_argument('--verbose', '-v', action='count', default=0)
+    parser.add_argument("-l", "--logfile", type=argparse.FileType('w'),
+                        help="Alternative log file")
+    parser.add_argument("-c", "--config", type=argparse.FileType('r'),
+                        help="Alternative config file")
 
     args = parser.parse_args()
 
+    if args.logfile:
+        LOGGER.info('Switching to FileHandler logger in %s', args.logfile.name)
+        log_to_file('DEBUG' if args.verbose > 1 else 'INFO', logfile=args.logfile.name)
+
+    # set logging verbosity level
+    if args.verbose == 1:
+        logging.getLogger().setLevel(logging.INFO)
+        LOGGER.info('Logging level set to INFO.')
+    elif args.verbose > 1:
+        logging.getLogger().setLevel(logging.DEBUG)
+        LOGGER.info('Logging level set to DEBUG.')
+
+    config.load(args.config)
+
     helper = getattr(zsh_helper, args.helper.strip('_'))
     # any zsh helper function will return a list of the requested items
-    for item in helper(args=args.args):
+    for item in helper():
         print(item)
 
 
