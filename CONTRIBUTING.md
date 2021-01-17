@@ -24,6 +24,12 @@ make spell
 make doc
 ```
 
+## Documentation
+When working on CoBib you may find the online documentation at https://mrossinek.gitlab.io/cobib/ or a locally generated version, useful.
+For the latter, please refer to the README.
+
+Once you have opened a merge request on GitLab, you can also view an automatically generated version of the documentation for your branch through the `View App` button below the `Pipeline` results.
+
 ## Releasing [Repository admins only]
 To create a new release you should do the following steps:
 0. Update the version number in `cobib/__init__.py` and the man page

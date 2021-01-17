@@ -32,7 +32,7 @@ class Command(ABC):
         """TUI command interface.
 
         Args:
-            tui (cobib.TUI): instance of CoBib's TUI.
+            tui (cobib.tui.TUI): instance of CoBib's TUI.
         """
 
     def git(self, args=None, force=False):

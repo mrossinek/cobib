@@ -27,3 +27,7 @@ spell: cobib/ test/
 .PHONY: test
 test:
 	python3 -m pytest test/
+
+.PHONY: html
+html:
+	pdoc --html --force --output-dir html cobib

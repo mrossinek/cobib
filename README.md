@@ -80,4 +80,17 @@ You may also specify a different config file at runtime by using the `-c` or
 
 You can also find more information in the man page.
 
+## Documentation
+CoBib's documentation is hosted at https://mrossinek.gitlab.io/cobib/
+
+If you would like to generate a local version, you need to clone the source code, and install
+[`pdoc`](https://pdoc3.github.io/pdoc/) in order to generate it:
+```
+git clone https://gitlab.com/mrossinek/cobib.git
+cd cobib
+pip install pdoc3
+pdoc --html --output-dir docs cobib
+```
+You can then browse the documentation from `docs/cobib/index.html`.
+
 [//]: # ( vim: set ft=markdown: )
