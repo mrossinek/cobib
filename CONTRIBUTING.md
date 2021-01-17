@@ -39,3 +39,4 @@ To create a new release you should do the following steps:
 4. Create the release wheel and archive files: `python setup.py sdist bdist_wheel`
 5. Publish the new release on pypi: `python -m twine upload dist/cobib-VERSION*`
 6. Create a release on Gitlab by adding the changelog section to the tag release notes
+7. Trigger the manual CI action `pages`, which will update the online documentation.
