@@ -16,33 +16,87 @@ cache:
     paths:
         - .cache/pip
         - venv/
-before_script:
-    - uname -a
-    - apt-get update
-    - apt-get install -y python3-enchant vim
-    - python -V  # Print out python version for debugging
-    - pip install virtualenv
-    - virtualenv venv
-    - source venv/bin/activate
-    - pip install -r requirements.txt
-    - pip install pylint pydocstyle pyenchant pyte pytest
+
+stages:
+    - build
+    - test
+    - deploy
+
+build:
+    stage: build
+    script:
+        - uname -a
+        - python -V  # Print out python version for debugging
+        - pip install virtualenv
+        - virtualenv venv
+        - source venv/bin/activate
+        - pip install -r requirements.txt
+        - pip install pylint pydocstyle pyenchant pyte pytest
 
 lint:
+    stage: test
     script:
+        - source venv/bin/activate
         - pylint -rn cobib test --disable=fixme,duplicate-code
 
 doc:
+    stage: test
     script:
+        - source venv/bin/activate
         - pydocstyle --convention=google --match=".*\.py" cobib test
 
 spell:
+    stage: test
     script:
+        - apt-get update
+        - apt-get install -y python3-enchant
+        - source venv/bin/activate
         - python <<< 'import enchant; print(enchant.list_dicts())'
         - pylint -rn cobib test --disable=all --enable=spelling
           --spelling-dict='en_US' --spelling-private-dict-file=.pylintdict
 
 test:
+    stage: test
     script:
+        - apt-get update
+        - apt-get install -y vim
         - git config --global user.email "cobib@cobib.org"
         - git config --global user.name "CoBib"
-        - python -m pytest --verbose test
+        - source venv/bin/activate
+        - python -m pytest --verbose --junitxml=report.xml test
+    artifacts:
+        when: always
+        paths:
+            - report.xml
+        reports:
+            junit: report.xml
+
+develop:
+    stage: deploy
+    environment:
+        name: dev
+        url: "https://$CI_PROJECT_NAMESPACE.gitlab.io/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/index.html"
+    script:
+        - source venv/bin/activate
+        - pip install pdoc3
+        - pdoc --html --force --output-dir public cobib
+        - echo '<meta http-equiv="refresh" content="0; url=./cobib/index.html" />' > public/index.html
+    artifacts:
+        paths:
+          - public
+    variables:
+        PUBLIC_URL: "/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public"
+
+pages:
+    stage: deploy
+    script:
+        - source venv/bin/activate
+        - pip install pdoc3
+        - pdoc --html --force --output-dir public cobib
+        - echo '<meta http-equiv="refresh" content="0; url=./cobib/index.html" />' > public/index.html
+    artifacts:
+        paths:
+            - public
+    when: manual
+    only:
+        - master

@@ -8,6 +8,9 @@ dist
 *.egg-info
 __pycache__
 
+# Documentation data
+html
+
 # literature data (debugging)
 *.bib
 *.yaml

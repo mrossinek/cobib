@@ -143,10 +143,10 @@ class Config(dict):
     def __setattr__(self, key, value):
         """Sets an attribute of the object while respecting specifically defined properties.
 
-        If we would copy `__setitem__` to `__setattr__` like we do for the getter methods, we would
-        loose the ability to define some specific properties of this class. However, we can make the
-        `__setattr__` method smart by checking whether the `key` corresponds to a property of this
-        class and use that setter. Otherwise, we default to using the `__setitem__` method.
+        If we would copy `__setitem__` to `__setattr__`, we would loose the ability to define some
+        specific properties of this class. However, we can make the `__setattr__` method smart by
+        checking whether the `key` corresponds to a property of this class and use that setter.
+        Otherwise, we default to using the `__setitem__` method.
 
         Source: https://stackoverflow.com/a/15751135
 
@@ -158,8 +158,10 @@ class Config(dict):
         if isinstance(property_object, property):
             LOGGER.debug("Setting attribute %s using property's fset.", key)
             property_object.fset(self, value)
+        elif key[0:2] == '__':
+            super().__setattr__(key, value)
         else:
-            super().__setitem__(key, value)
+            self.__setitem__(key, value)
 
     # A helper object for detecting the nested recursion-threshold.
     MARKER = object()
@@ -179,8 +181,20 @@ class Config(dict):
             super().__setitem__(key, found)
         return found
 
-    __getattr__ = __getitem__
-    """We enable attribute-like access to all dictionary items, for convenience."""
+    def __getattr__(self, key):
+        """Gets an attribute from the configuration object.
+
+        If we would copy `__getitem__` to `__getattr__`, we would loose the ability to exempt
+        internal attributes from the automatic population with empty configuration objects. Thus, we
+        add this logic here by handling keys which start with `__`, separately.
+        Otherwise, we default to using the `__getitem__` method.
+
+        Args:
+            key (str): the queried attributes' name.
+        """
+        if key[0:2] == '__':
+            return self.get(key)
+        return self.__getitem__(key)
 
     def update(self, **kwargs):
         """Updates the configuration with a dictionary of settings.
