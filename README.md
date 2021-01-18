@@ -1,5 +1,9 @@
 # CoBib
 
+[![pipeline](https://gitlab.com/mrossinek/cobib/badges/master/pipeline.svg)](https://gitlab.com/mrossinek/cobib/commits/master)
+[![coverage](https://gitlab.com/mrossinek/cobib/badges/master/coverage.svg)](https://gitlab.com/mrossinek/cobib/commits/master)
+[![PyPI](https://img.shields.io/pypi/v/cobib)](https://pypi.org/project/cobib/)
+
 [Quickstart](https://mrossinek.gitlab.io/programming/introducing-cobib/)
 
 Welcome to CoBib - the Console Bibliography!

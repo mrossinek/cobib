@@ -1,0 +1,9 @@
+wheel
+twine
+pylint
+pydocstyle
+pyenchant
+pyte
+pytest
+coverage
+pytest-cov

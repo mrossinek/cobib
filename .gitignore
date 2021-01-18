@@ -8,6 +8,10 @@ dist
 *.egg-info
 __pycache__
 
+# Test data
+.coverage
+*.xml
+
 # Documentation data
 html
 

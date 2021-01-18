@@ -31,7 +31,7 @@ build:
         - virtualenv venv
         - source venv/bin/activate
         - pip install -r requirements.txt
-        - pip install pylint pydocstyle pyenchant pyte pytest
+        - pip install -r requirements-dev.txt
 
 lint:
     stage: test
@@ -63,13 +63,18 @@ test:
         - git config --global user.email "cobib@cobib.org"
         - git config --global user.name "CoBib"
         - source venv/bin/activate
-        - python -m pytest --verbose --junitxml=report.xml test
+        - python -m pytest --verbose --junitxml=report.xml --cov=cobib test
+        - coverage xml
+    coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
     artifacts:
         when: always
+        expire_in: 30 days
         paths:
             - report.xml
+            - coverage.xml
         reports:
             junit: report.xml
+            cobertura: coverage.xml
 
 develop:
     stage: deploy
