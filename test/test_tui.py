@@ -296,6 +296,9 @@ def test_tui(setup, keys, assertion, assertion_kwargs):
                 except OSError:
                     # reading empty
                     break
+        # send SIGTERM to child process
+        os.kill(pid, 15)
+        # assert the screen contents
         for line in screen.display:
             print(line)
         assertion(screen, **assertion_kwargs)
@@ -473,6 +476,9 @@ def test_tui_resize(setup, keys, assertion, assertion_kwargs):
                 except OSError:
                     # reading empty
                     break
+        # send SIGTERM to child process
+        os.kill(pid, 15)
+        # assert the screen contents
         for line in screen.display:
             print(line)
         assertion(screen, **assertion_kwargs)

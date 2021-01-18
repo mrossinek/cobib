@@ -3,11 +3,13 @@ If you want to contribute to CoBib feel free to open a [PR on Gitlab](https://gi
 Bug fixes and feature additions are always welcome!
 If you need some inspiration you also take a look at the [list of open issues](https://gitlab.com/mrossinek/cobib/-/issues) to see whether there is something you can help with.
 
+## Setup
+You can install all of the tools required for developing CoBib with the simple command:
+```
+pip install -r requirements-dev.txt
+```
+
 ## Testing
-We use `pytest` and `pyte` for our test suite so be sure to install these additional packages:
-```
-pip install pytest pyte
-```
 You can run the tests locally with
 ```
 make test
@@ -18,10 +20,15 @@ python -m pytest test/TEST.py -k FUNCTION_NAME
 ```
 Please also check your code style with the following checks:
 ```
-pip install pylint pyenchant pydocstyle
 make lint
 make spell
 make doc
+```
+
+## Coverage
+You can check the coverage with the `pytest-cov` plugin:
+```
+make coverage
 ```
 
 ## Documentation
