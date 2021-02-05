@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.6.1] - 2021-02-05
+
+Pypi: https://pypi.org/project/cobib/2.6.1/
+
+Note: [2.6.1] was not released from the `master`-branch, which resulted in a non-linear development.
+
 ### Changed
 - `init --git` will not initialize a repository unless git has configured both, `name` and `email`
 
@@ -369,6 +375,7 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 
 
 [Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.6.0...master
+[2.6.1]: https://gitlab.com/mrossinek/cobib/-/compare/v2.6.1
 [2.6.0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.6.0
 [2.5.0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.5.0
 [2.4.1]: https://gitlab.com/mrossinek/cobib/-/tags/v2.4.1
