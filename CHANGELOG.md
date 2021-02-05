@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `init --git` will not initialize a repository unless git has configured both, `name` and `email`
 
+### Fixed
+- TUI no longer crashes when aborting to quit (#64)
 
 ## [2.6.0] - 2020-12-31
 

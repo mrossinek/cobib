@@ -45,6 +45,9 @@ class Frame:
 
     def revert(self):
         """Reverts the frame to the previous state."""
+        if not self.history:
+            LOGGER.debug('Empty frame history, nothing to revert')
+            return
         self.buffer, state = self.history.pop()
         STATE.update(state)
         self.buffer.replace(range(self.buffer.height), re.escape(CONFIG.get_ansi_color('selection'))
