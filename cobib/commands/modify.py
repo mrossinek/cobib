@@ -5,7 +5,7 @@ import logging
 import os
 import sys
 
-from cobib.config import config
+from cobib.database import Database
 from .base_command import ArgumentParser, Command
 from .list import ListCommand
 
@@ -81,34 +81,22 @@ class ModifyCommand(Command):
             LOGGER.warning(msg)
             sys.exit(1)
 
+        bib = Database()
+
         for label in labels:
             try:
-                entry = config.bibliography[label]
+                entry = bib[label]
                 entry.data[field] = value
 
-                file = os.path.expanduser(config.database.file)
-                with open(file, 'r') as bib:
-                    lines = bib.readlines()
-                entry_to_be_replaced = False
-                with open(file, 'w') as bib:
-                    for line in lines:
-                        if line.startswith(label + ':'):
-                            LOGGER.debug('Entry "%s" found. Starting to replace lines.', label)
-                            entry_to_be_replaced = True
-                            continue
-                        if entry_to_be_replaced and line.startswith('...'):
-                            LOGGER.debug('Reached end of entry "%s".', label)
-                            entry_to_be_replaced = False
-                            bib.writelines('\n'.join(entry.to_yaml().split('\n')[1:]))
-                            continue
-                        if not entry_to_be_replaced:
-                            bib.write(line)
+                bib.update({label: entry})
 
                 msg = f"'{label}' was modified."
                 print(msg)
                 LOGGER.info(msg)
             except KeyError:
                 print("Error: No entry with the label '{}' could be found.".format(label))
+
+        bib.save()
 
         self.git(args=vars(largs))
 

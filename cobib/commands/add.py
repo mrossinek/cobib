@@ -1,13 +1,14 @@
 """CoBib add command."""
 
 import argparse
+import inspect
 import logging
 import sys
 from collections import OrderedDict
 
 from cobib.config import config
-from cobib.database import read_database, write_database
-from cobib.parser import Entry
+from cobib.database import Database, Entry
+from cobib import parsers
 from .base_command import ArgumentParser, Command
 from .edit import EditCommand
 
@@ -33,14 +34,11 @@ class AddCommand(Command):
         parser.add_argument("-f", "--file", type=str, nargs="+", action="extend",
                             help="files associated with this entry")
         group_add = parser.add_mutually_exclusive_group()
-        group_add.add_argument("-a", "--arxiv", type=str,
-                               help="arXiv ID of the new references")
-        group_add.add_argument("-b", "--bibtex", type=argparse.FileType('r'),
-                               help="BibLaTeX bibliographic data")
-        group_add.add_argument("-d", "--doi", type=str,
-                               help="DOI of the new references")
-        group_add.add_argument("-i", "--isbn", type=str,
-                               help="ISBN of the new references")
+        avail_parsers = {cls.name: cls for _, cls in inspect.getmembers(parsers)
+                         if inspect.isclass(cls)}
+        for name in avail_parsers.keys():
+            group_add.add_argument(f"-{name[0]}", f"--{name}", type=str,
+                                   help=f"{name} object identfier")
         parser.add_argument("tags", nargs=argparse.REMAINDER,
                             help="A list of space-separated tags to associate with this entry." +
                             "\nYou can use quotes to specify tags with spaces in them.")
@@ -57,29 +55,25 @@ class AddCommand(Command):
         new_entries = OrderedDict()
 
         edit_entries = False
-        if largs.bibtex is not None:
-            LOGGER.debug("Adding entries from BibLaTeX '%s'.", largs.bibtex)
-            new_entries = Entry.from_bibtex(largs.bibtex)
-        elif largs.arxiv is not None:
-            LOGGER.debug("Adding entries from arXiv '%s'.", largs.arxiv)
-            new_entries = Entry.from_arxiv(largs.arxiv)
-        elif largs.doi is not None:
-            LOGGER.debug("Adding entries from DOI '%s'.", largs.doi)
-            new_entries = Entry.from_doi(largs.doi)
-        elif largs.isbn is not None:
-            LOGGER.debug("Adding entries from ISBN '%s'.", largs.isbn)
-            new_entries = Entry.from_isbn(largs.isbn)
-        elif largs.label is not None:
-            LOGGER.warning("No input to parse. Creating new entry '%s' manually.", largs.label)
-            new_entries = {
-                largs.label: Entry(largs.label,
-                                   {'ID': largs.label,
-                                    'ENTRYTYPE': config.format.default_entry_type})
-                }
-            edit_entries = True
+        for name, cls in avail_parsers.items():
+            string = getattr(largs, name, None)
+            if string is None:
+                continue
+            LOGGER.debug("Adding entries from {name} '%s'.", string)
+            new_entries = cls().parse(string)
+            break
         else:
-            LOGGER.error("Neither an input to parse nor a label for manual creation specified!")
-            return
+            if largs.label is not None:
+                LOGGER.warning("No input to parse. Creating new entry '%s' manually.", largs.label)
+                new_entries = {
+                    largs.label: Entry(largs.label,
+                                       {'ID': largs.label,
+                                        'ENTRYTYPE': config.format.default_entry_type})
+                    }
+                edit_entries = True
+            else:
+                LOGGER.error("Neither an input to parse nor a label for manual creation specified!")
+                return
 
         if largs.label is not None:
             assert len(new_entries.values()) == 1
@@ -100,9 +94,8 @@ class AddCommand(Command):
                 # logging done by cobib/parser.py
                 value.set_tags = largs.tags
 
-        # Write the new entries to the database. This destructively overwrite the variable with a
-        # list of labels of the entries which have actually been added to the database.
-        new_entries = write_database(new_entries)
+        bib = Database()
+        bib.update(new_entries)
 
         if edit_entries:
             if largs.label not in new_entries:
@@ -110,8 +103,9 @@ class AddCommand(Command):
                     + f"Please use `cobib edit {largs.label}` instead!"
                 LOGGER.warning(msg)
             else:
-                read_database()
                 EditCommand().execute([largs.label])
+
+        bib.save()
 
         self.git(args=vars(largs))
 
@@ -128,5 +122,4 @@ class AddCommand(Command):
         tui.execute_command('add')
         # update database list
         LOGGER.debug('Updating list after Add command.')
-        read_database()
         tui.viewport.update_list()

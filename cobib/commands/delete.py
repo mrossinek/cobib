@@ -2,11 +2,9 @@
 
 import argparse
 import logging
-import os
 import sys
 
-from cobib.config import config
-from cobib.database import read_database
+from cobib.database import Database
 from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
@@ -38,30 +36,17 @@ class DeleteCommand(Command):
             print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
             return
 
-        file = os.path.expanduser(config.database.file)
-        with open(file, 'r') as bib:
-            lines = bib.readlines()
-        entry_to_be_deleted = False
-        current_label = None
-        deleted_entries = []
-        buffer = []
-        for line in lines:
-            if any([line.startswith(label + ':') for label in largs.labels]):
-                current_label = line[:line.find(':')]
-                LOGGER.debug('Entry "%s" found. Starting to remove lines.', current_label)
-                entry_to_be_deleted = True
-                buffer.pop()
-                continue
-            if entry_to_be_deleted and line.startswith('...'):
-                LOGGER.debug('Reached end of entry "%s".', current_label)
-                deleted_entries.append(current_label)
-                entry_to_be_deleted = False
-                continue
-            if not entry_to_be_deleted:
-                buffer.append(line)
-        with open(file, 'w') as bib:
-            for line in buffer:
-                bib.write(line)
+        deleted_entries = set()
+
+        bib = Database()
+        for label in largs.labels:
+            try:
+                bib.pop(label)
+                deleted_entries.add(label)
+            except KeyError:
+                pass
+
+        bib.save()
 
         self.git(args=vars(largs))
 
@@ -86,7 +71,6 @@ class DeleteCommand(Command):
         tui.execute_command(['delete'] + labels, skip_prompt=True)
         # update database list
         LOGGER.debug('Updating list after Delete command.')
-        read_database()
         tui.viewport.update_list()
         # if cursor line is below buffer height, move it one line back up
         if tui.STATE.current_line >= tui.viewport.buffer.height:

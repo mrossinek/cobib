@@ -9,7 +9,7 @@ import sys
 from cobib import commands, zsh_helper
 from cobib import __version__
 from cobib.config import config
-from cobib.database import read_database
+from cobib.database import Database
 from cobib.logging import log_to_stream, log_to_file
 from cobib.tui import tui
 
@@ -58,6 +58,7 @@ def main():
         logging.getLogger().setLevel(logging.DEBUG)
         LOGGER.info('Logging level set to DEBUG.')
 
+    # load configuration
     config.load(args.config)
 
     if args.command == 'init':
@@ -67,7 +68,9 @@ def main():
         subcmd.execute(args.args)
         return
 
-    read_database()
+    # initialize database
+    Database()
+
     if not args.command:
         if args.logfile is None:
             LOGGER.info('Switching to FileHandler logger in %s', '/tmp/cobib.log')
@@ -110,7 +113,10 @@ def zsh_main():
         logging.getLogger().setLevel(logging.DEBUG)
         LOGGER.info('Logging level set to DEBUG.')
 
+    # load configuration
     config.load(args.config)
+    # initialize database
+    Database()
 
     helper = getattr(zsh_helper, args.helper.strip('_'))
     # any zsh helper function will return a list of the requested items

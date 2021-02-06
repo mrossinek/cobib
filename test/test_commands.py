@@ -15,7 +15,7 @@ from shutil import rmtree
 import pytest
 from cobib import commands
 from cobib.config import config
-from cobib.database import read_database
+from cobib.database import Database
 
 
 def assert_git_commit_message(command, args):
@@ -41,14 +41,10 @@ def setup():
     root = os.path.abspath(os.path.dirname(__file__))
     config.load(Path(root + '/debug.py'))
     config.validate()
-    read_database()
     yield setup
     # clean up config
+    Database().clear()
     config.defaults()
-    try:
-        del config.bibliography
-    except KeyError:
-        pass
 
 
 @pytest.fixture(params=[False, True])
@@ -74,10 +70,6 @@ def init_setup(request):
         rmtree('/tmp/cobib_test/.git')
     # clean up config
     config.defaults()
-    try:
-        del config.bibliography
-    except KeyError:
-        pass
 
 
 @pytest.mark.parametrize(['safe'], [
@@ -187,16 +179,12 @@ def open_setup():
     # NOTE: normally you would never trigger an Add command before reading the database but in this
     # controlled testing scenario we can be certain that this is fine
     commands.AddCommand().execute(['-b', './test/dummy_multi_file_entry.bib'])
-    read_database()
     yield setup
     # clean up
     commands.DeleteCommand().execute(['dummy_multi_file_entry'])
     # clean up config
+    Database().clear()
     config.defaults()
-    try:
-        del config.bibliography
-    except KeyError:
-        pass
 
 
 def test_open(open_setup):
@@ -241,6 +229,7 @@ def database_setup(init_setup):
     # yield the parameter to allow re-use in actual test function
     yield git
     # clean up file system
+    Database().clear()
     os.remove('/tmp/cobib_test/database.yaml')
 
 
@@ -261,9 +250,10 @@ def test_add(database_setup):
                 'label': None,
                 'file': None,
                 'arxiv': None,
-                'bibtex': bibtex,
+                'bibtex': bibtex.name,
                 'doi': None,
                 'isbn': None,
+                'yaml': None,
                 'tags': [],
             })
 
@@ -322,7 +312,6 @@ def test_modify(database_setup, modification, filters, selection, append=False):
     git = database_setup
     # NOTE: again, we depend on AddCommand to work.
     commands.AddCommand().execute(['-b', './test/example_literature.bib'])
-    read_database()
     # modify some data
     args = [modification, '--'] + filters
     if selection:
@@ -330,7 +319,7 @@ def test_modify(database_setup, modification, filters, selection, append=False):
     if append:
         args = ['-a'] + args
     commands.ModifyCommand().execute(args)
-    assert config.bibliography['einstein'].data['tags'] == 'test'
+    assert Database()['einstein'].data['tags'] == 'test'
     if git:
         # assert the git commit message
         assert_git_commit_message('modify', {'append': append,

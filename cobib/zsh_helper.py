@@ -4,8 +4,7 @@ import inspect
 import os
 
 from cobib import commands
-from cobib.config import config
-from cobib.database import read_database
+from cobib.database import Database
 
 
 def list_commands():
@@ -15,16 +14,14 @@ def list_commands():
 
 def list_tags():
     """List all available tags in the database."""
-    read_database()
-    tags = list(config.bibliography.keys())
+    tags = list(Database().keys())
     return tags
 
 
 def list_filters():
     """Lists all field names available for filtering."""
-    read_database()
     filters = set()
-    for entry in config.bibliography.values():
+    for entry in Database().values():
         filters.update(entry.data.keys())
     return filters
 

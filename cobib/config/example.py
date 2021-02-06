@@ -61,6 +61,10 @@ config.database.git = False
 # converted automatically. I.e. '8' will become 'aug' if you set this to `str`.
 config.database.format.month = int
 
+# You can specify whether latex warnings should not be ignored during the escaping of special
+# characters.
+config.database.format.suppress_latex_warnings = True
+
 
 # PARSERS
 # These settings affect some parser specific behavior.

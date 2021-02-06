@@ -56,6 +56,7 @@ class Config(dict):
             'file': os.path.expanduser('~/.local/share/cobib/literature.yaml'),
             'format': {
                 'month': int,
+                'suppress_latex_warnings': True,
             },
             'git': False,
         },
@@ -378,6 +379,8 @@ class Config(dict):
         # DATABASE.FORMAT section
         self._assert(self.database.format.month in (int, str),
                      "config.database.format.month should be either the `int` or `str` type.")
+        self._assert(isinstance(self.database.format.suppress_latex_warnings, bool),
+                     "config.database.format.suppress_latex_warnings should be a boolean.")
 
         # PARSER section
         self._assert(isinstance(self.parsers.bibtex.ignore_non_standard_types, bool),
@@ -445,24 +448,6 @@ class Config(dict):
         bg_color = 40 + ANSI_COLORS.index(self.tui.colors.get(name + '_bg'))
 
         return f'\x1b[{fg_color};{bg_color}m'
-
-    def get_bibliography(self):
-        """Returns the bibliographic runtime data."""
-        LOGGER.debug('Getting bibliographic runtime data.')
-        return self._bibliography
-
-    def set_bibliography(self, bib):
-        """Sets the bibliographic runtime data."""
-        LOGGER.debug('Setting bibliographic runtime data.')
-        # pylint: disable=attribute-defined-outside-init
-        self._bibliography = copy.deepcopy(bib)
-
-    def del_bibliography(self):
-        """Deletes the bibliographic runtime data."""
-        LOGGER.debug('Clearing bibliographic runtime data.')
-        self._bibliography.clear()
-
-    bibliography = property(get_bibliography, set_bibliography, del_bibliography)
 
 
 config = Config()

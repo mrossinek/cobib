@@ -62,6 +62,7 @@ def test_base_config(setup):
         [['database'], 'file'],
         [['database'], 'git'],
         [['database', 'format'], 'month'],
+        [['database', 'format'], 'suppress_latex_warnings'],
         [['parsers', 'bibtex'], 'ignore_non_standard_types'],
         [['tui'], 'default_list_args'],
         [['tui'], 'prompt_before_quit'],

@@ -7,7 +7,7 @@ import subprocess
 import sys
 
 from cobib.config import config
-from cobib.database import read_database
+from cobib.database import Database
 from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
@@ -93,7 +93,7 @@ class RedoCommand(Command):
         tui.execute_command(['redo'], skip_prompt=True)
         # update database list
         LOGGER.debug('Updating list after Redo command.')
-        read_database()
+        Database().read()
         tui.viewport.update_list()
         # if cursor line is below buffer height, move it one line back up
         if tui.STATE.current_line >= tui.viewport.buffer.height:

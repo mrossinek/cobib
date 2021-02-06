@@ -7,7 +7,7 @@ import textwrap
 from collections import defaultdict
 from operator import itemgetter
 
-from cobib.config import config
+from cobib.database import Database
 from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ class ListCommand(Command):
                             help="reverses the listing order")
         unique_keys = set()
         LOGGER.debug('Gathering possible filter arguments.')
-        for entry in config.bibliography.values():
+        for entry in Database().values():
             unique_keys.update(entry.data.keys())
         for key in sorted(unique_keys):
             parser.add_argument('++'+key, type=str, action='append',
@@ -82,7 +82,7 @@ class ListCommand(Command):
         widths = [0]*len(columns)
         labels = []
         table = []
-        for key, entry in config.bibliography.items():
+        for key, entry in Database().items():
             if entry.matches(_filter, largs.OR):
                 LOGGER.debug('Entry "%s" matches the filter.', key)
                 labels.append(key)
