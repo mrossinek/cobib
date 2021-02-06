@@ -396,6 +396,10 @@ Also be sure to at least set a \fIname\fR and \fIemail\fR in the git config!
 .IR config.database.format.month = int
 This field may either be \fIint\fR (default) or \fIstr\fR and it specifies the
 type into which the \fBmonth\fR field should be converted before storing.
+.TP
+.IR config.database.format.suppress_latex_warnings = True
+This boolean field indicates whether latex warnings will be ignored during the
+escaping of special characters.
 .PP
 .BR PARSERS
 .TP

@@ -6,6 +6,8 @@ import sys
 
 from cobib import __version__
 from cobib.config import config
+from cobib.database import Database
+from cobib.parsers import BibtexParser
 from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
@@ -38,8 +40,8 @@ class ShowCommand(Command):
             return
 
         try:
-            entry = config.bibliography[largs.label]
-            entry_str = entry.to_bibtex()
+            entry = Database()[largs.label]
+            entry_str = BibtexParser().dump(entry)
             print(entry_str, file=out)
         except KeyError:
             msg = f"No entry with the label '{largs.label}' could be found."

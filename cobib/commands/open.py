@@ -9,6 +9,7 @@ from collections import defaultdict
 from urllib.parse import urlparse
 
 from cobib.config import config
+from cobib.database import Database
 from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
@@ -41,13 +42,15 @@ class OpenCommand(Command):
             print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
             return
 
+        bib = Database()
+
         # pylint: disable=too-many-nested-blocks
         for label in largs.labels:
             things_to_open = defaultdict(list)
             count = 0
             # first: find all possible things to open
             try:
-                entry = config.bibliography[label]
+                entry = bib[label]
                 for field in ('file', 'url'):
                     if field in entry.data.keys() and entry.data[field]:
                         for val in entry.data[field].split(','):

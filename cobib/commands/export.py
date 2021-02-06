@@ -6,7 +6,8 @@ import os
 import sys
 from zipfile import ZipFile
 
-from cobib.config import config
+from cobib.database import Database
+from cobib.parsers import BibtexParser
 from .base_command import ArgumentParser, Command
 from .list import ListCommand
 
@@ -68,12 +69,16 @@ class ExportCommand(Command):
             LOGGER.debug('Gathering filtered list of entries to be exported.')
             labels = ListCommand().execute(largs.filter, out=out)
 
+        bibtex_parser = BibtexParser()
+
+        bib = Database()
+
         try:
             for label in labels:
                 LOGGER.debug('Exporting entry "%s".', label)
-                entry = config.bibliography[label]
+                entry = bib[label]
                 if largs.bibtex is not None:
-                    entry_str = entry.to_bibtex()
+                    entry_str = bibtex_parser.dump(entry)
                     largs.bibtex.write(entry_str)
                 if largs.zip is not None:
                     if 'file' in entry.data.keys() and entry.data['file'] is not None:

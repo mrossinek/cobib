@@ -23,6 +23,7 @@ configparser
 configpath
 deepcopied
 defaultdict
+docstring
 doi
 getter
 github
@@ -35,7 +36,10 @@ io
 isbn
 logfile
 msg
+noqa
+parsers
 pdf
+pdoc
 phiresky
 pmincol
 pminrow

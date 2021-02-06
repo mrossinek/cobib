@@ -9,6 +9,7 @@ import sys
 
 from cobib import __version__
 from cobib.config import config
+from cobib.database import Database
 from .base_command import ArgumentParser, Command
 from .list import ListCommand
 
@@ -58,10 +59,12 @@ class SearchCommand(Command):
         re_flags = re.IGNORECASE if ignore_case else 0
         LOGGER.debug('The search will be performed case %ssensitive', 'in' if ignore_case else '')
 
+        bib = Database()
+
         hits = 0
         output = []
         for label in labels.copy():
-            entry = config.bibliography[label]
+            entry = bib[label]
             matches = entry.search(largs.query, largs.context, ignore_case)
             if not matches:
                 labels.remove(label)
