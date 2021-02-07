@@ -358,6 +358,20 @@ def test_undo(database_setup, caplog):
         assert 'Undo' in message[0]
 
 
+def test_undo_only_after_commit(database_setup, caplog):
+    """Regression test related to #65."""
+    git = database_setup
+    if not git:
+        pytest.skip("Undo requires git-tracking.")
+    else:
+        with pytest.raises(SystemExit):
+            commands.UndoCommand().execute([])
+
+        for record in caplog.records:
+            if record.name == 'cobib.commands.undo' and record.levelname == 'WARNING':
+                assert 'Could not find a commit to undo.' in record.msg
+
+
 def test_redo(database_setup, caplog):
     """Test redo command."""
     git = database_setup
@@ -384,6 +398,21 @@ def test_redo(database_setup, caplog):
         message = message.decode('utf-8').split('\n')
         # assert subject line
         assert 'Redo' in message[0]
+
+
+def test_redo_only_after_undo(database_setup, caplog):
+    """Regression test against #65."""
+    git = database_setup
+    if not git:
+        pytest.skip("Redo requires git-tracking.")
+    else:
+        commands.AddCommand().execute(['-b', './test/example_literature.bib'])
+        with pytest.raises(SystemExit):
+            commands.RedoCommand().execute([])
+
+        for record in caplog.records:
+            if record.name == 'cobib.commands.redo' and record.levelname == 'WARNING':
+                assert 'Could not find a commit to redo.' in record.msg
 
 
 def test_export(setup):

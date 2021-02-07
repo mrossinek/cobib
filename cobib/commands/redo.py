@@ -68,20 +68,21 @@ class RedoCommand(Command):
             if sha in redone_shas:
                 LOGGER.info('Skipping %s as it was already redone', sha)
                 continue
-            LOGGER.debug('Attempting to redo %s.', sha)
-            commands = [
-                f"git -C {root} revert --no-commit {sha}",
-                f"git -C {root} commit --no-gpg-sign --quiet --message 'Redo {sha}'"
-            ]
-            redo = subprocess.Popen('; '.join(commands), shell=True,
-                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            redo.communicate()
-            if redo.returncode != 0:
-                LOGGER.error('Redo was unsuccessful. Please consult the logs and git history of'
-                             ' your database for more information.')
-            break
+            if message[0] == 'Undo':
+                LOGGER.debug('Attempting to redo %s.', sha)
+                commands = [
+                    f"git -C {root} revert --no-commit {sha}",
+                    f"git -C {root} commit --no-gpg-sign --quiet --message 'Redo {sha}'"
+                ]
+                redo = subprocess.Popen('; '.join(commands), shell=True,
+                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                redo.communicate()
+                if redo.returncode != 0:
+                    LOGGER.error('Redo was unsuccessful. Please consult the logs and git history of'
+                                 ' your database for more information.')
+                break
         else:
-            msg = "Could not find a commit to redo. Please commit something first!"
+            msg = "Could not find a commit to redo. You must have undone something first!"
             print(msg, file=sys.stderr)
             LOGGER.warning(msg)
             sys.exit(1)

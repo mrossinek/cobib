@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - the ZSH helper utilities now respect the `-c`, `-l`, and `-v` command line options
+- the `RedoCommand` should only revert a previously `UndoCommand` operation (#65)
 
 ### Removed
 - the functions `read_database()` and `write_database()` are no longer available (!28)
