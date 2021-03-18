@@ -18,7 +18,7 @@ class ListCommand(Command):
 
     name = 'list'
 
-    def execute(self, args, out=sys.stdout):
+    def execute(self, args, out=None):
         """List entries.
 
         By default, all entries of the database are listed.
@@ -53,7 +53,8 @@ class ListCommand(Command):
         try:
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
-            print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
+            LOGGER.error(exc.message)
+            print(exc.message, file=sys.stderr)
             return None
 
         LOGGER.debug('Constructing filter.')

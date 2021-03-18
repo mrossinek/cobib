@@ -26,7 +26,7 @@ setup(
     author_email='rmax@ethz.ch',
     platforms=['any'],
     packages=['cobib'],
-    package_data={'cobib': ['commands/*', 'config/*', 'tui/*']},
+    package_data={'cobib': ['commands/*', 'config/*', 'database/*', 'parsers/*', 'tui/*']},
     python_requires='>=3.5',
     install_requires=REQUIREMENTS,
     entry_points={

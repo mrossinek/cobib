@@ -18,7 +18,7 @@ class ShowCommand(Command):
 
     name = 'show'
 
-    def execute(self, args, out=sys.stdout):
+    def execute(self, args, out=None):
         """Show entry.
 
         Prints the details of a selected entry in BibLaTex format to stdout.
@@ -36,7 +36,8 @@ class ShowCommand(Command):
         try:
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
-            print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
+            LOGGER.error(exc.message)
+            print(exc.message, file=sys.stderr)
             return
 
         try:

@@ -31,7 +31,8 @@ class InitCommand(Command):
         try:
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
-            print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
+            LOGGER.error(exc.message)
+            print(exc.message, file=sys.stderr)
             return
 
         file = os.path.realpath(os.path.expanduser(config.database.file))

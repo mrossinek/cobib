@@ -99,8 +99,11 @@ Store the newly added entry under the specified \fIlabel\fR.
 Deletes the entry with the given \fIlabel\fR.
 .TP
 .B cobib edit \fI<label>\fR
-Opens the entry with the given \fIlabel\fR in the \fI$EDITOR\fR.
+Opens the entry with the given \fIlabel\fR in an external editor.
 The entry is copied verbatim in \fIYAML\fR format from and to the database file.
+The editor respects the \fI$EDITOR\fR environment variable unless overwritten by
+\fIconfig.commands.edit.editor\fR. It will fallback to \fIvim\fR if neither is
+configured.
 .PP
 .in +8n
 .BR \-a ", " \-\-add " " \fI<path>\fR
@@ -369,6 +372,11 @@ means, the same can be achieved via:
 .IR config.commands.edit.default_entry_type = 'article'
 This setting indicates the default entry type which will be used for manually
 entered entries.
+.TP
+.IR config.commands.edit.editor = $EDITOR " if available else " 'vim'
+This setting can be used to overwrite the external editor used for manual
+editing of database entries. It defaults to the environment variable
+\fI$EDITOR\fR and falls back to \fIvim\fR if that is not set either.
 .TP
 .IR config.commands.open.command = 'xdg-open' " (on Linux); " 'open' " (on Mac OS)"
 Specifies the program used to open associated files.

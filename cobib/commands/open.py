@@ -39,7 +39,8 @@ class OpenCommand(Command):
         try:
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
-            print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
+            LOGGER.error(exc.message)
+            print(exc.message, file=sys.stderr)
             return
 
         bib = Database()
@@ -59,15 +60,16 @@ class OpenCommand(Command):
                             things_to_open[field] += [urlparse(val)]
                             count += 1
             except KeyError:
-                msg = "Error: No entry with the label '{}' could be found.".format(label)
-                LOGGER.error(msg)
+                msg = "No entry with the label '{}' could be found.".format(label)
+                LOGGER.warning(msg)
+                print(msg, file=sys.stderr)
                 continue
 
             # if there are none, skip current label
             if not things_to_open:
-                msg = "Warning: This entry has no actionable field associated with it."
+                msg = "The entry '{}' has no actionable field associated with it.".format(label)
                 LOGGER.warning(msg)
-                print(msg, file=out or sys.stderr)
+                print(msg, file=sys.stderr)
                 continue
 
             if count == 1:

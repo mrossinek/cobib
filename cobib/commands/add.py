@@ -49,7 +49,8 @@ class AddCommand(Command):
         try:
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
-            print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
+            LOGGER.error(exc.message)
+            print(exc.message, file=sys.stderr)
             return
 
         new_entries = OrderedDict()
@@ -59,7 +60,7 @@ class AddCommand(Command):
             string = getattr(largs, name, None)
             if string is None:
                 continue
-            LOGGER.debug("Adding entries from {name} '%s'.", string)
+            LOGGER.debug("Adding entries from %s: '%s'.", name, string)
             new_entries = cls().parse(string)
             break
         else:
@@ -68,42 +69,46 @@ class AddCommand(Command):
                 new_entries = {
                     largs.label: Entry(largs.label,
                                        {'ID': largs.label,
-                                        'ENTRYTYPE': config.format.default_entry_type})
+                                        'ENTRYTYPE': config.commands.edit.default_entry_type})
                     }
                 edit_entries = True
             else:
-                LOGGER.error("Neither an input to parse nor a label for manual creation specified!")
+                msg = "Neither an input to parse nor a label for manual creation specified!"
+                print(msg, file=sys.stderr)
+                LOGGER.error(msg)
                 return
 
         if largs.label is not None:
             assert len(new_entries.values()) == 1
             for value in new_entries.values():
-                # logging done by cobib/parser.py
-                value.set_label = largs.label
+                # logging done by cobib/database/entry.py
+                value.label = largs.label
             new_entries = OrderedDict((largs.label, value) for value in new_entries.values())
 
         if largs.file is not None:
             assert len(new_entries.values()) == 1
             for value in new_entries.values():
-                # logging done by cobib/parser.py
-                value.set_file = largs.file
+                # logging done by cobib/database/entry.py
+                value.file = largs.file
 
         if largs.tags != []:
             assert len(new_entries.values()) == 1
             for value in new_entries.values():
-                # logging done by cobib/parser.py
-                value.set_tags = largs.tags
+                # logging done by cobib/database/entry.py
+                value.tags = largs.tags
 
         bib = Database()
+
+        if largs.label in bib.keys():
+            msg = f"You tried to add a new entry '{largs.label}' which already exists!\n" \
+                + f"Please use `cobib edit {largs.label}` instead!"
+            LOGGER.warning(msg)
+            return
+
         bib.update(new_entries)
 
         if edit_entries:
-            if largs.label not in new_entries:
-                msg = f"You tried to add a new entry '{largs.label}' which already exists!\n" \
-                    + f"Please use `cobib edit {largs.label}` instead!"
-                LOGGER.warning(msg)
-            else:
-                EditCommand().execute([largs.label])
+            EditCommand().execute([largs.label])
 
         bib.save()
 

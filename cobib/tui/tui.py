@@ -1,12 +1,15 @@
 """CoBib curses interface."""
 
 import curses
+import fcntl
 import logging
 import re
 import shlex
+import signal
+import struct
 import sys
 from functools import partial
-from signal import signal, SIGWINCH
+from termios import TIOCGWINSZ
 
 from cobib import commands
 from cobib.config import config
@@ -115,17 +118,18 @@ class TUI:
         ord('$'): ('x', '$'),
     }
 
-    def __init__(self, stdscr):
+    def __init__(self, stdscr, debug=False):
         """Initializes the curses-TUI and starts the event loop.
 
         Args:
             stdscr (curses.window): the curses standard screen as returned by curses.initscr().
+            debug (bool): if True, the key-event loop is not automatically started.
         """
         LOGGER.info('Initializing TUI.')
         self.stdscr = stdscr
 
         # register resize handler
-        signal(SIGWINCH, self.resize_handler)
+        signal.signal(signal.SIGWINCH, self.resize_handler)
 
         # Clear and refresh the screen for a blank canvas
         self.stdscr.clear()
@@ -177,10 +181,11 @@ class TUI:
         LOGGER.debug('Populating viewport buffer.')
         self.viewport.update_list()
 
-        # start key event loop
-        LOGGER.debug('Starting key event loop.')
-        self.loop()
-        LOGGER.info('Exiting TUI.')
+        if not debug:
+            # start key event loop
+            LOGGER.debug('Starting key event loop.')
+            self.loop()
+            LOGGER.info('Exiting TUI.')
 
     def resize_handler(self, signum, frame):  # pylint: disable=unused-argument
         """Handles terminal window resize events.
@@ -190,14 +195,24 @@ class TUI:
             frame: unused argument, required by the function template.
         """
         LOGGER.debug('Handling resize event.')
-        # stop curses window
-        curses.endwin()
+        if signum == signal.SIGWINCH:
+            # update total dimension data
+            buf = struct.pack('HHHH', 0, 0, 0, 0)
+            # We use f_d = 0 as this redirects to STDIN under the hood, regardless of whether the
+            # application is actually running in the foreground or in a pseudo terminal.
+            buf = fcntl.ioctl(0, TIOCGWINSZ, buf)
+            self.height, self.width = struct.unpack('HHHH', buf)[0:2]
+        if signum is not None and not curses.is_term_resized(self.height, self.width):
+            # when no signal number was given, this was a manually triggered event with the purpose
+            # of completely refreshing the screen
+            LOGGER.debug('Resize event did not have any effect: %dx%d', self.width, self.height)
+            return
+        LOGGER.debug('New stdscr dimension determined to be %dx%d', self.width, self.height)
+        # actually resize the terminal
+        curses.resize_term(self.height, self.width)
         # clear and refresh for a blank canvas
         self.stdscr.clear()
         self.stdscr.refresh()
-        # update total dimension data
-        self.height, self.width = self.stdscr.getmaxyx()
-        LOGGER.debug('New stdscr dimension determined to be %dx%d', self.width, self.height)
         # update top statusbar
         self.topbar.resize(1, self.width)
         self.statusbar(self.topbar, STATE.topstatus)
@@ -239,8 +254,9 @@ class TUI:
                 self.prompt.refresh(0, 0, self.height-1, 0, self.height, self.width-1)
             else:
                 raise StopIteration
-        LOGGER.debug('Quitting higher menu level. Falling back to list view.')
-        self.viewport.revert()
+        else:
+            LOGGER.debug('Quitting higher menu level. Falling back to list view.')
+            self.viewport.revert()
 
     @staticmethod
     def colors():
@@ -283,7 +299,7 @@ class TUI:
             command = command.title()
             LOGGER.info('Binding key %s to the %s command.', key, command)
             if command not in TUI.COMMANDS.keys():
-                LOGGER.warning('Unknown command "%d". Ignoring key binding.', command)
+                LOGGER.warning('Unknown command "%s". Ignoring key binding.', command)
                 continue
             if key == 'ENTER':
                 TUI.KEYDICT[10] = command  # line feed
@@ -313,12 +329,9 @@ class TUI:
         """Returns a list of the available key bindings."""
         infoline = ''
         for cmd in TUI.HELP_DICT:
-            if cmd:
-                # get associated key for this command
-                key = config.tui.key_bindings[cmd.lower()]
-                infoline += " {}:{}".format(key, cmd)
-            else:
-                infoline += "  "
+            # get associated key for this command
+            key = config.tui.key_bindings[cmd.lower()]
+            infoline += " {}:{}".format(key, cmd)
         return infoline.strip()
 
     def help(self):
@@ -370,18 +383,22 @@ class TUI:
                 break
 
             # highlight current line
-            current_colors = []
+            current_attributes = []
             for x_pos in range(0, self.viewport.pad.getmaxyx()[1]):
                 x_ch = self.viewport.pad.inch(STATE.current_line, x_pos)
-                current_colors.append(x_ch)
-                # x_ch is the character at the queried position. The bottom 8 bits are the character
-                # proper, and upper bits are the attributes.
-                # Source: https://docs.python.org/3/library/curses.html#curses.window.inch
-                # Thus, we can find the color attribute by striping the last 8 bits.
-                x_attr = x_ch >> 8
-                if x_attr <= TUI.COLOR_NAMES.index('cursor_line'):
+                # store attributes by filtering out the character text
+                current_attributes.append(x_ch & curses.A_CHARTEXT)
+                # extract color information
+                x_color = x_ch & curses.A_COLOR
+                color_pair_content = curses.pair_content(curses.pair_number(x_color))
+                # if the current color attribute is lower in priority than the current line
+                # highlighting, use that instead
+                if all(col <= 0 for col in color_pair_content):
                     self.viewport.pad.chgat(STATE.current_line, x_pos, 1, curses.color_pair(
                         TUI.COLOR_NAMES.index('cursor_line') + 1))
+                else:
+                    # otherwise, we remove the stored attributes in order to not reset them later
+                    current_attributes[-1] = None
 
             # Refresh the screen
             self.viewport.refresh()
@@ -392,7 +409,8 @@ class TUI:
 
             # reset highlight of current line
             for x_pos in range(0, self.viewport.pad.getmaxyx()[1]):
-                self.viewport.pad.chgat(STATE.current_line, x_pos, 1, current_colors[x_pos])
+                if current_attributes[x_pos] is not None:
+                    self.viewport.pad.chgat(STATE.current_line, x_pos, 1, current_attributes[x_pos])
 
     def select(self):
         """Toggles selection of the current label."""
@@ -430,7 +448,7 @@ class TUI:
         [1] https://docs.python.org/3/library/curses.html#curses.window.addstr
 
         Args:
-            text (str or list): the test to print to the prompt.
+            text (str): the test to print to the prompt.
         """
         lines = text.strip().split('\n') if isinstance(text, str) else text
         self.prompt.clear()
@@ -472,6 +490,7 @@ class TUI:
             # get next key
             self.prompt.nodelay(False)
             key = self.prompt.getch()
+            LOGGER.debug('Key press registered: %s', str(key))
             # handle keys
             if key == 27:  # ESC
                 self.prompt.nodelay(True)
@@ -488,7 +507,7 @@ class TUI:
                 elif arrow == 67:  # right arrow key
                     LOGGER.debug('Move cursor right from arrow key input.')
                     self.prompt.move(_, cur_x + 1)
-            elif key == 127:  # BACKSPACE
+            elif key in (8, 127):  # BACKSPACE
                 if cur_x > 1:
                     LOGGER.debug('Delete the previous character in the prompt.')
                     self.prompt.delch(_, cur_x - 1)
@@ -499,6 +518,8 @@ class TUI:
             elif key in (10, 13):  # ENTER
                 LOGGER.debug('Execute the command as prompted.')
                 command = self.prompt.instr(0, 1).decode('utf-8').strip()
+                break
+            elif key == -1:  # no input
                 break
             else:
                 # any normal key is simply echoed
@@ -535,7 +556,7 @@ class TUI:
             # split command into separate arguments for cobib
             command = shlex.split(command)
 
-        # process command if it non empty and actually has arguments
+        # process command if it is non empty and actually has arguments
         result = None
         if command and command[0]:
             LOGGER.debug('Processing the command: %s', ' '.join(command))

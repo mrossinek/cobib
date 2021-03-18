@@ -27,6 +27,11 @@ from cobib.config import config
 # You can specify the default bibtex entry type via the following setting:
 config.commands.edit.default_entry_type = 'article'
 
+# You can specify the editor program to be used by overwriting the following setting:
+config.commands.edit.editor = os.environ.get('EDITOR', 'vim')
+# Note, that the default will respect your `$EDITOR` environment setting and fallback to `vim` if
+# that variable is not set.
+
 # You can specify a custom command which will be used to `open` files associated with your entries.
 config.commands.open.command = 'xdg-open' if sys.platform.lower() == 'linux' else 'open'
 

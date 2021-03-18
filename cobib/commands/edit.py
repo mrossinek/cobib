@@ -39,7 +39,8 @@ class EditCommand(Command):
         try:
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
-            print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
+            LOGGER.error(exc.message)
+            print(exc.message, file=sys.stderr)
             return
 
         yml = YAMLParser()
@@ -59,7 +60,7 @@ class EditCommand(Command):
                 # add a new entry for the unknown label
                 entry = Entry(largs.label,
                               {'ID': largs.label,
-                               'ENTRYTYPE': config.format.default_entry_type})
+                               'ENTRYTYPE': config.commands.edit.default_entry_type})
                 prv = yml.dump(entry)
             else:
                 msg = f"No entry with the label '{largs.label}' could be found.\n" \
@@ -71,15 +72,15 @@ class EditCommand(Command):
         tmp_file = tempfile.NamedTemporaryFile(mode='w+', prefix='cobib-', suffix='.yaml')
         tmp_file.write(prv)
         tmp_file.flush()
-        LOGGER.debug('Starting editor "%s".', os.environ['EDITOR'])
-        status = os.system(os.environ['EDITOR'] + ' ' + tmp_file.name)
+        LOGGER.debug('Starting editor "%s".', config.commands.edit.editor)
+        status = os.system(config.commands.edit.editor + ' ' + tmp_file.name)
         assert status == 0
         LOGGER.debug('Editor finished successfully.')
         new_entries = YAMLParser().parse(tmp_file.name)
         new_entry = new_entries[list(new_entries.keys())[0]]
         tmp_file.close()
         assert not os.path.exists(tmp_file.name)
-        if entry == new_entry:
+        if entry == new_entry and not largs.add:
             LOGGER.info('No changes detected.')
             return
 
@@ -87,6 +88,10 @@ class EditCommand(Command):
         bib.save()
 
         self.git(args=vars(largs))
+
+        msg = f"'{largs.label}' was successfully edited."
+        print(msg)
+        LOGGER.info(msg)
 
     @staticmethod
     def tui(tui):

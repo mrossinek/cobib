@@ -1,0 +1,5 @@
+[run]
+omit = test/*
+source = cobib/
+parallel = True
+branch = True

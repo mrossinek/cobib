@@ -49,7 +49,8 @@ class RedoCommand(Command):
             # pylint: disable=unused-variable
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
-            print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
+            LOGGER.error(exc.message)
+            print(exc.message, file=sys.stderr)
             return
 
         LOGGER.debug('Obtaining git log.')
@@ -62,7 +63,7 @@ class RedoCommand(Command):
             sha, *message = commit.split()
             if message[0] == 'Redo':
                 # Store already redone commit sha
-                LOGGER.debug('Storing undone commit sha: %s', sha)
+                LOGGER.debug('Storing redone commit sha: %s', message[-1])
                 redone_shas.add(message[-1])
                 continue
             if sha in redone_shas:
@@ -80,6 +81,9 @@ class RedoCommand(Command):
                 if redo.returncode != 0:
                     LOGGER.error('Redo was unsuccessful. Please consult the logs and git history of'
                                  ' your database for more information.')
+                else:
+                    # update Database
+                    Database().read()
                 break
         else:
             msg = "Could not find a commit to redo. You must have undone something first!"
@@ -94,8 +98,4 @@ class RedoCommand(Command):
         tui.execute_command(['redo'], skip_prompt=True)
         # update database list
         LOGGER.debug('Updating list after Redo command.')
-        Database().read()
         tui.viewport.update_list()
-        # if cursor line is below buffer height, move it one line back up
-        if tui.STATE.current_line >= tui.viewport.buffer.height:
-            tui.STATE.current_line -= 1

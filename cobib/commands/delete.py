@@ -33,7 +33,8 @@ class DeleteCommand(Command):
         try:
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
-            print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
+            LOGGER.error(exc.message)
+            print(exc.message, file=sys.stderr)
             return
 
         deleted_entries = set()
@@ -41,6 +42,7 @@ class DeleteCommand(Command):
         bib = Database()
         for label in largs.labels:
             try:
+                LOGGER.debug("Attempting to delete entry '%s'.", label)
                 bib.pop(label)
                 deleted_entries.add(label)
             except KeyError:
@@ -72,6 +74,3 @@ class DeleteCommand(Command):
         # update database list
         LOGGER.debug('Updating list after Delete command.')
         tui.viewport.update_list()
-        # if cursor line is below buffer height, move it one line back up
-        if tui.STATE.current_line >= tui.viewport.buffer.height:
-            tui.STATE.current_line -= 1

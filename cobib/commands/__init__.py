@@ -12,19 +12,3 @@ from .redo import RedoCommand
 from .search import SearchCommand
 from .show import ShowCommand
 from .undo import UndoCommand
-
-
-__all__ = [
-    "AddCommand",
-    "DeleteCommand",
-    "EditCommand",
-    "ExportCommand",
-    "InitCommand",
-    "ListCommand",
-    "ModifyCommand",
-    "OpenCommand",
-    "RedoCommand",
-    "SearchCommand",
-    "ShowCommand",
-    "UndoCommand",
-    ]

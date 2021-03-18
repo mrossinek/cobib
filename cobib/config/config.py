@@ -21,10 +21,6 @@ ANSI_COLORS = [
     'white',
 ]
 
-XDG_CONFIG_FILE = '~/.config/cobib/config.py'
-# TODO: remove legacy configuration support on 1.1.2022
-LEGACY_XDG_CONFIG_FILE = '~/.config/cobib/config.ini'
-
 
 class Config(dict):
     """CoBib's configuration object.
@@ -39,10 +35,15 @@ class Config(dict):
     Source: https://stackoverflow.com/a/3031270
     """
 
+    XDG_CONFIG_FILE = '~/.config/cobib/config.py'
+    # TODO: remove legacy configuration support on 1.1.2022
+    LEGACY_XDG_CONFIG_FILE = '~/.config/cobib/config.ini'
+
     DEFAULTS = {
         'commands': {
             'edit': {
                 'default_entry_type': 'article',
+                'editor': os.environ.get('EDITOR', 'vim'),
             },
             'open': {
                 'command': 'xdg-open' if sys.platform.lower() == 'linux' else 'open',
@@ -142,24 +143,15 @@ class Config(dict):
         super().__setitem__(key, value)
 
     def __setattr__(self, key, value):
-        """Sets an attribute of the object while respecting specifically defined properties.
+        """Use __setitem__ to set attributes unless it is a private (`__`) field.
 
-        If we would copy `__setitem__` to `__setattr__`, we would loose the ability to define some
-        specific properties of this class. However, we can make the `__setattr__` method smart by
-        checking whether the `key` corresponds to a property of this class and use that setter.
-        Otherwise, we default to using the `__setitem__` method.
-
-        Source: https://stackoverflow.com/a/15751135
+        This is necessary in order to avoid a RecursionError during the pdoc generation.
 
         Args:
             key (str): the attributes' name.
             value (Any): the attributes' value.
         """
-        property_object = getattr(self.__class__, key, None)
-        if isinstance(property_object, property):
-            LOGGER.debug("Setting attribute %s using property's fset.", key)
-            property_object.fset(self, value)
-        elif key[0:2] == '__':
+        if key[0:2] == '__':
             super().__setattr__(key, value)
         else:
             self.__setitem__(key, value)
@@ -183,12 +175,9 @@ class Config(dict):
         return found
 
     def __getattr__(self, key):
-        """Gets an attribute from the configuration object.
+        """Use __getitem__ to get attributes unless it is a private (`__`) field.
 
-        If we would copy `__getitem__` to `__getattr__`, we would loose the ability to exempt
-        internal attributes from the automatic population with empty configuration objects. Thus, we
-        add this logic here by handling keys which start with `__`, separately.
-        Otherwise, we default to using the `__getitem__` method.
+        This is necessary in order to avoid a RecursionError during the pdoc generation.
 
         Args:
             key (str): the queried attributes' name.
@@ -219,18 +208,18 @@ class Config(dict):
             if isinstance(configpath, io.TextIOWrapper):
                 configpath = configpath.name
             LOGGER.info('Loading configuration from %s', configpath)
-        elif os.path.exists(os.path.expanduser(XDG_CONFIG_FILE)):
+        elif os.path.exists(os.path.expanduser(Config.XDG_CONFIG_FILE)):
             LOGGER.info('Loading configuration from default location: %s',
-                        os.path.expanduser(XDG_CONFIG_FILE))
-            configpath = os.path.expanduser(XDG_CONFIG_FILE)
-        elif os.path.exists(os.path.expanduser(LEGACY_XDG_CONFIG_FILE)):
+                        os.path.expanduser(Config.XDG_CONFIG_FILE))
+            configpath = os.path.expanduser(Config.XDG_CONFIG_FILE)
+        elif os.path.exists(os.path.expanduser(Config.LEGACY_XDG_CONFIG_FILE)):
             LOGGER.info('Loading configuration from default location: %s',
-                        os.path.expanduser(LEGACY_XDG_CONFIG_FILE))
-            configpath = os.path.expanduser(LEGACY_XDG_CONFIG_FILE)
+                        os.path.expanduser(Config.LEGACY_XDG_CONFIG_FILE))
+            configpath = os.path.expanduser(Config.LEGACY_XDG_CONFIG_FILE)
         else:
             return
 
-        if os.path.exists(os.path.expanduser(LEGACY_XDG_CONFIG_FILE)):
+        if os.path.exists(os.path.expanduser(Config.LEGACY_XDG_CONFIG_FILE)):
             msg = (
                    "The configuration mechanism of CoBib underwent a major re-design for version "
                    "3.0! This means, that the old `INI`-style configuration is deprecated and will "
@@ -360,6 +349,8 @@ class Config(dict):
         LOGGER.debug('Validating the COMMANDS.EDIT configuration section.')
         self._assert(isinstance(self.commands.edit.default_entry_type, str),
                      "config.commands.edit.default_entry_type should be a string.")
+        self._assert(isinstance(self.commands.edit.editor, str),
+                     "config.commands.edit.editor should be a string.")
         # COMMANDS.OPEN section
         LOGGER.debug('Validating the COMMANDS.OPEN configuration section.')
         self._assert(isinstance(self.commands.open.command, str),
@@ -404,7 +395,7 @@ class Config(dict):
 
         for name, color in self.tui.colors.items():
             if name not in self.DEFAULTS['tui']['colors'].keys() and name not in ANSI_COLORS:
-                LOGGER.warning('Ignoring unkonwn TUI color: %s.', name)
+                LOGGER.warning('Ignoring unknown TUI color: %s.', name)
             self._assert(color in ANSI_COLORS or
                          (len(color.strip('#')) == 6 and
                           tuple(int(color.strip('#')[i:i+2], 16) for i in (0, 2, 4))),
