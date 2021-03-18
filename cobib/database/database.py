@@ -31,9 +31,7 @@ class Database(OrderedDict):
 
     def update(self, new_entries):
         """Updates the database with the given dictionary of entries."""
-        for label, entry in new_entries.items():
-            entry.escape_special_chars(config.database.format.suppress_latex_warnings)
-            entry.convert_month(config.database.format.month)
+        for label in new_entries.keys():
             LOGGER.debug('Updating entry %s', label)
             if label in Database._unsaved_entries:
                 Database._unsaved_entries.remove(label)
@@ -63,8 +61,6 @@ class Database(OrderedDict):
             from cobib.parsers import YAMLParser
             cls._instance.clear()
             cls._instance.update(YAMLParser().parse(Path(file)))
-        except AttributeError:
-            LOGGER.debug('Initializing an empty database.')
         except FileNotFoundError:
             LOGGER.critical("The database file %s does not exist! Please run `cobib init`!", file)
             sys.exit(1)
@@ -104,7 +100,7 @@ class Database(OrderedDict):
                 entry = cls._instance.get(cur_label, None)
                 if entry:
                     LOGGER.debug('Writing modified entry "%s".', cur_label)
-                    entry_str = yml.dump(entry)
+                    entry_str = entry.save(parser=yml)
                     buffer.append('\n'.join(entry_str.split('\n')[1:]))
                 else:
                     # Entry has been deleted. Pop the previous `---` line.
@@ -118,7 +114,7 @@ class Database(OrderedDict):
         if cls._unsaved_entries:
             for label in cls._unsaved_entries.copy():
                 LOGGER.debug('Adding new entry "%s".', label)
-                entry_str = yml.dump(cls._instance[label])
+                entry_str = cls._instance[label].save(parser=yml)
                 buffer.append(entry_str)
                 cls._unsaved_entries.remove(label)
 

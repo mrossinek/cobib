@@ -9,7 +9,9 @@ dist
 __pycache__
 
 # Test data
+.tox
 .coverage
+.coverage.*
 *.xml
 
 # Documentation data

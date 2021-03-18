@@ -63,6 +63,9 @@ class Frame:
                                     + re.escape('\x1b[0m'),
                                     config.get_ansi_color('search_label') +
                                     config.get_ansi_color('selection') + label + '\x1b[0m\x1b[0m')
+            elif STATE.mode == Mode.SHOW.value:
+                self.buffer.replace(0, label,
+                                    config.get_ansi_color('selection') + label + '\x1b[0m')
             else:
                 # Note: the two spaces are explained in the `select()` method.
                 self.buffer.replace(range(self.buffer.height), label + '  ',
@@ -123,6 +126,7 @@ class Frame:
                         STATE.current_line - STATE.top_line > self.height // 2 and \
                         next_line - STATE.top_line < self.height // 2:
                     STATE.top_line = next_line - self.height // 2
+            STATE.top_line = max(STATE.top_line, 0)
             STATE.current_line = max(next_line, 0)
         # scroll down
         elif update > 0:
@@ -171,9 +175,9 @@ class Frame:
         # then, wrap the buffer
         self.buffer.wrap(self.width)
         self.view()
-        # if cursor line is below buffer height, move it one line back up
+        # if cursor line is below buffer height, move it to the last line
         if self.buffer.height and STATE.current_line >= self.buffer.height:
-            STATE.current_line -= 1
+            STATE.current_line = self.buffer.height - 1
 
     def get_current_label(self):
         """Returns the label and y position of the currently selected entry."""
@@ -196,6 +200,7 @@ class Frame:
             label = '-'.join(STATE.topstatus.split('-')[1:]).strip()
             # We also set cur_y to 0 for the select command to find it
             cur_y = 0
+        label = re.sub(re.escape('\x1b[') + r'.+m(.+)' + re.escape('\x1b[0m'), r'\1', label)
         LOGGER.debug('Current label at "%s" is "%s".', str(cur_y), label)
         return label, cur_y
 
@@ -207,7 +212,7 @@ class Frame:
         labels = labels or []  # convert to empty list if labels is None
         # populate buffer with the list
         if STATE.mode != Mode.LIST.value:
-            STATE.current_line = STATE.previous_line
+            STATE.current_line = max(STATE.previous_line, 0)
             STATE.mode = Mode.LIST.value
         # reset viewport
         STATE.top_line = 0

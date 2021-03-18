@@ -51,12 +51,13 @@ class ExportCommand(Command):
         try:
             largs = parser.parse_intermixed_args(args)
         except argparse.ArgumentError as exc:
-            print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
+            LOGGER.error(exc.message)
+            print(exc.message, file=sys.stderr)
             return
 
         if largs.bibtex is None and largs.zip is None:
             msg = "No output file specified!"
-            print("Error: " + msg, file=sys.stderr)
+            print(msg, file=sys.stderr)
             LOGGER.error(msg)
             return
         if largs.zip is not None:
@@ -73,20 +74,25 @@ class ExportCommand(Command):
 
         bib = Database()
 
-        try:
-            for label in labels:
-                LOGGER.debug('Exporting entry "%s".', label)
+        for label in labels:
+            try:
+                LOGGER.info('Exporting entry "%s".', label)
                 entry = bib[label]
                 if largs.bibtex is not None:
                     entry_str = bibtex_parser.dump(entry)
                     largs.bibtex.write(entry_str)
                 if largs.zip is not None:
-                    if 'file' in entry.data.keys() and entry.data['file'] is not None:
+                    if 'file' in entry.data.keys() and entry.file is not None:
                         LOGGER.debug('Adding "%s" associated with "%s" to the zip file.',
-                                     entry.data['file'], label)
-                        largs.zip.write(entry.data['file'], label+'.pdf')
-        except KeyError:
-            print("Error: No entry with the label '{}' could be found.".format(largs.label))
+                                     entry.file, label)
+                        largs.zip.write(entry.file, os.path.basename(entry.file))
+            except KeyError:
+                msg = f"No entry with the label '{label}' could be found."
+                print(msg)
+                LOGGER.warning(msg)
+
+        if largs.zip is not None:
+            largs.zip.close()
 
     @staticmethod
     def tui(tui):

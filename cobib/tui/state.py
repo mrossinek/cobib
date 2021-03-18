@@ -39,6 +39,20 @@ class State:
         # creation of the STATE singleton
         self.list_args = []
 
+    def reset(self):
+        """Resets the state."""
+        LOGGER.debug('Resetting the State')
+        self.top_line = 0
+        self.left_edge = 0
+        self.current_line = 0
+        self.previous_line = -1
+
+        self.mode = Mode.LIST.value
+        self.inactive_commands = []
+        self.topstatus = ''
+
+        self.initialize()
+
     def initialize(self):
         """Initialize configuration-dependent settings."""
         self.list_args = config.tui.default_list_args

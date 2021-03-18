@@ -62,7 +62,8 @@ class ModifyCommand(Command):
         try:
             largs = parser.parse_intermixed_args(args)
         except argparse.ArgumentError as exc:
-            print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
+            LOGGER.error(exc.message)
+            print(exc.message, file=sys.stderr)
             return
 
         out = open(os.devnull, 'w')
@@ -94,7 +95,9 @@ class ModifyCommand(Command):
                 print(msg)
                 LOGGER.info(msg)
             except KeyError:
-                print("Error: No entry with the label '{}' could be found.".format(label))
+                msg = f"No entry with the label '{label}' could be found."
+                print(msg)
+                LOGGER.warning(msg)
 
         bib.save()
 

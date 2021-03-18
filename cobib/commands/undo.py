@@ -51,7 +51,8 @@ class UndoCommand(Command):
         try:
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
-            print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
+            LOGGER.error(exc.message)
+            print(exc.message, file=sys.stderr)
             return
 
         LOGGER.debug('Obtaining git log.')
@@ -64,7 +65,7 @@ class UndoCommand(Command):
             sha, *message = commit.split()
             if message[0] == 'Undo':
                 # Store already undone commit sha
-                LOGGER.debug('Storing undone commit sha: %s', sha)
+                LOGGER.debug('Storing undone commit sha: %s', message[-1])
                 undone_shas.add(message[-1])
                 continue
             if sha in undone_shas:
@@ -85,6 +86,9 @@ class UndoCommand(Command):
                 if undo.returncode != 0:
                     LOGGER.error('Undo was unsuccessful. Please consult the logs and git history of'
                                  ' your database for more information.')
+                else:
+                    # update Database
+                    Database().read()
                 break
         else:
             msg = "Could not find a commit to undo. Please commit something first!"
@@ -99,8 +103,4 @@ class UndoCommand(Command):
         tui.execute_command(['undo'], skip_prompt=True)
         # update database list
         LOGGER.debug('Updating list after Undo command.')
-        Database().read()
         tui.viewport.update_list()
-        # if cursor line is below buffer height, move it one line back up
-        if tui.STATE.current_line >= tui.viewport.buffer.height:
-            tui.STATE.current_line -= 1

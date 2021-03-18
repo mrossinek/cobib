@@ -4,6 +4,7 @@ from collections import OrderedDict
 import io
 import logging
 
+from pathlib import Path
 from ruamel import yaml
 
 from cobib.database import Entry
@@ -38,9 +39,12 @@ class YAMLParser(Parser):
         bib = OrderedDict()
         LOGGER.debug('Loading YAML data from file: %s.', string)
         try:
-            stream = open(string, 'r')
-        except FileNotFoundError:
-            stream = io.StringIO(string)
+            stream = io.StringIO(Path(string))
+        except TypeError:
+            try:
+                stream = open(string, 'r')
+            except FileNotFoundError as exc:
+                raise exc
         for entry in yaml.safe_load_all(stream):
             for label, data in entry.items():
                 bib[label] = Entry(label, data)

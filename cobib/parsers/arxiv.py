@@ -47,7 +47,7 @@ class ArxivParser(Parser):
             elif key.name == 'id':
                 entry['arxivid'] = str(key.contents[0]).replace('http://arxiv.org/abs/', '')
                 entry['eprint'] = str(key.contents[0])
-            elif key.name == 'primary_category':
+            elif key.name == 'arxiv:primary_category':
                 entry['primaryClass'] = str(key.attrs['term'])
             elif key.name == 'published':
                 # The year must also be stored as a string for compatibility reasons with

@@ -72,39 +72,12 @@ class Command(ABC):
 
 
 class ArgumentParser(argparse.ArgumentParser):
-    """Overwrite ArgumentParser to allow catching any error messages thrown by parse_args.
+    """Overwrite ArgumentParser to allow catching any error messages thrown by parse_args."""
+    # TODO: once Python 3.9 becomes the default, make use of the exit_on_error argument.
+    # Source: https://docs.python.org/3/library/argparse.html#exit-on-error
 
-    Source: https://stackoverflow.com/a/5943381
-    """
-
-    def _get_action_from_name(self, name):
-        """Given a name, get the Action instance registered with this parser.
-
-        If only it were made available in the ArgumentError object. It is
-        passed as it's first argument...
-
-        Args:
-            name (str or None): name of the action.
-        """
-        container = self._actions
-        if name is None:
-            return None
-        for action in container:
-            if '/'.join(action.option_strings) == name:
-                return action
-            if action.metavar == name:
-                return action
-            if action.dest == name:
-                return action
-        return None
-
-    def error(self, message):
-        """Prints an error.
-
-        Args:
-            message (str): error message string.
-        """
-        exc = sys.exc_info()[1]
-        if exc:
-            raise exc
-        super().error(message)
+    def exit(self, status=0, message=None):
+        """Overwrite the exit method to raise an error instead."""
+        if status:
+            raise argparse.ArgumentError(None, f'Error: {message}')
+        super().exit(status, message)

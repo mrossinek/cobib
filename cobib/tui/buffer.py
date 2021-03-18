@@ -47,12 +47,16 @@ class TextBuffer:
             old_str (str): old string to be replaced.
             new_str (str): new string to be inserted.
         """
+        LOGGER.debug('Replacing "%s" with "%s" in lines %s', old_str, new_str, lines)
         if isinstance(lines, int):
             lines = [lines]
         for idx in lines:
             self.lines[idx] = re.sub(old_str, new_str, self.lines[idx])
 
     def flush(self):
+        """Compatibility function."""
+
+    def close(self):
         """Compatibility function."""
 
     def clear(self):

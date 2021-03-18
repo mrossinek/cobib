@@ -33,7 +33,7 @@ class Entry:
             # sanity check for matching label and ID
             LOGGER.warning("Mismatching label '%s' and ID '%s'. Overwriting ID with label.",
                            self._label, self.data['ID'])
-            self.set_label = self._label
+            self.label = self._label
 
     def __eq__(self, other):
         """Check equality of two entries."""
@@ -45,7 +45,7 @@ class Entry:
         return self._label
 
     @label.setter
-    def set_label(self, label):
+    def label(self, label):
         """Sets the database Id of this entry."""
         LOGGER.debug("Changing the label '%s' to '%s'.", self.label, label)
         self._label = label
@@ -58,7 +58,7 @@ class Entry:
         return self.data.get('tags', None)
 
     @tags.setter
-    def set_tags(self, tags):
+    def tags(self, tags):
         """Sets the tags of this entry."""
         self.data['tags'] = ''.join(tag.strip('+')+', ' for tag in tags).strip(', ')
         LOGGER.debug("Adding the tags '%s' to '%s'.", self.data['tags'], self.label)
@@ -69,7 +69,7 @@ class Entry:
         return self.data.get('file', None)
 
     @file.setter
-    def set_file(self, file):
+    def file(self, file):
         """Sets the associated file of this entry."""
         if isinstance(file, list):
             file = ', '.join([os.path.abspath(f) for f in file])
@@ -124,6 +124,27 @@ class Entry:
                 continue
             if isinstance(value, str):
                 self.data[key] = enc.unicode_to_latex(value)
+
+    def save(self, parser=None):
+        """Saves an entry.
+
+        This method mainly wraps the conversion of an entry to its YAML representation as it is
+        stored in CoBib's database. However, it also takes care of some final conversions depending
+        on the user's configuration. Applying such modifications only before saving ensures a
+        consistent state of the database while also providing a fast startup.
+
+        Args:
+            parser (YAMLParser, optional): the instance of the YAMLParser to use for dumping.
+            Supplying a ready instance can improve efficiency significantly while saving many
+            entries after one another.
+        """
+        self.convert_month(config.database.format.month)
+        self.escape_special_chars(config.database.format.suppress_latex_warnings)
+        if parser is None:
+            # pylint: disable=import-outside-toplevel,cyclic-import
+            from cobib.parsers import YAMLParser
+            parser = YAMLParser()
+        return parser.dump(self)
 
     def matches(self, _filter, _or):
         """Check whether the filter matches.
@@ -180,18 +201,19 @@ class Entry:
             if re.search(rf'{query}', line, flags=re_flags):
                 # add new match
                 matches.append([])
-                # upper context
-                for string in bibtex[max(idx-context, 0):min(idx+1, len(bibtex))]:
-                    if not re.search(rf'{query}', string, flags=re_flags):
-                        matches[-1].append(string)
+                # upper context; (we iterate in reverse in order to ensure that we abort on the
+                # first previous occurrence of the query pattern)
+                for string in reversed(bibtex[max(idx-context, 0):min(idx, len(bibtex))]):
+                    if re.search(rf'{query}', string, flags=re_flags):
+                        break
+                    matches[-1].insert(0, string)
                 # matching line itself
                 matches[-1].append(line)
                 # lower context
                 for string in bibtex[max(idx+1, 0):min(idx+context+1, len(bibtex))]:
-                    if not re.search(rf'{query}', string, flags=re_flags):
-                        matches[-1].append(string)
-                    else:
+                    if re.search(rf'{query}', string, flags=re_flags):
                         break
+                    matches[-1].append(string)
 
         if self.file and os.path.exists(self.file):
             grep_prog = config.commands.search.grep
@@ -199,7 +221,7 @@ class Entry:
             grep = subprocess.Popen([grep_prog, f'-C{context}', query, self.file],
                                     stdout=subprocess.PIPE)
             # extract results
-            results = grep.stdout.read().decode().split('--')
+            results = grep.stdout.read().decode().split('\n--\n')
             for match in results:
                 if match:
                     matches.append([line.strip() for line in match.split('\n') if line.strip()])

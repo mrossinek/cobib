@@ -1,29 +1,95 @@
 """Tests for CoBib's config validation."""
 # pylint: disable=unused-argument, redefined-outer-name
 
+import logging
 import os
 from pathlib import Path
 
 import pytest
 from cobib.config import config
+from cobib.config.config import Config
 
 
-def test_load_config():
+def test_config_init():
+    """Test Config initialization."""
+    # empty init
+    assert Config() == {}
+    # init from empty dictionary
+    assert Config({}) == {}
+    # init from dictionary
+    assert Config({'dummy': 'test'}) == {'dummy': 'test'}
+    # init from non-dictionary
+    with pytest.raises(TypeError):
+        Config(True)
+    with pytest.raises(TypeError):
+        Config(1)
+    with pytest.raises(TypeError):
+        Config('')
+    with pytest.raises(TypeError):
+        Config([])
+
+
+def test_config_getattr():
+    """Tests the automatic attribute generation."""
+    cfg = Config()
+    dummy = cfg.dummy
+    assert isinstance(cfg.dummy, Config)
+    assert dummy == {}
+
+
+def test_config_recursive_getattr():
+    """Tests the recursive attribute generation."""
+    cfg = Config()
+    dummy = cfg.dummy.dummy
+    assert isinstance(cfg.dummy, Config)
+    assert isinstance(cfg.dummy.dummy, Config)
+    assert dummy == {}
+
+
+def test_config_recursive_setattr():
+    """Tests the recursive attribute setting."""
+    cfg = Config()
+    cfg.dummy.dummy = 'test'
+    assert isinstance(cfg.dummy, Config)
+    assert cfg.dummy.dummy == 'test'
+    assert cfg.dummy == {'dummy': 'test'}
+
+
+def test_config_load():
     """Test loading another config file."""
     root = os.path.abspath(os.path.dirname(__file__))
-    config.load(Path(root + '/debug.py'))
+    config.load(Path(root + '/../debug.py'))
+    assert config.database.file == './test/example_literature.yaml'
+
+
+def test_config_load_from_open_file():
+    """Test loading another config from an open file."""
+    root = os.path.abspath(os.path.dirname(__file__))
+    with open(Path(root + '/../debug.py')) as file:
+        config.load(file)
+    assert config.database.file == './test/example_literature.yaml'
+
+
+def test_config_load_nothing():
+    """Test nothing changes when no XDG files are present."""
+    Config.XDG_CONFIG_FILE = ''
+    Config.LEGACY_XDG_CONFIG_FILE = ''
+    config.load()
+    # we manually call validate because load exits early
+    config.validate()
+
+
+def test_config_load_xdg():
+    """Test loading config from XDG path."""
+    root = os.path.abspath(os.path.dirname(__file__))
+    Config.XDG_CONFIG_FILE = Path(root + '/../debug.py')
+    config.load()
     assert config.database.file == './test/example_literature.yaml'
 
 
 # TODO: remove legacy configuration support on 1.1.2022
-def test_load_legacy_config():
-    """Test loading a legacy config file."""
-    root = os.path.abspath(os.path.dirname(__file__))
-    print(root)
-    config.load_legacy_config(Path(root + '/legacy_config.ini'))
-    # first, it must pass the validation test
-    config.validate()
-    # then we also check that all settings have been changed somehow
+def assert_legacy_config():
+    """Asserts the legacy configuration has been applied."""
     assert config.commands.edit.default_entry_type == 'string'
     assert config.commands.open.command == 'string'
     assert config.commands.search.grep == 'string'
@@ -40,22 +106,61 @@ def test_load_legacy_config():
     assert config.tui.key_bindings.prompt == 'p'
 
 
+def test_config_load_legacy():
+    """Test loading a legacy config file."""
+    root = os.path.abspath(os.path.dirname(__file__))
+    config.load_legacy_config(Path(root + '/legacy_config.ini'))
+    # first, it must pass the validation test
+    config.validate()
+    # then we also check that all settings have been changed somehow
+    assert_legacy_config()
+
+
+def test_config_load_legacy_xdg():
+    """Test loading a legacy config from XDG path."""
+    root = os.path.abspath(os.path.dirname(__file__))
+    Config.XDG_CONFIG_FILE = ''
+    Config.LEGACY_XDG_CONFIG_FILE = Path(root + '/legacy_config.ini')
+    config.load()  # validation is done internally
+    # then we also check that all settings have been changed somehow
+    assert_legacy_config()
+
+
+def test_config_example():
+    """Test the example config."""
+    root = os.path.abspath(os.path.dirname(__file__))
+    config.clear()
+    config.load(Path(root + '/../../cobib/config/example.py'))
+    assert config == Config.DEFAULTS
+
+
+def test_config_validation_failure(caplog):
+    """Tests SystemExit upon config validation failure."""
+    root = os.path.abspath(os.path.dirname(__file__))
+    with pytest.raises(SystemExit):
+        config.load(Path(root + '/broken_config.py'))
+    assert ('cobib.config.config', logging.ERROR, 'config.database.file should be a string.') \
+        in caplog.record_tuples
+
+
 @pytest.fixture
 def setup():
-    """Setup."""
+    """Setup debugging configuration."""
     root = os.path.abspath(os.path.dirname(__file__))
-    config.load(Path(root + '/debug.py'))
+    config.load(Path(root + '/../debug.py'))
     yield setup
+    config.clear()
     config.defaults()
 
 
-def test_base_config(setup):
+def test_config_validation(setup):
     """Test the initial configuration passes all validation checks."""
     config.validate()
 
 
 @pytest.mark.parametrize(['sections', 'field'], [
         [['commands', 'edit'], 'default_entry_type'],
+        [['commands', 'edit'], 'editor'],
         [['commands', 'open'], 'command'],
         [['commands', 'search'], 'grep'],
         [['commands', 'search'], 'ignore_case'],
@@ -141,3 +246,27 @@ def test_valid_tui_colors(setup, color):
         config.tui.colors[color] = 'test'
         config.validate()
     assert str(exc_info.value) == 'Unknown color specification: test'
+
+
+@pytest.mark.parametrize(['color', 'ansi'], [
+        ['cursor_line', '\x1b[37;46m'],
+        ['top_statusbar', '\x1b[30;43m'],
+        ['bottom_statusbar', '\x1b[30;43m'],
+        ['search_label', '\x1b[34;40m'],
+        ['search_query', '\x1b[31;40m'],
+        ['popup_help', '\x1b[37;42m'],
+        ['popup_stdout', '\x1b[37;44m'],
+        ['popup_stderr', '\x1b[37;41m'],
+        ['selection', '\x1b[37;45m'],
+    ])
+def test_get_ansi_color(setup, color, ansi):
+    """Test default ANSI color code generation."""
+    assert config.get_ansi_color(color) == ansi
+
+
+def test_ignored_tui_color(setup, caplog):
+    """Test invalid TUI colors are ignored."""
+    config.tui.colors.dummy = 'white'
+    config.validate()
+    assert ('cobib.config.config', logging.WARNING, 'Ignoring unknown TUI color: dummy.') \
+        in caplog.record_tuples

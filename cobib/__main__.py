@@ -21,7 +21,7 @@ def main():
 
     CoBib's main function used to parse optional keyword arguments and subcommands.
     """
-    if len(sys.argv) > 1 and any([a[0] == '_' for a in sys.argv]):
+    if len(sys.argv) > 1 and any(a[0] == '_' for a in sys.argv):
         # zsh helper function called
         zsh_main()
         sys.exit()
@@ -36,13 +36,13 @@ def main():
                                      """)
     parser.add_argument("--version", action="version",
                         version="%(prog)s v{}".format(__version__))
-    parser.add_argument('--verbose', '-v', action='count', default=0)
+    parser.add_argument("-v", "--verbose", action='count', default=0)
     parser.add_argument("-l", "--logfile", type=argparse.FileType('w'),
                         help="Alternative log file")
     parser.add_argument("-c", "--config", type=argparse.FileType('r'),
                         help="Alternative config file")
-    parser.add_argument('command', help="subcommand to be called", choices=subcommands, nargs='?')
-    parser.add_argument('args', nargs=argparse.REMAINDER)
+    parser.add_argument("command", help="subcommand to be called", choices=subcommands, nargs='?')
+    parser.add_argument("args", nargs=argparse.REMAINDER)
 
     args = parser.parse_args()
 

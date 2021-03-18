@@ -30,7 +30,8 @@ test:
 
 .PHONY: coverage
 coverage:
-	python3 -m pytest --cov=cobib test/
+	python3 -m pytest --cov --cov-config=.coveragerc test/
+	coverage xml
 
 .PHONY: html
 html:

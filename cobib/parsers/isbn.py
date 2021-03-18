@@ -37,7 +37,12 @@ class ISBNParser(Parser):
             LOGGER.error('An Exception occurred while trying to query the ISBN: %s.', string)
             LOGGER.error(err)
             return {}
-        contents = dict(json.loads(page.content))
+        try:
+            contents = dict(json.loads(page.content))
+        except json.JSONDecodeError as err:
+            LOGGER.error('An Exception occurred while parsing the query results: %s.', page.content)
+            LOGGER.error(err)
+            return {}
         if not contents:
             msg = f'No data was found for ISBN "{string}". If you think this is an error and ' + \
                   'the openlibrary API should provide an entry, please file a bug report. ' + \

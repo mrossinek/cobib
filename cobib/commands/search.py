@@ -21,7 +21,7 @@ class SearchCommand(Command):
 
     name = 'search'
 
-    def execute(self, args, out=sys.stdout):
+    def execute(self, args, out=None):
         """Search database.
 
         Searches the database recursively (i.e. including any associated files) using `grep` for a
@@ -49,7 +49,8 @@ class SearchCommand(Command):
         try:
             largs = parser.parse_intermixed_args(args)
         except argparse.ArgumentError as exc:
-            print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
+            LOGGER.error(exc.message)
+            print(exc.message, file=sys.stderr)
             return None
 
         labels = ListCommand().execute(largs.filter, out=open(os.devnull, 'w'))
