@@ -1,5 +1,5 @@
 [run]
-omit = test/*
-source = cobib/
+omit = tests/*
+source = src/cobib/
 parallel = True
 branch = True

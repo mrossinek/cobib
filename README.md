@@ -22,21 +22,19 @@ Currently CoBib provides the following functionality:
 * printing detailed information about a reference ID
 * exporting a list of references to the biblatex format
 * opening associated files using an external program
-* manually editing entries using the $EDITOR
+* manually editing entries using the `$EDITOR`
 * and general database inspection/modification via a curses-based TUI
 
 ## Installation
-You can either install CoBib via pip: `pip3 install cobib` or you can download
-the source code and install it manually:
+You can either install CoBib via pip: `pip3 install cobib`.
+
+If you would also like to install the man-page and (crude!) Zsh completion,
+you need to download the source code and do the following:
 ```
 git clone https://gitlab.com/mrossinek/cobib
 cd cobib
-make install
+make install_extras
 ```
-The advantage of the latter is that the crude Zsh completion and man page are
-installed, too. When installing via pip, you can download these separately from
-the source code repository and follow the commands of `make install_extras` to
-install them under their respective paths.
 
 This will install the `cobib` package. By default, `cobib` will store your
 database at `~/.local/share/cobib/literature.yaml`
@@ -75,12 +73,11 @@ You can also find more information in the man page.
 
 
 ## Config
-You can overwrite the default configuration by placing a `config.ini` file at
-`~/.config/cobib/`. Take a look at the [example config](https://gitlab.com/mrossinek/cobib/blob/master/cobib/docs/example.ini) to see what possible
-configuration options exist.
+You can overwrite the default configuration by placing a `config.py` file in `~/.config/cobib/`.
+The easiest way to get started with this file is by copying [`example.py`](https://gitlab.com/mrossinek/cobib/-/blob/master/src/cobib/config/example.py)
+or by using `cobib _example_config > ~/.config/cobib/config.py`.
 
-You may also specify a different config file at runtime by using the `-c` or
-`--config` command line argument.
+You may also specify a different config file at runtime by using the `-c` or `--config` command line argument.
 
 You can also find more information in the man page.
 
@@ -88,13 +85,13 @@ You can also find more information in the man page.
 CoBib's documentation is hosted at https://mrossinek.gitlab.io/cobib/
 
 If you would like to generate a local version, you need to clone the source code, and install
-[`pdoc`](https://pdoc3.github.io/pdoc/) in order to generate it:
+[`pdoc`](https://github.com/mitmproxy/pdoc) in order to generate it:
 ```
 git clone https://gitlab.com/mrossinek/cobib.git
 cd cobib
-pip install pdoc3
-pdoc --html --output-dir docs cobib
+pip install pdoc
+pdoc -d google -o docs src/cobib
 ```
-You can then browse the documentation from `docs/cobib/index.html`.
+You can then browse the documentation from `docs/index.html`.
 
 [//]: # ( vim: set ft=markdown: )

@@ -1,0 +1,1 @@
+"""CoBib's config tests."""

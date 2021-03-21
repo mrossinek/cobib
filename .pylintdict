@@ -29,6 +29,7 @@ defaultdict
 docstring
 doi
 einstein
+fmt
 getter
 github
 https
@@ -78,6 +79,7 @@ str
 subcommands
 subprocess
 sys
+tmp
 tui
 unittest
 unittests

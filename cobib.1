@@ -31,7 +31,7 @@ Increases the verbosity level of the logging. This option may be provided up to
 two times (increasing the logging to \fIinfo\fR and \fIdebug\fR, respectively).
 By default, the verbosity of CoBib's CLI is set to \fIwarning\fR but if the TUI
 is started, logging will be increased to \fIinfo\fR and redirected to
-\fI/tmp/cobib.log\fR.
+\fIconfig.logging.logfile\fR.
 .TP
 .BR \-c ", " \-\-config " " \fI<path>\fR
 Run with an alternate configuration file at \fI<path>\fR.
@@ -366,6 +366,12 @@ means, the same can be achieved via:
 .in +4n
     \fIconfig.database.git = True\fR
 .in -4n
+.PP
+.BR LOGGING
+.TP
+.IR config.logging.logfile = '~/.cache/cobib/cobib.log'
+This setting sets the path to the default logfile. This logfile can be
+overwritten using the \fI--logfile\fR command-line argument.
 .PP
 .BR COMMANDS
 .TP
