@@ -1,4 +1,4 @@
-"""Tests for CoBib's ListCommand."""
+"""Tests for coBib's ListCommand."""
 # pylint: disable=no-self-use,unused-argument
 
 import os
@@ -18,7 +18,7 @@ from .command_test import CommandTest
 
 
 class TestListCommand(CommandTest, TUITest):
-    """Tests for CoBib's ListCommand."""
+    """Tests for coBib's ListCommand."""
 
     def get_command(self):
         """Get the command tested by this class."""

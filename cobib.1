@@ -1,6 +1,6 @@
 .TH COBIB 1 2021-02-05 v2.6.1+dev
 .SH NAME
-CoBib \- Console-based Bibliography Management
+coBib \- Console-based Bibliography Management
 .SH SYNOPSIS
 .B cobib
 [\fB\-\-version\fR]
@@ -9,11 +9,11 @@ CoBib \- Console-based Bibliography Management
 [\fB\-c\fR|\fB\-\-config\fR \fI<path>\fR]
 \fB<subcommand>\fR [\fI<args>\fR]
 .SH DESCRIPTION
-CoBib is a console-based bibliography manager written in Python.
+coBib is a console-based bibliography manager written in Python.
 It maintains a plain-text database of literature data in YAML format at
 \fI$HOME/.local/share/cobib/literature.yaml\fR.
 .PP
-CoBib provides a variety of \fBSUBCOMMANDS\fR through which you may
+coBib provides a variety of \fBSUBCOMMANDS\fR through which you may
 investigate and manage the database.
 For easy of use it also comes with a curses-based \fBTUI\fR which is
 automatically started when no other subcommand is found (more information is
@@ -29,7 +29,7 @@ Prints a help message and exits.
 .BR \-v ", " \-\-verbose
 Increases the verbosity level of the logging. This option may be provided up to
 two times (increasing the logging to \fIinfo\fR and \fIdebug\fR, respectively).
-By default, the verbosity of CoBib's CLI is set to \fIwarning\fR but if the TUI
+By default, the verbosity of coBib's CLI is set to \fIwarning\fR but if the TUI
 is started, logging will be increased to \fIinfo\fR and redirected to
 \fIconfig.logging.logfile\fR.
 .TP
@@ -51,7 +51,7 @@ The only available argument is:
 .in +8n
 .BR \-g ", " \-\-git
 .in +4n
-Initializes CoBib's integrated history tracking through git.
+Initializes coBib's integrated history tracking through git.
 This command will preserve any existing database file, but it is a good idea to
 make a backup before doing this, just in case.
 Note, that in order to use this functionality you must also enable the
@@ -138,7 +138,7 @@ are interpreted as a list of labels which are to be exported. The name for this
 argument is a result of the TUI's selection interface.
 .TP
 .B cobib undo \fI<args>\fR
-If you enabled the git-integration of CoBib (available since v2.6.0) you can
+If you enabled the git-integration of coBib (available since v2.6.0) you can
 undo the changes done to your database file by commands such as add, edit and
 delete. See also \fIDATABASE/git\fR in the \fBCONFIGURATION\fR section for more
 information.
@@ -150,7 +150,7 @@ Overwrites the check for an auto-committed change. Thus, the undo command will
 now undo the last commit with a message that does not start with "Undo".
 .TP
 .B cobib redo
-If you enabled the git-integration of CoBib (available since v2.6.0) you can
+If you enabled the git-integration of coBib (available since v2.6.0) you can
 reapply the last undone changes (see above). See also \fIDATABASE/git\fR in the
 \fBCONFIGURATION\fR section for more information.
 .TP
@@ -334,9 +334,9 @@ outside of the TUI. If a \fIselection\fR is present, the \fI-s\fR argument will
 be set automatically.
 .TP
 .BR : " " prompt
-Opens a command prompt allowing the user to execute an arbitrary CoBib CLI command.
+Opens a command prompt allowing the user to execute an arbitrary coBib CLI command.
 .SH CONFIGURATION
-Since version 3.0, CoBib can be configured directly via \fIPython\fR. To do so,
+Since version 3.0, coBib can be configured directly via \fIPython\fR. To do so,
 you must place the configuration file at \fI$HOME/.config/cobib/config.py\fR.
 If you don't have a configuration file yet, you can get started by copying the
 well-documented example configuration to the right location via:
@@ -351,7 +351,7 @@ The following section summarizes the syntax and all possibly settings, for
 completeness.
 .TP
 .BR Configuration " " Syntax
-Internally, CoBib's configuration is nothing but a (nested) Python dictionary.
+Internally, coBib's configuration is nothing but a (nested) Python dictionary.
 Thus, after importing the config with
 .in +4n
     \fIfrom cobib.config import config\fR

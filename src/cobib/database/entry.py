@@ -1,4 +1,4 @@
-"""CoBib database entry module."""
+"""coBib database entry module."""
 
 import logging
 import os
@@ -145,7 +145,7 @@ class Entry:
         """Saves an entry.
 
         This method mainly wraps the conversion of an entry to its YAML representation as it is
-        stored in CoBib's database. However, it also takes care of some final conversions depending
+        stored in coBib's database. However, it also takes care of some final conversions depending
         on the user's configuration. Applying such modifications only before saving ensures a
         consistent state of the database while also providing a fast startup.
 
@@ -166,7 +166,7 @@ class Entry:
     def matches(self, _filter, _or):
         """Check whether the filter matches.
 
-        CoBib provides an extensive filtering implementation. The filter is specified in the form
+        coBib provides an extensive filtering implementation. The filter is specified in the form
         of a dictionary whose keys consist of pairs of (str, bool) entries where the string
         indicates the field to match against and the boolean whether a positive (true) or negative
         (false) match is required. The value obviously refers to what needs to be matched.

@@ -1,4 +1,4 @@
-"""Tests for CoBib's Entry class."""
+"""Tests for coBib's Entry class."""
 
 from os import path
 

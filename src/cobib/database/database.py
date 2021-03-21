@@ -1,4 +1,4 @@
-"""CoBib database module."""
+"""coBib database module."""
 
 import logging
 import os
@@ -13,7 +13,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Database(OrderedDict):
-    """CoBib's database class."""
+    """coBib's database class."""
 
     _instance = None
 

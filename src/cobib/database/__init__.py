@@ -1,4 +1,4 @@
-"""CoBib's database module."""
+"""coBib's database module."""
 
 from .database import Database
 from .entry import Entry

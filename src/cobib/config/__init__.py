@@ -1,3 +1,3 @@
-"""CoBib's configuration module."""
+"""coBib's configuration module."""
 
 from .config import config

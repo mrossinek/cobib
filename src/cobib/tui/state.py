@@ -1,4 +1,4 @@
-"""CoBib's TUI state."""
+"""coBib's TUI state."""
 
 import logging
 from enum import Enum
@@ -17,9 +17,9 @@ class Mode(Enum):
 
 
 class State:
-    """State class to track the stateful parameters of CoBib's TUI.
+    """State class to track the stateful parameters of coBib's TUI.
 
-    State objects are used to store all stateful parameters of CoBib's TUI and simplify the handling
+    State objects are used to store all stateful parameters of coBib's TUI and simplify the handling
     of these parameters across the TUI and Frame objects.
     """
 

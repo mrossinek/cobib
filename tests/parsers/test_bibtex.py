@@ -1,4 +1,4 @@
-"""Tests for CoBib's BibtexParser."""
+"""Tests for coBib's BibtexParser."""
 # pylint: disable=no-self-use,unused-argument
 
 import pytest
@@ -9,7 +9,7 @@ from .parser_test import ParserTest
 
 
 class TestBibtexParser(ParserTest):
-    """Tests for CoBib's BibtexParser."""
+    """Tests for coBib's BibtexParser."""
 
     def test_to_bibtex(self):
         """Test to bibtex conversion."""

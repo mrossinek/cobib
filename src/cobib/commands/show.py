@@ -1,4 +1,4 @@
-"""CoBib show command."""
+"""coBib show command."""
 
 import argparse
 import logging
@@ -73,7 +73,7 @@ class ShowCommand(Command):
         tui.STATE.top_line = 0
         tui.STATE.current_line = 0
         # update top statusbar
-        tui.STATE.topstatus = "CoBib v{} - {}".format(__version__, label)
+        tui.STATE.topstatus = "coBib v{} - {}".format(__version__, label)
         tui.statusbar(tui.topbar, tui.STATE.topstatus)
         # enter show menu
         tui.STATE.mode = "show"

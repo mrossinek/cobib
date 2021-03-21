@@ -1,4 +1,4 @@
-"""CoBib undo command."""
+"""coBib undo command."""
 
 import argparse
 import logging
@@ -23,14 +23,14 @@ class UndoCommand(Command):
         """Undo last change.
 
         Undoes the last change to the database file. By default, only auto-committed changes by
-        CoBib will be undone. Use `--force` to undo other changes, too.
+        coBib will be undone. Use `--force` to undo other changes, too.
 
         Args: See base class.
         """
         git_tracked = config.database.git
         if not git_tracked:
             msg = (
-                "You must enable CoBib's git-tracking in order to use the `Undo` command."
+                "You must enable coBib's git-tracking in order to use the `Undo` command."
                 "\nPlease refer to the man-page for more information on how to do so."
             )
             print(msg, file=sys.stderr)
@@ -41,7 +41,7 @@ class UndoCommand(Command):
         root = os.path.dirname(file)
         if not os.path.exists(os.path.join(root, ".git")):
             msg = (
-                "You have configured, but not initialized CoBib's git-tracking."
+                "You have configured, but not initialized coBib's git-tracking."
                 "\nPlease consult `cobib init --help` for more information on how to do so."
             )
             print(msg, file=sys.stderr)

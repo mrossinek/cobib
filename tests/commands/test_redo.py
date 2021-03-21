@@ -1,4 +1,4 @@
-"""Tests for CoBib's RedoCommand."""
+"""Tests for coBib's RedoCommand."""
 # pylint: disable=no-self-use,unused-argument
 
 import logging
@@ -23,7 +23,7 @@ EXAMPLE_MULTI_FILE_ENTRY_BIB = get_resource("example_multi_file_entry.bib", "com
 
 
 class TestRedoCommand(CommandTest, TUITest):
-    """Tests for CoBib's RedoCommand."""
+    """Tests for coBib's RedoCommand."""
 
     def get_command(self):
         """Get the command tested by this class."""

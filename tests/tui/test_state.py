@@ -1,4 +1,4 @@
-"""Tests for CoBib's TUI state."""
+"""Tests for coBib's TUI state."""
 # pylint: disable=redefined-outer-name
 
 import copy

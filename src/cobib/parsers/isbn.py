@@ -50,7 +50,7 @@ class ISBNParser(Parser):
                 f'No data was found for ISBN "{string}". If you think this is an error and '
                 + "the openlibrary API should provide an entry, please file a bug report. "
                 + "Otherwise please try adding this entry manually until more APIs are "
-                + "available in CoBib."
+                + "available in coBib."
             )
             LOGGER.warning(msg)
             print(msg, file=sys.stderr)

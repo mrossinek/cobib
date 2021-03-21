@@ -1,10 +1,10 @@
-"""CoBib parser test class."""
+"""coBib parser test class."""
 
 from .. import get_resource
 
 
 class ParserTest:
-    """The base class for CoBib's parser test classes."""
+    """The base class for coBib's parser test classes."""
 
     EXAMPLE_BIBTEX_FILE = get_resource("example_entry.bib")
 

@@ -1,4 +1,4 @@
-"""Tests for CoBib's TUI Frame."""
+"""Tests for coBib's TUI Frame."""
 
 import re
 
@@ -15,7 +15,7 @@ from .mock_tui import MockTUI
 
 
 class TestTextFrame:
-    """Tests for CoBib's Frame."""
+    """Tests for coBib's Frame."""
 
     @pytest.fixture(autouse=True)
     def setup(self, monkeypatch):
@@ -331,8 +331,8 @@ class TestTextFrame:
     @pytest.mark.parametrize(
         ["lines", "cur_y", "topstatus"],
         [
-            [["@misc{Label0,", "author = {Nobody.}}"], 0, "CoBib version - Label0"],
-            [["@misc{Label0,", "author = {Nobody.}}"], 1, "CoBib version - Label0"],
+            [["@misc{Label0,", "author = {Nobody.}}"], 0, "coBib version - Label0"],
+            [["@misc{Label0,", "author = {Nobody.}}"], 1, "coBib version - Label0"],
         ],
     )
     def test_get_current_label_show(self, caplog, lines, cur_y, topstatus):

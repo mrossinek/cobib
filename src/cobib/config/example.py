@@ -1,11 +1,11 @@
-"""An example configuration file for CoBib.
+"""An example configuration file for coBib.
 
-Since version 3.0 CoBib is configured through a Python file.
+Since version 3.0 coBib is configured through a Python file.
 For documentation purposes this example configuration file lists all possible settings with
 explanations and their default settings.
 
 For anyone who knows a little bit of Python, here are some insights on how this configuration works.
-Internally, CoBib's configuration is nothing but a (nested) Python dictionary. However, for ease of
+Internally, coBib's configuration is nothing but a (nested) Python dictionary. However, for ease of
 usage all of its fields are also exposed as attributes. This means, that the following two lines are
 equivalent:
     config['database']['git'] = True
@@ -16,7 +16,7 @@ equivalent:
 import os
 import sys
 
-# To get started you must import CoBib's configuration.
+# To get started you must import coBib's configuration.
 from cobib.config import config
 
 # Now, you are all set to apply your own settings.
@@ -56,7 +56,7 @@ config.commands.search.ignore_case = False
 # You can use a `~` to represent your `$HOME` directory.
 config.database.file = os.path.expanduser("~/.local/share/cobib/literature.yaml")
 
-# CoBib can integrate with `git` in order to automatically track the history of your database.
+# coBib can integrate with `git` in order to automatically track the history of your database.
 # However, by default, this option is disabled. If you want to enable it, simply change the
 # following setting to `True` and initialize your database with `cobib init --git`.
 # Warning: Before enabling this setting you must ensure that you have set up git properly by setting
@@ -89,7 +89,7 @@ config.parsers.bibtex.ignore_non_standard_types = False
 # You can specify a list of default arguments for the default list view.
 config.tui.default_list_args = ["-l"]
 
-# You can disable the prompt before quitting CoBib by turning off the following setting:
+# You can disable the prompt before quitting coBib by turning off the following setting:
 config.tui.prompt_before_quit = True
 
 # You can specify whether the list view of the TUI should be reversed. By default, this is enabled,
@@ -126,7 +126,7 @@ config.tui.colors.selection_fg = "white"
 config.tui.colors.selection_bg = "magenta"
 
 # Note, if your terminal supports it, you can even try to override the color specifications right
-# from within CoBib. The check relies on the `curses.can_change_color()` function, which is more or
+# from within coBib. The check relies on the `curses.can_change_color()` function, which is more or
 # less documented [here](https://docs.python.org/3/library/curses.html#curses.can_change_color).
 # You can attempt to get this to work by overwriting the named colors with a `#RRGGBB` value like
 # so:
@@ -153,7 +153,7 @@ config.tui.key_bindings.select = "v"
 config.tui.key_bindings.wrap = "w"
 config.tui.key_bindings.export = "x"
 config.tui.key_bindings.show = "ENTER"
-# Note, the exception of this last key which is set to the custom `ENTER` string. When CoBib
+# Note, the exception of this last key which is set to the custom `ENTER` string. When coBib
 # encounters this string it will automatically map to the ASCII codes 10 and 13 (corresponding with
 # the `line feed` and `carriage return`, respectively). Any other string is interpreted a single
 # character whose ASCII value is used as the trigger.

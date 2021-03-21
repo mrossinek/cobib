@@ -1,4 +1,4 @@
-"""CoBib Command interface."""
+"""coBib Command interface."""
 
 import argparse
 import json
@@ -32,7 +32,7 @@ class Command(ABC):
         """TUI command interface.
 
         Args:
-            tui (cobib.tui.TUI): instance of CoBib's TUI.
+            tui (cobib.tui.TUI): instance of coBib's TUI.
         """
 
     def git(self, args=None, force=False):
@@ -52,7 +52,7 @@ class Command(ABC):
         if not os.path.exists(os.path.join(root, ".git")):
             if git_tracked:
                 msg = (
-                    "You have configured CoBib to track your database with git."
+                    "You have configured coBib to track your database with git."
                     "\nPlease run `cobib init --git`, to initialize this tracking."
                 )
                 print(msg, file=sys.stderr)

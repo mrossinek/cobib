@@ -1,4 +1,4 @@
-"""Tests for CoBib's EditCommand."""
+"""Tests for coBib's EditCommand."""
 # pylint: disable=no-self-use,unused-argument
 
 import pytest
@@ -11,7 +11,7 @@ from .command_test import CommandTest
 
 
 class TestEditCommand(CommandTest, TUITest):
-    """Tests for CoBib's EditCommand.
+    """Tests for coBib's EditCommand.
 
     Note: in order to be able to test this command to at least a minimal degree, the test
     configuration sets the "editor" to be "cat". Thus, no changes will ever actually be made through

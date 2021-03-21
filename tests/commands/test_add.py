@@ -1,4 +1,4 @@
-"""Tests for CoBib's AddCommand."""
+"""Tests for coBib's AddCommand."""
 # pylint: disable=no-self-use,unused-argument
 
 from itertools import zip_longest
@@ -22,7 +22,7 @@ EXAMPLE_MULTI_FILE_ENTRY_YAML = get_resource("example_multi_file_entry.yaml", "c
 
 
 class TestAddCommand(CommandTest, TUITest):
-    """Tests for CoBib's AddCommand."""
+    """Tests for coBib's AddCommand."""
 
     def get_command(self):
         """Get the command tested by this class."""

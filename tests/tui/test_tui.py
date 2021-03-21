@@ -1,4 +1,4 @@
-"""Tests for CoBib's TUI."""
+"""Tests for coBib's TUI."""
 # pylint: disable=no-self-use,unused-argument
 
 import copy
@@ -21,7 +21,7 @@ from .tui_test import TUITest
 
 
 class TestTUI(CmdLineTest, TUITest):
-    """Tests for CoBib's TUI."""
+    """Tests for coBib's TUI."""
 
     # pylint: disable=too-many-public-methods
 
@@ -243,7 +243,7 @@ class TestTUI(CmdLineTest, TUITest):
         assert tui.prompt_before_quit is True
         assert tui.selection == set()
         assert isinstance(tui.topbar, MockCursesPad)
-        assert tui.topbar.lines[0].startswith("CoBib")
+        assert tui.topbar.lines[0].startswith("coBib")
         assert tui.topbar.lines[0].endswith("3 Entries")
         assert isinstance(tui.botbar, MockCursesPad)
         assert (
@@ -345,7 +345,7 @@ class TestTUI(CmdLineTest, TUITest):
             ("MockCursesPad", 10, "resize: 1 70"),
             ("MockCursesPad", 10, "erase"),
             ("MockCursesPad", 10, "getmaxyx"),
-            ("MockCursesPad", 10, "addnstr: 0 0 CoBib VERSION - 3 Entries 69 0"),  # will be skipped
+            ("MockCursesPad", 10, "addnstr: 0 0 coBib VERSION - 3 Entries 69 0"),  # will be skipped
             ("MockCursesPad", 10, "refresh: None None None None None None"),
             ("MockCursesPad", 10, "refresh: None None None None None None"),
             ("MockCursesPad", 10, "resize: 1 70"),
@@ -374,7 +374,7 @@ class TestTUI(CmdLineTest, TUITest):
         ):
             assert log[0] == truth[0]
             assert log[1] == truth[1]
-            if truth[2].startswith("addnstr: 0 0 CoBib v"):
+            if truth[2].startswith("addnstr: 0 0 coBib v"):
                 # skip version-containing log
                 continue
             assert log[2] == truth[2]
@@ -418,7 +418,7 @@ class TestTUI(CmdLineTest, TUITest):
             ("MockCursesPad", 10, "erase"),
             ("MockCursesPad", 10, "refresh: 0 0 1 0 22 80"),
             ("MockCursesPad", 10, "resize: 21 80"),
-            ("MockCursesPad", 10, "addstr: 1 1                              CoBib TUI Help"),
+            ("MockCursesPad", 10, "addstr: 1 1                              coBib TUI Help"),
             ("MockCursesPad", 10, "addstr: 2 1   Key    Command  Description"),
             ("MockCursesPad", 10, "bkgd:   (6,)"),
             ("MockCursesPad", 10, "box"),
@@ -457,7 +457,7 @@ class TestTUI(CmdLineTest, TUITest):
         """Tests the help popup on a running TUI."""
 
         def assertion(screen, logs, **kwargs):
-            header_check = ["CoBib TUI Help" in line for line in screen.display]
+            header_check = ["coBib TUI Help" in line for line in screen.display]
             assert any(header_check)
             offset = header_check.index(True)
             for cmd, desc in TUI.HELP_DICT.items():

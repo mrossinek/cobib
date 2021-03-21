@@ -1,4 +1,4 @@
-"""CoBib's TUI tests."""
+"""coBib's TUI tests."""
 
 from .mock_curses import MockCursesPad
 from .mock_tui import MockTUI

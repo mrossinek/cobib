@@ -1,4 +1,4 @@
-"""CoBib's debugging config."""
+"""coBib's debugging config."""
 
 import os
 

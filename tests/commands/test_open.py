@@ -1,4 +1,4 @@
-"""Tests for CoBib's OpenCommand."""
+"""Tests for coBib's OpenCommand."""
 # pylint: disable=no-self-use,unused-argument
 
 import pytest
@@ -29,7 +29,7 @@ class MockStdin:
 
 
 class TestOpenCommand(CommandTest, TUITest):
-    """Tests for CoBib's OpenCommand."""
+    """Tests for coBib's OpenCommand."""
 
     # Note: we can hard-code the `/tmp` path here, because we never really create these files.
     # We just need some absolute paths to test against.

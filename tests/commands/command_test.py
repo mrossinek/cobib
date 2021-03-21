@@ -1,4 +1,4 @@
-"""CoBib command test class."""
+"""coBib command test class."""
 # pylint: disable=no-self-use
 
 import json
@@ -23,7 +23,7 @@ TMPDIR = tempfile.gettempdir()
 
 
 class CommandTest(CmdLineTest):
-    """The base class for CoBib's command test classes."""
+    """The base class for coBib's command test classes."""
 
     COBIB_TEST_DIR = os.path.join(TMPDIR, "cobib_test")
     COBIB_TEST_DIR_GIT = os.path.join(COBIB_TEST_DIR, ".git")

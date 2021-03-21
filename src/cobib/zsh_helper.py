@@ -1,4 +1,4 @@
-"""CoBib ZSH Helper."""
+"""coBib ZSH Helper."""
 
 import inspect
 import os

@@ -1,4 +1,4 @@
-"""Tests for CoBib's main executable."""
+"""Tests for coBib's main executable."""
 # pylint: disable=unused-argument
 
 import logging
@@ -14,7 +14,7 @@ from .cmdline_test import CmdLineTest
 
 
 class TestMainExecutable(CmdLineTest):
-    """Tests for CoBib's main executable.
+    """Tests for coBib's main executable.
 
     Note: all commands are tested separately in their respective test files.
     Therefore, the tests here mainly deal with testing the global parser arguments.
@@ -33,7 +33,7 @@ class TestMainExecutable(CmdLineTest):
         # pylint: disable=import-outside-toplevel
         from cobib import __version__
 
-        assert capsys.readouterr().out.strip() == f"CoBib v{__version__}"
+        assert capsys.readouterr().out.strip() == f"coBib v{__version__}"
 
     @pytest.mark.parametrize(
         ["main", "args"],

@@ -1,4 +1,4 @@
-"""Tests for CoBib's ShowCommand."""
+"""Tests for coBib's ShowCommand."""
 # pylint: disable=no-self-use,unused-argument
 
 from io import StringIO
@@ -14,7 +14,7 @@ from .command_test import CommandTest
 
 
 class TestShowCommand(CommandTest, TUITest):
-    """Tests for CoBib's ShowCommand."""
+    """Tests for coBib's ShowCommand."""
 
     def get_command(self):
         """Get the command tested by this class."""

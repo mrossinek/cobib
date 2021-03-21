@@ -1,4 +1,4 @@
-"""CoBib export command."""
+"""coBib export command."""
 
 import argparse
 import logging

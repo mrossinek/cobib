@@ -1,6 +1,6 @@
 #compdef cobib
 #
-# Completion definition for CoBib.
+# Completion definition for coBib.
 #
 
 setopt localoptions noshwordsplit noksharrays

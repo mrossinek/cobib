@@ -1,4 +1,4 @@
-"""CoBib's test suite."""
+"""coBib's test suite."""
 
 import os
 

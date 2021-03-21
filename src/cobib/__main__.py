@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CoBib main body."""
+"""coBib main body."""
 
 import argparse
 import inspect
@@ -18,7 +18,7 @@ LOGGER = logging.getLogger(__name__)
 def main():
     """Main executable.
 
-    CoBib's main function used to parse optional keyword arguments and subcommands.
+    coBib's main function used to parse optional keyword arguments and subcommands.
     """
     if len(sys.argv) > 1 and any(a[0] == "_" for a in sys.argv):
         # zsh helper function called
@@ -30,7 +30,7 @@ def main():
 
     subcommands = [cmd.split(":")[0] for cmd in zsh_helper.list_commands()]
     parser = argparse.ArgumentParser(
-        prog="CoBib",
+        prog="coBib",
         description=(
             "Cobib input arguments.\nIf no arguments are given, the TUI will start as a default."
         ),

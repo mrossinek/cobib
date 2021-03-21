@@ -1,4 +1,4 @@
-"""A broken CoBib configuration for testing purposes."""
+"""A broken coBib configuration for testing purposes."""
 
 from cobib.config import config
 

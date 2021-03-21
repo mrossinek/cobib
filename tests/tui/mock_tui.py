@@ -1,4 +1,4 @@
-"""Methods and classes to mock a CoBib TUI."""
+"""Methods and classes to mock a coBib TUI."""
 
 import logging
 

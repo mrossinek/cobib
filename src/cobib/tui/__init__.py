@@ -1,4 +1,4 @@
-"""CoBib TUI module."""
+"""coBib TUI module."""
 
 import curses
 

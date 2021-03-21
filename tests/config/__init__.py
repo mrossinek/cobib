@@ -1,1 +1,1 @@
-"""CoBib's config tests."""
+"""coBib's config tests."""

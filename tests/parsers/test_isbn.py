@@ -1,4 +1,4 @@
-"""Tests for CoBib's ISBNParser."""
+"""Tests for coBib's ISBNParser."""
 # pylint: disable=no-self-use,unused-argument
 
 import json
@@ -14,7 +14,7 @@ from .parser_test import ParserTest
 
 
 class TestISBNParser(ParserTest):
-    """Tests for CoBib's ISBNParser."""
+    """Tests for coBib's ISBNParser."""
 
     def test_from_isbn(self, caplog):
         """Test parsing from ISBN."""

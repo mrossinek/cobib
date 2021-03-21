@@ -1,4 +1,4 @@
-"""CoBib."""
+"""coBib."""
 import os
 import subprocess
 

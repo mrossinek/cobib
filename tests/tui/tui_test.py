@@ -1,4 +1,4 @@
-"""CoBib TUI test class."""
+"""coBib TUI test class."""
 
 import curses
 import fcntl
@@ -26,7 +26,7 @@ TMP_LOGFILE = os.path.join(tempfile.gettempdir(), "cobib_tui_test.log")
 
 
 class TUITest:
-    """A TUI test runs CoBib's TUI interface."""
+    """A TUI test runs coBib's TUI interface."""
 
     LOGGER = logging.getLogger("TUITest")
 
@@ -82,7 +82,7 @@ class TUITest:
 
     @staticmethod
     def run_tui(keys, assertion, assertion_kwargs):
-        """Spawns the CoBib TUI in a forked pseudo-terminal.
+        """Spawns the coBib TUI in a forked pseudo-terminal.
 
         This method attaches a pyte object to the forked terminal to allow screen scraping. It also
         allows passing characters to the TUI by writing to the forked processes file descriptor.

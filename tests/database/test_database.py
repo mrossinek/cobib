@@ -1,4 +1,4 @@
-"""Tests for CoBib's Database class."""
+"""Tests for coBib's Database class."""
 
 import copy
 import logging
@@ -64,7 +64,7 @@ def test_database_missing_file(caplog):
             ) and f"The database file {config.database.file} does not exist!" in message:
                 break
         else:
-            pytest.fail("CoBib did not exit upon encountering a missing database file!")
+            pytest.fail("coBib did not exit upon encountering a missing database file!")
     finally:
         config.database.file = EXAMPLE_LITERATURE
 

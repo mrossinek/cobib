@@ -1,4 +1,4 @@
-"""Tests for CoBib's DOIParser."""
+"""Tests for coBib's DOIParser."""
 # pylint: disable=no-self-use,unused-argument
 
 import logging
@@ -13,7 +13,7 @@ from .parser_test import ParserTest
 
 
 class TestDOIParser(ParserTest):
-    """Tests for CoBib's DOIParser."""
+    """Tests for coBib's DOIParser."""
 
     def test_from_doi(self, caplog):
         """Test parsing from doi."""

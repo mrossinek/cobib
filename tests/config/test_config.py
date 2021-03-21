@@ -1,4 +1,4 @@
-"""Tests for CoBib's config validation."""
+"""Tests for coBib's config validation."""
 # pylint: disable=unused-argument, redefined-outer-name
 
 import logging

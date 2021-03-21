@@ -1,4 +1,4 @@
-"""CoBib commands."""
+"""coBib commands."""
 
 from .add import AddCommand
 from .delete import DeleteCommand

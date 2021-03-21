@@ -1,4 +1,4 @@
-"""Tests for CoBib's ArxivParser."""
+"""Tests for coBib's ArxivParser."""
 # pylint: disable=no-self-use,unused-argument
 
 import logging
@@ -13,7 +13,7 @@ from .parser_test import ParserTest
 
 
 class TestArxivParser(ParserTest):
-    """Tests for CoBib's ArxivParser."""
+    """Tests for coBib's ArxivParser."""
 
     def test_from_arxiv(self, caplog):
         """Test parsing from arxiv."""

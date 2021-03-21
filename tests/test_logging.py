@@ -1,4 +1,4 @@
-"""Tests for CoBib's logging helper functions."""
+"""Tests for coBib's logging helper functions."""
 
 import logging
 

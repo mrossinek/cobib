@@ -1,4 +1,4 @@
-"""CoBib auxiliary TextBuffer."""
+"""coBib auxiliary TextBuffer."""
 
 import curses
 import logging

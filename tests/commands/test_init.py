@@ -1,4 +1,4 @@
-"""Tests for CoBib's InitCommand."""
+"""Tests for coBib's InitCommand."""
 # pylint: disable=no-self-use,unused-argument
 
 import os
@@ -14,7 +14,7 @@ from .command_test import CommandTest
 
 
 class TestInitCommand(CommandTest):
-    """Tests for CoBib's InitCommand."""
+    """Tests for coBib's InitCommand."""
 
     def get_command(self):
         """Get the command tested by this class."""

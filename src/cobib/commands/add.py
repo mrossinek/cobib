@@ -1,4 +1,4 @@
-"""CoBib add command."""
+"""coBib add command."""
 
 import argparse
 import inspect

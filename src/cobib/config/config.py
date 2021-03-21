@@ -1,4 +1,4 @@
-"""CoBib's configuration."""
+"""coBib's configuration."""
 
 import configparser
 import copy
@@ -23,7 +23,7 @@ ANSI_COLORS = [
 
 
 class Config(dict):
-    """CoBib's configuration object.
+    """coBib's configuration object.
 
     The configuration has undergone a major revision during v3.0 when it was redesigned from loading
     a `INI` file with the `configparser` module to become a standalone Python object.
@@ -225,7 +225,7 @@ class Config(dict):
 
         if os.path.exists(os.path.expanduser(Config.LEGACY_XDG_CONFIG_FILE)):
             msg = (
-                "The configuration mechanism of CoBib underwent a major re-design for version 3.0! "
+                "The configuration mechanism of coBib underwent a major re-design for version 3.0! "
                 "This means, that the old `INI`-style configuration is deprecated and will be "
                 "fully removed on 1.1.2022. Instead, the configuration is now done through a "
                 "Python file. For guidance on how to convert your existing configuration please "

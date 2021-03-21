@@ -1,4 +1,4 @@
-"""Tests for CoBib's TUI Buffer."""
+"""Tests for coBib's TUI Buffer."""
 
 import pytest
 
@@ -10,7 +10,7 @@ from .mock_tui import MockTUI
 
 
 class TestTextBuffer:
-    """Tests for CoBib's TextBuffer."""
+    """Tests for coBib's TextBuffer."""
 
     @pytest.fixture(autouse=True)
     def setup(self):

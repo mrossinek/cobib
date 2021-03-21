@@ -1,4 +1,4 @@
-"""CoBib parsers."""
+"""coBib parsers."""
 
 from .arxiv import ArxivParser
 from .bibtex import BibtexParser

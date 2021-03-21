@@ -1,4 +1,4 @@
-"""Tests for CoBib's zsh helper functions."""
+"""Tests for coBib's zsh helper functions."""
 
 from itertools import zip_longest
 

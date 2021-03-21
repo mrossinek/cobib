@@ -1,4 +1,4 @@
-"""CoBib Parser interface."""
+"""coBib Parser interface."""
 
 import logging
 from abc import ABC, abstractmethod

@@ -1,4 +1,4 @@
-"""Tests for CoBib's ExportCommand."""
+"""Tests for coBib's ExportCommand."""
 # pylint: disable=no-self-use,unused-argument
 
 import os
@@ -18,7 +18,7 @@ TMPDIR = tempfile.gettempdir()
 
 
 class TestExportCommand(CommandTest, TUITest):
-    """Tests for CoBib's ExportCommand."""
+    """Tests for coBib's ExportCommand."""
 
     def get_command(self):
         """Get the command tested by this class."""

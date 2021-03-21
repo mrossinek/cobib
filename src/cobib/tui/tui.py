@@ -1,4 +1,4 @@
-"""CoBib curses interface."""
+"""coBib curses interface."""
 
 import curses
 import fcntl
@@ -22,7 +22,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class TUI:
-    """CoBib's curses-based TUI.
+    """coBib's curses-based TUI.
 
     The TUI is implemented as a class to simplify management of different windows/pads and keep a
     synchronized state most consistently.
@@ -86,8 +86,8 @@ class TUI:
         "Help": "Displays this help.",
         "Modify": "Allows basic modification of multiple entries at once.",
         "Open": "Opens the associated file of an entry.",
-        "Prompt": "Executes arbitrary CoBib CLI commands in the prompt.",
-        "Quit": "Closes current menu and quit's CoBib.",
+        "Prompt": "Executes arbitrary coBib CLI commands in the prompt.",
+        "Quit": "Closes current menu and quit's coBib.",
         "Redo": "Redoes the last undone change. Requires git-tracking!",
         "Search": "Searches the database for a given string.",
         "Select": "Adds the current entry to the interactive selection.",
@@ -234,7 +234,7 @@ class TUI:
         if STATE.mode == Mode.LIST.value:
             LOGGER.debug("Quitting from lowest level.")
             if self.prompt_before_quit:
-                msg = "Do you really want to quit CoBib? [y/n] "
+                msg = "Do you really want to quit coBib? [y/n] "
                 curses.curs_set(1)
                 self.prompt.clear()
                 if len(msg) >= self.prompt.getmaxyx()[1] - 2:
@@ -355,7 +355,7 @@ class TUI:
             # write: [key] Command: Description
             help_text.write("{:^8} {:<8} {}".format("[" + key + "]", cmd + ":", desc))
         # add header section
-        help_text.lines.insert(0, "{0:^{1}}".format("CoBib TUI Help", help_text.width))
+        help_text.lines.insert(0, "{0:^{1}}".format("coBib TUI Help", help_text.width))
         help_text.lines.insert(1, "{:^8} {:<8} {}".format("Key", "Command", "Description"))
         help_text.height += 2
 

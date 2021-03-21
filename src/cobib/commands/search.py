@@ -1,4 +1,4 @@
-"""CoBib search command."""
+"""coBib search command."""
 
 import argparse
 import logging
@@ -134,7 +134,7 @@ class SearchCommand(Command):
             tui.STATE.top_line = 0
             tui.STATE.current_line = 0
             # update top statusbar
-            tui.STATE.topstatus = "CoBib v{} - {} hit{}".format(
+            tui.STATE.topstatus = "coBib v{} - {} hit{}".format(
                 __version__, hits, "s" if hits > 1 else ""
             )
             tui.statusbar(tui.topbar, tui.STATE.topstatus)

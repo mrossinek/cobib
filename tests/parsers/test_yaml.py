@@ -1,4 +1,4 @@
-"""Tests for CoBib's YAMLParser."""
+"""Tests for coBib's YAMLParser."""
 # pylint: disable=no-self-use,unused-argument
 
 import pytest
@@ -10,7 +10,7 @@ from .parser_test import ParserTest
 
 
 class TestYAMLParser(ParserTest):
-    """Tests for CoBib's YAMLParser."""
+    """Tests for coBib's YAMLParser."""
 
     def test_to_yaml(self):
         """Test to yaml conversion."""
