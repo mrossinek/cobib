@@ -1,4 +1,4 @@
-[![coBib](https://gitlab.com/mrossinek/cobib/-/blob/master/logo/cobib_byline.svg)](https://mrossinek.gitlab.io/cobib/index.html)
+[![coBib](https://gitlab.com/mrossinek/cobib/-/raw/master/logo/cobib_logo.svg)](https://mrossinek.gitlab.io/cobib/index.html)
 
 # coBib
 
