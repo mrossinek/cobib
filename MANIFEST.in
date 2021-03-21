@@ -1,0 +1,4 @@
+include LICENSE.txt
+include cobib.1
+include _cobib
+include requirements.txt

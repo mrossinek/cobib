@@ -1,10 +1,17 @@
-image: python:latest
+default:
+    image: python:latest
+    before_script:
+        - uname -a
+        - python -V  # Print out python version for debugging
+        - apt-get update
+        - git config --global user.email "cobib@cobib.org"
+        - git config --global user.name "CoBib"
+        - pip install virtualenv
 
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
 variables:
   TERM: "linux"
-  EDITOR: "vim"
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
 # Pip's cache doesn't store the python packages
@@ -25,55 +32,55 @@ stages:
 build:
     stage: build
     script:
-        - uname -a
-        - python -V  # Print out python version for debugging
-        - pip install virtualenv
         - virtualenv venv
         - source venv/bin/activate
-        - pip install -r requirements.txt
-        - pip install -r requirements-dev.txt
+        - pip install tox
 
 lint:
     stage: test
     script:
-        - source venv/bin/activate
-        - pylint -rn cobib test --disable=fixme,duplicate-code
-
-doc:
-    stage: test
-    script:
-        - source venv/bin/activate
-        - pydocstyle --convention=google --match=".*\.py" cobib test
-
-spell:
-    stage: test
-    script:
-        - apt-get update
         - apt-get install -y python3-enchant
         - source venv/bin/activate
+        - which python
         - python <<< 'import enchant; print(enchant.list_dicts())'
-        - pylint -rn cobib test --disable=all --enable=spelling
-          --spelling-dict='en_US' --spelling-private-dict-file=.pylintdict
+        - tox -e lint
 
 test:
     stage: test
+    parallel:
+        matrix:
+            - PYTHON_VERSION: ['3.7', '3.8', '3.9']
+    image: python:$PYTHON_VERSION
     script:
-        - apt-get update
-        - apt-get install -y vim
-        - git config --global user.email "cobib@cobib.org"
-        - git config --global user.name "CoBib"
+        - virtualenv venv
         - source venv/bin/activate
-        - python -m pytest --verbose --junitxml=report.xml --cov=cobib test
-        - coverage xml
+        - which python
+        - pip install tox
+        - tox -e py$PYTHON_VERSION
+    artifacts:
+        when: always
+        expire_in: 30 days
+        paths:
+            - tests/report-py$PYTHON_VERSION.xml
+        reports:
+            junit: tests/report-py$PYTHON_VERSION.xml
+
+coverage:
+    stage: test
+    script:
+        # TODO: figure out why it is necessary to have a separate venv here
+        - virtualenv venv-coverage
+        - source venv-coverage/bin/activate
+        - which python
+        - pip install tox
+        - tox -e coverage
     coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+\s+\d+\s+)*(\d+%)/'
     artifacts:
         when: always
         expire_in: 30 days
         paths:
-            - report.xml
             - coverage.xml
         reports:
-            junit: report.xml
             cobertura: coverage.xml
 
 develop:
@@ -83,9 +90,9 @@ develop:
         url: "https://$CI_PROJECT_NAMESPACE.gitlab.io/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/index.html"
     script:
         - source venv/bin/activate
-        - pip install pdoc3
-        - pdoc --html --force --output-dir public cobib
-        - echo '<meta http-equiv="refresh" content="0; url=./cobib/index.html" />' > public/index.html
+        - which python
+        - tox -e docs
+        - mv docs public
     artifacts:
         paths:
           - public
@@ -96,9 +103,9 @@ pages:
     stage: deploy
     script:
         - source venv/bin/activate
-        - pip install pdoc3
-        - pdoc --html --force --output-dir public cobib
-        - echo '<meta http-equiv="refresh" content="0; url=./cobib/index.html" />' > public/index.html
+        - which python
+        - tox -e docs
+        - mv docs public
     artifacts:
         paths:
             - public

@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - the filenames of the associated files are preserved when exporting to a Zip file
 - when trying to add an entry with an existing label, the database is not written to and a warning is raised early
 - month conversion and special character escaping are only done upon saving entries to the database
+- the path to the default logfile can now be configured via `config.logging.logfile` and defaults to `~/.cache/cobib/cobib.log`
 
 ### Deprecated
 - the `INI`-style configuration is deprecated
