@@ -1,3 +1,5 @@
+[![CoBib](https://gitlab.com/mrossinek/cobib/-/blob/master/logo/cobib_byline.svg)](https://mrossinek.gitlab.io/cobib/index.html)
+
 # CoBib
 
 [![pipeline](https://gitlab.com/mrossinek/cobib/badges/master/pipeline.svg)](https://gitlab.com/mrossinek/cobib/-/pipelines)

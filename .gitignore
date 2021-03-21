@@ -1,7 +1,3 @@
-tags
-.direnv
-.envrc
-
 # Python data
 build
 dist
@@ -20,3 +16,9 @@ docs
 # literature data (debugging)
 *.bib
 *.yaml
+
+# Other stuff
+tags
+.direnv
+.envrc
+*.afdesign
