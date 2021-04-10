@@ -1,0 +1,53 @@
+{% extends "default/module.html.jinja2" %}
+
+{% block favicon %}
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,{% filter urlencode %}{% include "cobib_book.svg" %}{% endfilter %}"/>
+{% endblock %}
+
+{% block nav_title %}
+    <img src="data:image/svg+xml,{% filter urlencode %}{% include "cobib_logo.svg" %}{% endfilter %}" />
+{% endblock %}
+
+{# we add a style tag here so that IDEs highlight everything that follows as CSS.
+This line won't be included in any rendered output, text in Jinja2 child templates is discarded outside of blocks. #}
+<style type="text/css">
+
+    {% block style_layout %}
+    {{ super() }}
+        @media (min-width: 770px) {
+            main {
+                padding: 3rem 2rem 3rem calc(var(--sidebar-width) + 3rem);
+                width: calc(60rem + var(--sidebar-width));
+                max-width: 100%;
+            }
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        table td, th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        table tr:nth-child(even){background-color: #eee;}
+
+        table th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #0066BB;
+            color: white;
+        }
+    {% endblock %}
+</style>
+
+{% block edit_button %}
+    {% if edit_url %}
+        <a class="pdoc-button git-button" href="{{ edit_url }}">Edit on GitLab</a>
+    {% endif %}
+{% endblock %}
+
+<!-- vim: set ft=html: -->

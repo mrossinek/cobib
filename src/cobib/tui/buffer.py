@@ -1,36 +1,61 @@
-"""coBib auxiliary TextBuffer."""
+"""coBib's auxiliary in-/output buffers.
+
+coBib's TUI manages in- and output through auxiliary buffers.
+These take care of everything from simple text buffering to highlighting conversion from ANSI
+color codes to `curses` color pairs.
+"""
+
+from __future__ import annotations
 
 import curses
 import logging
 import re
 import textwrap
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
 LOGGER = logging.getLogger(__name__)
 
+if TYPE_CHECKING:
+    from cobib.tui import TUI
+
 
 class TextBuffer:
-    """TextBuffer class used as an auxiliary variable to redirect output.
+    """An auxiliary output-buffer.
 
-    This buffer class implements a `write` method which allows it to be used as a drop-in source for
-    the `file` argument of the `print()` method. Thereby, its output can be gathered in this buffer
-    for further usage (such as printing it into a curses pad).
+    This class implements all necessary methods to make it a suitable argument in a scenario like:
+    ```python
+    print("some text", file=TextBuffer())
+    ```
+
+    This means, it can buffer text which will be subsequently displayed in a `curses.pad`.
+    To this extent this class also implements an ANSI color code to `curses` color pair conversion
+    as part of its `view` method.
+
+    Finally, the `popup` method can be leveraged by `cobib.tui.tui.TUI` for an easy way to display
+    an overlaid frame within the TUI.
     """
 
-    INDENT = "↪"
+    INDENT: str = "↪"
+    """The string to be used for line continuation."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initializes the TextBuffer object."""
-        self.lines = []
-        self.height = 0
-        self.width = 0
-        self.wrapped = False
-        self.ansi_map = None
+        self.lines: List[str] = []
+        """The actual text buffer."""
+        self.height: int = 0
+        """The height of the buffer contents (i.e. the number of lines)."""
+        self.width: int = 0
+        """The width of the buffer contents (i.e. the maximum line width)."""
+        self.wrapped: bool = False
+        """Whether the buffer contents have been wrappped to a certain width."""
+        self.ansi_map: Optional[Dict[str, int]] = None
+        """An optional dictionary mapping ANSI color codes to `curses` color pair indices."""
 
-    def write(self, string):
+    def write(self, string: str) -> None:
         """Writes a non-empty string into the buffer.
 
         Args:
-            string (str): the string to append to the buffer.
+            string: the string to append to the buffer.
         """
         if string.strip():
             # only handle non-empty strings
@@ -39,13 +64,13 @@ class TextBuffer:
             self.height = len(self.lines)
             self.width = max(self.width, len(string))
 
-    def replace(self, lines, old_str, new_str):
+    def replace(self, lines: Union[int, List[int]], old_str: str, new_str: str) -> None:
         """Replaces the old string with the new in the given lines.
 
         Args:
-            lines (int or list): index or indices on which lines to do the replacement.
-            old_str (str): old string to be replaced.
-            new_str (str): new string to be inserted.
+            lines: index or indices on which lines to do the replacement.
+            old_str: old string to be replaced.
+            new_str: new string to be inserted.
         """
         LOGGER.debug('Replacing "%s" with "%s" in lines %s', old_str, new_str, lines)
         if isinstance(lines, int):
@@ -53,13 +78,13 @@ class TextBuffer:
         for idx in lines:
             self.lines[idx] = re.sub(old_str, new_str, self.lines[idx])
 
-    def flush(self):
-        """Compatibility function."""
+    def flush(self) -> None:
+        """Compatibility method. It has no effect."""
 
-    def close(self):
-        """Compatibility function."""
+    def close(self) -> None:
+        """Compatibility method. It has no effect."""
 
-    def clear(self):
+    def clear(self) -> None:
         """Clears the buffer."""
         LOGGER.debug("Clearing text buffer.")
         self.lines = []
@@ -67,8 +92,8 @@ class TextBuffer:
         self.width = 0
         self.wrapped = False
 
-    def split(self):
-        """Split the lines at literal line breaks."""
+    def split(self) -> None:
+        """Splits the buffer lines at literal line breaks."""
         copy = self.lines.copy()
         self.lines = []
         self.width = 0
@@ -78,12 +103,24 @@ class TextBuffer:
                 self.width = max(self.width, len(string))
         self.height = len(self.lines)
 
-    def wrap(self, width, label_column=True):
-        """Wrap text in buffer to given width.
+    def wrap(self, width: int, label_column: bool = True) -> None:
+        """Wraps the text in the buffer at a given width.
+
+        If `label_column` is set to `True` (the default), this method will determine the width of
+        the column containing the entry labels.
+        This is done by attempting to split each line around two consecutive spaces ("␣␣") and
+        determining the width of the first field.
+        This assumes that the `cobib.commands.list.ListCommand` *always* outputs the entry labels as
+        the first column.
+        This label column length is then used on indented lines to achieve properly wrapped table
+        columns in the output.
+
+        On the other hand, if this value is set to `False`, a default initial column width of `2` is
+        used.
 
         Args:
-            width (int): maximum text width for each line in the buffer.
-            label_column (bool, optional): whether to determine a label column width.
+            width: maximum text width for each line in the buffer.
+            label_column: whether to determine a label column width.
         """
         copy = self.lines.copy()
         self.lines = []
@@ -130,30 +167,30 @@ class TextBuffer:
     # pylint: disable=too-many-arguments
     def view(
         self,
-        pad,
-        smaxrow,
-        smaxcol,
-        pminrow=0,
-        pmincol=0,
-        sminrow=1,
-        smincol=0,
-        ansi_map=None,
-        background=None,
-        box=False,
-    ):
-        """View buffer in provided curses pad.
+        pad: "curses.window",  # type: ignore
+        smaxrow: int,
+        smaxcol: int,
+        pminrow: int = 0,
+        pmincol: int = 0,
+        sminrow: int = 1,
+        smincol: int = 0,
+        ansi_map: Optional[Dict[str, int]] = None,
+        background: int = None,
+        box: bool = False,
+    ) -> None:
+        """Views the buffer contents in the provided `curses.window`.
 
         Args:
-            pad (curses.window): a re-sizable curses window (aka a pad).
-            smaxrow (int): the available height for the pad.
-            smaxcol (int): the available width for the pad.
-            pminrow (int): the upper display position in the pad.
-            pmincol (int): the left display position in the pad.
-            sminrow (int): the upper display position of the pad.
-            smincol (int): the left display position of the pad.
-            ansi_map (dict): optional, dictionary mapping ANSI codes to curses color pairs.
-            background (int): the curses color pair number with which to highlight the window.
-            box (bool): whether to print a frame around the window.
+            pad: a re-sizable curses window (aka a pad).
+            smaxrow: the available height for the pad.
+            smaxcol: the available width for the pad.
+            pminrow: the upper display position in the pad.
+            pmincol: the left display position in the pad.
+            sminrow: the upper display position of the pad.
+            smincol: the left display position of the pad.
+            ansi_map: optional, dictionary mapping ANSI codes to curses color pairs.
+            background: the curses color pair number with which to highlight the window.
+            box: whether to print a frame around the window.
         """
         # a regex to detect ANSI color codes
         ansi_regex = re.compile(r"(\x1b\[(\d+)[;]*(\d+)*m)")
@@ -174,8 +211,8 @@ class TextBuffer:
         for row, line in enumerate(self.lines):
             start, end, color = -1, -1, -1
             # This list will store the spanned regions for each ANSI color pair.
-            # Its entries will be [curses color pair number, start, end].
-            color_spans = []
+            # Its entries will be (curses color pair number, start, end).
+            color_spans: List[Tuple[int, int, int]] = []
             if self.ansi_map:
                 LOGGER.debug("Applying ANSI color map.")
                 # The index below is used to keep track of the oldest (i.e. lowest in index) color
@@ -203,11 +240,15 @@ class TextBuffer:
                         # a closing sequence completes the lowest incomplete color span
                         # Note: as mentioned above, we work under the assumption that all ANSI color
                         # codes occur in pairs!
-                        color_spans[lowest_incomplete_color_span][2] = len(new_line)
+                        color_spans[lowest_incomplete_color_span] = (
+                            color_spans[lowest_incomplete_color_span][0],
+                            color_spans[lowest_incomplete_color_span][1],
+                            len(new_line),
+                        )
                         lowest_incomplete_color_span += 1
                     else:
                         # else we create a new color span
-                        color_spans.append([self.ansi_map[match[0]], len(new_line), None])
+                        color_spans.append((self.ansi_map[match[0]], len(new_line), -1))
 
                 # anything left from the original line needs to be added to the new one
                 new_line += line
@@ -226,12 +267,12 @@ class TextBuffer:
         LOGGER.debug("Viewing curses pad.")
         pad.refresh(pminrow, pmincol, sminrow, smincol, smaxrow, smaxcol)
 
-    def popup(self, tui, background=None):
+    def popup(self, tui: TUI, background: Optional[int] = None) -> None:
         """Displays the buffer in a popup window.
 
         Args:
-            tui (TUI): the TUI instance in which the popup is displayed.
-            background (int): the curses color pair number with which to highlight the window.
+            tui: the TUI instance in which the popup is displayed.
+            background: the curses color pair number with which to highlight the window.
         """
         LOGGER.debug("Create popup window.")
         popup_win = curses.newpad(self.height + 2, tui.width)
@@ -263,24 +304,26 @@ class TextBuffer:
 
 
 class InputBuffer:
-    """InputBuffer class used to replace `sys.stdin` and handle user interaction.
+    """An auxiliary output-buffer.
 
-    This buffer class implements a `readline` method which allows it to be used as a drop-in
-    replacement for `sys.stdin`. It is constructed with a reference to the replacement of
-    `sys.stdout` and the TUI instance.
+    This class implements all necessary methods to make it a suitable replacement for `sys.stdin`.
+    This is used when a command-line implementation of a command queries a user for input on `stdin`
+    and allows the TUI to react accordingly.
     """
 
-    def __init__(self, buffer, tui):
+    def __init__(self, buffer: TextBuffer, tui: TUI) -> None:
         """Initializes the InputBuffer object.
 
         Args:
-            buffer (TextBuffer): the current `sys.stdout` replacement.
-            tui (TUI): the current TUI instance.
+            buffer: the current `sys.stdout` replacement.
+            tui: the current TUI instance.
         """
         self.buffer = buffer
+        """The `TextBuffer` replaces `sys.stdout`."""
         self.tui = tui
+        """The `cobib.tui.tui.TUI` instance whose `cobib.tui.tui.TUI.prompt_handler` to use."""
 
-    def readline(self):
+    def readline(self) -> str:
         """Reads an input from the user mimicking `sys.stdin`."""
         self.buffer.split()
         LOGGER.debug("Create popup window.")

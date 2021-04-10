@@ -1,20 +1,54 @@
-"""coBib Parser interface."""
+"""coBib's Parser interface."""
 
-import logging
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Dict, Optional
 
-LOGGER = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    from cobib.database.entry import Entry
 
 
 class Parser(ABC):
-    """The Parser interface."""
+    """The Parser interface.
+
+    This interface should be implemented by all concrete parser implementations.
+    If the `dump` functionality does not make sense in a specific context, an error should be logged
+    but the function should return normally otherwise.
+    """
 
     name = "base"
+    """The parsers `name` is used to register itself as an input argument to the
+    `cobib.commands.add.AddCommand`."""
+
+    def __init__(self):
+        """The initializer of any concrete implementation should *not* take any arguments!"""
 
     @abstractmethod
-    def parse(self, string):
-        """Creates a new Entry from the given string."""
+    def parse(self, string: str) -> Dict[str, Entry]:
+        """Creates a new Entry from the given string.
+
+        Args:
+            string: the input of the concrete parser type. Depending on the concrete implementation,
+                this can be the actual raw data input or a path to a file containing the raw data.
+                It is the responsibility of the concrete implementation to deal with all of these
+                scenarios.
+
+        Returns:
+            An `OrderedDict` mapping labels to `cobib.database.Entry` instances generated from the
+            raw data.
+        """
 
     @abstractmethod
-    def dump(self, entry):
-        """Dumps an entry in the parsers format."""
+    def dump(self, entry: Entry) -> Optional[str]:
+        """Dumps an entry in the parsers format.
+
+        Args:
+            entry: the `cobib.database.Entry` to be dumped.
+
+        Returns:
+            A `str`-representation of the entry in the concrete parsers format. If the conversion
+            does not make sense for a certain concrete implementation, `None` is returned and an
+            error should be logged. This function should *not* raise an actual error or exit
+            prematurely.
+        """

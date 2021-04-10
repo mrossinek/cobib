@@ -1,8 +1,20 @@
-"""coBib show command."""
+"""coBib's Show command.
+
+This command simply shows/prints the specified entry as a BibLaTex-formmatted string.
+```
+cobib show <label ID>
+```
+
+You can also trigger this command from the `cobib.tui.TUI`.
+By default, it is bound to the `ENTER` key.
+"""
+
+from __future__ import annotations
 
 import argparse
 import logging
 import sys
+from typing import IO, TYPE_CHECKING, List
 
 from cobib import __version__
 from cobib.config import config
@@ -13,18 +25,25 @@ from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
 
+if TYPE_CHECKING:
+    from cobib.tui import TUI
+
 
 class ShowCommand(Command):
-    """Show Command."""
+    """The Show Command."""
 
     name = "show"
 
-    def execute(self, args, out=None):
-        """Show entry.
+    def execute(self, args: List[str], out: IO = sys.stdout) -> None:
+        """Shows an entry in its BibLaTex-format.
 
-        Prints the details of a selected entry in BibLaTex format to stdout.
+        This command simply shows/prints the specified entry as a BibLaTex-formmatted string.
 
-        Args: See base class.
+        Args:
+            args: a sequence of additional arguments used for the execution. The following values
+                are allowed for this command:
+                    * `label`: the label ID of the entry to be shown.
+            out: the output IO stream. This defaults to `sys.stdout`.
         """
         LOGGER.debug("Starting Show command.")
         parser = ArgumentParser(prog="show", description="Show subcommand parser.")
@@ -51,8 +70,9 @@ class ShowCommand(Command):
             print(msg, file=out)
 
     @staticmethod
-    def tui(tui):
-        """See base class."""
+    def tui(tui: TUI) -> None:
+        # pdoc will inherit the docstring from the base class
+        # noqa: D102
         LOGGER.debug("Show command triggered from TUI.")
         # get current label
         label, cur_y = tui.viewport.get_current_label()
@@ -77,5 +97,5 @@ class ShowCommand(Command):
         tui.statusbar(tui.topbar, tui.STATE.topstatus)
         # enter show menu
         tui.STATE.mode = "show"
-        tui.STATE.previous = cur_y
+        tui.STATE.previous_line = cur_y
         tui.STATE.inactive_commands = ["Add", "Filter", "Show", "Sort"]

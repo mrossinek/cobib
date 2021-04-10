@@ -1,0 +1,110 @@
+{% extends "default/index.html.jinja2" %}
+
+{% block title %}coBib Documentation{% endblock %}
+
+{% block favicon %}
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,{% filter urlencode %}{% include "cobib_book.svg" %}{% endfilter %}"/>
+{% endblock %}
+
+<style type="text/css">
+    {% block style_content %}
+    {{ super() }}
+        #logo {
+            background-image: url("data:image/svg+xml,{% filter urlencode %}{% include "cobib_logo.svg" %}{% endfilter %}");
+            background-position: center;
+            background-size: contain;
+            background-repeat: no-repeat;
+            display: block;
+            height: 13rem;
+            width: 30rem;
+            margin: 2rem auto;
+            transition: all 100ms;
+        }
+        #logo:hover {
+            filter: saturate(150%);
+            transform: scale(1.02);
+        }
+
+        .pdoc a {
+            text-decoration: none;
+            color: var(--link);
+        }
+        .pdoc a:hover {
+            color: var(--link-hover);
+        }
+
+        /* "built with pdoc" attribution */
+        .pdoc .attribution {
+            margin-top: 2rem;
+            display: block;
+            opacity: 0.5;
+            transition: all 200ms;
+            filter: grayscale(100%);
+        }
+        .pdoc .attribution:hover {
+            opacity: 1;
+            filter: grayscale(0%);
+        }
+        .pdoc .attribution img {
+            margin-left: 5px;
+            height: 35px;
+            vertical-align: middle;
+            width: 70px;
+            transition: all 200ms;
+        }
+    {% endblock %}
+</style>
+
+{% block body %}
+<div class="pdoc pdoc-index">
+    <!-- TODO: remove hard-coded copy of body block if the logo becomes configurable as a jinja template -->
+    <a id="logo" title="coBib" href="https://gitlab.com/mrossinek/cobib"></a>
+    <input id="pdoc-search" type="text" placeholder="search" aria-label="search for a module"/>
+    <h5>Available Modules</h5>
+    <div id="pdoc-modules">
+        {% for module in all_modules %}
+        <a href="{{ module.replace(".","/") }}.html">{{ module }}</a>
+        {% endfor %}
+    </div>
+    <script>
+        const modules = {{ all_modules | tojson }};
+        const module_list = document.getElementById("pdoc-modules");
+        const searchbox = document.getElementById("pdoc-search")
+
+        function render(filt) {
+            filt = filt.toLowerCase();
+            let filtered = filt ? modules.filter(x => x.toLowerCase().includes(filt)) : modules;
+            module_list.innerHTML = filtered.map(
+                root => `
+                <a
+                class="${filtered.length === 1 || root === filt ? 'active' : ''}"
+                href="${root.replaceAll(".", "/")}.html"
+                >${root}</a>`
+            ).join("");
+        }
+
+        render("");
+
+        searchbox.addEventListener("input", (e) => {
+            render(e.target.value);
+        });
+        searchbox.addEventListener("keyup", (e) => {
+            let active = module_list.querySelector("a.active")
+            if (e.key === "Enter" && active) {
+                active.click();
+            }
+        })
+        searchbox.focus()
+    </script>
+
+    {% block attribution %}
+    <a class="attribution" title="pdoc: Python API documentation generator" href="https://pdoc.dev">
+        built with <span class="visually-hidden">pdoc</span><img
+        alt="pdoc logo"
+        src="data:image/svg+xml,{% filter urlencode %}{% include "logo.svg" %}{% endfilter %}"/>
+    </a>
+    {% endblock %}
+</div>
+{% endblock %}
+
+<!-- vim: set ft=html: -->

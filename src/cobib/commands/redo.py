@@ -1,10 +1,29 @@
-"""coBib redo command."""
+"""coBib's Redo command.
+
+This command can be used to re-apply the changes *of a previously undone* command:
+```
+cobib redo
+```
+This command takes *no* additional arguments!
+
+Note, that if you have not used `cobib undo` previously, this command will have no effect!
+
+Furthermore, this command is *only* available if coBib's git-integration has been enabled and
+initialized.
+Refer to the documentation of `cobib.commands.init.InitCommand` for more details on that topic.
+
+You can also trigger this command from the `cobib.tui.TUI`.
+By default, it is bound to the `r` key.
+"""
+
+from __future__ import annotations
 
 import argparse
 import logging
 import os
 import subprocess
 import sys
+from typing import IO, TYPE_CHECKING, List
 
 from cobib.config import config
 from cobib.database import Database
@@ -13,18 +32,28 @@ from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
 
+if TYPE_CHECKING:
+    from cobib.tui import TUI
+
 
 class RedoCommand(Command):
-    """Redo Command."""
+    """The Redo Command."""
 
     name = "redo"
 
-    def execute(self, args, out=sys.stdout):
-        """Redo last undone change.
+    def execute(self, args: List[str], out: IO = sys.stdout) -> None:
+        """Redoes the last undone change.
 
-        Redoes the last undone change to the database file.
+        This command is *only* available if coBib's git-integration has been enabled via
+        `config.database.git` *and* initialized properly (see `cobib.commands.init.InitCommand`).
+        If that is the case, this command will re-apply the changes *of a previously undone* command
+        (see `cobib.commands.undo.UndoCommand`).
 
-        Args: See base class.
+        Args:
+            args: a sequence of additional arguments used for the execution. The following values
+                are allowed for this command:
+                    * **no** additional arguments are required for this subcommand!
+            out: the output IO stream. This defaults to `sys.stdout`.
         """
         git_tracked = config.database.git
         if not git_tracked:
@@ -109,8 +138,9 @@ class RedoCommand(Command):
             sys.exit(1)
 
     @staticmethod
-    def tui(tui):
-        """See base class."""
+    def tui(tui: TUI) -> None:
+        # pdoc will inherit the docstring from the base class
+        # noqa: D102
         LOGGER.debug("Redo command triggered from TUI.")
         tui.execute_command(["redo"], skip_prompt=True)
         # update database list

@@ -1,4 +1,7 @@
-"""coBib logging module."""
+"""coBib's logging module.
+
+This module provides utility methods to set up logging to different handlers.
+"""
 
 import logging
 import logging.config
@@ -7,11 +10,11 @@ import os
 from cobib.config import config
 
 
-def log_to_stream(level="WARNING"):
-    """Configures a StreamHandler logger.
+def log_to_stream(level: str = "WARNING") -> None:
+    """Configures a `StreamHandler` logger.
 
     Args:
-        level (str, optional): verbosity level indicator.
+        level: verbosity level indicator.
     """
     logging.config.dictConfig(
         {
@@ -42,12 +45,12 @@ def log_to_stream(level="WARNING"):
     )
 
 
-def log_to_file(level="INFO", logfile=config.logging.logfile):
-    """Configures a RotatingFileHandler logger.
+def log_to_file(level: str = "INFO", logfile: str = config.logging.logfile) -> None:
+    """Configures a `RotatingFileHandler` logger.
 
     Args:
-        level (str, optional): verbosity level indicator.
-        logfile (str, optional): output path for log file.
+        level: verbosity level indicator.
+        logfile: output path for log file.
     """
     os.makedirs(os.path.dirname(logfile), exist_ok=True)
     logging.config.dictConfig(

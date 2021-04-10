@@ -1,4 +1,46 @@
-"""coBib curses interface."""
+"""coBib's curses-based TUI.
+
+This class implements a curses-based TUI.
+As such it provides an interactive front-end to coBib which allows easy navigation and manipulation
+of the database.
+It also benefits from some performance advantages over the command-line interface when doing many
+operations because the parsed database entries remain in memory all the time and do not need to be
+re-parsed upon every command invocation.
+
+### Usage
+
+The TUI exposes all commands through single-character key codes as well as some additional
+TUI-specific commands:
+* `Help` (defaults to the `?` key): opens a help popup.
+* `Quit` (defaults to the `q` key): quits the TUI (or one level such as a popup).
+* `Prompt` (defaults to the `:` key): starts the command prompt where a used can execute *any* coBib
+  command-line command.
+* `Select` (defaults to the `v` key): visually selects an entry.
+* `Wrap` (defaults to the `w` key): wraps the buffer contents to the terminal width.
+
+Additionally, the following navigation keys are available (these will be familiar to Vim-users):
+* *arrow down*, `j`: move one line down
+* *arrow up*, `k`: move one line up
+* *arrow right*, `l`: move visible area one column to the right (has no effect when wrapped)
+* *arrow left*, `h`: move visible area one column to the left (has no effect when wrapped)
+* *page down*, `C-F`: move 20 lines down
+* *page up*, `C-B`: move 20 lines up
+* `C-D`: move 10 lines down
+* `C-U`: move 10 lines up
+* `G`: jump to the bottom of the buffer
+* `g`: jump to the top of the buffer
+* `0`: jump to the left end of the buffer
+* `$`: jump to the right end of the buffer
+
+In combination with the documentation of the other commands (see `cobib.commands`) the usage of the
+TUI should be rather straight forward.
+
+### Configuration
+
+coBib's TUI provides a variety of configuration options.
+In order to not duplicate the information here, please refer to the end of `cobib.config.example`
+where all settings are listed and commented in detail.
+"""
 
 import curses
 import fcntl
@@ -10,6 +52,7 @@ import struct
 import sys
 from functools import partial
 from termios import TIOCGWINSZ
+from typing import IO, Any, Callable, Dict, List, Optional, Set, Tuple, Union, cast
 
 from cobib import commands
 from cobib.config import config
@@ -28,7 +71,7 @@ class TUI:
     synchronized state most consistently.
     """
 
-    COLOR_VALUES = {
+    COLOR_VALUES: Dict[str, int] = {
         "black": curses.COLOR_BLACK,
         "blue": curses.COLOR_BLUE,
         "cyan": curses.COLOR_CYAN,
@@ -38,8 +81,9 @@ class TUI:
         "white": curses.COLOR_WHITE,
         "yellow": curses.COLOR_YELLOW,
     }
+    """A dictionary mapping color names to their `curses` values."""
 
-    COLOR_NAMES = [
+    COLOR_NAMES: List[str] = [
         "top_statusbar",
         "bottom_statusbar",
         "search_label",
@@ -50,11 +94,12 @@ class TUI:
         "popup_stderr",
         "selection",
     ]
+    """The list of available TUI colors."""
 
-    ANSI_MAP = {}
+    ANSI_MAP: Dict[str, int] = {}
+    """A dictionary mapping ANSI color codes to `curses` color pairs."""
 
-    # available command dictionary
-    COMMANDS = {
+    COMMANDS: Dict[str, Callable] = {
         "Add": commands.AddCommand.tui,
         "Delete": commands.DeleteCommand.tui,
         "Edit": commands.EditCommand.tui,
@@ -75,9 +120,9 @@ class TUI:
         "x": lambda self, update: self.viewport.scroll_x(update),
         "y": lambda self, update: self.viewport.scroll_y(update),
     }
+    """The dictionary of available commands."""
 
-    # command help strings
-    HELP_DICT = {
+    HELP_DICT: Dict[str, str] = {
         "Add": "Prompts for a new entry to be added to the database.",
         "Delete": "Removes the current entry from the database.",
         "Edit": "Edits the current entry in an external EDITOR.",
@@ -96,9 +141,9 @@ class TUI:
         "Undo": "Undoes the last change. Requires git-tracking!",
         "Wrap": "Wraps the text displayed in the window.",
     }
+    """The dictionary of help strings associated with their commands."""
 
-    # standard key bindings
-    KEYDICT = {
+    KEYDICT: Dict[int, Any] = {
         curses.KEY_DOWN: ("y", 1),
         curses.KEY_UP: ("y", -1),
         curses.KEY_NPAGE: ("y", 20),
@@ -118,13 +163,14 @@ class TUI:
         ord("0"): ("x", 0),
         ord("$"): ("x", "$"),
     }
+    """The dictionary of standard key-bindings. This will *only* be completed at runtime."""
 
-    def __init__(self, stdscr, debug=False):
+    def __init__(self, stdscr: "curses.window", debug: bool = False) -> None:  # type: ignore
         """Initializes the curses-TUI and starts the event loop.
 
         Args:
-            stdscr (curses.window): the curses standard screen as returned by curses.initscr().
-            debug (bool): if True, the key-event loop is not automatically started.
+            stdscr: the curses standard screen as returned by `curses.initscr`.
+            debug: if True, the key-event loop is not automatically started.
         """
         LOGGER.info("Initializing TUI.")
         self.stdscr = stdscr
@@ -156,7 +202,8 @@ class TUI:
 
         # the selection needs to be tracked outside of the State in order to persist across
         # different views
-        self.selection = set()
+        self.selection: Set[str] = set()
+        """The labels of the currently visually selected entries."""
 
         # Initialize top status bar
         LOGGER.debug("Populating top status bar.")
@@ -188,11 +235,15 @@ class TUI:
             self.loop()
             LOGGER.info("Exiting TUI.")
 
-    def resize_handler(self, signum, frame):  # pylint: disable=unused-argument
-        """Handles terminal window resize events.
+    def resize_handler(self, signum: Optional[int], frame) -> None:  # type: ignore
+        # pylint: disable=unused-argument
+        """Handles terminal window resizing events.
+
+        This method gets exploited to trigger a refresh of the entire TUI window.
+        In such a case it will be called as `resize_handler(None, None)`.
 
         Args:
-            signum (int): signal number.
+            signum: signal number.
             frame: unused argument, required by the function template.
         """
         LOGGER.debug("Handling resize event.")
@@ -229,8 +280,11 @@ class TUI:
         # update viewport
         self.viewport.resize(self.height - 3, self.width)
 
-    def quit(self):
-        """Breaks the key event loop or quits one viewport level."""
+    def quit(self) -> None:
+        """Breaks the key event loop or quits one TUI level.
+
+        You can disable the final prompt before coBib quits via `config.tui.prompt_before_quit`.
+        """
         if STATE.mode == Mode.LIST.value:
             LOGGER.debug("Quitting from lowest level.")
             if self.prompt_before_quit:
@@ -260,13 +314,13 @@ class TUI:
             self.viewport.revert()
 
     @staticmethod
-    def colors():
-        """Initialize the color pairs for the curses TUI."""
+    def colors() -> None:
+        """Initializes the color pairs for the curses TUI."""
         # Start colors in curses
         curses.start_color()
         # parse user color configuration
         color_cfg = config.tui.colors
-        colors = {col: {} for col in TUI.COLOR_NAMES}
+        colors: Dict[str, Dict[str, str]] = {col: {} for col in TUI.COLOR_NAMES}
         for attr, col in color_cfg.items():
             if attr in TUI.COLOR_VALUES.keys():
                 if not curses.can_change_color():
@@ -294,8 +348,8 @@ class TUI:
             TUI.ANSI_MAP[config.get_ansi_color(attr)] = TUI.COLOR_NAMES.index(attr) + 1
 
     @staticmethod
-    def bind_keys():
-        """Bind keys according to user configuration."""
+    def bind_keys() -> None:
+        """Binds keys according to the user configuration."""
         for command, key in config.tui.key_bindings.items():
             command = command.title()
             LOGGER.info("Binding key %s to the %s command.", key, command)
@@ -312,13 +366,13 @@ class TUI:
             TUI.KEYDICT[key] = command
 
     @staticmethod
-    def statusbar(statusline, text, attr=0):
-        """Update the text in the provided status bar and refresh it.
+    def statusbar(statusline: "curses.window", text: str, attr: int = 0) -> None:  # type: ignore
+        """Updates the text in the provided status bar and refreshes it.
 
         Args:
-            statusline (curses.window): single line height window used as a statusline.
-            text (str): text to place in the statusline.
-            attr (int, optional): attribute number to use for the printed text.
+            statusline: single line height window used as a statusline.
+            text: text to place in the statusline.
+            attr: attribute number to use for the printed text.
         """
         statusline.erase()
         _, max_x = statusline.getmaxyx()
@@ -326,8 +380,8 @@ class TUI:
         statusline.refresh()
 
     @staticmethod
-    def infoline():
-        """Returns a list of the available key bindings."""
+    def infoline() -> str:
+        """Returns the available key bindings for the bottom status bar."""
         infoline = ""
         for cmd in TUI.HELP_DICT:
             # get associated key for this command
@@ -335,25 +389,25 @@ class TUI:
             infoline += " {}:{}".format(key, cmd)
         return infoline.strip()
 
-    def help(self):
-        """Help command.
+    def help(self) -> None:
+        """The Help Command.
 
-        Opens a new curses window with more detailed information on the configured key bindings and
-        short descriptions of the commands.
+        Opens a popup with more detailed information on the configured key bindings and short
+        descriptions of the associated commands.
         """
         LOGGER.debug("Help command triggered.")
         # populate text buffer with help text
         help_text = TextBuffer()
         LOGGER.debug("Generating help text.")
         for cmd, desc in TUI.HELP_DICT.items():
-            key = " "
+            key: Union[int, str]
             for key, command in TUI.KEYDICT.items():
                 if cmd == command:
                     # find mapped key
                     key = "ENTER" if key in (10, 13) else chr(key)
                     break
             # write: [key] Command: Description
-            help_text.write("{:^8} {:<8} {}".format("[" + key + "]", cmd + ":", desc))
+            help_text.write("{:^8} {:<8} {}".format("[" + str(key) + "]", cmd + ":", desc))
         # add header section
         help_text.lines.insert(0, "{0:^{1}}".format("coBib TUI Help", help_text.width))
         help_text.lines.insert(1, "{:^8} {:<8} {}".format("Key", "Command", "Description"))
@@ -362,8 +416,11 @@ class TUI:
         # open help popup
         help_text.popup(self, background=TUI.COLOR_NAMES.index("popup_help"))
 
-    def loop(self):
-        """The key-handling event loop."""
+    def loop(self) -> None:
+        """The key-handling event loop.
+
+        This method takes care of reading the user's key strokes and triggering associated commands.
+        """
         key = 0
         # key is the last character pressed
         while True:
@@ -417,8 +474,8 @@ class TUI:
                 if current_attributes[x_pos] is not None:
                     self.viewport.pad.chgat(STATE.current_line, x_pos, 1, current_attributes[x_pos])
 
-    def select(self):
-        """Toggles selection of the current label."""
+    def select(self) -> None:
+        """Toggles selection of the label currently under the cursor."""
         LOGGER.debug("Select command triggered.")
         # get current label
         label, cur_y = self.viewport.get_current_label()
@@ -448,18 +505,18 @@ class TUI:
         # update buffer view
         self.viewport.view(ansi_map=self.ANSI_MAP)
 
-    def prompt_print(self, text):
-        """Handle printing text to the prompt line.
+    def prompt_print(self, text: Union[str, List[str]]) -> None:
+        """Prints text to the prompt line.
 
         This function also handles a bug in curses which disallows 'newline'-characters [1].
         Thus, if this is the case, the first line is printed in the prompt and the total text is
-        also presented in a popup window. The reason for the duplicate information is too provide a
-        little context on the previous message once the popup window has been closed.
+        also presented in a popup. The reason for the duplicate information is too provide a little
+        context on the left-over message once the popup window has been closed.
 
         [1] https://docs.python.org/3/library/curses.html#curses.window.addstr
 
         Args:
-            text (str): the test to print to the prompt.
+            text: the test to print to the prompt.
         """
         lines = text.strip().split("\n") if isinstance(text, str) else text
         self.prompt.clear()
@@ -468,15 +525,18 @@ class TUI:
         self.prompt.refresh(0, 0, self.height - 1, 0, self.height, self.width - 1)
         if len(lines) > 1:
             buffer = TextBuffer()
-            buffer.write(text)
+            buffer.write("\n".join(lines))
             buffer.popup(self, background=TUI.COLOR_NAMES.index("popup_stderr"))
 
-    def prompt_handler(self, command, symbol=":"):
-        """Handle prompt input.
+    def prompt_handler(self, command: Optional[str], symbol: str = ":") -> str:
+        """Handles prompt input.
+
+        This method starts another loop during which user key strokes are being caught and
+        interpreted.
 
         Args:
-            command (str or None): the command string to populate the prompt with.
-            symbol (str, optional): the prompt symbol.
+            command: the command string to populate the prompt with.
+            symbol: the prompt symbol.
 
         Returns:
             The final user command.
@@ -528,7 +588,7 @@ class TUI:
                     break
             elif key in (10, 13):  # ENTER
                 LOGGER.debug("Execute the command as prompted.")
-                command = self.prompt.instr(0, 1).decode("utf-8").strip()
+                command = cast(bytes, self.prompt.instr(0, 1)).decode("utf-8").strip()
                 break
             elif key == -1:  # no input
                 break
@@ -547,26 +607,34 @@ class TUI:
         self.prompt.clear()
         self.prompt.refresh(0, 0, self.height - 1, 0, self.height, self.width - 1)
 
-        return command
+        return cast(str, command)
 
-    def execute_command(self, command, out=None, pass_selection=False, skip_prompt=False):
+    def execute_command(
+        self,
+        command: Union[str, List[str]],
+        out: IO = None,
+        pass_selection: bool = False,
+        skip_prompt: bool = False,
+    ) -> Tuple[List[str], Any]:
         """Executes a command.
 
         Args:
-            command (str or None): the command to execute.
-            out (stream, optional): the output stream to redirect stdout to.
-            pass_selection (boolean, optional): whether to the pass the current TUI selection in the
-                                                executed command arguments.
-            skip_prompt (boolean, optional): whether to skip the user prompt for further commands.
+            command: the command to execute.
+            out: the output stream to redirect stdout to.
+            pass_selection: whether to the pass the current TUI selection in the executed command
+                arguments.
+            skip_prompt: whether to skip the user prompt for further commands.
 
         Returns:
             A pair with the first element being the list with the executed command to allow further
             handling and the second element being whatever is returned by the command.
         """
         if not skip_prompt:
-            command = self.prompt_handler(command)
+            command = self.prompt_handler(cast(str, command))
             # split command into separate arguments for cobib
             command = shlex.split(command)
+
+        command = cast(List[str], command)
 
         # process command if it is non empty and actually has arguments
         result = None
@@ -576,9 +644,9 @@ class TUI:
             original_stdin = sys.stdin
             original_stdout = sys.stdout
             original_stderr = sys.stderr
-            sys.stdout = TextBuffer()
-            sys.stderr = TextBuffer()
-            sys.stdin = InputBuffer(buffer=sys.stdout, tui=self)
+            stdout = sys.stdout = TextBuffer()  # type: ignore
+            stderr = sys.stderr = TextBuffer()  # type: ignore
+            sys.stdin = InputBuffer(buffer=stdout, tui=self)  # type: ignore
             # run command
             subcmd = getattr(commands, command[0].title() + "Command")()
             try:
@@ -589,28 +657,28 @@ class TUI:
             except SystemExit:
                 pass
             # if error occurred print info to prompt
-            if sys.stderr.lines:
+            if stderr.lines:
                 LOGGER.warning('The command "%s" resulted in an error.', " ".join(command))
-                sys.stderr.split()
-                LOGGER.info("sys.stderr contains:\n%s", "\n".join(sys.stderr.lines))
+                stderr.split()
+                LOGGER.info("sys.stderr contains:\n%s", "\n".join(stderr.lines))
                 # wrap before checking the height:
-                sys.stderr.wrap(self.width)
-                if sys.stderr.height > 1:
-                    sys.stderr.popup(self, background=TUI.COLOR_NAMES.index("popup_stderr"))
+                stderr.wrap(self.width)
+                if stderr.height > 1:
+                    stderr.popup(self, background=TUI.COLOR_NAMES.index("popup_stderr"))
                 else:
-                    self.prompt_print(sys.stderr.lines)
+                    self.prompt_print(stderr.lines)
                 # command exited with an error
                 self.viewport.update_list()
-            elif sys.stdout.lines:
+            elif stdout.lines:
                 LOGGER.info('A message to stdout from "%s" was intercepted.', " ".join(command))
-                sys.stdout.split()
-                LOGGER.info("sys.stdout contains:\n%s", "\n".join(sys.stdout.lines))
+                stdout.split()
+                LOGGER.info("sys.stdout contains:\n%s", "\n".join(stdout.lines))
                 # wrap before checking the height:
-                sys.stdout.wrap(self.width)
-                if sys.stdout.height > 1:
-                    sys.stdout.popup(self, background=TUI.COLOR_NAMES.index("popup_stdout"))
+                stdout.wrap(self.width)
+                if stdout.height > 1:
+                    stdout.popup(self, background=TUI.COLOR_NAMES.index("popup_stdout"))
                 else:
-                    self.prompt_print(sys.stdout.lines)
+                    self.prompt_print(stdout.lines)
             # restore stdout, stderr and stdin
             sys.stdout = original_stdout
             sys.stderr = original_stderr

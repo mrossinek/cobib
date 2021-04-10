@@ -99,7 +99,7 @@ def test_entry_set_file(files, expected):
 
 
 @pytest.mark.parametrize(
-    ["_filter", "_or"],
+    ["filter_", "or_"],
     [
         [{("author", True): ["Cao"]}, False],
         [{("author", False): ["wrong_author"]}, False],
@@ -109,11 +109,11 @@ def test_entry_set_file(files, expected):
         [{("author", False): ["wrong_author"], ("year", True): ["2019"]}, False],
     ],
 )
-def test_entry_matches(_filter, _or):
+def test_entry_matches(filter_, or_):
     """Test match filter."""
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     # author must match
-    assert entry.matches(_filter, _or=_or)
+    assert entry.matches(filter_, or_=or_)
 
 
 def test_match_with_wrong_key():
@@ -123,8 +123,8 @@ def test_match_with_wrong_key():
     should be ignored and the function should return normally.
     """
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
-    _filter = {("tags", False): ["test"]}
-    assert entry.matches(_filter, _or=False)
+    filter_ = {("tags", False): ["test"]}
+    assert entry.matches(filter_, or_=False)
 
 
 @pytest.mark.parametrize(

@@ -1,4 +1,10 @@
-"""coBib's configuration."""
+"""coBib's configuration.
+
+This file contains both, the actual implementation of the `Config` class, as well as the runtime
+`config` object, which gets exposed on the module level as `cobib.config.config`.
+Note, that this last link will not point to the correct location in the online documentation due to
+the nature of the lower-level import.
+"""
 
 import configparser
 import copy
@@ -7,6 +13,7 @@ import io
 import logging
 import os
 import sys
+from typing import Any, Dict, Optional, Union
 
 LOGGER = logging.getLogger(__name__)
 
@@ -23,23 +30,25 @@ ANSI_COLORS = [
 
 
 class Config(dict):
-    """coBib's configuration object.
+    """coBib's configuration class.
 
-    The configuration has undergone a major revision during v3.0 when it was redesigned from loading
-    a `INI` file with the `configparser` module to become a standalone Python object.
     This class wraps the `dict` type and exposes the dictionary keys as attributes to ease access
     (for both, getting and setting).
     Furthermore, nested attributes can be set directly without having to ensure that the parent
     attribute is already present.
 
-    Source: https://stackoverflow.com/a/3031270
+    References:
+        [Recursively access dict via attributes](https://stackoverflow.com/a/3031270)
     """
 
-    XDG_CONFIG_FILE = "~/.config/cobib/config.py"
+    XDG_CONFIG_FILE: str = "~/.config/cobib/config.py"
+    """The XDG-based standard configuration location."""
     # TODO: remove legacy configuration support on 1.1.2022
-    LEGACY_XDG_CONFIG_FILE = "~/.config/cobib/config.ini"
+    LEGACY_XDG_CONFIG_FILE: str = "~/.config/cobib/config.ini"
+    """The *legacy* XDG-based standard configuration location.
+    This will be removed on January 1st, 2020."""
 
-    DEFAULTS = {
+    DEFAULTS: Dict = {
         "logging": {
             "logfile": os.path.expanduser("~/.cache/cobib/cobib.log"),
         },
@@ -112,61 +121,64 @@ class Config(dict):
             },
         },
     }
+    """The default settings."""
 
     # pylint: disable=super-init-not-called
-    def __init__(self, value=None):
+    def __init__(self, value: Optional[Dict] = None) -> None:
         """Initializer of the recursive, attribute-access, dict-like configuration object.
 
         The initializer does nothing when `None` is given.
         When a dict is given, all values are set as attributes.
 
         Args:
-            value (dict, optional): a dictionary of settings.
+            value: a dictionary of settings.
         """
         if value is None:
             pass
         elif isinstance(value, dict):
-            for key, val in value.items():
-                self.__setitem__(key, val)
+            self.update(**value)
         else:
             raise TypeError("expected dict")
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Any) -> None:
         """Sets a key, value pair in the object's dictionary.
 
         Args:
-            key (str): the attributes' name.
-            value (Any): the attributes' value.
+            key: the attributes' name.
+            value: the attributes' value.
         """
         if isinstance(value, dict) and not isinstance(value, Config):
             value = Config(value)
         super().__setitem__(key, value)
 
-    def __setattr__(self, key, value):
-        """Use __setitem__ to set attributes unless it is a private (`__`) field.
+    def __setattr__(self, key: str, value: Any) -> None:
+        """Use `__setitem__` to set attributes unless it is a private (`__`) field.
 
         This is necessary in order to avoid a RecursionError during the pdoc generation.
 
         Args:
-            key (str): the attributes' name.
-            value (Any): the attributes' value.
+            key: the attributes' name.
+            value: the attributes' value.
         """
         if key[0:2] == "__":
             super().__setattr__(key, value)
         else:
             self.__setitem__(key, value)
 
-    # A helper object for detecting the nested recursion-threshold.
     MARKER = object()
+    """A helper object for detecting the nested recursion-threshold."""
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Any:
         """Gets a key from the configuration object's dictionary.
 
         If the key is not present yet, it is automagically initialized with an empty configuration
         object to allow recursive attribute-setting.
 
         Args:
-            key (str): the queried attributes' name.
+            key: the queried attributes' name.
+
+        Returns:
+            The value of the queried attribute.
         """
         found = self.get(key, Config.MARKER)
         if found is Config.MARKER:
@@ -174,35 +186,41 @@ class Config(dict):
             super().__setitem__(key, found)
         return found
 
-    def __getattr__(self, key):
-        """Use __getitem__ to get attributes unless it is a private (`__`) field.
+    def __getattr__(self, key: str) -> Any:
+        """Use `__getitem__` to get attributes unless it is a private (`__`) field.
 
         This is necessary in order to avoid a RecursionError during the pdoc generation.
 
         Args:
-            key (str): the queried attributes' name.
+            key: the queried attributes' name.
+
+        Returns:
+            The value of the queried attribute.
         """
         if key[0:2] == "__":
             return self.get(key)
         return self.__getitem__(key)
 
-    def update(self, **kwargs):
+    def update(self, **kwargs) -> None:  # type: ignore
         """Updates the configuration with a dictionary of settings.
 
-        This ensures values are deepcopied, too.
+        This function ensures values are deepcopied, too.
+
+        Args:
+            kwargs: key, value pairs to be added to the configuration data.
         """
         for key, value in kwargs.items():
-            self[key] = copy.deepcopy(value)
+            self.__setitem__(key, copy.deepcopy(value))
 
     @staticmethod
-    def load(configpath=None):
+    def load(configpath: Union[str, io.TextIOWrapper] = None) -> None:
         """Loads another configuration object at runtime.
 
         WARNING: The new Python-like configuration allows essentially arbitrary Python code so it is
         the user's responsibility to treat this with care!
 
         Args:
-            configpath (str, io.TextIOWrapper): the path to the configuration.
+            configpath: the path to the configuration.
         """
         if configpath is not None:
             if isinstance(configpath, io.TextIOWrapper):
@@ -248,7 +266,7 @@ class Config(dict):
             Config.load_legacy_config(configpath)
         else:
             cfg = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(cfg)
+            spec.loader.exec_module(cfg)  # type: ignore
 
         try:
             # validate config
@@ -258,18 +276,19 @@ class Config(dict):
             sys.exit(1)
 
     @staticmethod
-    def load_legacy_config(configpath):
+    def load_legacy_config(configpath: Union[str, io.TextIOWrapper]) -> None:
         # pylint: disable=too-many-branches,too-many-nested-blocks
         """Loads a legacy `INI`-style configuration file.
 
-        WARNING: This functionality will be removed on 1.1.2022! Users will be warned when using
-        this configuration method.
+        WARNING: This functionality will be removed on January 1st, 2022!
+        Users are being warned when using this configuration method.
 
         Args:
-            configpath (str): the path to the configuration.
+            configpath: the path to the configuration.
         """
         ini_conf = configparser.ConfigParser()
-        ini_conf.optionxform = str  # makes option names case-sensitive!
+        # make option names case-sensitive:
+        ini_conf.optionxform = str  # type: ignore
         ini_conf.read(configpath)
 
         # We need to manually iterate all sections and fields because some settings need to be moved
@@ -349,8 +368,12 @@ class Config(dict):
             else:
                 LOGGER.warning("Ignoring unknown config section %s", section)
 
-    def validate(self):
-        """Validates the configuration at runtime."""
+    def validate(self) -> None:
+        """Validates the configuration at runtime.
+
+        Raises:
+            RuntimeError when an invalid setting is encountered.
+        """
         LOGGER.info("Validating the runtime configuration.")
 
         # LOGGING section
@@ -440,10 +463,12 @@ class Config(dict):
             if name not in self.DEFAULTS["tui"]["colors"].keys() and name not in ANSI_COLORS:
                 LOGGER.warning("Ignoring unknown TUI color: %s.", name)
             self._assert(
-                color in ANSI_COLORS
-                or (
-                    len(color.strip("#")) == 6
-                    and tuple(int(color.strip("#")[i : i + 2], 16) for i in (0, 2, 4))
+                bool(
+                    (color in ANSI_COLORS)
+                    or (
+                        len(color.strip("#")) == 6
+                        and tuple(int(color.strip("#")[i : i + 2], 16) for i in (0, 2, 4))
+                    )
                 ),
                 f"Unknown color specification: {color}",
             )
@@ -461,8 +486,12 @@ class Config(dict):
             )
 
     @staticmethod
-    def _assert(expression, error):
+    def _assert(expression: bool, error: str) -> None:
         """Asserts the expression is True.
+
+        Args:
+            expression: the expression to assert.
+            error: the message of the `RuntimeError` upon assertion failure.
 
         Raises:
             RuntimeError with the specified error string.
@@ -470,17 +499,22 @@ class Config(dict):
         if not expression:
             raise RuntimeError(error)
 
-    def defaults(self):
+    def defaults(self) -> None:
         """Resets the configuration to the default settings."""
         for section in self.DEFAULTS.keys():
             self[section].update(**self.DEFAULTS[section])
 
-    def get_ansi_color(self, name):
-        """Returns an ANSI color code for the named color.
+    def get_ansi_color(self, name: str) -> str:
+        r"""Returns an ANSI color code for the named color.
+
+        Appending `_fg` and `_bg` to the color name will yield the configured colors for the fore-
+        and background property, respectively.
+        The [ANSI color code](https://en.wikipedia.org/wiki/ANSI_escape_code#3-bit_and_4-bit) can
+        then be constructed using the formula `\x1b[{FG};{BG}m`.
 
         Args:
-            name (str): a named color as specified in the configuration *excluding* the `_fg` or
-                        `_bg` suffix.
+            name: a named color as specified in the configuration *excluding* the `_fg` or `_bg`
+                  suffix.
 
         Returns:
             A string representing the foreground and background ANSI color code.
@@ -491,5 +525,10 @@ class Config(dict):
         return f"\x1b[{fg_color};{bg_color}m"
 
 
-config = Config()
+config: Config = Config()
+"""This is the runtime configuration object. It is exposed on the module level via:
+```python
+from cobib.config import config
+```
+"""
 config.defaults()

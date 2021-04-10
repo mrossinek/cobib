@@ -44,6 +44,13 @@ lint:
         - which python
         - python <<< 'import enchant; print(enchant.list_dicts())'
         - tox -e lint
+    artifacts:
+        when: always
+        expire_in: 30 days
+        paths:
+            - cobertura.xml
+        reports:
+            cobertura: cobertura.xml
 
 test:
     stage: test

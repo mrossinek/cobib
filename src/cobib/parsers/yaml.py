@@ -1,9 +1,21 @@
-"""YAML Parser."""
+"""coBib's YAML parser.
+
+This parser leverages the [`ruamel.yaml`](https://pypi.org/project/ruamel.yaml/) library to convert
+between `cobib.database.Entry` instances and YAML representations of their `dict`-like data
+structure.
+
+The parser is registered under the `-y` and `--yaml` command-line arguments of the
+`cobib.commands.add.AddCommand`.
+
+The following documentation is mostly inherited from the abstract interface
+`cobib.parsers.base_parser`.
+"""
 
 import io
 import logging
 from collections import OrderedDict
 from pathlib import Path
+from typing import IO, Dict, Optional, cast
 
 from ruamel import yaml
 
@@ -23,40 +35,45 @@ class YAMLParser(Parser):
         """Wrapper class for YAML dumping."""
 
         # pylint: disable=arguments-differ,inconsistent-return-statements
-        def dump(self, data, stream=None, **kw):
-            # pdoc will inherit the docstring from the base class
-            # noqa: D102
+        def dump(self, data, stream=None, **kw) -> Optional[str]:
+            """A wrapper to dump as a string.
+
+            Adapted from
+            [here](https://yaml.readthedocs.io/en/latest/example.html#output-of-dump-as-a-string).
+            """
             inefficient = False
             if stream is None:
                 inefficient = True
                 stream = yaml.compat.StringIO()
             yaml.YAML.dump(self, data, stream, **kw)
             if inefficient:
-                return stream.getvalue()
+                return cast(str, stream.getvalue())
+            return None
 
-    def parse(self, string):
+    def parse(self, string: str) -> Dict[str, Entry]:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
         bib = OrderedDict()
         LOGGER.debug("Loading YAML data from file: %s.", string)
         try:
-            stream = io.StringIO(Path(string))
+            stream: IO = io.StringIO(Path(string))  # type: ignore
         except TypeError:
             try:
                 stream = open(string, "r")
             except FileNotFoundError as exc:
                 raise exc
-        for entry in yaml.safe_load_all(stream):
+        yml = yaml.YAML(typ="safe", pure=True)
+        for entry in yml.load_all(stream):
             for label, data in entry.items():
                 bib[label] = Entry(label, data)
         stream.close()
         return bib
 
-    def dump(self, entry):
+    def dump(self, entry: Entry) -> Optional[str]:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
         yml = self.YamlDumper()
-        yml.explicit_start = True
-        yml.explicit_end = True
+        yml.explicit_start = True  # type: ignore
+        yml.explicit_end = True  # type: ignore
         LOGGER.debug("Converting entry %s to YAML format.", entry.label)
         return yml.dump({entry.label: dict(sorted(entry.data.items()))})

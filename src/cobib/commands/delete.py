@@ -1,8 +1,20 @@
-"""coBib delete command."""
+"""coBib's Delete command.
+
+This command can be used to deleted entries from the database.
+```
+cobib delete <label ID 1> [<label ID 2> ...]
+```
+
+You can also trigger this command from the `cobib.tui.TUI`.
+By default, it is bound to the `d` key.
+"""
+
+from __future__ import annotations
 
 import argparse
 import logging
 import sys
+from typing import IO, TYPE_CHECKING, List
 
 from cobib.database import Database
 
@@ -10,18 +22,25 @@ from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
 
+if TYPE_CHECKING:
+    from cobib.tui import TUI
+
 
 class DeleteCommand(Command):
-    """Delete Command."""
+    """The Delete Command."""
 
     name = "delete"
 
-    def execute(self, args, out=sys.stdout):
-        """Delete entries.
+    def execute(self, args: List[str], out: IO = sys.stdout) -> None:
+        """Deletes an entry.
 
-        Deletes the entries from the database.
+        This command deletes one (or multiple) entries from the database.
 
-        Args: See base class.
+        Args:
+            args: a sequence of additional arguments used for the execution. The following values
+                are allowed for this command:
+                    * `labels`: one (or multiple) IDs of the entries to be deleted.
+            out: the output IO stream. This defaults to `sys.stdout`.
         """
         LOGGER.debug("Starting Delete command.")
         parser = ArgumentParser(prog="delete", description="Delete subcommand parser.")
@@ -59,8 +78,9 @@ class DeleteCommand(Command):
             LOGGER.info(msg)
 
     @staticmethod
-    def tui(tui):
-        """See base class."""
+    def tui(tui: TUI) -> None:
+        # pdoc will inherit the docstring from the base class
+        # noqa: D102
         LOGGER.debug("Delete command triggered from TUI.")
         if tui.selection:
             # use selection for command
