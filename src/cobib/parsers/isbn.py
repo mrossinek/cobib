@@ -1,10 +1,25 @@
-"""ISBN Parser."""
+"""coBib's ISBN parser.
+
+This parser is capable of generating `cobib.database.Entry` instances from a given ISBN.
+It gathers the BibTex-encoded data from the ISBN API and parses the raw json data.
+
+Note, that the openlibrary API does not contain all ISBNs and potential server errors will be caught
+by the parser.
+In the future, I hope to make the API backend configurable.
+
+The parser is registered under the `-i` and `--isbn` command-line arguments of the
+`cobib.commands.add.AddCommand`.
+
+The following documentation is mostly inherited from the abstract interface
+`cobib.parsers.base_parser`.
+"""
 
 import json
 import logging
 import re
 import sys
 from collections import OrderedDict
+from typing import Dict
 
 import requests
 
@@ -20,14 +35,15 @@ class ISBNParser(Parser):
 
     name = "isbn"
 
-    # ISBN regex used for matching ISBNs (adapted from https://github.com/xlcnd/isbnlib)
+    ISBN_URL = "https://openlibrary.org/api/books?bibkeys=ISBN:"
+    """ISBN API URL taken from [here](https://openlibrary.org/dev/docs/api/books)."""
     ISBN_REGEX = re.compile(
         r"97[89]{1}(?:-?\d){10}|\d{9}[0-9X]{1}|" r"[-0-9X]{10,16}", re.I | re.M | re.S
     )
-    # ISBN-API: https://openlibrary.org/dev/docs/api/books
-    ISBN_URL = "https://openlibrary.org/api/books?bibkeys=ISBN:"
+    """A regex pattern used to match valid ISBNs. Adapted from
+    [here](https://github.com/xlcnd/isbnlib)."""
 
-    def parse(self, string):
+    def parse(self, string: str) -> Dict[str, Entry]:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
         assert re.match(self.ISBN_REGEX, string)
@@ -38,13 +54,13 @@ class ISBNParser(Parser):
         except requests.exceptions.RequestException as err:
             LOGGER.error("An Exception occurred while trying to query the ISBN: %s.", string)
             LOGGER.error(err)
-            return {}
+            return OrderedDict()
         try:
             contents = dict(json.loads(page.content))
         except json.JSONDecodeError as err:
             LOGGER.error("An Exception occurred while parsing the query results: %s.", page.content)
             LOGGER.error(err)
-            return {}
+            return OrderedDict()
         if not contents:
             msg = (
                 f'No data was found for ISBN "{string}". If you think this is an error and '
@@ -54,7 +70,7 @@ class ISBNParser(Parser):
             )
             LOGGER.warning(msg)
             print(msg, file=sys.stderr)
-            return {}
+            return OrderedDict()
         entry = {}
         for key, value in contents[list(contents.keys())[0]].items():
             if key in ["title", "url"]:
@@ -65,7 +81,10 @@ class ISBNParser(Parser):
             elif key == "publish_date":
                 entry["date"] = value
                 try:
-                    entry["year"] = re.search(r"\d{4}", value).group()
+                    match = re.search(r"\d{4}", value)
+                    if match is None:
+                        raise AttributeError
+                    entry["year"] = match.group()
                     if "ID" in entry.keys():
                         entry["ID"] += str(entry["year"])
                     else:
@@ -86,7 +105,6 @@ class ISBNParser(Parser):
         bib[entry["ID"]] = Entry(entry["ID"], entry)
         return bib
 
-    def dump(self, entry):
-        # pdoc will inherit the docstring from the base class
-        # noqa: D102
+    def dump(self, entry: Entry) -> None:
+        """We cannot dump a generic entry as an ISBN."""
         LOGGER.error("Cannot dump an entry as an ISBN.")

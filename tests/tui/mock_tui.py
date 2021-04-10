@@ -1,6 +1,7 @@
 """Methods and classes to mock a coBib TUI."""
 
 import logging
+from typing import Dict
 
 from .mock_curses import MockCursesPad
 
@@ -10,7 +11,7 @@ class MockTUI:
 
     # pylint: disable=missing-function-docstring,unused-argument
 
-    ANSI_MAP = {}
+    ANSI_MAP: Dict[str, int] = {}
 
     def __init__(self):
         # noqa: D107

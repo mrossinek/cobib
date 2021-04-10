@@ -1,15 +1,20 @@
-"""An example configuration file for coBib.
+"""An example configuration for coBib.
 
 Since version 3.0 coBib is configured through a Python file.
-For documentation purposes this example configuration file lists all possible settings with
-explanations and their default settings.
+For documentation purposes this example configuration lists all possible settings with their default
+values and detailed explanations.
 
-For anyone who knows a little bit of Python, here are some insights on how this configuration works.
 Internally, coBib's configuration is nothing but a (nested) Python dictionary. However, for ease of
 usage all of its fields are also exposed as attributes. This means, that the following two lines are
 equivalent:
-    config['database']['git'] = True
-    config.database.git = True
+
+```python
+config['database']['git'] = True
+config.database.git = True
+```
+
+Note, if you are reading this in the online-documentation, be sure to expand the source below by
+clicking on "View Source".
 """
 
 # Generally, you won't need these, but the default configuration relies on them.
@@ -23,18 +28,18 @@ from cobib.config import config
 
 
 # LOGGING
-# You can specify the default logfile via the following setting:
+# You can specify the default logfile location.
 config.logging.logfile = os.path.expanduser("~/.cache/cobib/cobib.log")
 
 # COMMANDS
 # These settings affect some command specific behavior.
 
-# You can specify the default bibtex entry type via the following setting:
+# You can specify the default bibtex entry type.
 config.commands.edit.default_entry_type = "article"
 
-# You can specify the editor program to be used by overwriting the following setting:
+# You can specify the editor program.
 config.commands.edit.editor = os.environ.get("EDITOR", "vim")
-# Note, that the default will respect your `$EDITOR` environment setting and fallback to `vim` if
+# Note, that this default will respect your `$EDITOR` environment setting and fallback to `vim` if
 # that variable is not set.
 
 # You can specify a custom command which will be used to `open` files associated with your entries.
@@ -45,15 +50,15 @@ config.commands.open.command = "xdg-open" if sys.platform.lower() == "linux" els
 # tools such as [ripgrep-all](https://github.com/phiresky/ripgrep-all) will.
 config.commands.search.grep = "grep"
 
-# You can specify whether searches should be performed case-insensitive. By default, this is off.
+# You can specify whether searches should be performed case-insensitive.
 config.commands.search.ignore_case = False
 
 
 # DATABASE
 # These settings affect the database in general.
 
-# You can specify the path to the database YAML file by changing the following setting.
-# You can use a `~` to represent your `$HOME` directory.
+# You can specify the path to the database YAML file. You can use a `~` to represent your `$HOME`
+# directory.
 config.database.file = os.path.expanduser("~/.local/share/cobib/literature.yaml")
 
 # coBib can integrate with `git` in order to automatically track the history of your database.
@@ -64,15 +69,15 @@ config.database.file = os.path.expanduser("~/.local/share/cobib/literature.yaml"
 config.database.git = False
 
 # DATABASE.FORMAT
-# You can also specify some aspects about the format of the database (currently only one but there
-# will be more in the future).
+# You can also specify some aspects about the format of the database.
 
 # You can specify the type of the `month` field. It can be either `int` or `str` and will be
 # converted automatically. I.e. '8' will become 'aug' if you set this to `str`.
 config.database.format.month = int
 
 # You can specify whether latex warnings should not be ignored during the escaping of special
-# characters.
+# characters. This is a simple option which gets passed on to the internally used `pylatexenc`
+# library.
 config.database.format.suppress_latex_warnings = True
 
 
@@ -93,13 +98,14 @@ config.tui.default_list_args = ["-l"]
 config.tui.prompt_before_quit = True
 
 # You can specify whether the list view of the TUI should be reversed. By default, this is enabled,
-# because this will place the most recently entries at the top of the TUI.
+# because this will place the most recently added entries at the top of the TUI.
 config.tui.reverse_order = True
 
 # You can specify a scroll offset. This corresponds to the number of lines which will be kept
 # visible above or below the cursor line while scrolling the buffer. If you set this number to
 # something very large (e.g. 99) you can pin the cursor line to the center of the window during
 # scrolling.
+# Note: if you are a Vim user, this setting will feel similar to `scrolloff`.
 config.tui.scroll_offset = 3
 
 # TUI.COLORS
@@ -125,9 +131,10 @@ config.tui.colors.popup_stderr_bg = "red"
 config.tui.colors.selection_fg = "white"
 config.tui.colors.selection_bg = "magenta"
 
-# Note, if your terminal supports it, you can even try to override the color specifications right
-# from within coBib. The check relies on the `curses.can_change_color()` function, which is more or
-# less documented [here](https://docs.python.org/3/library/curses.html#curses.can_change_color).
+# Note: if your terminal supports it, you can even try to override the color specifications right
+# from within coBib. The check whether your terminal supports this relies on the
+# `curses.can_change_color()` function, which is more or less documented
+# [here](https://docs.python.org/3/library/curses.html#curses.can_change_color).
 # You can attempt to get this to work by overwriting the named colors with a `#RRGGBB` value like
 # so:
 #     config.tui.colors.black = `#222222`
@@ -136,24 +143,24 @@ config.tui.colors.selection_bg = "magenta"
 # TUI.KEY_BINDINGS
 # You can also change the default key bindings of the TUI by overwriting any of the following
 # settings with a different key.
-config.tui.key_bindings.prompt = ":"
-config.tui.key_bindings.search = "/"
-config.tui.key_bindings.help = "?"
 config.tui.key_bindings.add = "a"
 config.tui.key_bindings.delete = "d"
 config.tui.key_bindings.edit = "e"
+config.tui.key_bindings.export = "x"
 config.tui.key_bindings.filter = "f"
+config.tui.key_bindings.help = "?"
 config.tui.key_bindings.modify = "m"
 config.tui.key_bindings.open = "o"
+config.tui.key_bindings.prompt = ":"
 config.tui.key_bindings.quit = "q"
 config.tui.key_bindings.redo = "r"
+config.tui.key_bindings.search = "/"
+config.tui.key_bindings.select = "v"
+config.tui.key_bindings.show = "ENTER"
 config.tui.key_bindings.sort = "s"
 config.tui.key_bindings.undo = "u"
-config.tui.key_bindings.select = "v"
 config.tui.key_bindings.wrap = "w"
-config.tui.key_bindings.export = "x"
-config.tui.key_bindings.show = "ENTER"
-# Note, the exception of this last key which is set to the custom `ENTER` string. When coBib
-# encounters this string it will automatically map to the ASCII codes 10 and 13 (corresponding with
+# Note, the exception of the key for `show` which is set to the custom `ENTER` string. When coBib
+# encounters this string it will automatically map to the ASCII codes 10 and 13 (corresponding to
 # the `line feed` and `carriage return`, respectively). Any other string is interpreted a single
 # character whose ASCII value is used as the trigger.

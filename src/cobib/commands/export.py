@@ -1,9 +1,50 @@
-"""coBib export command."""
+"""coBib's Export command.
+
+You can use this command to export your database.
+As of now only two output formats are available:
+* BibLaTex files
+* Zip archives
+
+The use case of the former is obvious and can be achieved by the following:
+```
+cobib export --bibtex my_database.bib
+```
+The latter case will collect all associated files of your database in a single Zip archive:
+```
+cobib export --zip my_references.zip
+```
+This is an important feature because coBib (by design) allows you to spread associated files across
+your entire file system.
+With this command you can gather them in a neat package for sharing or transferring.
+
+You can also limit the export to a subset of your database in one of two ways:
+1. through filters:
+```
+cobib export --bibtex my_private_database.bib -- ++tags private
+```
+2. through a custom selection (using `--selection`)
+```
+cobib export --selection --bibtex some_other_database.bib -- DummyID1 DummyID2
+```
+While this latter case is usable via the command-line interface it is more a side-effect of the TUI
+integration which provides a visual selection (defaults to the `v` key).
+The proper and arguably more useful case is the first case using filters.
+
+You can also trigger this command from the `cobib.tui.TUI`.
+By default, it is bound to the `x` key which will drop you into the prompt where you can type out a
+normal command-line command:
+```
+:export <arguments go here>
+```
+"""
+
+from __future__ import annotations
 
 import argparse
 import logging
 import os
 import sys
+from typing import IO, TYPE_CHECKING, List
 from zipfile import ZipFile
 
 from cobib.database import Database
@@ -14,21 +55,35 @@ from .list import ListCommand
 
 LOGGER = logging.getLogger(__name__)
 
+if TYPE_CHECKING:
+    from cobib.tui import TUI
+
 
 class ExportCommand(Command):
-    """Export Command."""
+    """The Export Command."""
 
     name = "export"
 
-    def execute(self, args, out=sys.stdout):
-        """Export database.
+    def execute(self, args: List[str], out: IO = sys.stdout) -> None:
+        """Exports the database.
 
-        Exports all entries matched by the filter queries (see the list docs).
-        Currently supported exporting formats are:
-        * BibLaTex databases
-        * zip archives
+        This command exports the database (or a selected subset of entries).
+        You can choose the exported formats from the following list:
+        * BibLaTex (via the `--bibtex` argument)
+        * Zip archive (via the `--zip` argument)
 
-        Args: See base class.
+        Args:
+            args: a sequence of additional arguments used for the execution. The following values
+                are allowed for this command:
+                    * `-b`, `--bibtex`: specifies a BibLaTex filename into which to export.
+                    * `-z`, `--zip`: specifies a Zip-filename into which to export associated files.
+                    * `-s`, `--selection`: when specified, the positional arguments will *not* be
+                      interpreted as filters but rather as a direct list of entry labels. This can
+                      be used on the command-line but is mainly meant for the TUIs visual selection
+                      interface (hence the name).
+                    * in addition to the above, you can add `filters` to specify a subset of your
+                      database for exporting. For more information refer to `cobib.commands.list`.
+            out: the output IO stream. This defaults to `sys.stdout`.
         """
         LOGGER.debug("Starting Export command.")
         parser = ArgumentParser(prog="export", description="Export subcommand parser.")
@@ -104,8 +159,9 @@ class ExportCommand(Command):
             largs.zip.close()
 
     @staticmethod
-    def tui(tui):
-        """See base class."""
+    def tui(tui: TUI) -> None:
+        # pdoc will inherit the docstring from the base class
+        # noqa: D102
         LOGGER.debug("Export command triggered from TUI.")
         # handle input via prompt
         if tui.selection:

@@ -1,4 +1,71 @@
-"""Cobib init command."""
+"""coBib's List command.
+
+This command simply lists the entries in the database:
+```
+cobib list
+```
+
+### Basic Options
+
+It provides some very basic output manipulation options.
+
+You can disable the shortening of the output:
+```
+cobib list --long
+```
+You can reverse the output:
+```
+cobib list --reverse
+```
+You can sort the list according to a database field:
+```
+cobib list --sort year
+```
+(In the TUI, this is available via the `s` key, by default.)
+
+
+### Filters
+
+However, the arguably most useful feature of this command are the *filters*.
+These are a set of keyword arguments which are registered at runtime depending on the fields which
+appear in your database.
+To give an example, you can find the following filters in the output of `cobib list --help`:
+```
+++author AUTHOR
+--author AUTHOR
+++year YEAR
+--year YEAR
+```
+As you can see, each field is used twice: once with a `++` and once with a `--` prefix.
+These allow you two specify positive and negative matches, respectively.
+For example:
+```
+cobib list ++year 2020
+```
+will list *only* entries whose `year` contains `2020`.
+On the contrary:
+```
+cobib list --year 2020
+```
+will print all those entries whose `year` does *not* contain `2020`.
+
+You can combine multiple filters to narrow your selection down further.
+For example:
+```
+cobib list ++year 2020 ++author Rossmannek
+```
+will list entries whose `year` contains `2020` *and* whose `author` field contains `Rossmannek`.
+
+Note, that you by default you can use the `f` key in the TUI to add filters to displayed list of
+entries.
+
+There are some aspects to take note of here:
+1. By default, multiple filters are combined with logical `AND`s. You can specify `--or` to
+   overwrite this to logical `OR`s. This will also apply to all filters of the specified command.
+2. All entries are treated as `str`. Thus, `++year 20` will match anything *containing* `20`.
+"""
+
+from __future__ import annotations
 
 import argparse
 import logging
@@ -6,6 +73,7 @@ import sys
 import textwrap
 from collections import defaultdict
 from operator import itemgetter
+from typing import IO, TYPE_CHECKING, List, Optional
 
 from cobib.database import Database
 
@@ -13,18 +81,45 @@ from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
 
+if TYPE_CHECKING:
+    from cobib.tui import TUI
+
 
 class ListCommand(Command):
-    """List Command."""
+    """The List Command."""
 
     name = "list"
 
-    def execute(self, args, out=None):
-        """List entries.
+    def execute(self, args: List[str], out: IO = None) -> Optional[List[str]]:
+        """Lists the entries in the database.
 
-        By default, all entries of the database are listed.
+        This command simply lists the labels and titles of the entries in the database.
+        By default, it lists them in the order in which they appear in the database.
+        However, the order as well as selection of entries to be listed can be configured through
+        additional arguments.
+        Please refer to the [Filters](#filters) section above for more information.
+        Note, that the filtering mechanisms leverages `cobib.database.Entry.matches` to do the
+        actual filter-matching.
 
-        Args: See base class.
+        Args:
+            args: a sequence of additional arguments used for the execution. The following values
+                are allowed for this command:
+                    * `-l`, `--long`: if specified, the columns of the output table will be not be
+                      shortened.
+                    * `-r`, `--reverse`: if specified, the entries will be listed in reverse order.
+                      This is especially useful in the TUI (where it is enabled by default) because
+                      it puts the last added entries at the top of the window. When using the
+                      command-line interface it is disabled by default, because this puts the last
+                      added entries at the bottom, just above the new command-line prompt.
+                    * `-x`, `--or`: if specified, multiple filters will be combined with logical OR
+                      rather than the default logical AND.
+                    * `-s`, `--sort`: you can specify an arbitrary `cobib.database.Entry.data` field
+                      name which should be used for sorting the listed entries. This will
+                      automatically include a column for this field in the output table.
+                    * in addition to the options above, [Filter keyword arguments](#filters) are
+                      registered at runtime based on the fields available in the database. Please
+                      refer the that section for more information.
+            out: the output IO stream. This defaults to `None`.
 
         Returns:
             A list with the filtered and sorted labels.
@@ -36,21 +131,21 @@ class ListCommand(Command):
             prog="list", description="List subcommand parser.", prefix_chars="+-"
         )
         parser.add_argument(
+            "-l",
+            "--long",
+            action="store_true",
+            help="print table in long format (i.e. don't shorten lines)",
+        )
+        parser.add_argument(
+            "-r", "--reverse", action="store_true", help="reverses the listing order"
+        )
+        parser.add_argument("-s", "--sort", help="specify column along which to sort the list")
+        parser.add_argument(
             "-x",
             "--or",
             dest="OR",
             action="store_true",
             help="concatenate filters with OR instead of AND",
-        )
-        parser.add_argument(
-            "-l",
-            "--long",
-            action="store_true",
-            help="print table in long format (i.e. wrap and don't shorten lines)",
-        )
-        parser.add_argument("-s", "--sort", help="specify column along which to sort the list")
-        parser.add_argument(
-            "-r", "--reverse", action="store_true", help="reverses the listing order"
         )
         unique_keys = set()
         LOGGER.debug("Gathering possible filter arguments.")
@@ -125,9 +220,25 @@ class ListCommand(Command):
             print("  ".join([f"{col: <{wid}}" for col, wid in zip(row, widths)]), file=out)
         return list(labels)
 
+    # TODO: refactor this command in order to unify the `tui` method (#66)
     @staticmethod
-    def tui(tui, sort_mode):
-        """See base class."""
+    def tui(tui: TUI, sort_mode: bool) -> None:  # type: ignore
+        """TUI command interface.
+
+        🛑 *WARNING*: this will be refactored in the future, ensuring a unified command syntax with
+        the other commands!
+
+        This function serves as the commands entry-point from the `cobib.tui.TUI` instance.
+        It should take care of any pre- and/or post-processing before calling `execute` internally
+        to do the actual work.
+
+        The processing may involve handling of highlighting as well as general screen buffer
+        contents.
+
+        Args:
+            tui: the runtime-instance of coBib's TUI.
+            sort_mode: a boolean indicating whether the command was triggered from a sorted context.
+        """
         LOGGER.debug("List command triggered from TUI.")
         LOGGER.debug("Clearing current buffer contents.")
         tui.viewport.clear()

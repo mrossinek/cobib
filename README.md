@@ -1,4 +1,4 @@
-[![coBib](https://gitlab.com/mrossinek/cobib/-/raw/master/logo/cobib_logo.svg)](https://mrossinek.gitlab.io/cobib/index.html)
+[![coBib](https://gitlab.com/mrossinek/cobib/-/raw/master/logo/cobib_logo.svg)](https://mrossinek.gitlab.io/cobib/cobib.html)
 
 # coBib
 
@@ -41,10 +41,15 @@ make install_extras
 This will install the `cobib` package. By default, `cobib` will store your
 database at `~/.local/share/cobib/literature.yaml`
 
-To see how you can change this, see [Config](#Config).
+To see how you can change this, see [Configuration](#Configuration).
+
+### Arch Linux
+coBib is packaged in the AUR.
+* [cobib](https://aur.archlinux.org/packages/cobib/)
+* [cobib-git](https://aur.archlinux.org/packages/cobib-git/)
 
 ### Windows
-Please note that Windows is *not* supported!
+Windows is **NOT** supported!
 This is due to the fact that [Python under Windows does not ship with the `curses` module][1].
 
 However, if you are using Windows 10 you should be able to install and use coBib
@@ -61,20 +66,19 @@ If you would like coBib to track your database with git, you should use
 ```
 cobib init --git
 ```
-and enable the `DATABASE/git` option (see also [Config](#Config)).
+and enable the `DATABASE/git` option (see also [Configuration](#Configuration)).
 Afterwards you can simply run `cobib` to start the TUI.
 If you prefer full control from the command line you can also run all commands
-directly via the CLI. Available commands are `add`, `list`, `edit`, `remove`,
-`show`, `open` and `export`. Type `cobib --help` for further information or
-`cobib <subcommand> --help` for more detailed information on the specific
-subcommands.
+directly via the CLI. Type `cobib --help` for an overview of all available
+commands and further information or `cobib <subcommand> --help` for more
+detailed information on a specific subcommand.
 
 **Note**: when adding data from a `.bib` file, make sure that it is in the Bib**La**Tex format!
 
 You can also find more information in the man page.
 
 
-## Config
+## Configuration
 You can overwrite the default configuration by placing a `config.py` file in `~/.config/cobib/`.
 The easiest way to get started with this file is by copying [`example.py`](https://gitlab.com/mrossinek/cobib/-/blob/master/src/cobib/config/example.py)
 or by using `cobib _example_config > ~/.config/cobib/config.py`.
@@ -84,7 +88,7 @@ You may also specify a different config file at runtime by using the `-c` or `--
 You can also find more information in the man page.
 
 ## Documentation
-coBib's documentation is hosted at https://mrossinek.gitlab.io/cobib/
+coBib's documentation is hosted at https://mrossinek.gitlab.io/cobib/cobib.html
 
 If you would like to generate a local version, you need to clone the source code, and install
 [`pdoc`](https://github.com/mitmproxy/pdoc) in order to generate it:
@@ -94,6 +98,6 @@ cd cobib
 pip install pdoc
 pdoc -d google -o docs src/cobib
 ```
-You can then browse the documentation from `docs/index.html`.
+You can then browse the documentation from `docs/cobib.html`.
 
 [//]: # ( vim: set ft=markdown: )

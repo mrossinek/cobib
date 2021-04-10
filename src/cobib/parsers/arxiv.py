@@ -1,9 +1,20 @@
-"""arXiv Parser."""
+"""coBib's arXiv parser.
+
+This parser is capable of generating `cobib.database.Entry` instances from a given arXiv ID.
+It gathers the BibTex-encoded data from the arXiv API and parses the raw XML data.
+
+The parser is registered under the `-a` and `--arxiv` command-line arguments of the
+`cobib.commands.add.AddCommand`.
+
+The following documentation is mostly inherited from the abstract interface
+`cobib.parsers.base_parser`.
+"""
 
 import logging
 import re
 import sys
 from collections import OrderedDict
+from typing import Dict
 
 import requests
 from bs4 import BeautifulSoup
@@ -20,10 +31,10 @@ class ArxivParser(Parser):
 
     name = "arxiv"
 
-    # arXiv URL according to docs from here https://arxiv.org/help/oa
     ARXIV_URL = "https://export.arxiv.org/api/query?id_list="
+    """arXiv exporting URL taken from [here](https://arxiv.org/help/oa)."""
 
-    def parse(self, string):
+    def parse(self, string: str) -> Dict[str, Entry]:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
         LOGGER.info("Gathering BibTex data for arXiv ID: %s.", string)
@@ -32,7 +43,7 @@ class ArxivParser(Parser):
         except requests.exceptions.RequestException as err:
             LOGGER.error("An Exception occurred while trying to query the arXiv ID: %s.", string)
             LOGGER.error(err)
-            return {}
+            return OrderedDict()
         xml = BeautifulSoup(page.text, features="html.parser")
         if xml.feed.entry.title.contents[0] == "Error":
             msg = (
@@ -40,7 +51,7 @@ class ArxivParser(Parser):
             )
             LOGGER.warning(msg)
             print(msg, file=sys.stderr)
-            return {}
+            return OrderedDict()
         entry = {}
         entry["archivePrefix"] = "arXiv"
         for key in xml.feed.entry.findChildren(recursive=False):
@@ -88,7 +99,6 @@ class ArxivParser(Parser):
         bib[entry["ID"]] = Entry(entry["ID"], entry)
         return bib
 
-    def dump(self, entry):
-        # pdoc will inherit the docstring from the base class
-        # noqa: D102
+    def dump(self, entry: Entry) -> None:
+        """We cannot dump a generic entry as an arXiv ID."""
         LOGGER.error("Cannot dump an entry as an arXiv ID.")

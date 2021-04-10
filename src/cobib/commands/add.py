@@ -1,10 +1,75 @@
-"""coBib add command."""
+"""coBib's Add command.
+
+This command allows you to add new entries to your database.
+You have two options on how to use this command.
+
+### 1. Parser-based addition
+
+All parsers available in `cobib.parsers` will be registered (at runtime) in a *mutually exclusive*
+group of keyword arguments.
+This means, that you can add a new entry based on any of them by using the keyword argument
+according to the parsers name.
+For example:
+```
+cobib add --bibtex some_biblatex_file.bib
+cobib add --arxiv <some arXiv ID>
+cobib add --doi <some DOI>
+cobib add --isbn <some ISBN>
+cobib add --yaml some_cobib_style_yaml_file.yaml
+```
+
+Note, that you cannot combine multiple parsers within a single command execution (for obvious
+reasons).
+
+Furthermore, most of these parsers will set the entry label automatically.
+If you would like to prevent that and specify a custom label directly, you can add the `--label`
+keyword argument to your command like so:
+```
+cobib add --doi <some DOI> --label "MyLabel"
+```
+
+### 2. Manual entry addition
+
+If you want to add a new entry manually, you *must* omit any of the parser keyword arguments and
+instead specify a new label ID like so:
+```
+cobib add --label <some new label ID>
+```
+This will trigger the `cobib.commands.edit.EditCommand` for a manual addition.
+However, the benefit of using this through the `AddCommand` is the availability of the following
+additional options which are always available (i.e. also in combination with the parser keyword
+arguments, above).
+
+### Additional Options
+
+You can directly associate your new entry with one or multiple files by doing the following:
+```
+cobib add --doi <some DOI> --file /path/to/a/file.pdf [/path/to/another/file.dat ...]
+```
+
+You can also specify `cobib.database.Entry.tags` using *positional* arguments like so:
+```
+cobib add --doi <some DOI> -- tag1 "multi-word tag2" ...
+```
+
+### TUI
+
+You can also trigger this command from the `cobib.tui.TUI`.
+By default, it is bound to the `a` key which will drop you into the prompt where you can type out a
+normal command-line command:
+```
+:add <arguments go here>
+```
+"""
+
+from __future__ import annotations
 
 import argparse
 import inspect
 import logging
 import sys
 from collections import OrderedDict
+from typing import IO, TYPE_CHECKING, Dict, List
 
 from cobib import parsers
 from cobib.config import config
@@ -15,18 +80,37 @@ from .edit import EditCommand
 
 LOGGER = logging.getLogger(__name__)
 
+if TYPE_CHECKING:
+    from cobib.tui import TUI
+
 
 class AddCommand(Command):
-    """Add Command."""
+    """The Add Command."""
 
     name = "add"
 
-    def execute(self, args, out=sys.stdout):
-        """Add new entry.
+    def execute(self, args: List[str], out: IO = sys.stdout) -> None:
+        """Adds a new entry.
 
-        Adds new entries to the database.
+        Depending on the `args`, if a keyword for one of the available `cobib.parsers` was used
+        together with a matching input, that parser will be used to create the new entry.
+        Otherwise, the command is only valid if the `--label` option was used to specify a new entry
+        ID, in which case this command will trigger the `cobib.commands.edit.EditCommand` for a
+        manual entry addition.
 
-        Args: See base class.
+        Args:
+            args: a sequence of additional arguments used for the execution. The following values
+                are allowed for this command:
+                    * `-l`, `--label`: the ID to give to the new entry.
+                    * `-f`, `--file`: one or multiple files to associate with this entry. This data
+                      will be stored in the `cobib.database.Entry.file` property.
+                    * in addition to the options above, a *mutually exclusive group* of keyword
+                      arguments for all available `cobib.parsers` are registered at runtime. Please
+                      check the output of `cobib add --help` for the exact list.
+                    * any *positional* arguments (i.e. those, not preceded by a keyword) are
+                      interpreted as tags and will be stored in the `cobib.database.Entry.tags`
+                      property.
+            out: the output IO stream. This defaults to `sys.stdout`.
         """
         LOGGER.debug("Starting Add command.")
         parser = ArgumentParser(prog="add", description="Add subcommand parser.")
@@ -65,7 +149,7 @@ class AddCommand(Command):
             print(exc.message, file=sys.stderr)
             return
 
-        new_entries = OrderedDict()
+        new_entries: Dict[str, Entry] = OrderedDict()
 
         edit_entries = False
         for name, cls in avail_parsers.items():
@@ -141,8 +225,9 @@ class AddCommand(Command):
             LOGGER.info(msg)
 
     @staticmethod
-    def tui(tui):
-        """See base class."""
+    def tui(tui: TUI) -> None:
+        # pdoc will inherit the docstring from the base class
+        # noqa: D102
         LOGGER.debug("Add command triggered from TUI.")
         # handle input via prompt
         tui.execute_command("add")

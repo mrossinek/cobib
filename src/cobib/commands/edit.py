@@ -1,10 +1,41 @@
-"""coBib edit command."""
+"""coBib's Edit command.
+
+This command can be used to manually edit database entries in their easily-readable YAML format.
+To get started, simply type:
+```
+cobib edit <label ID>
+```
+which will open the YAML-formatted version of the specified Entry for editing.
+
+You can configure which editor will be used via the `config.commands.edit.editor` setting which will
+default to using your `$EDITOR` environment setting (and fall back to `vim` if that is not set).
+
+You can even add entirely new entries to the database by specifying an unused entry label *and*
+adding the `--add` command-line argument:
+```
+cobib edit --add <new label ID>
+```
+This entry will be entirely empty except for the two fields which are always present:
+* `ID`: set to the new Entry label.
+* `ENTRYTYPE`: set to the default value configured via `config.commands.edit.default_entry_type`.
+
+You can also trigger this command from the `cobib.tui.TUI`.
+By default, it is bound to the `e` key.
+If you want to add a new entry manually, you will have to enter the prompt (defaults to `:`) and
+then type out the command mentioned above:
+```
+:edit --add <new label ID>
+```
+"""
+
+from __future__ import annotations
 
 import argparse
 import logging
 import os
 import sys
 import tempfile
+from typing import IO, TYPE_CHECKING, List
 
 from cobib.config import config
 from cobib.database import Database, Entry
@@ -14,18 +45,31 @@ from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
 
+if TYPE_CHECKING:
+    from cobib.tui import TUI
+
 
 class EditCommand(Command):
-    """Edit Command."""
+    """The Edit Command."""
 
     name = "edit"
 
-    def execute(self, args, out=sys.stdout):
-        """Edit entry.
+    def execute(self, args: List[str], out: IO = sys.stdout) -> None:
+        """Opens an entry for manual editing.
 
-        Opens an existing entry for manual editing.
+        This command opens an `cobib.database.Entry` in YAML format for manual editing.
+        The editor program can be configured via `config.commands.edit.editor`.
+        By default, this setting will respect your `$EDITOR` environment variable, but fall back to
+        using `vim` if that variable is not set.
 
-        Args: See base class.
+        Args:
+            args: a sequence of additional arguments used for the execution. The following values
+                are allowed for this command:
+                    * `label`: the ID of the entry to edit.
+                    * `-a`, `--add`: if specified, allows adding new entries for non-existent
+                      IDs. The default entry type of this new entry can be configured via
+                      `config.commands.edit.default_entry_type`.
+            out: the output IO stream. This defaults to `sys.stdout`.
         """
         LOGGER.debug("Starting Edit command.")
         parser = ArgumentParser(prog="edit", description="Edit subcommand parser.")
@@ -76,6 +120,10 @@ class EditCommand(Command):
                 )
                 LOGGER.error(msg)
                 return
+        if prv is None:
+            # No entry found to be edited. This should never occur unless the YAMLParser experiences
+            # an unexpected error.
+            return
 
         LOGGER.debug("Creating temporary file.")
         tmp_file = tempfile.NamedTemporaryFile(mode="w+", prefix="cobib-", suffix=".yaml")
@@ -99,12 +147,13 @@ class EditCommand(Command):
         self.git(args=vars(largs))
 
         msg = f"'{largs.label}' was successfully edited."
-        print(msg)
         LOGGER.info(msg)
+        print(msg, file=out)
 
     @staticmethod
-    def tui(tui):
-        """See base class."""
+    def tui(tui: TUI) -> None:
+        # pdoc will inherit the docstring from the base class
+        # noqa: D102
         LOGGER.debug("Edit command triggered from TUI.")
         # get current label
         label, _ = tui.viewport.get_current_label()

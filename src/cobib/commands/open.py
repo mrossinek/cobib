@@ -1,4 +1,42 @@
-"""coBib open command."""
+"""coBib's Open command.
+
+This command can be used to open associated files of an entry.
+```
+cobib open <label ID 1> [<label ID 2> ...]
+```
+
+The `file` and `url` fields of `cobib.database.Entry.data` are queried for Path or URL strings.
+If one such string is found, it is automatically opened with the program configured by
+`config.commands.open.command`.
+If multiple matches are found, the user will be presented with a menu to choose one or multiple
+matches.
+
+This menu will look similar to the following after querying for `help`:
+```
+You can specify one of the following options:
+  1. a url number
+  2. a field name provided in '[...]'
+  3. or simply 'all'
+  4. ENTER will abort the command
+
+  1: [file] /path/to/a/file.pdf
+  2: [file] /path/to/another/file.pdf
+  3: [url] https://example.org/
+Entry to open [Type 'help' for more info]:
+```
+
+With the above options, here is what will happen depending on the users choice:
+* `1`, `2`, or `3`: will open the respective file or URL.
+* `file` or `url`: will open the respective group.
+* `all`: will open all matches.
+* `help`: will print the detailed help-menu again.
+* `ENTER`: will abort the command.
+
+You can also trigger this command from the `cobib.tui.TUI`.
+By default, it is bound to the `o` key.
+"""
+
+from __future__ import annotations
 
 import argparse
 import logging
@@ -6,7 +44,8 @@ import os
 import subprocess
 import sys
 from collections import defaultdict
-from urllib.parse import urlparse
+from typing import IO, TYPE_CHECKING, Dict, List
+from urllib.parse import ParseResult, urlparse
 
 from cobib.config import config
 from cobib.database import Database
@@ -15,19 +54,31 @@ from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
 
+if TYPE_CHECKING:
+    from cobib.tui import TUI
+
 
 class OpenCommand(Command):
-    """Open Command."""
+    """The Open Command."""
 
     name = "open"
 
     # pylint: disable=too-many-branches
-    def execute(self, args, out=sys.stderr):
-        """Open file from entries.
+    def execute(self, args: List[str], out: IO = sys.stderr) -> None:
+        """Opens associated files of an entry.
 
-        Opens the associated file of the entries with xdg-open.
+        This command opens the associated file(s) of one (or multiple) entries.
+        It does so by querying the `file` and `url` fields of `cobib.database.Entry.data`.
+        If multiple such files are found, the user is presented with a menu allowing him to choose
+        one or multiple files to be opened.
 
-        Args: See base class.
+        The command for opening can be configured via `config.commands.open.command`.
+
+        Args:
+            args: a sequence of additional arguments used for the execution. The following values
+                are allowed for this command:
+                    * `labels`: one (or multiple) IDs of the entries to be opened.
+            out: the output IO stream. This defaults to `sys.stdout`.
         """
         LOGGER.debug("Starting Open command.")
         parser = ArgumentParser(prog="open", description="Open subcommand parser.")
@@ -48,7 +99,7 @@ class OpenCommand(Command):
 
         # pylint: disable=too-many-nested-blocks
         for label in largs.labels:
-            things_to_open = defaultdict(list)
+            things_to_open: Dict[str, List[ParseResult]] = defaultdict(list)
             count = 0
             # first: find all possible things to open
             try:
@@ -80,7 +131,7 @@ class OpenCommand(Command):
                 # we query the user what to do
                 idx = 1
                 url_list = []
-                prompt = []
+                prompt: List[str] = []
                 # print formatted list of available URLs
                 for field, urls in things_to_open.items():
                     for url in urls:
@@ -105,15 +156,14 @@ class OpenCommand(Command):
                     if choice == "help":
                         LOGGER.debug("User requested help.")
                         if not help_requested:
-                            msg = [
+                            prompt = [
                                 "You can specify one of the following options:",
                                 "  1. a url number",
                                 "  2. a field name provided in '[...]'",
                                 "  3. or simply 'all'",
                                 "  4. ENTER will abort the command",
                                 "",
-                            ]
-                            prompt = msg + prompt
+                            ] + prompt
                         help_requested = True
                     elif choice == "all":
                         LOGGER.debug("User selected all urls.")
@@ -131,23 +181,24 @@ class OpenCommand(Command):
                         break
 
     @staticmethod
-    def _open_url(url):
+    def _open_url(url: ParseResult) -> None:
         """Opens a URL."""
         opener = config.commands.open.command
         try:
-            url = url.geturl() if url.scheme else os.path.abspath(url.geturl())
-            LOGGER.debug('Opening "%s" with %s.', url, opener)
+            url_str: str = url.geturl() if url.scheme else os.path.abspath(url.geturl())
+            LOGGER.debug('Opening "%s" with %s.', url_str, opener)
             with open(os.devnull, "w") as devnull:
                 subprocess.Popen(
-                    [opener, url], stdout=devnull, stderr=devnull, stdin=devnull, close_fds=True
+                    [opener, url_str], stdout=devnull, stderr=devnull, stdin=devnull, close_fds=True
                 )
         except FileNotFoundError as err:
             LOGGER.error(err)
             print(err, file=sys.stderr)
 
     @staticmethod
-    def tui(tui):
-        """See base class."""
+    def tui(tui: TUI) -> None:
+        # pdoc will inherit the docstring from the base class
+        # noqa: D102
         LOGGER.debug("Open command triggered from TUI.")
         if tui.selection:
             # use selection for command

@@ -1,4 +1,9 @@
-"""coBib commands."""
+"""coBib's commands.
+
+coBib provides a series of commands, all of which are available both, from the command-line as well
+as through the terminal user interface (see also `cobib.tui`).
+The abstract interface which should be implemented is defined by the `cobib.commands.base_command`.
+"""
 
 from .add import AddCommand
 from .delete import DeleteCommand

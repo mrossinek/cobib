@@ -1,4 +1,38 @@
-"""coBib search command."""
+"""coBib's Search command.
+
+This command allows you to search your database for a regex-interpreted query.
+While doing so, it uses the `config.commands.search.grep` tool to search associated files, too.
+
+As a simple example, you can query for a simple author name like so:
+```
+cobib search Einstein
+```
+You can make the search case *in*sensitive in two ways:
+1. By enabling `config.commands.search.ignore_case`.
+2. By providing the `--ignore-case` command-line argument:
+```
+cobib search --ignore-case Einstein
+```
+
+By default, the search command will provide you with 1 line of context above and below the actual
+matches. You can change this number of lines by setting the `--context` option:
+```
+cobib search --context 4 Einstein
+```
+
+Finally, you can also combine the search with coBib's filtering mechanism to narrow your search down
+to a subset of your database:
+```
+cobib search Einstein -- ++year 2020
+```
+Note, that we use the auxiliary `--` argument to separate the filters from the actual arguments.
+While this is not strictly necessary it helps to disambiguate the origin of the arguments.
+
+You can also trigger this command from the `cobib.tui.TUI`.
+By default, it is bound to the `/` key.
+"""
+
+from __future__ import annotations
 
 import argparse
 import logging
@@ -6,6 +40,7 @@ import os
 import re
 import shlex
 import sys
+from typing import IO, TYPE_CHECKING, List, Optional, Tuple
 
 from cobib import __version__
 from cobib.config import config
@@ -16,32 +51,54 @@ from .list import ListCommand
 
 LOGGER = logging.getLogger(__name__)
 
+if TYPE_CHECKING:
+    from cobib.tui import TUI
+
 
 class SearchCommand(Command):
-    """Search Command."""
+    """The Search Command."""
 
     name = "search"
 
-    def execute(self, args, out=None):
-        """Search database.
+    def execute(self, args: List[str], out: IO = None) -> Optional[Tuple[int, List[str]]]:
+        """Searches in the database.
 
-        Searches the database recursively (i.e. including any associated files) using `grep` for a
-        query string.
+        This command searches the database for a regex-interpreted query.
+        It leverages `cobib.database.Entry.search` to perform the actual search.
 
-        Args: See base class.
+        You can configure the search-tool which searches through associated files via
+        `config.commands.search.grep`.
+
+        Args:
+            args: a sequence of additional arguments used for the execution. The following values
+                are allowed for this command:
+                    * `query`: the required positional argument corresponds to the regex-interpreted
+                      text which will be searched for.
+                    * `-i`, `--ignore-case`: if specified, the search will be case *in*sensitive.
+                      You can enable this setting permanently with
+                      `config.commands.search.ignore_case`.
+                    * `-c`, `--context`: you can specify the number of lines of "context" which
+                      is the number of lines before and after the actual match to be included in the
+                      output. This is similar to `grep`s `-C` option.
+                    * in addition to the above, you can add `filters` to narrow the search down to a
+                      subset of your database. For more information refer to `cobib.commands.list`.
+            out: the output IO stream. This defaults to `None`.
+
+        Returns:
+            A tuple containing the number of hits and matching labels.
         """
         LOGGER.debug("Starting Search command.")
         parser = ArgumentParser(prog="search", description="Search subcommand parser.")
         parser.add_argument("query", type=str, help="text to search for")
+        parser.add_argument(
+            "-i", "--ignore-case", action="store_true", help="ignore case for searching"
+        )
         parser.add_argument(
             "-c",
             "--context",
             type=int,
             default=1,
             help="number of context lines to provide for each match",
-        )
-        parser.add_argument(
-            "-i", "--ignore-case", action="store_true", help="ignore case for searching"
         )
         parser.add_argument(
             "filter",
@@ -64,6 +121,8 @@ class SearchCommand(Command):
             return None
 
         labels = ListCommand().execute(largs.filter, out=open(os.devnull, "w"))
+        if labels is None:
+            return None
         LOGGER.debug("Available entries to search: %s", labels)
 
         ignore_case = config.commands.search.ignore_case or largs.ignore_case
@@ -101,8 +160,9 @@ class SearchCommand(Command):
         return (hits, labels)
 
     @staticmethod
-    def tui(tui):
-        """See base class."""
+    def tui(tui: TUI) -> None:
+        # pdoc will inherit the docstring from the base class
+        # noqa: D102
         LOGGER.debug("Search command triggered from TUI.")
         tui.viewport.clear()
         # handle input via prompt
