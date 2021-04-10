@@ -142,7 +142,7 @@ cobib _example_config > ~/.config/cobib/config.py
 import os
 import subprocess
 
-__version__ = "3.0.0a1"
+__version__ = "3.0.0"
 
 if os.path.exists(os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/../.git"):
     # if installed from source, append HEAD commit SHA to version info as metadata
