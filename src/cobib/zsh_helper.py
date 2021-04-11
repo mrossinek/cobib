@@ -4,7 +4,7 @@ This module provides a variety of ZSH helper utilities.
 """
 
 import inspect
-import os
+from pathlib import Path
 from typing import List, Set
 
 from cobib import commands
@@ -32,6 +32,6 @@ def list_filters() -> Set[str]:
 
 def example_config() -> List[str]:
     """Shows the (well-commented) example configuration."""
-    root = os.path.abspath(os.path.dirname(__file__))
-    with open(root + "/config/example.py", "r") as file:
+    root = Path(__file__).expanduser().resolve().parent
+    with open(root / "config/example.py", "r") as file:
         return [line.strip() for line in file.readlines()]

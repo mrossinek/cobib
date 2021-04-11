@@ -1,8 +1,8 @@
 """coBib's debugging config."""
 
-import os
+from pathlib import Path
 
 from cobib.config import config
 
-root = os.path.dirname(__file__)
-config.database.file = os.path.abspath(os.path.join(root, "example_literature.yaml"))
+root = Path(__file__).parent
+config.database.file = str((root / "example_literature.yaml").resolve())

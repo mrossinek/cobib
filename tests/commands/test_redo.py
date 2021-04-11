@@ -156,13 +156,13 @@ class TestRedoCommand(CommandTest, TUITest):
     def test_handle_argument_error(self, caplog):
         """Test handling of ArgumentError."""
         # use temporary config
-        config.database.file = os.path.join(self.COBIB_TEST_DIR, "database.yaml")
+        config.database.file = self.COBIB_TEST_DIR / "database.yaml"
         config.database.git = True
 
         # initialize git-tracking
         os.makedirs(self.COBIB_TEST_DIR, exist_ok=True)
         open(config.database.file, "w").close()
-        os.system("git init " + self.COBIB_TEST_DIR)
+        os.system("git init " + str(self.COBIB_TEST_DIR))
 
         try:
             super().test_handle_argument_error(caplog)

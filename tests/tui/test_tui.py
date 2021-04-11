@@ -2,9 +2,9 @@
 # pylint: disable=no-self-use,unused-argument
 
 import copy
-import os
 import tempfile
 from itertools import zip_longest
+from pathlib import PurePath
 from signal import SIGWINCH
 
 import pytest
@@ -815,7 +815,7 @@ class TestTUI(CmdLineTest, TUITest):
         ["kwargs"],
         [
             [[]],
-            [["-l", os.path.join(tempfile.gettempdir(), "cobib_test.log")]],
+            [["-l", str(PurePath(tempfile.gettempdir()) / "cobib_test.log")]],
         ],
     )
     def test_cmdline(self, setup, monkeypatch, kwargs):

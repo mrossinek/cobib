@@ -61,14 +61,14 @@ def test_config_recursive_setattr():
 def test_config_load():
     """Test loading another config file."""
     config.load(get_resource("debug.py"))
-    assert config.database.file == EXAMPLE_LITERATURE
+    assert config.database.file == str(EXAMPLE_LITERATURE)
 
 
 def test_config_load_from_open_file():
     """Test loading another config from an open file."""
     with open(get_resource("debug.py")) as file:
         config.load(file)
-    assert config.database.file == EXAMPLE_LITERATURE
+    assert config.database.file == str(EXAMPLE_LITERATURE)
 
 
 def test_config_load_nothing():
@@ -84,7 +84,7 @@ def test_config_load_xdg():
     """Test loading config from XDG path."""
     Config.XDG_CONFIG_FILE = get_resource("debug.py")
     config.load()
-    assert config.database.file == EXAMPLE_LITERATURE
+    assert config.database.file == str(EXAMPLE_LITERATURE)
 
 
 # TODO: remove legacy configuration support on 1.1.2022

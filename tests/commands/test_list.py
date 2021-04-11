@@ -241,7 +241,7 @@ class TestListCommand(CommandTest, TUITest):
     def test_handle_argument_error(self, caplog):
         """Test handling of ArgumentError."""
         # use temporary config
-        config.database.file = os.path.join(self.COBIB_TEST_DIR, "database.yaml")
+        config.database.file = self.COBIB_TEST_DIR / "database.yaml"
         config.database.git = True
 
         # load temporary database

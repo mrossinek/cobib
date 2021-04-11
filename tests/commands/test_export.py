@@ -3,6 +3,7 @@
 
 import os
 import tempfile
+from pathlib import Path
 from zipfile import ZipFile
 
 import pytest
@@ -14,7 +15,7 @@ from .. import get_resource
 from ..tui.tui_test import TUITest
 from .command_test import CommandTest
 
-TMPDIR = tempfile.gettempdir()
+TMPDIR = Path(tempfile.gettempdir())
 
 
 class TestExportCommand(CommandTest, TUITest):
@@ -34,7 +35,7 @@ class TestExportCommand(CommandTest, TUITest):
     def _assert_bib(self, args):
         """Assertion utility method for bibtex output."""
         try:
-            with open(os.path.join(TMPDIR, "cobib_test_export.bib"), "r") as file:
+            with open(TMPDIR / "cobib_test_export.bib", "r") as file:
                 with open(get_resource("example_literature.bib"), "r") as expected:
                     # NOTE: do NOT use zip_longest to omit later entries
                     for line, truth in zip(file, expected):
@@ -47,36 +48,36 @@ class TestExportCommand(CommandTest, TUITest):
                             file.__next__()
         finally:
             # clean up file system
-            os.remove(os.path.join(TMPDIR, "cobib_test_export.bib"))
+            os.remove(TMPDIR / "cobib_test_export.bib")
 
     def _assert_zip(self, args):
         """Assertion utility method for bibtex output."""
         try:
-            with ZipFile(os.path.join(TMPDIR, "cobib_test_export.zip"), "r") as file:
+            with ZipFile(TMPDIR / "cobib_test_export.zip", "r") as file:
                 # assert that the file does not contain a bad file
                 assert file.testzip() is None
                 assert file.namelist() == ["debug.py"]
                 file.extract("debug.py", path=TMPDIR)
-                with open(os.path.join(TMPDIR, "debug.py"), "r") as extracted:
+                with open(TMPDIR / "debug.py", "r") as extracted:
                     with open(get_resource("debug.py"), "r") as truth:
                         assert extracted.read() == truth.read()
         finally:
             try:
                 # clean up file system
-                os.remove(os.path.join(TMPDIR, "cobib_test_export.zip"))
-                os.remove(os.path.join(TMPDIR, "debug.py"))
+                os.remove(TMPDIR / "cobib_test_export.zip")
+                os.remove(TMPDIR / "debug.py")
             except FileNotFoundError:
                 pass
 
     @pytest.mark.parametrize(
         ["args"],
         [
-            [["-b", os.path.join(TMPDIR, "cobib_test_export.bib")]],
-            [["-b", os.path.join(TMPDIR, "cobib_test_export.bib"), "--", "++ID", "einstein"]],
-            [["-b", os.path.join(TMPDIR, "cobib_test_export.bib"), "-s", "--", "einstein"]],
-            [["-z", os.path.join(TMPDIR, "cobib_test_export.zip")]],
-            [["-z", os.path.join(TMPDIR, "cobib_test_export.zip"), "--", "++ID", "einstein"]],
-            [["-z", os.path.join(TMPDIR, "cobib_test_export.zip"), "-s", "--", "einstein"]],
+            [["-b", str(TMPDIR / "cobib_test_export.bib")]],
+            [["-b", str(TMPDIR / "cobib_test_export.bib"), "--", "++ID", "einstein"]],
+            [["-b", str(TMPDIR / "cobib_test_export.bib"), "-s", "--", "einstein"]],
+            [["-z", str(TMPDIR / "cobib_test_export.zip")]],
+            [["-z", str(TMPDIR / "cobib_test_export.zip"), "--", "++ID", "einstein"]],
+            [["-z", str(TMPDIR / "cobib_test_export.zip"), "-s", "--", "einstein"]],
         ],
     )
     def test_command(self, setup, args):
@@ -90,7 +91,7 @@ class TestExportCommand(CommandTest, TUITest):
 
     def test_warning_missing_label(self, setup, caplog):
         """Test warning for missing label."""
-        args = ["-b", os.path.join(TMPDIR, "cobib_test_export.bib"), "-s", "--", "dummy"]
+        args = ["-b", str(TMPDIR / "cobib_test_export.bib"), "-s", "--", "dummy"]
         ExportCommand().execute(args)
         assert (
             "cobib.commands.export",
@@ -107,7 +108,7 @@ class TestExportCommand(CommandTest, TUITest):
     @pytest.mark.parametrize(
         ["args"],
         [
-            [["-b", os.path.join(TMPDIR, "cobib_test_export.bib")]],
+            [["-b", str(TMPDIR / "cobib_test_export.bib")]],
         ],
     )
     # other variants are already covered by test_command
@@ -119,8 +120,8 @@ class TestExportCommand(CommandTest, TUITest):
     @pytest.mark.parametrize(
         ["select", "keys"],
         [
-            [False, "x-b" + os.path.join(TMPDIR, "cobib_test_export.bib") + " -- ++ID einstein\n"],
-            [True, "Gvx-b" + os.path.join(TMPDIR, "cobib_test_export.bib") + "\n"],
+            [False, "x-b" + str(TMPDIR / "cobib_test_export.bib") + " -- ++ID einstein\n"],
+            [True, "Gvx-b" + str(TMPDIR / "cobib_test_export.bib") + "\n"],
         ],
     )
     def test_tui(self, setup, select, keys):

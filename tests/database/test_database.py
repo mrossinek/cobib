@@ -4,6 +4,7 @@ import copy
 import logging
 import os
 import tempfile
+from pathlib import Path
 from shutil import copyfile
 
 import pytest
@@ -13,7 +14,7 @@ from cobib.database import Database, Entry
 
 from .. import get_resource
 
-TMPDIR = tempfile.gettempdir()
+TMPDIR = Path(tempfile.gettempdir())
 EXAMPLE_LITERATURE = get_resource("example_literature.yaml")
 
 DUMMY_ENTRY = Entry(
@@ -53,7 +54,7 @@ def test_database_singleton():
 
 def test_database_missing_file(caplog):
     """Test exit upon missing database file."""
-    config.database.file = os.path.join(TMPDIR, "cobib_test_missing_file.yaml")
+    config.database.file = TMPDIR / "cobib_test_missing_file.yaml"
     try:
         with pytest.raises(SystemExit):
             Database().read()
@@ -106,7 +107,7 @@ def test_database_read():
 def test_database_save_add():
     """Test Database save method after addition."""
     # prepare temporary database
-    config.database.file = os.path.join(TMPDIR, "cobib_test_database_file.yaml")
+    config.database.file = TMPDIR / "cobib_test_database_file.yaml"
     copyfile(EXAMPLE_LITERATURE, config.database.file)
 
     # initialize database
@@ -138,7 +139,7 @@ def test_database_save_add():
 def test_database_save_modify():
     """Test Database save method after modification."""
     # prepare temporary database
-    config.database.file = os.path.join(TMPDIR, "cobib_test_database_file.yaml")
+    config.database.file = TMPDIR / "cobib_test_database_file.yaml"
     copyfile(EXAMPLE_LITERATURE, config.database.file)
 
     # initialize database
@@ -173,7 +174,7 @@ def test_database_save_modify():
 def test_database_save_delete():
     """Test Database save method after deletion."""
     # prepare temporary database
-    config.database.file = os.path.join(TMPDIR, "cobib_test_database_file.yaml")
+    config.database.file = TMPDIR / "cobib_test_database_file.yaml"
     copyfile(EXAMPLE_LITERATURE, config.database.file)
 
     # initialize database

@@ -22,9 +22,9 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
 import subprocess
 import sys
+from pathlib import Path
 from typing import IO, TYPE_CHECKING, List
 
 from cobib.config import config
@@ -70,9 +70,9 @@ class UndoCommand(Command):
             LOGGER.error(msg)
             return
 
-        file = os.path.realpath(os.path.expanduser(config.database.file))
-        root = os.path.dirname(file)
-        if not os.path.exists(os.path.join(root, ".git")):
+        file = Path(config.database.file).expanduser().resolve()
+        root = file.parent
+        if not (root / ".git").exists():
             msg = (
                 "You have configured, but not initialized coBib's git-tracking."
                 "\nPlease consult `cobib init --help` for more information on how to do so."

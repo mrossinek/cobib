@@ -26,6 +26,7 @@ import argparse
 import logging
 import os
 import sys
+from pathlib import Path
 from typing import IO, TYPE_CHECKING, List
 
 from cobib.config import config
@@ -67,11 +68,11 @@ class InitCommand(Command):
             print(exc.message, file=sys.stderr)
             return
 
-        file = os.path.realpath(os.path.expanduser(config.database.file))
-        root = os.path.dirname(file)
+        file = Path(config.database.file).expanduser().resolve()
+        root = file.parent
 
-        file_exists = os.path.exists(file)
-        git_tracked = os.path.exists(os.path.join(root, ".git"))
+        file_exists = file.exists()
+        git_tracked = (root / ".git").exists()
 
         if file_exists:
             if git_tracked:
@@ -91,7 +92,7 @@ class InitCommand(Command):
 
         else:
             LOGGER.debug('Creating path for database file: "%s"', root)
-            os.makedirs(root, exist_ok=True)
+            root.mkdir(parents=True, exist_ok=True)
 
             LOGGER.debug('Creating empty database file: "%s"', file)
             open(file, "w").close()

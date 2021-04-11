@@ -11,6 +11,7 @@ import tempfile
 import termios
 from datetime import date
 from functools import partial
+from pathlib import Path
 from time import sleep
 
 import pyte
@@ -22,7 +23,7 @@ from cobib.tui import TUI
 
 from .mock_curses import MockCursesPad
 
-TMP_LOGFILE = os.path.join(tempfile.gettempdir(), "cobib_tui_test.log")
+TMP_LOGFILE = Path(tempfile.gettempdir()) / "cobib_tui_test.log"
 
 
 class TUITest:
@@ -64,7 +65,7 @@ class TUITest:
             import coverage
         except ImportError:
             return None
-        _coveragerc = os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, ".coveragerc")
+        _coveragerc = Path(__file__).parent.parent.parent / ".coveragerc"
         cov = coverage.Coverage(config_file=_coveragerc)
         cov.start()
         return cov

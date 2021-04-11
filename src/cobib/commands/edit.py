@@ -35,6 +35,7 @@ import logging
 import os
 import sys
 import tempfile
+from pathlib import Path
 from typing import IO, TYPE_CHECKING, List
 
 from cobib.config import config
@@ -136,7 +137,7 @@ class EditCommand(Command):
         new_entries = YAMLParser().parse(tmp_file.name)
         new_entry = new_entries[list(new_entries.keys())[0]]
         tmp_file.close()
-        assert not os.path.exists(tmp_file.name)
+        assert not Path(tmp_file.name).exists()
         if entry == new_entry and not largs.add:
             LOGGER.info("No changes detected.")
             return

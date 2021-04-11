@@ -4,6 +4,7 @@
 import logging
 import os
 import tempfile
+from pathlib import Path
 
 import pytest
 
@@ -67,7 +68,7 @@ class TestMainExecutable(CmdLineTest):
     )
     def test_logfile(self, setup, monkeypatch, main, args):
         """Tests the logfile parser argument."""
-        logfile = os.path.join(tempfile.gettempdir(), "cobib_test_logging.log")
+        logfile = str(Path(tempfile.gettempdir()) / "cobib_test_logging.log")
         # we choose the open command as an arbitrary choice which has minimal side effects
         self.run_module(monkeypatch, main, ["cobib", "-l", logfile] + args)
         try:

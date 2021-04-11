@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- use file paths relative to user-home (achieved by replacing `os.path` with `pathlib`) (#69)
+
 
 ## [3.0.0] - 2021-04-10
 

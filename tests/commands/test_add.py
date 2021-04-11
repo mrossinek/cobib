@@ -2,7 +2,7 @@
 # pylint: disable=no-self-use,unused-argument
 
 from itertools import zip_longest
-from os import path
+from pathlib import Path
 
 import pytest
 
@@ -10,7 +10,7 @@ from cobib.commands import AddCommand
 from cobib.config import config
 from cobib.database import Database
 
-from .. import get_resource
+from .. import get_path_relative_to_home, get_resource
 from ..tui.tui_test import TUITest
 from .command_test import CommandTest
 
@@ -58,7 +58,10 @@ class TestAddCommand(CommandTest, TUITest):
         ["more_args", "entry_kwargs"],
         [
             [[], {}],
-            [["-f", "test/debug.py"], {"file": path.abspath("test/debug.py")}],
+            [
+                ["-f", "test/debug.py"],
+                {"file": get_path_relative_to_home(str(Path("test/debug.py").resolve()))},
+            ],
             [["-l", "dummy_label"], {"ID": "dummy_label"}],
             [["tag"], {"tags": "tag"}],
             [["tag", "tag2"], {"tags": "tag, tag2"}],

@@ -29,7 +29,7 @@ from cobib.config import config
 
 # LOGGING
 # You can specify the default logfile location.
-config.logging.logfile = os.path.expanduser("~/.cache/cobib/cobib.log")
+config.logging.logfile = "~/.cache/cobib/cobib.log"
 
 # COMMANDS
 # These settings affect some command specific behavior.
@@ -59,7 +59,7 @@ config.commands.search.ignore_case = False
 
 # You can specify the path to the database YAML file. You can use a `~` to represent your `$HOME`
 # directory.
-config.database.file = os.path.expanduser("~/.local/share/cobib/literature.yaml")
+config.database.file = "~/.local/share/cobib/literature.yaml"
 
 # coBib can integrate with `git` in order to automatically track the history of your database.
 # However, by default, this option is disabled. If you want to enable it, simply change the

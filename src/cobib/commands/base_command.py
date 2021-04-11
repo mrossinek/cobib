@@ -9,6 +9,7 @@ import os
 import shlex
 import sys
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import IO, TYPE_CHECKING, Any, Dict, List, NoReturn, Optional
 
 from cobib.config import config
@@ -94,10 +95,10 @@ class Command(ABC):
         if not git_tracked and not force:
             return
 
-        file = os.path.realpath(os.path.expanduser(config.database.file))
-        root = os.path.dirname(file)
+        file = Path(config.database.file).expanduser().resolve()
+        root = file.parent
 
-        if not os.path.exists(os.path.join(root, ".git")):
+        if not (root / ".git").exists():
             if git_tracked:
                 msg = (
                     "You have configured coBib to track your database with git."

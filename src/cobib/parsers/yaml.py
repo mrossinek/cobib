@@ -15,7 +15,7 @@ import io
 import logging
 from collections import OrderedDict
 from pathlib import Path
-from typing import IO, Dict, Optional, cast
+from typing import IO, Dict, Optional, Union, cast
 
 from ruamel import yaml
 
@@ -50,7 +50,7 @@ class YAMLParser(Parser):
                 return cast(str, stream.getvalue())
             return None
 
-    def parse(self, string: str) -> Dict[str, Entry]:
+    def parse(self, string: Union[str, Path]) -> Dict[str, Entry]:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
         bib = OrderedDict()

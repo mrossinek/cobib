@@ -55,7 +55,7 @@ class TestInitCommand(CommandTest):
             # assert these times are close
             assert ctime - now < 0.1 or now - ctime < 0.1
             # and assert that it is indeed a folder
-            assert os.path.isdir(self.COBIB_TEST_DIR_GIT)
+            assert self.COBIB_TEST_DIR_GIT.is_dir()
             # assert the git commit message
             self.assert_git_commit_message("init", {"git": True})
 
@@ -93,7 +93,7 @@ class TestInitCommand(CommandTest):
             # assert these times are close
             assert ctime - now < 0.1 or now - ctime < 0.1
             # and assert that it is indeed a folder
-            assert os.path.isdir(self.COBIB_TEST_DIR_GIT)
+            assert self.COBIB_TEST_DIR_GIT.is_dir()
             # assert the git commit message
             self.assert_git_commit_message("init", {"git": True})
         finally:

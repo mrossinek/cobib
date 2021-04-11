@@ -44,6 +44,7 @@ import argparse
 import logging
 import os
 import sys
+from pathlib import Path
 from typing import IO, TYPE_CHECKING, List
 from zipfile import ZipFile
 
@@ -146,10 +147,11 @@ class ExportCommand(Command):
                     largs.bibtex.write(entry_str)
                 if largs.zip is not None:
                     if "file" in entry.data.keys() and entry.file is not None:
+                        path = Path(entry.file).expanduser().resolve()
                         LOGGER.debug(
-                            'Adding "%s" associated with "%s" to the zip file.', entry.file, label
+                            'Adding "%s" associated with "%s" to the zip file.', path, label
                         )
-                        largs.zip.write(entry.file, os.path.basename(entry.file))
+                        largs.zip.write(path, path.name)
             except KeyError:
                 msg = f"No entry with the label '{label}' could be found."
                 print(msg)

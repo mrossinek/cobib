@@ -1,14 +1,12 @@
 """Tests for coBib's Entry class."""
 
-from os import path
-
 import pytest
 
 from cobib.config import config
 from cobib.database import Entry
 from cobib.parsers import BibtexParser
 
-from .. import get_resource
+from .. import get_path_relative_to_home, get_resource
 
 EXAMPLE_BIBTEX_FILE = get_resource("example_entry.bib")
 EXAMPLE_YAML_FILE = get_resource("example_entry.yaml")
@@ -81,20 +79,17 @@ def test_entry_set_tags():
 
 
 @pytest.mark.parametrize(
-    ["files", "expected"],
+    "files",
     [
-        [[EXAMPLE_BIBTEX_FILE], path.abspath(EXAMPLE_BIBTEX_FILE)],
-        [
-            [EXAMPLE_BIBTEX_FILE, EXAMPLE_YAML_FILE],
-            f"{path.abspath(EXAMPLE_BIBTEX_FILE)}, {path.abspath(EXAMPLE_YAML_FILE)}",
-        ],
+        [EXAMPLE_BIBTEX_FILE],
+        [EXAMPLE_BIBTEX_FILE, EXAMPLE_YAML_FILE],
     ],
 )
-def test_entry_set_file(files, expected):
+def test_entry_set_file(files):
     """Test file setting."""
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     entry.file = files[0] if len(files) == 1 else files
-    # checks for absolute path
+    expected = ", ".join([get_path_relative_to_home(file) for file in files])
     assert entry.data["file"] == expected
 
 

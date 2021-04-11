@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import logging
-import os
 import re
 import subprocess
+from pathlib import Path
 from typing import IO, TYPE_CHECKING, Any, Dict, List, Tuple, Type, Union, cast
 
 from pylatexenc.latexencode import UnicodeToLatexEncoder
@@ -135,11 +135,15 @@ class Entry:
                 will be converted to absolute paths. If multiple files were specified, they will be
                 stored as a comma-separated list encoded in a string.
         """
+        # pre-process file paths
+        user_home = Path.home()
         if isinstance(file, list):
-            file = ", ".join([os.path.abspath(f) for f in file])
+            paths = [Path(f).expanduser().resolve() for f in file]
         else:
-            file = os.path.abspath(file)
-        self.data["file"] = file
+            paths = [Path(file).expanduser().resolve()]
+        # remove user home from path
+        paths = ["~" / p.relative_to(user_home) for p in paths]
+        self.data["file"] = ", ".join([str(p) for p in paths])
         LOGGER.debug("Adding '%s' as the file to '%s'.", self.data["file"], self.label)
 
     def convert_month(self, type_: Type[Union[int, str]] = config.database.format.month) -> None:

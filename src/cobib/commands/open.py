@@ -44,6 +44,7 @@ import os
 import subprocess
 import sys
 from collections import defaultdict
+from pathlib import Path
 from typing import IO, TYPE_CHECKING, Dict, List
 from urllib.parse import ParseResult, urlparse
 
@@ -185,7 +186,9 @@ class OpenCommand(Command):
         """Opens a URL."""
         opener = config.commands.open.command
         try:
-            url_str: str = url.geturl() if url.scheme else os.path.abspath(url.geturl())
+            url_str: str = (
+                url.geturl() if url.scheme else str(Path(url.geturl()).expanduser().resolve())
+            )
             LOGGER.debug('Opening "%s" with %s.', url_str, opener)
             with open(os.devnull, "w") as devnull:
                 subprocess.Popen(

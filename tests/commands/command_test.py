@@ -8,6 +8,7 @@ import shlex
 import subprocess
 import tempfile
 from abc import abstractmethod
+from pathlib import Path
 from shutil import copyfile, rmtree
 
 import pytest
@@ -19,14 +20,14 @@ from cobib.logging import log_to_stream
 from .. import get_resource
 from ..cmdline_test import CmdLineTest
 
-TMPDIR = tempfile.gettempdir()
+TMPDIR = Path(tempfile.gettempdir()).resolve()
 
 
 class CommandTest(CmdLineTest):
     """The base class for coBib's command test classes."""
 
-    COBIB_TEST_DIR = os.path.join(TMPDIR, "cobib_test")
-    COBIB_TEST_DIR_GIT = os.path.join(COBIB_TEST_DIR, ".git")
+    COBIB_TEST_DIR = TMPDIR / "cobib_test"
+    COBIB_TEST_DIR_GIT = COBIB_TEST_DIR / ".git"
 
     @abstractmethod
     def get_command(self):
@@ -48,12 +49,12 @@ class CommandTest(CmdLineTest):
         # use temporary config
         config.commands.edit.editor = "cat"
         config.commands.open.command = "cat"
-        config.database.file = os.path.join(self.COBIB_TEST_DIR, "database.yaml")
+        config.database.file = str(self.COBIB_TEST_DIR / "database.yaml")
         config.database.git = request.param.get("git", False)
 
         # load database
         if request.param.get("database", True):
-            os.makedirs(self.COBIB_TEST_DIR, exist_ok=True)
+            self.COBIB_TEST_DIR.mkdir(parents=True, exist_ok=True)
             copyfile(get_resource("example_literature.yaml"), config.database.file)
             Database().read()
             if request.param.get("git", True):

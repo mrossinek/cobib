@@ -5,7 +5,7 @@ This module provides utility methods to set up logging to different handlers.
 
 import logging
 import logging.config
-import os
+from pathlib import Path
 
 from cobib.config import config
 
@@ -52,7 +52,8 @@ def log_to_file(level: str = "INFO", logfile: str = config.logging.logfile) -> N
         level: verbosity level indicator.
         logfile: output path for log file.
     """
-    os.makedirs(os.path.dirname(logfile), exist_ok=True)
+    path = Path(logfile).expanduser()
+    path.parent.mkdir(parents=True, exist_ok=True)
     logging.config.dictConfig(
         {
             "version": 1,
@@ -68,7 +69,7 @@ def log_to_file(level: str = "INFO", logfile: str = config.logging.logfile) -> N
                 "default": {
                     "formatter": "standard",
                     "class": "logging.handlers.RotatingFileHandler",
-                    "filename": logfile,
+                    "filename": path,
                     "maxBytes": 10485760,  # 10 Megabytes
                     "backupCount": 10,
                 },

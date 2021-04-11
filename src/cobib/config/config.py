@@ -13,6 +13,7 @@ import io
 import logging
 import os
 import sys
+from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
 LOGGER = logging.getLogger(__name__)
@@ -50,7 +51,7 @@ class Config(dict):
 
     DEFAULTS: Dict = {
         "logging": {
-            "logfile": os.path.expanduser("~/.cache/cobib/cobib.log"),
+            "logfile": "~/.cache/cobib/cobib.log",
         },
         "commands": {
             "edit": {
@@ -63,7 +64,7 @@ class Config(dict):
             "search": {"grep": "grep", "ignore_case": False},
         },
         "database": {
-            "file": os.path.expanduser("~/.local/share/cobib/literature.yaml"),
+            "file": "~/.local/share/cobib/literature.yaml",
             "format": {
                 "month": int,
                 "suppress_latex_warnings": True,
@@ -213,7 +214,7 @@ class Config(dict):
             self.__setitem__(key, copy.deepcopy(value))
 
     @staticmethod
-    def load(configpath: Union[str, io.TextIOWrapper] = None) -> None:
+    def load(configpath: Union[str, Path, io.TextIOWrapper] = None) -> None:
         """Loads another configuration object at runtime.
 
         WARNING: The new Python-like configuration allows essentially arbitrary Python code so it is
@@ -225,23 +226,15 @@ class Config(dict):
         if configpath is not None:
             if isinstance(configpath, io.TextIOWrapper):
                 configpath = configpath.name
-            LOGGER.info("Loading configuration from %s", configpath)
-        elif os.path.exists(os.path.expanduser(Config.XDG_CONFIG_FILE)):
-            LOGGER.info(
-                "Loading configuration from default location: %s",
-                os.path.expanduser(Config.XDG_CONFIG_FILE),
-            )
-            configpath = os.path.expanduser(Config.XDG_CONFIG_FILE)
-        elif os.path.exists(os.path.expanduser(Config.LEGACY_XDG_CONFIG_FILE)):
-            LOGGER.info(
-                "Loading configuration from default location: %s",
-                os.path.expanduser(Config.LEGACY_XDG_CONFIG_FILE),
-            )
-            configpath = os.path.expanduser(Config.LEGACY_XDG_CONFIG_FILE)
+        elif Path(Config.XDG_CONFIG_FILE).expanduser().exists():
+            configpath = Path(Config.XDG_CONFIG_FILE).expanduser()
+        elif Path(Config.LEGACY_XDG_CONFIG_FILE).expanduser():
+            configpath = Path(Config.LEGACY_XDG_CONFIG_FILE).expanduser()
         else:
             return
+        LOGGER.info("Loading configuration from default location: %s", configpath)
 
-        if os.path.exists(os.path.expanduser(Config.LEGACY_XDG_CONFIG_FILE)):
+        if Path(Config.LEGACY_XDG_CONFIG_FILE).exists():
             msg = (
                 "The configuration mechanism of coBib underwent a major re-design for version 3.0! "
                 "This means, that the old `INI`-style configuration is deprecated and will be "
@@ -276,7 +269,7 @@ class Config(dict):
             sys.exit(1)
 
     @staticmethod
-    def load_legacy_config(configpath: Union[str, io.TextIOWrapper]) -> None:
+    def load_legacy_config(configpath: Union[str, Path, io.TextIOWrapper]) -> None:
         # pylint: disable=too-many-branches,too-many-nested-blocks
         """Loads a legacy `INI`-style configuration file.
 

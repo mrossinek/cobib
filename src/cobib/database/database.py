@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import logging
-import os
 import re
 import sys
 from collections import OrderedDict
+from pathlib import Path
 from typing import TYPE_CHECKING, Dict, List, Optional, cast
 
 from cobib.config import config
@@ -102,7 +102,7 @@ class Database(OrderedDict):
             cls()
         _instance = cast(Database, cls._instance)
 
-        file = os.path.expanduser(config.database.file)
+        file = Path(config.database.file).expanduser()
         try:
             LOGGER.info("Loading database file: %s", file)
             # pylint: disable=import-outside-toplevel
@@ -147,7 +147,7 @@ class Database(OrderedDict):
 
         yml = YAMLParser()
 
-        file = os.path.expanduser(config.database.file)
+        file = Path(config.database.file).expanduser()
         with open(file, "r") as bib:
             lines = bib.readlines()
 
