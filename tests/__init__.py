@@ -1,6 +1,6 @@
 """coBib's test suite."""
 
-from pathlib import Path
+from pathlib import Path, PurePath
 
 from .cmdline_test import CmdLineTest
 
@@ -15,4 +15,8 @@ def get_resource(filename: str, path: str = None) -> str:
 def get_path_relative_to_home(path: str) -> str:
     """Returns the path relative to the user's home directory."""
     home = Path(path).home()
-    return str("~" / Path(path).relative_to(home))
+    try:
+        return str("~" / PurePath(path).relative_to(home))
+    except ValueError:
+        # TODO: leverage `PurePath.is_relative_to(home)` when Python 3.9 becomes the default
+        return path
