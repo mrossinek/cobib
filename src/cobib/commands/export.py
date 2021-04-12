@@ -30,7 +30,7 @@ While this latter case is usable via the command-line interface it is more a sid
 integration which provides a visual selection (defaults to the `v` key).
 The proper and arguably more useful case is the first case using filters.
 
-You can also trigger this command from the `cobib.tui.TUI`.
+You can also trigger this command from the `cobib.tui.tui.TUI`.
 By default, it is bound to the `x` key which will drop you into the prompt where you can type out a
 normal command-line command:
 ```
@@ -57,7 +57,7 @@ from .list import ListCommand
 LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from cobib.tui import TUI
+    import cobib.tui
 
 
 class ExportCommand(Command):
@@ -161,7 +161,7 @@ class ExportCommand(Command):
             largs.zip.close()
 
     @staticmethod
-    def tui(tui: TUI) -> None:
+    def tui(tui: cobib.tui.TUI) -> None:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
         LOGGER.debug("Export command triggered from TUI.")

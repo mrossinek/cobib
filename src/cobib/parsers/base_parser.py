@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Dict, Optional
 
 if TYPE_CHECKING:
-    from cobib.database.entry import Entry
+    import cobib.database
 
 
 class Parser(ABC):
@@ -25,7 +25,7 @@ class Parser(ABC):
         """The initializer of any concrete implementation should *not* take any arguments!"""
 
     @abstractmethod
-    def parse(self, string: str) -> Dict[str, Entry]:
+    def parse(self, string: str) -> Dict[str, cobib.database.Entry]:
         """Creates a new Entry from the given string.
 
         Args:
@@ -40,7 +40,7 @@ class Parser(ABC):
         """
 
     @abstractmethod
-    def dump(self, entry: Entry) -> Optional[str]:
+    def dump(self, entry: cobib.database.Entry) -> Optional[str]:
         """Dumps an entry in the parsers format.
 
         Args:

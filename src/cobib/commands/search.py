@@ -28,7 +28,7 @@ cobib search Einstein -- ++year 2020
 Note, that we use the auxiliary `--` argument to separate the filters from the actual arguments.
 While this is not strictly necessary it helps to disambiguate the origin of the arguments.
 
-You can also trigger this command from the `cobib.tui.TUI`.
+You can also trigger this command from the `cobib.tui.tui.TUI`.
 By default, it is bound to the `/` key.
 """
 
@@ -52,7 +52,7 @@ from .list import ListCommand
 LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from cobib.tui import TUI
+    import cobib.tui
 
 
 class SearchCommand(Command):
@@ -160,7 +160,7 @@ class SearchCommand(Command):
         return (hits, labels)
 
     @staticmethod
-    def tui(tui: TUI) -> None:
+    def tui(tui: cobib.tui.TUI) -> None:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
         LOGGER.debug("Search command triggered from TUI.")

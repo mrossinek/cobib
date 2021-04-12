@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, cast
 from cobib.config import config
 
 if TYPE_CHECKING:
-    from .entry import Entry
+    import cobib.database
 
 LOGGER = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ class Database(OrderedDict):
             cls.read()
         return cls._instance
 
-    def update(self, new_entries: Dict[str, Entry]) -> None:  # type: ignore
+    def update(self, new_entries: Dict[str, cobib.database.Entry]) -> None:  # type: ignore
         """Updates the database with the given dictionary of entries.
 
         This function wraps `OrderedDict.update` and adds the labels of the changed entries to the
@@ -65,7 +65,7 @@ class Database(OrderedDict):
             Database._unsaved_entries.append(label)
         super().update(new_entries)
 
-    def pop(self, label: str) -> Entry:  # type: ignore
+    def pop(self, label: str) -> cobib.database.Entry:  # type: ignore
         """Pops the entry pointed to by the given label.
 
         This function wraps `OrderedDict.pop` and adds the removed labels to the unsaved entries
@@ -80,7 +80,7 @@ class Database(OrderedDict):
         Returns:
             The entry pointed to by the given label.
         """
-        entry: Entry = super().pop(label)
+        entry: cobib.database.Entry = super().pop(label)
         LOGGER.debug("Removing entry: %s", label)
         if label in Database._unsaved_entries:
             Database._unsaved_entries.remove(label)

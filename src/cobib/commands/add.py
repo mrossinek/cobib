@@ -54,7 +54,7 @@ cobib add --doi <some DOI> -- tag1 "multi-word tag2" ...
 
 ### TUI
 
-You can also trigger this command from the `cobib.tui.TUI`.
+You can also trigger this command from the `cobib.tui.tui.TUI`.
 By default, it is bound to the `a` key which will drop you into the prompt where you can type out a
 normal command-line command:
 ```
@@ -81,7 +81,7 @@ from .edit import EditCommand
 LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from cobib.tui import TUI
+    import cobib.tui
 
 
 class AddCommand(Command):
@@ -225,7 +225,7 @@ class AddCommand(Command):
             LOGGER.info(msg)
 
     @staticmethod
-    def tui(tui: TUI) -> None:
+    def tui(tui: cobib.tui.TUI) -> None:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
         LOGGER.debug("Add command triggered from TUI.")

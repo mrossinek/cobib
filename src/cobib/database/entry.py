@@ -15,8 +15,7 @@ from cobib.config import config
 LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    # The type annotation introduces a cyclic import dependency between the Parser and Entry classes
-    from cobib.parsers.base_parser import Parser
+    import cobib.parsers
 
 
 class Entry:
@@ -211,7 +210,7 @@ class Entry:
             if isinstance(value, str):
                 self.data[key] = enc.unicode_to_latex(value)
 
-    def save(self, parser: Parser = None) -> str:
+    def save(self, parser: cobib.parsers.base_parser.Parser = None) -> str:
         """Saves an entry using the parsers `dump` method.
 
         This method is mainly used by the `Database.save` method and takes care of some final

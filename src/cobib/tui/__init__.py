@@ -6,7 +6,7 @@ The code is split into several submodules:
 * `cobib.tui.frame`: implements the `Frame` class which tightly couples a `TextBuffer` to a
   `curses.pad` and is used by the `TUI` as the main interaction window.
 * `cobib.tui.state`: gathers the stateful-information of the `TUI` in a simple object.
-* `cobib.tui.TUI`: implements the actual TUI.
+* `cobib.tui.tui.TUI`: implements the actual TUI.
 """
 
 import curses
@@ -21,7 +21,7 @@ def tui() -> None:
     """The main executable for the curses-TUI.
 
     This method is the entry-point for coBib's TUI.
-    It simply passes the `cobib.tui.TUI` initializer to the `curses.wrapper` method which takes care
-    of all the rest.
+    It simply passes the `cobib.tui.tui.TUI` initializer to the `curses.wrapper` method which takes
+    care of all the rest.
     """
     curses.wrapper(TUI)

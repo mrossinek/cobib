@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from cobib.tui import TUI
+    import cobib.tui
 
 
 class TextBuffer:
@@ -267,7 +267,7 @@ class TextBuffer:
         LOGGER.debug("Viewing curses pad.")
         pad.refresh(pminrow, pmincol, sminrow, smincol, smaxrow, smaxcol)
 
-    def popup(self, tui: TUI, background: Optional[int] = None) -> None:
+    def popup(self, tui: cobib.tui.TUI, background: Optional[int] = None) -> None:
         """Displays the buffer in a popup window.
 
         Args:
@@ -311,7 +311,7 @@ class InputBuffer:
     and allows the TUI to react accordingly.
     """
 
-    def __init__(self, buffer: TextBuffer, tui: TUI) -> None:
+    def __init__(self, buffer: TextBuffer, tui: cobib.tui.TUI) -> None:
         """Initializes the InputBuffer object.
 
         Args:

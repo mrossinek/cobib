@@ -19,7 +19,7 @@ This entry will be entirely empty except for the two fields which are always pre
 * `ID`: set to the new Entry label.
 * `ENTRYTYPE`: set to the default value configured via `config.commands.edit.default_entry_type`.
 
-You can also trigger this command from the `cobib.tui.TUI`.
+You can also trigger this command from the `cobib.tui.tui.TUI`.
 By default, it is bound to the `e` key.
 If you want to add a new entry manually, you will have to enter the prompt (defaults to `:`) and
 then type out the command mentioned above:
@@ -47,7 +47,7 @@ from .base_command import ArgumentParser, Command
 LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from cobib.tui import TUI
+    import cobib.tui
 
 
 class EditCommand(Command):
@@ -152,7 +152,7 @@ class EditCommand(Command):
         print(msg, file=out)
 
     @staticmethod
-    def tui(tui: TUI) -> None:
+    def tui(tui: cobib.tui.TUI) -> None:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
         LOGGER.debug("Edit command triggered from TUI.")

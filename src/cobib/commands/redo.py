@@ -12,7 +12,7 @@ Furthermore, this command is *only* available if coBib's git-integration has bee
 initialized.
 Refer to the documentation of `cobib.commands.init.InitCommand` for more details on that topic.
 
-You can also trigger this command from the `cobib.tui.TUI`.
+You can also trigger this command from the `cobib.tui.tui.TUI`.
 By default, it is bound to the `r` key.
 """
 
@@ -33,7 +33,7 @@ from .base_command import ArgumentParser, Command
 LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from cobib.tui import TUI
+    import cobib.tui
 
 
 class RedoCommand(Command):
@@ -138,7 +138,7 @@ class RedoCommand(Command):
             sys.exit(1)
 
     @staticmethod
-    def tui(tui: TUI) -> None:
+    def tui(tui: cobib.tui.TUI) -> None:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
         LOGGER.debug("Redo command triggered from TUI.")

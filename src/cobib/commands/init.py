@@ -36,7 +36,7 @@ from .base_command import ArgumentParser, Command
 LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from cobib.tui import TUI
+    import cobib.tui
 
 
 class InitCommand(Command):
@@ -126,7 +126,7 @@ class InitCommand(Command):
             self.git(args=vars(largs), force=True)
 
     @staticmethod
-    def tui(tui: TUI) -> None:
+    def tui(tui: cobib.tui.TUI) -> None:
         """🛑 This command is *not* available via the TUI.
 
         This is the case because the TUI cannot be started before the database has been initialized.

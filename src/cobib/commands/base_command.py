@@ -17,7 +17,7 @@ from cobib.config import config
 LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from cobib.tui import TUI
+    import cobib.tui
 
 
 class Command(ABC):
@@ -64,10 +64,10 @@ class Command(ABC):
 
     @staticmethod
     @abstractmethod
-    def tui(tui: TUI) -> None:
+    def tui(tui: cobib.tui.TUI) -> None:
         """TUI command interface.
 
-        This function serves as the commands entry-point from the `cobib.tui.TUI` instance.
+        This function serves as the commands entry-point from the `cobib.tui.tui.TUI` instance.
         It should take care of any pre- and/or post-processing before calling `execute` internally
         to do the actual work.
 

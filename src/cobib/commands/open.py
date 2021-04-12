@@ -32,7 +32,7 @@ With the above options, here is what will happen depending on the users choice:
 * `help`: will print the detailed help-menu again.
 * `ENTER`: will abort the command.
 
-You can also trigger this command from the `cobib.tui.TUI`.
+You can also trigger this command from the `cobib.tui.tui.TUI`.
 By default, it is bound to the `o` key.
 """
 
@@ -56,7 +56,7 @@ from .base_command import ArgumentParser, Command
 LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from cobib.tui import TUI
+    import cobib.tui
 
 
 class OpenCommand(Command):
@@ -199,7 +199,7 @@ class OpenCommand(Command):
             print(err, file=sys.stderr)
 
     @staticmethod
-    def tui(tui: TUI) -> None:
+    def tui(tui: cobib.tui.TUI) -> None:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
         LOGGER.debug("Open command triggered from TUI.")

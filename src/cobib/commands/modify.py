@@ -19,7 +19,7 @@ manual selection to specify the entries which to modify:
 cobib modify tags:first_author -- ++author Rossmannek
 ```
 
-You can also trigger this command from the `cobib.tui.TUI`.
+You can also trigger this command from the `cobib.tui.tui.TUI`.
 By default, it is bound to the `m` key which will drop you into the prompt where you can type out a
 normal command-line command:
 ```
@@ -43,7 +43,7 @@ from .list import ListCommand
 LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from cobib.tui import TUI
+    import cobib.tui
 
 
 class ModifyCommand(Command):
@@ -173,7 +173,7 @@ class ModifyCommand(Command):
         self.git(args=vars(largs))
 
     @staticmethod
-    def tui(tui: TUI) -> None:
+    def tui(tui: cobib.tui.TUI) -> None:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
         LOGGER.debug("Modify command triggered from TUI.")

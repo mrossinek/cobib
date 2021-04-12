@@ -82,7 +82,7 @@ from .base_command import ArgumentParser, Command
 LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from cobib.tui import TUI
+    import cobib.tui
 
 
 class ListCommand(Command):
@@ -222,13 +222,13 @@ class ListCommand(Command):
 
     # TODO: refactor this command in order to unify the `tui` method (#66)
     @staticmethod
-    def tui(tui: TUI, sort_mode: bool) -> None:  # type: ignore
+    def tui(tui: cobib.tui.TUI, sort_mode: bool) -> None:  # type: ignore
         """TUI command interface.
 
         🛑 *WARNING*: this will be refactored in the future, ensuring a unified command syntax with
         the other commands!
 
-        This function serves as the commands entry-point from the `cobib.tui.TUI` instance.
+        This function serves as the commands entry-point from the `cobib.tui.tui.TUI` instance.
         It should take care of any pre- and/or post-processing before calling `execute` internally
         to do the actual work.
 
