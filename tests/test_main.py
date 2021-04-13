@@ -40,7 +40,7 @@ class TestMainExecutable(CmdLineTest):
         ["main", "args"],
         [
             ["main", ["open", "einstein"]],
-            ["zsh_main", ["_example_config"]],
+            ["helper_main", ["_example_config"]],
         ],
     )
     @pytest.mark.parametrize(
@@ -63,7 +63,7 @@ class TestMainExecutable(CmdLineTest):
         ["main", "args"],
         [
             ["main", ["open", "einstein"]],
-            ["zsh_main", ["_example_config"]],
+            ["helper_main", ["_example_config"]],
         ],
     )
     def test_logfile(self, setup, monkeypatch, main, args):
@@ -81,7 +81,7 @@ class TestMainExecutable(CmdLineTest):
         ["main", "args"],
         [
             ["main", ["open", "einstein"]],
-            ["zsh_main", ["_example_config"]],
+            ["helper_main", ["_example_config"]],
         ],
     )
     def test_configfile(self, monkeypatch, main, args):

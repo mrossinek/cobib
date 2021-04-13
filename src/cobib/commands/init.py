@@ -26,10 +26,10 @@ import argparse
 import logging
 import os
 import sys
-from pathlib import Path
 from typing import IO, TYPE_CHECKING, List
 
 from cobib.config import config
+from cobib.utils.rel_path import RelPath
 
 from .base_command import ArgumentParser, Command
 
@@ -68,7 +68,7 @@ class InitCommand(Command):
             print(exc.message, file=sys.stderr)
             return
 
-        file = Path(config.database.file).expanduser().resolve()
+        file = RelPath(config.database.file).path
         root = file.parent
 
         file_exists = file.exists()

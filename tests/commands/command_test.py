@@ -15,7 +15,7 @@ import pytest
 
 from cobib.config import config
 from cobib.database import Database
-from cobib.logging import log_to_stream
+from cobib.utils.logging import log_to_stream
 
 from .. import get_resource
 from ..cmdline_test import CmdLineTest

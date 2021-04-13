@@ -5,8 +5,9 @@ import pytest
 from cobib.config import config
 from cobib.database import Entry
 from cobib.parsers import BibtexParser
+from cobib.utils.rel_path import RelPath
 
-from .. import get_path_relative_to_home, get_resource
+from .. import get_resource
 
 EXAMPLE_BIBTEX_FILE = get_resource("example_entry.bib")
 EXAMPLE_YAML_FILE = get_resource("example_entry.yaml")
@@ -89,7 +90,7 @@ def test_entry_set_file(files):
     """Test file setting."""
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     entry.file = files[0] if len(files) == 1 else files
-    expected = ", ".join([get_path_relative_to_home(file) for file in files])
+    expected = ", ".join(str(RelPath(file)) for file in files)
     assert entry.data["file"] == expected
 
 

@@ -2,7 +2,7 @@
 
 import logging
 
-from cobib.logging import log_to_file, log_to_stream
+from cobib.utils.logging import log_to_file, log_to_stream
 
 
 def test_log_to_stream():

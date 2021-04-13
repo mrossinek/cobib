@@ -5,13 +5,13 @@
 
 setopt localoptions noshwordsplit noksharrays
 
-typeset -g subcmds tags filters
+typeset -g subcmds labels filters
 
 subcmds=( ${(f)"$(cobib _list_commands)"} )
 _describe -t commands "commands" subcmds
 
-tags=( ${(f)"$(cobib _list_tags)"} )
-_describe -t tags "tags" tags
+labels=( ${(f)"$(cobib _list_labels)"} )
+_describe -t labels "labels" labels
 
 filters=( ${(f)"$(cobib _list_filters)"} )
 _describe -t filters "filters" filters

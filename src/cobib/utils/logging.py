@@ -5,9 +5,9 @@ This module provides utility methods to set up logging to different handlers.
 
 import logging
 import logging.config
-from pathlib import Path
+from typing import Optional
 
-from cobib.config import config
+from .rel_path import RelPath
 
 
 def log_to_stream(level: str = "WARNING") -> None:
@@ -45,14 +45,20 @@ def log_to_stream(level: str = "WARNING") -> None:
     )
 
 
-def log_to_file(level: str = "INFO", logfile: str = config.logging.logfile) -> None:
+def log_to_file(level: str = "INFO", logfile: Optional[str] = None) -> None:
     """Configures a `RotatingFileHandler` logger.
 
     Args:
         level: verbosity level indicator.
         logfile: output path for log file.
     """
-    path = Path(logfile).expanduser()
+    if logfile is None:
+        # pylint: disable=import-outside-toplevel
+        from cobib.config import config
+
+        logfile = config.logging.logfile
+
+    path = RelPath(logfile).path
     path.parent.mkdir(parents=True, exist_ok=True)
     logging.config.dictConfig(
         {
