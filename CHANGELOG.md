@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - use file paths relative to user-home (achieved by replacing `os.path` with `pathlib`) (#69)
+- the shell helper `_list_tags` has been renamed to `_list_labels`
+- (DEV): the `logging` and `zsh_helper` modules have been relocated to the `cobib.utils` package
 
 
 ## [3.0.0] - 2021-04-10

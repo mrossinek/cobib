@@ -6,11 +6,12 @@ import inspect
 import logging
 import sys
 
-from cobib import __version__, commands, zsh_helper
+from cobib import __version__, commands
 from cobib.config import config
 from cobib.database import Database
-from cobib.logging import log_to_file, log_to_stream
 from cobib.tui import tui
+from cobib.utils import shell_helper
+from cobib.utils.logging import log_to_file, log_to_stream
 
 LOGGER = logging.getLogger(__name__)
 
@@ -21,14 +22,14 @@ def main():
     coBib's main function used to parse optional keyword arguments and subcommands.
     """
     if len(sys.argv) > 1 and any(a[0] == "_" for a in sys.argv):
-        # zsh helper function called
-        zsh_main()
+        # shell helper function called
+        helper_main()
         sys.exit()
 
     # initialize logging
     log_to_stream()
 
-    subcommands = [cmd.split(":")[0] for cmd in zsh_helper.list_commands()]
+    subcommands = [cmd.split(":")[0] for cmd in shell_helper.list_commands()]
     parser = argparse.ArgumentParser(
         prog="coBib",
         description=(
@@ -87,16 +88,16 @@ def main():
         subcmd.execute(args.args)
 
 
-def zsh_main():
-    """ZSH helper.
+def helper_main():
+    """Shell helper.
 
-    Main function used by the ZSH completion script.
+    This is an auxiliary main method which exposes some shell utility methods.
     """
     available_helpers = [
-        "_" + m[0] for m in inspect.getmembers(zsh_helper) if inspect.isfunction(m[1])
+        "_" + m[0] for m in inspect.getmembers(shell_helper) if inspect.isfunction(m[1])
     ]
-    parser = argparse.ArgumentParser(description="Process ZSH helper call")
-    parser.add_argument("helper", help="zsh helper to be called", choices=available_helpers)
+    parser = argparse.ArgumentParser(description="Process shell helper call")
+    parser.add_argument("helper", help="shell helper to be called", choices=available_helpers)
     parser.add_argument("args", nargs=argparse.REMAINDER)
     parser.add_argument("--verbose", "-v", action="count", default=0)
     parser.add_argument("-l", "--logfile", type=argparse.FileType("w"), help="Alternative log file")
@@ -123,8 +124,8 @@ def zsh_main():
     # initialize database
     Database()
 
-    helper = getattr(zsh_helper, args.helper.strip("_"))
-    # any zsh helper function will return a list of the requested items
+    helper = getattr(shell_helper, args.helper.strip("_"))
+    # any shell helper function will return a list of the requested items
     for item in helper():
         print(item)
 

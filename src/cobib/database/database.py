@@ -6,10 +6,10 @@ import logging
 import re
 import sys
 from collections import OrderedDict
-from pathlib import Path
 from typing import TYPE_CHECKING, Dict, List, Optional, cast
 
 from cobib.config import config
+from cobib.utils.rel_path import RelPath
 
 if TYPE_CHECKING:
     import cobib.database
@@ -102,7 +102,7 @@ class Database(OrderedDict):
             cls()
         _instance = cast(Database, cls._instance)
 
-        file = Path(config.database.file).expanduser()
+        file = RelPath(config.database.file).path
         try:
             LOGGER.info("Loading database file: %s", file)
             # pylint: disable=import-outside-toplevel
@@ -147,7 +147,7 @@ class Database(OrderedDict):
 
         yml = YAMLParser()
 
-        file = Path(config.database.file).expanduser()
+        file = RelPath(config.database.file).path
         with open(file, "r") as bib:
             lines = bib.readlines()
 

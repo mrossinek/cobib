@@ -5,12 +5,12 @@ from __future__ import annotations
 import logging
 import re
 import subprocess
-from pathlib import Path
 from typing import IO, TYPE_CHECKING, Any, Dict, List, Tuple, Type, Union, cast
 
 from pylatexenc.latexencode import UnicodeToLatexEncoder
 
 from cobib.config import config
+from cobib.utils.rel_path import RelPath
 
 LOGGER = logging.getLogger(__name__)
 
@@ -134,15 +134,11 @@ class Entry:
                 will be converted to absolute paths. If multiple files were specified, they will be
                 stored as a comma-separated list encoded in a string.
         """
-        # pre-process file paths
-        user_home = Path.home()
         if isinstance(file, list):
-            paths = [Path(f).expanduser().resolve() for f in file]
+            paths = [RelPath(f) for f in file]
         else:
-            paths = [Path(file).expanduser().resolve()]
-        # remove user home from path
-        paths = ["~" / p.relative_to(user_home) for p in paths]
-        self.data["file"] = ", ".join([str(p) for p in paths])
+            paths = [RelPath(file)]
+        self.data["file"] = ", ".join(str(p) for p in paths)
         LOGGER.debug("Adding '%s' as the file to '%s'.", self.data["file"], self.label)
 
     def convert_month(self, type_: Type[Union[int, str]] = config.database.format.month) -> None:

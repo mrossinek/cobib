@@ -16,6 +16,8 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
+from cobib.utils.rel_path import RelPath
+
 LOGGER = logging.getLogger(__name__)
 
 ANSI_COLORS = [
@@ -226,15 +228,15 @@ class Config(dict):
         if configpath is not None:
             if isinstance(configpath, io.TextIOWrapper):
                 configpath = configpath.name
-        elif Path(Config.XDG_CONFIG_FILE).expanduser().exists():
-            configpath = Path(Config.XDG_CONFIG_FILE).expanduser()
-        elif Path(Config.LEGACY_XDG_CONFIG_FILE).expanduser():
-            configpath = Path(Config.LEGACY_XDG_CONFIG_FILE).expanduser()
+        elif RelPath(Config.XDG_CONFIG_FILE).exists():
+            configpath = RelPath(Config.XDG_CONFIG_FILE).path
+        elif RelPath(Config.LEGACY_XDG_CONFIG_FILE).exists():
+            configpath = RelPath(Config.LEGACY_XDG_CONFIG_FILE).path
         else:
             return
         LOGGER.info("Loading configuration from default location: %s", configpath)
 
-        if Path(Config.LEGACY_XDG_CONFIG_FILE).exists():
+        if RelPath(Config.LEGACY_XDG_CONFIG_FILE).exists():
             msg = (
                 "The configuration mechanism of coBib underwent a major re-design for version 3.0! "
                 "This means, that the old `INI`-style configuration is deprecated and will be "

@@ -44,12 +44,12 @@ import os
 import subprocess
 import sys
 from collections import defaultdict
-from pathlib import Path
 from typing import IO, TYPE_CHECKING, Dict, List
 from urllib.parse import ParseResult, urlparse
 
 from cobib.config import config
 from cobib.database import Database
+from cobib.utils.rel_path import RelPath
 
 from .base_command import ArgumentParser, Command
 
@@ -186,9 +186,7 @@ class OpenCommand(Command):
         """Opens a URL."""
         opener = config.commands.open.command
         try:
-            url_str: str = (
-                url.geturl() if url.scheme else str(Path(url.geturl()).expanduser().resolve())
-            )
+            url_str: str = url.geturl() if url.scheme else str(RelPath(url.geturl()).path)
             LOGGER.debug('Opening "%s" with %s.', url_str, opener)
             with open(os.devnull, "w") as devnull:
                 subprocess.Popen(

@@ -4,8 +4,6 @@
 import logging
 import os
 import subprocess
-import tempfile
-from pathlib import Path
 from shutil import rmtree
 
 import pytest
@@ -17,8 +15,6 @@ from cobib.database import Database
 from .. import get_resource
 from ..tui.tui_test import TUITest
 from .command_test import CommandTest
-
-TMPDIR = Path(tempfile.gettempdir()).resolve()
 
 EXAMPLE_MULTI_FILE_ENTRY_BIB = get_resource("example_multi_file_entry.bib", "commands")
 

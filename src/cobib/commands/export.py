@@ -44,12 +44,12 @@ import argparse
 import logging
 import os
 import sys
-from pathlib import Path
 from typing import IO, TYPE_CHECKING, List
 from zipfile import ZipFile
 
 from cobib.database import Database
 from cobib.parsers import BibtexParser
+from cobib.utils.rel_path import RelPath
 
 from .base_command import ArgumentParser, Command
 from .list import ListCommand
@@ -147,7 +147,7 @@ class ExportCommand(Command):
                     largs.bibtex.write(entry_str)
                 if largs.zip is not None:
                     if "file" in entry.data.keys() and entry.file is not None:
-                        path = Path(entry.file).expanduser().resolve()
+                        path = RelPath(entry.file).path
                         LOGGER.debug(
                             'Adding "%s" associated with "%s" to the zip file.', path, label
                         )

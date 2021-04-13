@@ -18,8 +18,8 @@ import pyte
 import pytest
 
 from cobib.database import Database
-from cobib.logging import log_to_file
 from cobib.tui import TUI
+from cobib.utils.logging import log_to_file
 
 from .mock_curses import MockCursesPad
 
