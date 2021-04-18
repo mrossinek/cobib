@@ -1,6 +1,10 @@
 """Tests for coBib's DeleteCommand."""
 # pylint: disable=no-self-use,unused-argument
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, List, Type
+
 import pytest
 
 from cobib.commands import DeleteCommand
@@ -11,15 +15,18 @@ from .. import get_resource
 from ..tui.tui_test import TUITest
 from .command_test import CommandTest
 
+if TYPE_CHECKING:
+    import cobib.commands
+
 
 class TestDeleteCommand(CommandTest, TUITest):
     """Tests for coBib's DeleteCommand."""
 
-    def get_command(self):
+    def get_command(self) -> Type[cobib.commands.base_command.Command]:
         """Get the command tested by this class."""
         return DeleteCommand
 
-    def _assert(self, labels):
+    def _assert(self, labels: List[str]) -> None:
         """Common assertion utility method."""
         bib = Database()
 
@@ -52,7 +59,7 @@ class TestDeleteCommand(CommandTest, TUITest):
             [["dummy", "knuthwebsite"], False],
         ],
     )
-    def test_command(self, setup, labels, skip_commit):
+    def test_command(self, setup: Any, labels: List[str], skip_commit: bool) -> None:
         """Test the command itself."""
         git = setup.get("git", False)
 
@@ -72,7 +79,7 @@ class TestDeleteCommand(CommandTest, TUITest):
         ],
     )
     # other variants are already covered by test_command
-    def test_cmdline(self, setup, monkeypatch, labels):
+    def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch, labels: List[str]) -> None:
         """Test the command-line access of the command."""
         self.run_module(monkeypatch, "main", ["cobib", "delete"] + labels)
         self._assert(labels)
@@ -84,10 +91,10 @@ class TestDeleteCommand(CommandTest, TUITest):
             [True, "d", ["knuthwebsite"]],
         ],
     )
-    def test_tui(self, setup, select, keys, labels):
+    def test_tui(self, setup: Any, select: bool, keys: str, labels: List[str]) -> None:
         """Test the TUI access of the command."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             labels = kwargs.get("labels", [])
             self._assert(labels)
 

@@ -17,7 +17,8 @@ if TYPE_CHECKING:
 LOGGER = logging.getLogger(__name__)
 
 
-class Database(OrderedDict):
+# TODO: once Python 3.9 becomes the default, OrderedDict can be properly sub-typed
+class Database(OrderedDict):  # type: ignore
     """coBib's Database class is a runtime interface to the plain-test YAML file.
 
     This class is a *singleton*.
@@ -106,7 +107,7 @@ class Database(OrderedDict):
         try:
             LOGGER.info("Loading database file: %s", file)
             # pylint: disable=import-outside-toplevel
-            from cobib.parsers import YAMLParser
+            from cobib.parsers.yaml import YAMLParser
 
             _instance.clear()
             _instance.update(YAMLParser().parse(file))
@@ -143,7 +144,7 @@ class Database(OrderedDict):
         _instance = cast(Database, cls._instance)
 
         # pylint: disable=import-outside-toplevel
-        from cobib.parsers import YAMLParser
+        from cobib.parsers.yaml import YAMLParser
 
         yml = YAMLParser()
 
@@ -155,7 +156,7 @@ class Database(OrderedDict):
 
         overwrite = False
         cur_label: str = ""
-        buffer: List = []
+        buffer: List[str] = []
         for line in lines:
             try:
                 matches = label_regex.match(line)

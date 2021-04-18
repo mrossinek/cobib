@@ -22,7 +22,7 @@ import argparse
 import logging
 import subprocess
 import sys
-from typing import IO, TYPE_CHECKING, List
+from typing import IO, TYPE_CHECKING, Any, List
 
 from cobib.config import config
 from cobib.database import Database
@@ -41,7 +41,7 @@ class RedoCommand(Command):
 
     name = "redo"
 
-    def execute(self, args: List[str], out: IO = sys.stdout) -> None:
+    def execute(self, args: List[str], out: IO[Any] = sys.stdout) -> None:
         """Redoes the last undone change.
 
         This command is *only* available if coBib's git-integration has been enabled via
@@ -123,7 +123,7 @@ class RedoCommand(Command):
                 )
                 redo.communicate()
                 if redo.returncode != 0:
-                    LOGGER.error(
+                    LOGGER.error(  # pragma: no cover
                         "Redo was unsuccessful. Please consult the logs and git history of your "
                         "database for more information."
                     )

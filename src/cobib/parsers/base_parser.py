@@ -21,7 +21,7 @@ class Parser(ABC):
     """The parsers `name` is used to register itself as an input argument to the
     `cobib.commands.add.AddCommand`."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """The initializer of any concrete implementation should *not* take any arguments!"""
 
     @abstractmethod

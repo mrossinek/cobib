@@ -3,3 +3,11 @@ omit = tests/*
 source = src/cobib/
 parallel = True
 branch = True
+
+[report]
+exclude_lines =
+    pragma: no cover
+    pragma: no branch
+    if TYPE_CHECKING:
+    parser.print_usage\(sys.stderr\)
+    sys.exit\(1\)

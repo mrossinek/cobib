@@ -5,12 +5,13 @@ This module provides utility methods to set up logging to different handlers.
 
 import logging
 import logging.config
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Union
 
 from .rel_path import RelPath
 
 
-def log_to_stream(level: str = "WARNING") -> None:
+def log_to_stream(level: Union[str, int] = "WARNING") -> None:
     """Configures a `StreamHandler` logger.
 
     Args:
@@ -45,7 +46,9 @@ def log_to_stream(level: str = "WARNING") -> None:
     )
 
 
-def log_to_file(level: str = "INFO", logfile: Optional[str] = None) -> None:
+def log_to_file(
+    level: Union[str, int] = "INFO", logfile: Optional[Union[str, Path]] = None
+) -> None:
     """Configures a `RotatingFileHandler` logger.
 
     Args:

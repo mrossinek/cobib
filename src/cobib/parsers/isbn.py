@@ -83,14 +83,14 @@ class ISBNParser(Parser):
                 try:
                     match = re.search(r"\d{4}", value)
                     if match is None:
-                        raise AttributeError
+                        raise AttributeError  # pragma: no cover
                     entry["year"] = match.group()
                     if "ID" in entry.keys():
                         entry["ID"] += str(entry["year"])
                     else:
                         entry["ID"] = str(entry["year"])
-                except AttributeError:
-                    pass
+                except AttributeError:  # pragma: no cover
+                    pass  # pragma: no cover
             elif key == "authors":
                 if "ID" in entry.keys():
                     entry["ID"] = value[0]["name"].split()[-1] + entry["ID"]

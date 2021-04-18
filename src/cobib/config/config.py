@@ -14,7 +14,7 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, TextIO, Union
 
 from cobib.utils.rel_path import RelPath
 
@@ -32,7 +32,7 @@ ANSI_COLORS = [
 ]
 
 
-class Config(dict):
+class Config(Dict[str, Any]):
     """coBib's configuration class.
 
     This class wraps the `dict` type and exposes the dictionary keys as attributes to ease access
@@ -51,7 +51,7 @@ class Config(dict):
     """The *legacy* XDG-based standard configuration location.
     This will be removed on January 1st, 2020."""
 
-    DEFAULTS: Dict = {
+    DEFAULTS: Dict[str, Any] = {
         "logging": {
             "logfile": "~/.cache/cobib/cobib.log",
         },
@@ -127,7 +127,7 @@ class Config(dict):
     """The default settings."""
 
     # pylint: disable=super-init-not-called
-    def __init__(self, value: Optional[Dict] = None) -> None:
+    def __init__(self, value: Optional[Dict[str, Any]] = None) -> None:
         """Initializer of the recursive, attribute-access, dict-like configuration object.
 
         The initializer does nothing when `None` is given.
@@ -216,7 +216,7 @@ class Config(dict):
             self.__setitem__(key, copy.deepcopy(value))
 
     @staticmethod
-    def load(configpath: Union[str, Path, io.TextIOWrapper] = None) -> None:
+    def load(configpath: Optional[Union[str, Path, TextIO, io.TextIOWrapper]] = None) -> None:
         """Loads another configuration object at runtime.
 
         WARNING: The new Python-like configuration allows essentially arbitrary Python code so it is
@@ -226,14 +226,14 @@ class Config(dict):
             configpath: the path to the configuration.
         """
         if configpath is not None:
-            if isinstance(configpath, io.TextIOWrapper):
+            if isinstance(configpath, (TextIO, io.TextIOWrapper)):
                 configpath = configpath.name
         elif RelPath(Config.XDG_CONFIG_FILE).exists():
             configpath = RelPath(Config.XDG_CONFIG_FILE).path
-        elif RelPath(Config.LEGACY_XDG_CONFIG_FILE).exists():
-            configpath = RelPath(Config.LEGACY_XDG_CONFIG_FILE).path
-        else:
-            return
+        elif RelPath(Config.LEGACY_XDG_CONFIG_FILE).exists():  # pragma: no cover
+            configpath = RelPath(Config.LEGACY_XDG_CONFIG_FILE).path  # pragma: no cover
+        else:  # pragma: no cover
+            return  # pragma: no cover
         LOGGER.info("Loading configuration from default location: %s", configpath)
 
         if RelPath(Config.LEGACY_XDG_CONFIG_FILE).exists():
@@ -271,7 +271,7 @@ class Config(dict):
             sys.exit(1)
 
     @staticmethod
-    def load_legacy_config(configpath: Union[str, Path, io.TextIOWrapper]) -> None:
+    def load_legacy_config(configpath: Union[str, Path, TextIO, io.TextIOWrapper]) -> None:
         # pylint: disable=too-many-branches,too-many-nested-blocks
         """Loads a legacy `INI`-style configuration file.
 
@@ -286,6 +286,16 @@ class Config(dict):
         ini_conf.optionxform = str  # type: ignore
         ini_conf.read(configpath)
 
+        def _ignore_option(section: str, field: str, value: Optional[Any] = None) -> None:
+            if value is not None:  # pragma: no cover
+                LOGGER.warning(  # pragma: no cover
+                    "Ignoring unknown option for %s/%s = %s", section, field, value
+                )
+            else:  # pragma: no cover
+                LOGGER.warning(  # pragma: no cover
+                    "Ignoring unknown setting %s", f"{section}/{field}"
+                )
+
         # We need to manually iterate all sections and fields because some settings need to be moved
         # and/or need to be converted to the correct Python types
         for section in ini_conf.sections():
@@ -296,11 +306,9 @@ class Config(dict):
                     elif field in ["git"]:
                         try:
                             config.database[field] = ini_conf[section].getboolean(field)
-                        except ValueError as exc:
-                            LOGGER.error(exc)
-                            LOGGER.warning(
-                                "Ignoring unknown option for %s/%s = %s", section, field, value
-                            )
+                        except ValueError as exc:  # pragma: no cover
+                            LOGGER.error(exc)  # pragma: no cover
+                            _ignore_option(section, field, value)  # pragma: no cover
                     elif field == "open":
                         config.commands.open.command = value
                     elif field == "grep":
@@ -308,7 +316,7 @@ class Config(dict):
                     elif field == "search_ignore_case":
                         config.commands.search.ignore_case = ini_conf[section].getboolean(field)
                     else:
-                        LOGGER.warning("Ignoring unknown setting %s", f"{section}/{field}")
+                        _ignore_option(section, field)  # pragma: no cover
             elif section == "FORMAT":
                 for field, value in dict(ini_conf[section]).items():
                     if field == "default_entry_type":
@@ -316,22 +324,18 @@ class Config(dict):
                     elif field == "ignore_non_standard_types":
                         try:
                             config.parsers.bibtex[field] = ini_conf[section].getboolean(field)
-                        except ValueError as exc:
-                            LOGGER.error(exc)
-                            LOGGER.warning(
-                                "Ignoring unknown option for %s/%s = %s", section, field, value
-                            )
+                        except ValueError as exc:  # pragma: no cover
+                            LOGGER.error(exc)  # pragma: no cover
+                            _ignore_option(section, field, value)  # pragma: no cover
                     elif field == "month":
                         if value == "int":
                             config.database.format.month = int
                         elif value == "str":
                             config.database.format.month = str
                         else:
-                            LOGGER.warning(
-                                "Ignoring unknown option for %s/%s = %s", section, field, value
-                            )
+                            _ignore_option(section, field, value)  # pragma: no cover
                     else:
-                        LOGGER.warning("Ignoring unknown setting %s", f"{section}/{field}")
+                        _ignore_option(section, field)  # pragma: no cover
             elif section == "TUI":
                 for field, value in dict(ini_conf[section]).items():
                     if field == "default_list_args":
@@ -339,21 +343,17 @@ class Config(dict):
                     elif field in ["prompt_before_quit", "reverse_order"]:
                         try:
                             config.tui[field] = ini_conf[section].getboolean(field)
-                        except ValueError as exc:
-                            LOGGER.error(exc)
-                            LOGGER.warning(
-                                "Ignoring unknown option for %s/%s = %s", section, field, value
-                            )
+                        except ValueError as exc:  # pragma: no cover
+                            LOGGER.error(exc)  # pragma: no cover
+                            _ignore_option(section, field, value)  # pragma: no cover
                     elif field in ["scroll_offset"]:
                         try:
                             config.tui[field] = ini_conf[section].getint(field)
-                        except ValueError as exc:
-                            LOGGER.error(exc)
-                            LOGGER.warning(
-                                "Ignoring unknown option for %s/%s = %s", section, field, value
-                            )
+                        except ValueError as exc:  # pragma: no cover
+                            LOGGER.error(exc)  # pragma: no cover
+                            _ignore_option(section, field, value)  # pragma: no cover
                     else:
-                        LOGGER.warning("Ignoring unknown setting %s", f"{section}/{field}")
+                        _ignore_option(section, field)  # pragma: no cover
             elif section == "COLORS":
                 for field, value in dict(ini_conf[section]).items():
                     config.tui.colors[field] = value
@@ -361,7 +361,7 @@ class Config(dict):
                 for field, value in dict(ini_conf[section]).items():
                     config.tui.key_bindings[field.lower()] = value
             else:
-                LOGGER.warning("Ignoring unknown config section %s", section)
+                LOGGER.warning("Ignoring unknown config section %s", section)  # pragma: no cover
 
     def validate(self) -> None:
         """Validates the configuration at runtime.

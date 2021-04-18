@@ -1,10 +1,13 @@
 """Tests for coBib's ListCommand."""
 # pylint: disable=no-self-use,unused-argument
 
+from __future__ import annotations
+
 import os
 from io import StringIO
 from itertools import zip_longest
 from shutil import copyfile
+from typing import TYPE_CHECKING, Any, List, Type
 
 import pytest
 
@@ -16,11 +19,14 @@ from .. import get_resource
 from ..tui.tui_test import TUITest
 from .command_test import CommandTest
 
+if TYPE_CHECKING:
+    import cobib.commands
+
 
 class TestListCommand(CommandTest, TUITest):
     """Tests for coBib's ListCommand."""
 
-    def get_command(self):
+    def get_command(self) -> Type[cobib.commands.base_command.Command]:
         """Get the command tested by this class."""
         return ListCommand
 
@@ -37,7 +43,7 @@ class TestListCommand(CommandTest, TUITest):
             [["-x", "++author", "Einstein", "++author", "Knuth"], ["einstein", "knuthwebsite"]],
         ],
     )
-    def test_command(self, setup, args, expected):
+    def test_command(self, setup: Any, args: List[str], expected: List[str]) -> None:
         """Test the command itself."""
         # redirect output of list to string
         file = StringIO()
@@ -50,7 +56,7 @@ class TestListCommand(CommandTest, TUITest):
                 continue
             assert line.split()[0] in expected
 
-    def test_missing_keys(self, setup):
+    def test_missing_keys(self, setup: Any) -> None:
         """Asserts issue #1 is fixed.
 
         When a key is queried which is not present in all entries, the list command should return
@@ -74,17 +80,23 @@ class TestListCommand(CommandTest, TUITest):
         ],
     )
     # other variants are already covered by test_command
-    def test_cmdline(self, setup, monkeypatch, capsys, expected):
+    def test_cmdline(
+        self,
+        setup: Any,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+        expected: List[str],
+    ) -> None:
         """Test the command-line access of the command."""
         self.run_module(monkeypatch, "main", ["cobib", "list"])
         for line, truth in zip_longest(capsys.readouterr().out.strip().split("\n"), expected):
             # we wrap the list into an iterator in order to handle an empty list, too
             assert next(iter(line.split()), None) == truth
 
-    def test_tui(self, setup):
+    def test_tui(self, setup: Any) -> None:
         """Test the TUI access of the command."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             expected_screen = [
                 r"knuthwebsite    Knuth: Computers and Typesetting",
                 r"latexcompanion  The \LaTeX\ Companion",
@@ -114,10 +126,10 @@ class TestListCommand(CommandTest, TUITest):
             ["syear\nsauthor\n"],
         ],
     )
-    def test_tui_sort(self, setup, keys):
+    def test_tui_sort(self, setup: Any, keys: str) -> None:
         """Test the TUI access of the command."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             expected_screen = [
                 "latexcompanion  Michel Goossens and Frank Mittelbach and Alexander Samarin  The",
                 "knuthwebsite    Donald Knuth                                                Knut",
@@ -169,10 +181,10 @@ class TestListCommand(CommandTest, TUITest):
             ["f++ID knuthwebsite\nf\b\b\b\b\b\b\b\b\b\b\b\b\beinstein\n"],
         ],
     )
-    def test_tui_filter(self, setup, keys):
+    def test_tui_filter(self, setup: Any, keys: str) -> None:
         """Test the TUI access of the command."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             expected_screen = [
                 r"einstein  Zur Elektrodynamik bewegter K{\"o}rper",
             ]
@@ -227,10 +239,10 @@ class TestListCommand(CommandTest, TUITest):
             ["f-x\nf\b\b\b\b\b\b\b\n", ['Removing "OR" list argument.']],
         ],
     )
-    def test_tui_argument_unification(self, setup, keys, messages):
+    def test_tui_argument_unification(self, setup: Any, keys: str, messages: List[str]) -> None:
         """Test that the TUI unifies keyword arguments."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             true_log = [log for log in logs if log[0] == "cobib.commands.list"]
             for msg in messages:
                 assert ("cobib.commands.list", 10, msg) in true_log
@@ -238,7 +250,7 @@ class TestListCommand(CommandTest, TUITest):
         self.run_tui(keys, assertion, {})
 
     # manually overwrite this test because we must populate the database with actual data
-    def test_handle_argument_error(self, caplog):
+    def test_handle_argument_error(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test handling of ArgumentError."""
         # use temporary config
         config.database.file = self.COBIB_TEST_DIR / "database.yaml"

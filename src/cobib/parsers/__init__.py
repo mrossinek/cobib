@@ -5,8 +5,8 @@ coBib provides a variety of parsers which handle the translation from (and to) s
 The abstract interface which should be implemented is defined by the `cobib.parsers.base_parser`.
 """
 
-from .arxiv import ArxivParser
-from .bibtex import BibtexParser
-from .doi import DOIParser
-from .isbn import ISBNParser
-from .yaml import YAMLParser
+from .arxiv import ArxivParser as ArxivParser
+from .bibtex import BibtexParser as BibtexParser
+from .doi import DOIParser as DOIParser
+from .isbn import ISBNParser as ISBNParser
+from .yaml import YAMLParser as YAMLParser

@@ -69,7 +69,7 @@ import inspect
 import logging
 import sys
 from collections import OrderedDict
-from typing import IO, TYPE_CHECKING, Dict, List
+from typing import IO, TYPE_CHECKING, Any, Dict, List
 
 from cobib import parsers
 from cobib.config import config
@@ -89,7 +89,7 @@ class AddCommand(Command):
 
     name = "add"
 
-    def execute(self, args: List[str], out: IO = sys.stdout) -> None:
+    def execute(self, args: List[str], out: IO[Any] = sys.stdout) -> None:
         """Adds a new entry.
 
         Depending on the `args`, if a keyword for one of the available `cobib.parsers` was used

@@ -1,6 +1,10 @@
 """Tests for coBib's EditCommand."""
 # pylint: disable=no-self-use,unused-argument
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Type
+
 import pytest
 
 from cobib.commands import EditCommand
@@ -8,6 +12,9 @@ from cobib.config import config
 
 from ..tui.tui_test import TUITest
 from .command_test import CommandTest
+
+if TYPE_CHECKING:
+    import cobib.commands
 
 
 class TestEditCommand(CommandTest, TUITest):
@@ -21,12 +28,14 @@ class TestEditCommand(CommandTest, TUITest):
     keyword argument is being used.
     """
 
-    def get_command(self):
+    def get_command(self) -> Type[cobib.commands.base_command.Command]:
         """Get the command tested by this class."""
         return EditCommand
 
     @staticmethod
-    def _assert(changes: bool, logs: list = None, label: str = "dummy"):
+    def _assert(
+        changes: bool, logs: Optional[List[Tuple[str, int, str]]] = None, label: str = "dummy"
+    ) -> None:
         """Common assertion utility method."""
         if changes:
             if logs is not None:
@@ -59,7 +68,9 @@ class TestEditCommand(CommandTest, TUITest):
             [["-a", "dummy"], True],
         ],
     )
-    def test_command(self, setup, caplog, args, changes):
+    def test_command(
+        self, setup: Any, caplog: pytest.LogCaptureFixture, args: List[str], changes: bool
+    ) -> None:
         """Test the command itself."""
         git = setup.get("git", False)
 
@@ -82,7 +93,7 @@ class TestEditCommand(CommandTest, TUITest):
             # assert the git commit message
             self.assert_git_commit_message("edit", {"label": args[-1], "add": "-a" in args})
 
-    def test_ignore_add_if_label_exists(self, setup, caplog):
+    def test_ignore_add_if_label_exists(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test that the `add` argument is ignored if the label already exists."""
         EditCommand().execute(["-a", "einstein"])
         assert (
@@ -91,7 +102,7 @@ class TestEditCommand(CommandTest, TUITest):
             "Entry 'einstein' already exists! Ignoring the `--add` argument.",
         ) in caplog.record_tuples
 
-    def test_warning_missing_label(self, setup, caplog):
+    def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test warning for missing label."""
         EditCommand().execute(["dummy"])
         assert (
@@ -108,15 +119,15 @@ class TestEditCommand(CommandTest, TUITest):
         ],
         indirect=["setup"],
     )
-    def test_cmdline(self, setup, monkeypatch):
+    def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test the command-line access of the command."""
         self.run_module(monkeypatch, "main", ["cobib", "edit", "-a", "dummy"])
         self._assert(changes=True, logs=None)
 
-    def test_tui(self, setup):
+    def test_tui(self, setup: Any) -> None:
         """Test the TUI access of the command."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             true_log = [log for log in logs if log[0] == "cobib.commands.edit"]
             self._assert(changes=False, logs=true_log)
 

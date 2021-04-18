@@ -6,6 +6,7 @@ import tempfile
 from itertools import zip_longest
 from pathlib import PurePath
 from signal import SIGWINCH
+from typing import Any, Dict, Generator, List, Set, Union
 
 import pytest
 
@@ -27,7 +28,7 @@ class TestTUI(CmdLineTest, TUITest):
 
     @staticmethod
     @pytest.fixture(autouse=True)
-    def setup():
+    def setup() -> Generator[Any, None, None]:
         """Setup."""
         # pylint: disable=attribute-defined-outside-init
         config.load(get_resource("debug.py"))
@@ -38,7 +39,7 @@ class TestTUI(CmdLineTest, TUITest):
         STATE.reset()
         TUI.KEYDICT = copy.deepcopy(original_keydict)
 
-    def test_colors(self, patch_curses, caplog):
+    def test_colors(self, patch_curses: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test colors method."""
         TUI.colors()
         assert TUI.ANSI_MAP == {
@@ -83,7 +84,7 @@ class TestTUI(CmdLineTest, TUITest):
         ]
         assert caplog.record_tuples == expected_log
 
-    def test_config_color(self, patch_curses, caplog):
+    def test_config_color(self, patch_curses: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test setting a non-default color."""
         config.tui.colors.selection_fg = "red"
         TUI.colors()
@@ -97,7 +98,13 @@ class TestTUI(CmdLineTest, TUITest):
             [True],
         ],
     )
-    def test_config_rgb_color(self, patch_curses, caplog, monkeypatch, can_change_color):
+    def test_config_rgb_color(
+        self,
+        patch_curses: Any,
+        caplog: pytest.LogCaptureFixture,
+        monkeypatch: pytest.MonkeyPatch,
+        can_change_color: bool,
+    ) -> None:
         """Test overwriting the RGB color value."""
         monkeypatch.setattr("curses.can_change_color", lambda: can_change_color)
         config.tui.colors.white = "#AA0000"
@@ -111,7 +118,9 @@ class TestTUI(CmdLineTest, TUITest):
         else:
             assert ("TUITest", 10, "init_color: (7, 666, 0, 0)") in caplog.record_tuples
 
-    def test_config_unknown_color(self, patch_curses, caplog):
+    def test_config_unknown_color(
+        self, patch_curses: Any, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """Test setting an unknown color logs warning."""
         config.tui.colors.dummy_fg = "white"
         TUI.colors()
@@ -121,7 +130,7 @@ class TestTUI(CmdLineTest, TUITest):
             "Detected unknown TUI color name specification: dummy",
         ) in caplog.record_tuples
 
-    def test_bind_keys(self, caplog):
+    def test_bind_keys(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test bind_keys method."""
         TUI.bind_keys()
         assert TUI.KEYDICT == {
@@ -183,7 +192,7 @@ class TestTUI(CmdLineTest, TUITest):
         ]
         assert caplog.record_tuples == expected_log
 
-    def test_config_bind_key(self, caplog):
+    def test_config_bind_key(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test binding a non-default key."""
         config.tui.key_bindings.prompt = "p"
         TUI.bind_keys()
@@ -191,7 +200,7 @@ class TestTUI(CmdLineTest, TUITest):
         assert ord("p") in TUI.KEYDICT.keys() and TUI.KEYDICT[ord("p")] == "Prompt"
         assert ("cobib.tui.tui", 20, "Binding key p to the Prompt command.") in caplog.record_tuples
 
-    def test_config_unknown_command(self, caplog):
+    def test_config_unknown_command(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test binding an unknown command logs warning."""
         config.tui.key_bindings.dummy = "p"
         TUI.bind_keys()
@@ -201,7 +210,7 @@ class TestTUI(CmdLineTest, TUITest):
             'Unknown command "Dummy". Ignoring key binding.',
         ) in caplog.record_tuples
 
-    def test_infoline(self):
+    def test_infoline(self) -> None:
         """Test infoline method."""
         infoline = TUI.infoline()
         assert (
@@ -217,7 +226,7 @@ class TestTUI(CmdLineTest, TUITest):
             [1],
         ],
     )
-    def test_statusbar(self, attr, caplog):
+    def test_statusbar(self, attr: int, caplog: pytest.LogCaptureFixture) -> None:
         """Test statusbar method."""
         pad = MockCursesPad()
         text = "Test statusbar text"
@@ -231,7 +240,7 @@ class TestTUI(CmdLineTest, TUITest):
         ]
         assert caplog.record_tuples == expected_log
 
-    def test_init(self, patch_curses, caplog):
+    def test_init(self, patch_curses: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test TUI initialization."""
         stdscr = MockCursesPad()
         stdscr.size = (24, 80)
@@ -324,7 +333,7 @@ class TestTUI(CmdLineTest, TUITest):
             record for record in caplog.record_tuples if record[0] in ("cobib.tui.tui", "TUITest")
         ] == expected_log
 
-    def test_resize(self, patch_curses, caplog):
+    def test_resize(self, patch_curses: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test resize_handler method."""
         stdscr = MockCursesPad()
         stdscr.size = (24, 80)
@@ -335,9 +344,9 @@ class TestTUI(CmdLineTest, TUITest):
         tui.resize_handler(None, None)
         assert tui.width == 70
         assert tui.height == 12
-        assert tui.topbar.size[1] == 70
-        assert tui.botbar.size[1] == 70
-        assert tui.prompt.size[1] == 70
+        assert tui.topbar.size[1] == 70  # type: ignore
+        assert tui.botbar.size[1] == 70  # type: ignore
+        assert tui.prompt.size[1] == 70  # type: ignore
         expected_log = [
             ("TUITest", 10, "resize_term"),
             ("MockCursesPad", 10, "clear"),
@@ -379,10 +388,10 @@ class TestTUI(CmdLineTest, TUITest):
                 continue
             assert log[2] == truth[2]
 
-    def test_resize_live(self):
+    def test_resize_live(self) -> None:
         """Tests the resizing on a running TUI."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             expected_screen = [
                 "knuthwebsite    Knuth: Computers and Typesett",
                 r"latexcompanion  The \LaTeX\ Companion",
@@ -404,7 +413,7 @@ class TestTUI(CmdLineTest, TUITest):
 
         self.run_tui([SIGWINCH], assertion, {})
 
-    def test_help(self, patch_curses, caplog):
+    def test_help(self, patch_curses: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test help method."""
         stdscr = MockCursesPad()
         stdscr.size = (24, 80)
@@ -453,10 +462,10 @@ class TestTUI(CmdLineTest, TUITest):
         ):
             assert log == truth
 
-    def test_help_live(self):
+    def test_help_live(self) -> None:
         """Tests the help popup on a running TUI."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             header_check = ["coBib TUI Help" in line for line in screen.display]
             assert any(header_check)
             offset = header_check.index(True)
@@ -468,10 +477,10 @@ class TestTUI(CmdLineTest, TUITest):
 
         self.run_tui("?", assertion, {})
 
-    def test_help_no_artefacts(self):
+    def test_help_no_artefacts(self) -> None:
         """Tests the help popup on a running TUI."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             expected_lines = [
                 "knuthwebsite    Knuth: Computers and Typesetting",
                 "latexcompanion  The \\LaTeX\\ Companion",
@@ -491,7 +500,9 @@ class TestTUI(CmdLineTest, TUITest):
             [{"knuthwebsite"}],
         ],
     )
-    def test_select(self, patch_curses, caplog, selection):
+    def test_select(
+        self, patch_curses: Any, caplog: pytest.LogCaptureFixture, selection: Set[str]
+    ) -> None:
         """Test select method."""
         stdscr = MockCursesPad()
         stdscr.size = (24, 80)
@@ -528,10 +539,10 @@ class TestTUI(CmdLineTest, TUITest):
             # ['v\n', assert_select_show_view, {'current': True}],
         ],
     )
-    def test_select_list_live(self, keys, assertion_kwargs):
+    def test_select_list_live(self, keys: str, assertion_kwargs: Dict[str, Any]) -> None:
         """Tests the select method in the list view on a running TUI."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             term_width = len(screen.buffer[0])
             current = kwargs["current"]
             labels = kwargs["labels"]
@@ -548,10 +559,10 @@ class TestTUI(CmdLineTest, TUITest):
 
         self.run_tui(keys, assertion, assertion_kwargs)
 
-    def test_select_show_live(self):
+    def test_select_show_live(self) -> None:
         """Tests the select method in the show view on a running TUI."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             expected_screen = [
                 "@misc{knuthwebsite,",
                 " author = {Donald Knuth},",
@@ -570,10 +581,10 @@ class TestTUI(CmdLineTest, TUITest):
 
         self.run_tui("v\n", assertion, {})
 
-    def test_select_search_live(self):
+    def test_select_search_live(self) -> None:
         """Tests the select method in the search view on a running TUI."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             expected_screen = [
                 "knuthwebsite - 1 match",
                 "[1]     @misc{knuthwebsite,",
@@ -597,7 +608,9 @@ class TestTUI(CmdLineTest, TUITest):
             [["Some multi-line dummy text.", "This is the second line."]],
         ],
     )
-    def test_prompt_print(self, patch_curses, caplog, text):
+    def test_prompt_print(
+        self, patch_curses: Any, caplog: pytest.LogCaptureFixture, text: List[str]
+    ) -> None:
         """Test prompt_print method."""
         stdscr = MockCursesPad()
         stdscr.size = (24, 80)
@@ -605,7 +618,7 @@ class TestTUI(CmdLineTest, TUITest):
         caplog.clear()
 
         tui.prompt_print("\n".join(text))
-        assert tui.prompt.lines == [text[0]]
+        assert tui.prompt.lines == [text[0]]  # type: ignore
         if len(text) > 1:
             # assert popup on multi-line text messages
             assert (
@@ -625,7 +638,14 @@ class TestTUI(CmdLineTest, TUITest):
             [True, ord("n"), Mode.LIST.value],
         ],
     )
-    def test_quit(self, patch_curses, caplog, prompt_quit, returned_char, mode):
+    def test_quit(
+        self,
+        patch_curses: Any,
+        caplog: pytest.LogCaptureFixture,
+        prompt_quit: bool,
+        returned_char: int,
+        mode: str,
+    ) -> None:
         """Test quit method."""
         stdscr = MockCursesPad()
         stdscr.size = (24, 80)
@@ -634,7 +654,7 @@ class TestTUI(CmdLineTest, TUITest):
         STATE.mode = mode
         caplog.clear()
 
-        tui.prompt.returned_chars = [returned_char]
+        tui.prompt.returned_chars = [returned_char]  # type: ignore
 
         expected_log = []
         if mode == Mode.LIST.value:
@@ -666,11 +686,16 @@ class TestTUI(CmdLineTest, TUITest):
         ["keys"],
         [[[ord("q")]], [[ord("q"), 410]], [[ord("q"), ord("q"), ord("\n")]]],  # curses.KEY_RESIZE
     )
-    def test_loop(self, patch_curses, caplog, keys):
+    def test_loop(
+        self,
+        patch_curses: Any,
+        caplog: pytest.LogCaptureFixture,
+        keys: Union[str, List[List[int]]],
+    ) -> None:
         """Test loop method."""
         stdscr = MockCursesPad()
         stdscr.size = (24, 80)
-        stdscr.returned_chars = keys
+        stdscr.returned_chars = keys  # type: ignore
         config.tui.prompt_before_quit = False
         tui = TUI(stdscr, debug=True)
         # we expect normal execution
@@ -681,7 +706,9 @@ class TestTUI(CmdLineTest, TUITest):
         assert caplog.record_tuples[-2] == ("cobib.tui.tui", 10, "Quitting from lowest level.")
         assert caplog.record_tuples[-1] == ("cobib.tui.tui", 10, "Stopping key event loop.")
 
-    def test_loop_inactive_commands(self, patch_curses, caplog):
+    def test_loop_inactive_commands(
+        self, patch_curses: Any, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """Test inactive commands are not triggered."""
         stdscr = MockCursesPad()
         stdscr.size = (24, 80)
@@ -716,13 +743,17 @@ class TestTUI(CmdLineTest, TUITest):
             [[127, 127], ""],  # Backspace until prompt is empty
         ],
     )
-    def test_prompt_handler(self, patch_curses, keys, expected):
+    def test_prompt_handler(
+        self, patch_curses: Any, keys: List[Union[int, str]], expected: str
+    ) -> None:
         """Test prompt_handler method."""
         stdscr = MockCursesPad()
         stdscr.size = (24, 80)
         config.tui.prompt_before_quit = False
         tui = TUI(stdscr, debug=True)
-        tui.prompt.returned_chars = [ord(k) if isinstance(k, str) else k for k in reversed(keys)]
+        tui.prompt.returned_chars = [  # type: ignore
+            ord(k) if isinstance(k, str) else k for k in reversed(keys)
+        ]
         command = tui.prompt_handler("")
         assert command == expected
 
@@ -734,15 +765,15 @@ class TestTUI(CmdLineTest, TUITest):
             [":" + 100 * "j", {"contents": "j" * 79}],  # regression-test against #48
         ],
     )
-    def test_prompt_live(self, keys, assertion_kwargs):
+    def test_prompt_live(self, keys: str, assertion_kwargs: Dict[str, str]) -> None:
         """Tests the prompt in a running TUI."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             assert screen.display[-1].strip() == kwargs["contents"]
 
         self.run_tui(keys, assertion, assertion_kwargs)
 
-    def test_execute_command(self):
+    def test_execute_command(self) -> None:
         """Test execute_command method."""
         pytest.skip("This method is tested implicitly by the test.commands.*.test_tui methods.")
 
@@ -768,10 +799,10 @@ class TestTUI(CmdLineTest, TUITest):
             ["$0", {"update": 0, "direction": "x"}],
         ],
     )
-    def test_scroll_live(self, keys, assertion_kwargs):
+    def test_scroll_live(self, keys: str, assertion_kwargs: Dict[str, Union[int, str]]) -> None:
         """Tests scrolling on a running TUI."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             direction = kwargs["direction"]
             update = kwargs["update"]
             term_width = len(screen.buffer[0])
@@ -799,17 +830,17 @@ class TestTUI(CmdLineTest, TUITest):
             ["ww", {"state": False}],
         ],
     )
-    def test_wrap_live(self, keys, assertion_kwargs):
+    def test_wrap_live(self, keys: str, assertion_kwargs: Dict[str, bool]) -> None:
         """Tests wrapping on a running TUI."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             state = kwargs["state"]
             if state:
                 assert screen.display[2][:2] == TextBuffer.INDENT + " "
             else:
                 assert screen.display[1][:2] == "kn"
 
-        self.run_tui([SIGWINCH] + list(keys), assertion, assertion_kwargs)
+        self.run_tui([SIGWINCH] + list(keys), assertion, assertion_kwargs)  # type: ignore
 
     @pytest.mark.parametrize(
         ["kwargs"],
@@ -818,7 +849,7 @@ class TestTUI(CmdLineTest, TUITest):
             [["-l", str(PurePath(tempfile.gettempdir()) / "cobib_test.log")]],
         ],
     )
-    def test_cmdline(self, setup, monkeypatch, kwargs):
+    def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch, kwargs: List[str]) -> None:
         """Test the command-line startup of the TUI."""
         monkeypatch.setattr("cobib.tui.tui", lambda: None)
         self.run_module(monkeypatch, "main", ["cobib"] + kwargs)

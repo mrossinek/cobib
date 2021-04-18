@@ -1,9 +1,12 @@
 """Tests for coBib's SearchCommand."""
 # pylint: disable=no-self-use,unused-argument
 
+from __future__ import annotations
+
 import re
 from io import StringIO
 from itertools import zip_longest
+from typing import TYPE_CHECKING, Any, List, Type
 
 import pytest
 
@@ -13,15 +16,18 @@ from cobib.config import config
 from ..tui.tui_test import TUITest
 from .command_test import CommandTest
 
+if TYPE_CHECKING:
+    import cobib.commands
+
 
 class TestSearchCommand(CommandTest, TUITest):
     """Tests for coBib's SearchCommand."""
 
-    def get_command(self):
+    def get_command(self) -> Type[cobib.commands.base_command.Command]:
         """Get the command tested by this class."""
         return SearchCommand
 
-    def _assert(self, output, expected):
+    def _assert(self, output: List[str], expected: List[str]) -> None:
         """Common assertion utility method."""
         # we use zip_longest to ensure that we don't have more than we expect
         for line, exp in zip_longest(output, expected):
@@ -88,7 +94,9 @@ class TestSearchCommand(CommandTest, TUITest):
             ],
         ],
     )
-    def test_command(self, setup, args, expected, config_overwrite):
+    def test_command(
+        self, setup: Any, args: List[str], expected: List[str], config_overwrite: bool
+    ) -> None:
         """Test the command itself."""
         config.commands.search.ignore_case = config_overwrite
         file = StringIO()
@@ -103,7 +111,13 @@ class TestSearchCommand(CommandTest, TUITest):
         ],
     )
     # other variants are already covered by test_command
-    def test_cmdline(self, setup, monkeypatch, capsys, expected):
+    def test_cmdline(
+        self,
+        setup: Any,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+        expected: List[str],
+    ) -> None:
         """Test the command-line access of the command."""
         self.run_module(monkeypatch, "main", ["cobib", "search", "einstein"])
         self._assert(capsys.readouterr().out.strip().split("\n"), expected)
@@ -115,10 +129,10 @@ class TestSearchCommand(CommandTest, TUITest):
             [True, "Gv/einstein\n"],
         ],
     )
-    def test_tui(self, setup, select, keys):
+    def test_tui(self, setup: Any, select: bool, keys: str) -> None:
         """Test the TUI access of the command."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             expected_screen = [
                 "einstein - 1 match",
                 "[1]     @article{einstein,",
@@ -157,15 +171,15 @@ class TestSearchCommand(CommandTest, TUITest):
             colors[0][8:] = [("white", "cyan")] * 72
             # the search keyword highlighting
             colors[1][17:25] = [("red", "black")] * 8
-            for idx, line in enumerate(colors):
-                assert [(c.fg, c.bg) for c in screen.buffer[idx + 1].values()] == line
+            for idx, color_line in enumerate(colors):
+                assert [(c.fg, c.bg) for c in screen.buffer[idx + 1].values()] == color_line
 
         self.run_tui(keys, assertion, {"selection": select})
 
-    def test_tui_no_hits(self, setup):
+    def test_tui_no_hits(self, setup: Any) -> None:
         """Test how the TUI handles no search results."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             expected_screen = [
                 "knuthwebsite    Knuth: Computers and Typesetting",
                 r"latexcompanion  The \LaTeX\ Companion",

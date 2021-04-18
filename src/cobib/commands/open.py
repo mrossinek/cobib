@@ -44,7 +44,7 @@ import os
 import subprocess
 import sys
 from collections import defaultdict
-from typing import IO, TYPE_CHECKING, Dict, List
+from typing import IO, TYPE_CHECKING, Any, Dict, List
 from urllib.parse import ParseResult, urlparse
 
 from cobib.config import config
@@ -65,7 +65,7 @@ class OpenCommand(Command):
     name = "open"
 
     # pylint: disable=too-many-branches
-    def execute(self, args: List[str], out: IO = sys.stderr) -> None:
+    def execute(self, args: List[str], out: IO[Any] = sys.stderr) -> None:
         """Opens associated files of an entry.
 
         This command opens the associated file(s) of one (or multiple) entries.

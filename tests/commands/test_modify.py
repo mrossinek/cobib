@@ -1,6 +1,10 @@
 """Tests for coBib's ModifyCommand."""
 # pylint: disable=no-self-use,unused-argument
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, List, Type
+
 import pytest
 
 from cobib.commands import ModifyCommand
@@ -9,11 +13,14 @@ from cobib.database import Database
 from ..tui.tui_test import TUITest
 from .command_test import CommandTest
 
+if TYPE_CHECKING:
+    import cobib.commands
+
 
 class TestModifyCommand(CommandTest, TUITest):
     """Tests for coBib's ModifyCommand."""
 
-    def get_command(self):
+    def get_command(self) -> Type[cobib.commands.base_command.Command]:
         """Get the command tested by this class."""
         return ModifyCommand
 
@@ -32,7 +39,9 @@ class TestModifyCommand(CommandTest, TUITest):
             ["tags:test", ["++ID", "einstein"], False],
         ],
     )
-    def test_command(self, setup, modification, filters, selection):
+    def test_command(
+        self, setup: Any, modification: str, filters: List[str], selection: bool
+    ) -> None:
         """Test the command itself."""
         git = setup.get("git", False)
 
@@ -64,7 +73,7 @@ class TestModifyCommand(CommandTest, TUITest):
         ],
         indirect=["setup"],
     )
-    def test_append_mode(self, setup, caplog):
+    def test_append_mode(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test command's append mode."""
         args = ["-a", "tags:test", "--", "++ID", "einstein"]
 
@@ -77,7 +86,7 @@ class TestModifyCommand(CommandTest, TUITest):
             "The append-mode of the `modify` command has not been implemented yet.",
         ) in caplog.record_tuples
 
-    def test_warning_missing_label(self, setup, caplog):
+    def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test warning for missing label."""
         # Note: when using a filter, no non-existent label can occur
         args = ["-s", "tags:test", "--", "dummy"]
@@ -103,7 +112,7 @@ class TestModifyCommand(CommandTest, TUITest):
         ],
     )
     # other variants are already covered by test_command
-    def test_cmdline(self, setup, monkeypatch, args):
+    def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch, args: List[str]) -> None:
         """Test the command-line access of the command."""
         self.run_module(monkeypatch, "main", ["cobib", "modify"] + args)
         assert Database()["einstein"].data["tags"] == "test"
@@ -115,10 +124,10 @@ class TestModifyCommand(CommandTest, TUITest):
             [True, "vmtags:test\n\n"],
         ],
     )
-    def test_tui(self, setup, select, keys):
+    def test_tui(self, setup: Any, select: bool, keys: str) -> None:
         """Test the TUI access of the command."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             expected_screen = [
                 "@misc{knuthwebsite,",
                 "author = {Donald Knuth},",

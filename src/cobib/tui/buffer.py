@@ -64,7 +64,7 @@ class TextBuffer:
             self.height = len(self.lines)
             self.width = max(self.width, len(string))
 
-    def replace(self, lines: Union[int, List[int]], old_str: str, new_str: str) -> None:
+    def replace(self, lines: Union[int, range, List[int]], old_str: str, new_str: str) -> None:
         """Replaces the old string with the new in the given lines.
 
         Args:
@@ -175,7 +175,7 @@ class TextBuffer:
         sminrow: int = 1,
         smincol: int = 0,
         ansi_map: Optional[Dict[str, int]] = None,
-        background: int = None,
+        background: Optional[int] = None,
         box: bool = False,
     ) -> None:
         """Views the buffer contents in the provided `curses.window`.
@@ -341,7 +341,7 @@ class InputBuffer:
             box=True,
         )
 
-        user_input = self.tui.prompt_handler(None, symbol="> ")
+        user_input: str = self.tui.prompt_handler(None, symbol="> ")
 
         # close popup window
         popup_win.clear()

@@ -5,7 +5,7 @@ from pathlib import Path
 from cobib.utils.rel_path import RelPath
 
 
-def test_relative_path():
+def test_relative_path() -> None:
     """Test a path which is relative to the user's home directory."""
     path = Path.home() / "dummy.txt"
     rel_path = RelPath(path)
@@ -18,7 +18,7 @@ def test_relative_path():
     assert rel_path.parent == Path.home()
 
 
-def test_absolute_path():
+def test_absolute_path() -> None:
     """Test a path which is not relative to the user's home directory and therefore absolute."""
     path = Path("/tmp/dummy.txt")
     abs_path = RelPath(path)

@@ -6,6 +6,7 @@ import os
 import tempfile
 from pathlib import Path
 from shutil import copyfile
+from typing import Any, Generator
 
 import pytest
 
@@ -38,21 +39,21 @@ dummy:
 
 
 @pytest.fixture(autouse=True)
-def setup():
+def setup() -> Generator[Any, None, None]:
     """Setup."""
     config.load(get_resource("debug.py"))
     yield
     Database().clear()
 
 
-def test_database_singleton():
+def test_database_singleton() -> None:
     """Test the Database is a Singleton."""
     bib = Database()
     bib2 = Database()
     assert bib is bib2
 
 
-def test_database_missing_file(caplog):
+def test_database_missing_file(caplog: pytest.LogCaptureFixture) -> None:
     """Test exit upon missing database file."""
     config.database.file = TMPDIR / "cobib_test_missing_file.yaml"
     try:
@@ -70,22 +71,22 @@ def test_database_missing_file(caplog):
         config.database.file = EXAMPLE_LITERATURE
 
 
-def test_database_update():
+def test_database_update() -> None:
     """Test Database update method."""
     entries = {"dummy1": "test1", "dummy2": "test2", "dummy3": "test3"}
     bib = Database()
-    bib.update(entries)
+    bib.update(entries)  # type: ignore
     # pylint: disable=protected-access
     assert Database._unsaved_entries == list(entries.keys())
     for key, val in entries.items():
         assert bib[key] == val
 
 
-def test_database_pop():
+def test_database_pop() -> None:
     """Test Database pop method."""
     entries = {"dummy1": "test1", "dummy2": "test2", "dummy3": "test3"}
     bib = Database()
-    bib.update(entries)
+    bib.update(entries)  # type: ignore
     # pylint: disable=protected-access
     Database._unsaved_entries = []
     assert Database._unsaved_entries == []
@@ -95,7 +96,7 @@ def test_database_pop():
     assert Database._unsaved_entries == ["dummy1"]
 
 
-def test_database_read():
+def test_database_read() -> None:
     """Test Database read method."""
     bib = Database()
     bib.read()
@@ -104,7 +105,7 @@ def test_database_read():
     assert list(bib.keys()) == ["einstein", "latexcompanion", "knuthwebsite"]
 
 
-def test_database_save_add():
+def test_database_save_add() -> None:
     """Test Database save method after addition."""
     # prepare temporary database
     config.database.file = TMPDIR / "cobib_test_database_file.yaml"
@@ -136,7 +137,7 @@ def test_database_save_add():
         config.database.file = EXAMPLE_LITERATURE
 
 
-def test_database_save_modify():
+def test_database_save_modify() -> None:
     """Test Database save method after modification."""
     # prepare temporary database
     config.database.file = TMPDIR / "cobib_test_database_file.yaml"
@@ -171,7 +172,7 @@ def test_database_save_modify():
         config.database.file = EXAMPLE_LITERATURE
 
 
-def test_database_save_delete():
+def test_database_save_delete() -> None:
     """Test Database save method after deletion."""
     # prepare temporary database
     config.database.file = TMPDIR / "cobib_test_database_file.yaml"

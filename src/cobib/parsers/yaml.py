@@ -31,24 +31,24 @@ class YAMLParser(Parser):
 
     name = "yaml"
 
-    class YamlDumper(yaml.YAML):
+    class YamlDumper(yaml.YAML):  # type: ignore
         """Wrapper class for YAML dumping."""
 
         # pylint: disable=arguments-differ,inconsistent-return-statements
-        def dump(self, data, stream=None, **kw) -> Optional[str]:
+        def dump(self, data, stream=None, **kw) -> Optional[str]:  # type: ignore
             """A wrapper to dump as a string.
 
             Adapted from
             [here](https://yaml.readthedocs.io/en/latest/example.html#output-of-dump-as-a-string).
             """
             inefficient = False
-            if stream is None:
+            if stream is None:  # pragma: no branch
                 inefficient = True
                 stream = yaml.compat.StringIO()
-            yaml.YAML.dump(self, data, stream, **kw)
+            yaml.YAML.dump(self, data, stream, **kw)  # type: ignore
             if inefficient:
                 return cast(str, stream.getvalue())
-            return None
+            return None  # pragma: no cover
 
     def parse(self, string: Union[str, Path]) -> Dict[str, Entry]:
         # pdoc will inherit the docstring from the base class
@@ -62,7 +62,7 @@ class YAMLParser(Parser):
                 stream = open(string, "r")
             except FileNotFoundError as exc:
                 raise exc
-        yml = yaml.YAML(typ="safe", pure=True)
+        yml = yaml.YAML(typ="safe", pure=True)  # type: ignore
         for entry in yml.load_all(stream):
             for label, data in entry.items():
                 bib[label] = Entry(label, data)
@@ -73,7 +73,7 @@ class YAMLParser(Parser):
         # pdoc will inherit the docstring from the base class
         # noqa: D102
         yml = self.YamlDumper()
-        yml.explicit_start = True  # type: ignore
-        yml.explicit_end = True  # type: ignore
+        yml.explicit_start = True
+        yml.explicit_end = True
         LOGGER.debug("Converting entry %s to YAML format.", entry.label)
         return yml.dump({entry.label: dict(sorted(entry.data.items()))})

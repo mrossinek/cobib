@@ -1,5 +1,7 @@
 """Tests for coBib's TUI Buffer."""
 
+from typing import Any, Dict, List, Optional, Union
+
 import pytest
 
 from cobib.config import config
@@ -13,7 +15,7 @@ class TestTextBuffer:
     """Tests for coBib's TextBuffer."""
 
     @pytest.fixture(autouse=True)
-    def setup(self):
+    def setup(self) -> None:
         """Setup."""
         # pylint: disable=attribute-defined-outside-init
         self.buffer = TextBuffer()
@@ -48,7 +50,7 @@ class TestTextBuffer:
             ],
         ],
     )
-    def test_write(self, strings, expected):
+    def test_write(self, strings: List[str], expected: Dict[str, Any]) -> None:
         """Test write method."""
         for string in strings:
             self.buffer.write(string)
@@ -64,14 +66,16 @@ class TestTextBuffer:
             [[0, 1, 2], "test", "tmp", ["tmp0", "tmp1", "tmp2"]],
         ],
     )
-    def test_replace(self, lines, old, new, expected):
+    def test_replace(
+        self, lines: Union[int, List[int]], old: str, new: str, expected: List[str]
+    ) -> None:
         """Test replace method."""
         for string in ["test" + str(num) for num in range(3)]:
             self.buffer.write(string)
         self.buffer.replace(lines, old, new)
         assert self.buffer.lines == expected
 
-    def test_clear(self):
+    def test_clear(self) -> None:
         """Test clear method."""
         self.buffer.lines = ["test"]
         self.buffer.clear()
@@ -80,7 +84,7 @@ class TestTextBuffer:
         assert self.buffer.width == 0
         assert self.buffer.wrapped is False
 
-    def test_split(self):
+    def test_split(self) -> None:
         """Test split method."""
         self.buffer.lines = ["test\ntest"]
         self.buffer.split()
@@ -171,7 +175,7 @@ class TestTextBuffer:
             ],
         ],
     )
-    def test_wrap(self, width, label_column, expected):
+    def test_wrap(self, width: int, label_column: bool, expected: List[str]) -> None:
         """Test wrap method."""
         self.buffer.lines = [
             "Label0  Title0 by Author0",
@@ -184,7 +188,7 @@ class TestTextBuffer:
         for line, truth in zip(self.buffer.lines, expected):
             assert line.strip() == truth
 
-    def test_unwrap(self):
+    def test_unwrap(self) -> None:
         """Test unwrapping."""
         self.buffer.wrapped = True
         self.buffer.lines = [
@@ -208,7 +212,7 @@ class TestTextBuffer:
             "Label4  Title4 by Author4",
         ]
 
-    def test_view(self, caplog):
+    def test_view(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test view method."""
         self.buffer.lines = [
             "Label0  Title0 by Author0",
@@ -234,7 +238,7 @@ class TestTextBuffer:
             record for record in caplog.record_tuples if record[0] == "MockCursesPad"
         ] == expected_log
 
-    def test_view_with_box(self, caplog):
+    def test_view_with_box(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test view method with box."""
         self.buffer.lines = [
             "Label0  Title0 by Author0",
@@ -261,7 +265,9 @@ class TestTextBuffer:
             record for record in caplog.record_tuples if record[0] == "MockCursesPad"
         ] == expected_log
 
-    def test_view_with_ansi_map(self, caplog, monkeypatch):
+    def test_view_with_ansi_map(
+        self, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test view method with ANSI color map."""
         monkeypatch.setattr("curses.color_pair", lambda *args: args)
         # create ANSI color map for testing purposes
@@ -301,7 +307,9 @@ class TestTextBuffer:
         for message in ["Interpreting ANSI color codes on the fly.", "Applying ANSI color map."]:
             assert ("cobib.tui.buffer", 10, message) in caplog.record_tuples
 
-    def test_view_with_bkgd(self, caplog, monkeypatch):
+    def test_view_with_bkgd(
+        self, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test view method with background."""
         monkeypatch.setattr("curses.color_pair", lambda *args: args)
         self.buffer.lines = [
@@ -329,7 +337,9 @@ class TestTextBuffer:
             record for record in caplog.record_tuples if record[0] == "MockCursesPad"
         ] == expected_log
 
-    def test_view_with_bkgd_and_box(self, caplog, monkeypatch):
+    def test_view_with_bkgd_and_box(
+        self, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test view method with background and box."""
         monkeypatch.setattr("curses.color_pair", lambda *args: args)
         self.buffer.lines = [
@@ -365,7 +375,12 @@ class TestTextBuffer:
             [1],
         ],
     )
-    def test_popup(self, caplog, monkeypatch, background):
+    def test_popup(
+        self,
+        caplog: pytest.LogCaptureFixture,
+        monkeypatch: pytest.MonkeyPatch,
+        background: Optional[int],
+    ) -> None:
         """Test popup method."""
         monkeypatch.setattr("curses.newpad", lambda *args: MockCursesPad())
         if background is not None:
@@ -377,7 +392,7 @@ class TestTextBuffer:
             "Label3  Title3 by Author3",
             "Label4  Title4 by Author4",
         ]
-        self.buffer.popup(MockTUI(), background=background)
+        self.buffer.popup(MockTUI(), background=background)  # type: ignore
         expected_log = [
             ("MockCursesPad", 10, "erase"),
             ("MockCursesPad", 10, "refresh: 0 0 16 0 19 40"),
@@ -400,10 +415,10 @@ class TestTextBuffer:
         ] == expected_log
 
 
-def test_input_buffer(caplog, monkeypatch):
+def test_input_buffer(caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch) -> None:
     """Test the InptBuffer."""
     monkeypatch.setattr("curses.newpad", lambda *args: MockCursesPad())
-    buffer = InputBuffer(TextBuffer(), MockTUI())
+    buffer = InputBuffer(TextBuffer(), MockTUI())  # type: ignore
     buffer.readline()
     expected_log = [
         ("MockCursesPad", 10, "erase"),

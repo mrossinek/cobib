@@ -73,7 +73,7 @@ import sys
 import textwrap
 from collections import defaultdict
 from operator import itemgetter
-from typing import IO, TYPE_CHECKING, List, Optional
+from typing import IO, TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple
 
 from cobib.database import Database
 
@@ -90,7 +90,7 @@ class ListCommand(Command):
 
     name = "list"
 
-    def execute(self, args: List[str], out: IO = None) -> Optional[List[str]]:
+    def execute(self, args: List[str], out: Optional[IO[Any]] = None) -> Optional[List[str]]:
         """Lists the entries in the database.
 
         This command simply lists the labels and titles of the entries in the database.
@@ -126,7 +126,7 @@ class ListCommand(Command):
         """
         LOGGER.debug("Starting List command.")
         if "--" in args:
-            args.remove("--")
+            args.remove("--")  # pragma: no cover
         parser = ArgumentParser(
             prog="list", description="List subcommand parser.", prefix_chars="+-"
         )
@@ -147,7 +147,7 @@ class ListCommand(Command):
             action="store_true",
             help="concatenate filters with OR instead of AND",
         )
-        unique_keys = set()
+        unique_keys: Set[str] = set()
         LOGGER.debug("Gathering possible filter arguments.")
         for entry in Database().values():
             unique_keys.update(entry.data.keys())
@@ -167,7 +167,7 @@ class ListCommand(Command):
             return None
 
         LOGGER.debug("Constructing filter.")
-        _filter = defaultdict(list)
+        _filter: Dict[Tuple[str, bool], List[Any]] = defaultdict(list)
         for key, val in largs.__dict__.items():
             if key in ["OR", "long", "sort", "reverse"] or val is None:
                 continue
@@ -176,7 +176,8 @@ class ListCommand(Command):
             for i in val:
                 for idx, obj in enumerate(args):
                     if i == obj:
-                        _filter[tuple([key, args[idx - 1][0] == "+"])].append(i)
+                        index: Tuple[str, bool] = (key, args[idx - 1][0] == "+")
+                        _filter[index].append(i)
                         break
         LOGGER.debug("Final filter configuration: %s", dict(_filter))
         if largs.OR:
@@ -256,7 +257,7 @@ class ListCommand(Command):
             tui.STATE.list_args += ["-s"]
         # handle input via prompt
         command, _ = tui.execute_command(
-            "list " + " ".join(tui.STATE.list_args), out=tui.viewport.buffer
+            "list " + " ".join(tui.STATE.list_args), out=tui.viewport.buffer  # type: ignore
         )
         # after the command has been executed n the prompt handler, the `command` variable will
         # contain the contents of the prompt

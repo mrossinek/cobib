@@ -16,7 +16,7 @@ from cobib.utils.logging import log_to_file, log_to_stream
 LOGGER = logging.getLogger(__name__)
 
 
-def main():
+def main() -> None:
     """Main executable.
 
     coBib's main function used to parse optional keyword arguments and subcommands.
@@ -88,7 +88,7 @@ def main():
         subcmd.execute(args.args)
 
 
-def helper_main():
+def helper_main() -> None:
     """Shell helper.
 
     This is an auxiliary main method which exposes some shell utility methods.
@@ -131,4 +131,4 @@ def helper_main():
 
 
 if __name__ == "__main__":
-    main()
+    main()  # pragma: no cover

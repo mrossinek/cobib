@@ -15,7 +15,7 @@ from .parser_test import ParserTest
 class TestArxivParser(ParserTest):
     """Tests for coBib's ArxivParser."""
 
-    def test_from_arxiv(self, caplog):
+    def test_from_arxiv(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test parsing from arxiv."""
         entries = parsers.ArxivParser().parse("1812.09976")
 
@@ -43,13 +43,13 @@ class TestArxivParser(ParserTest):
         assert entry.data["year"] == "2018"
 
     # regression test for https://gitlab.com/mrossinek/cobib/-/issues/57
-    def test_invalid_arxiv_id(self):
+    def test_invalid_arxiv_id(self) -> None:
         """Test parsing an invalid arXiv ID."""
         entries = parsers.ArxivParser().parse("10.1021/acs.chemrev.8b00803")
         assert not entries
         assert entries == {}
 
-    def test_arxiv_without_doi(self):
+    def test_arxiv_without_doi(self) -> None:
         """Test parsing an arXiv ID without an associated DOI."""
         entries = parsers.ArxivParser().parse("1701.08213")
         entry = list(entries.values())[0]
@@ -63,10 +63,12 @@ class TestArxivParser(ParserTest):
         assert entry.data["title"] == "Tapering off qubits to simulate fermionic Hamiltonians"
         assert entry.data["year"] == "2017"
 
-    def test_catching_api_error(self, caplog, monkeypatch):
+    def test_catching_api_error(
+        self, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test catching API error."""
 
-        def raise_exception(*args, **kwargs):
+        def raise_exception(*args, **kwargs):  # type: ignore
             """Mock function to raise an Exception."""
             raise requests.exceptions.RequestException()
 
@@ -79,7 +81,7 @@ class TestArxivParser(ParserTest):
             "An Exception occurred while trying to query the arXiv ID: dummy.",
         ) in caplog.record_tuples
 
-    def test_dump(self, caplog):
+    def test_dump(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test dumping."""
         entry = Entry("dummy", {"ID": "dummy", "ENTRYTYPE": "unpublished"})
         parsers.ArxivParser().dump(entry)

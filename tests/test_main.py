@@ -5,6 +5,7 @@ import logging
 import os
 import tempfile
 from pathlib import Path
+from typing import Any, List
 
 import pytest
 
@@ -23,11 +24,13 @@ class TestMainExecutable(CmdLineTest):
 
     @staticmethod
     @pytest.fixture
-    def setup():
+    def setup() -> None:
         """Load testing config."""
         config.load(get_resource("debug.py"))
 
-    def test_version(self, setup, monkeypatch, capsys):
+    def test_version(
+        self, setup: Any, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    ) -> None:
         """Tests the version parser argument."""
         with pytest.raises(SystemExit):
             self.run_module(monkeypatch, "main", ["cobib", "--version"])
@@ -50,7 +53,15 @@ class TestMainExecutable(CmdLineTest):
             ["-vv", logging.DEBUG],
         ],
     )
-    def test_verbosity(self, setup, monkeypatch, main, args, verbosity_arg, level):
+    def test_verbosity(
+        self,
+        setup: Any,
+        monkeypatch: pytest.MonkeyPatch,
+        main: str,
+        args: List[str],
+        verbosity_arg: str,
+        level: int,
+    ) -> None:
         """Tests the verbosity parser argument."""
         # we choose the open command as an arbitrary choice which has minimal side effects
         args = ["cobib"] + args
@@ -66,14 +77,16 @@ class TestMainExecutable(CmdLineTest):
             ["helper_main", ["_example_config"]],
         ],
     )
-    def test_logfile(self, setup, monkeypatch, main, args):
+    def test_logfile(
+        self, setup: Any, monkeypatch: pytest.MonkeyPatch, main: str, args: List[str]
+    ) -> None:
         """Tests the logfile parser argument."""
         logfile = str(Path(tempfile.gettempdir()) / "cobib_test_logging.log")
         # we choose the open command as an arbitrary choice which has minimal side effects
         self.run_module(monkeypatch, main, ["cobib", "-l", logfile] + args)
         try:
             assert isinstance(logging.getLogger().handlers[0], logging.FileHandler)
-            assert logging.getLogger().handlers[0].baseFilename == logfile
+            assert logging.getLogger().handlers[0].baseFilename == logfile  # type: ignore
         finally:
             os.remove(logfile)
 
@@ -84,7 +97,7 @@ class TestMainExecutable(CmdLineTest):
             ["helper_main", ["_example_config"]],
         ],
     )
-    def test_configfile(self, monkeypatch, main, args):
+    def test_configfile(self, monkeypatch: pytest.MonkeyPatch, main: str, args: List[str]) -> None:
         """Tests the configfile parser argument."""
         # we choose the open command as an arbitrary choice which has minimal side effects
         self.run_module(monkeypatch, main, ["cobib", "-c", get_resource("debug.py")] + args)

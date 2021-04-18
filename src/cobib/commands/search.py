@@ -40,7 +40,7 @@ import os
 import re
 import shlex
 import sys
-from typing import IO, TYPE_CHECKING, List, Optional, Tuple
+from typing import IO, TYPE_CHECKING, Any, List, Optional, Tuple
 
 from cobib import __version__
 from cobib.config import config
@@ -60,7 +60,9 @@ class SearchCommand(Command):
 
     name = "search"
 
-    def execute(self, args: List[str], out: IO = None) -> Optional[Tuple[int, List[str]]]:
+    def execute(
+        self, args: List[str], out: Optional[IO[Any]] = None
+    ) -> Optional[Tuple[int, List[str]]]:
         """Searches in the database.
 
         This command searches the database for a regex-interpreted query.
@@ -122,7 +124,7 @@ class SearchCommand(Command):
 
         labels = ListCommand().execute(largs.filter, out=open(os.devnull, "w"))
         if labels is None:
-            return None
+            return None  # pragma: no cover
         LOGGER.debug("Available entries to search: %s", labels)
 
         ignore_case = config.commands.search.ignore_case or largs.ignore_case
@@ -166,7 +168,7 @@ class SearchCommand(Command):
         LOGGER.debug("Search command triggered from TUI.")
         tui.viewport.clear()
         # handle input via prompt
-        command, results = tui.execute_command("search", out=tui.viewport.buffer)
+        command, results = tui.execute_command("search", out=tui.viewport.buffer)  # type: ignore
         if tui.viewport.buffer.lines and results is not None:
             hits, labels = results
             tui.STATE.mode = "search"
