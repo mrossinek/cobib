@@ -1,8 +1,11 @@
 """Tests for coBib's ShowCommand."""
 # pylint: disable=no-self-use,unused-argument
 
+from __future__ import annotations
+
 from io import StringIO
 from itertools import zip_longest
+from typing import TYPE_CHECKING, Any, List, Type
 
 import pytest
 
@@ -12,15 +15,18 @@ from .. import get_resource
 from ..tui.tui_test import TUITest
 from .command_test import CommandTest
 
+if TYPE_CHECKING:
+    import cobib.commands
+
 
 class TestShowCommand(CommandTest, TUITest):
     """Tests for coBib's ShowCommand."""
 
-    def get_command(self):
+    def get_command(self) -> Type[cobib.commands.base_command.Command]:
         """Get the command tested by this class."""
         return ShowCommand
 
-    def _assert(self, output):
+    def _assert(self, output: List[str]) -> None:
         """Common assertion utility method."""
         with open(get_resource("example_literature.bib"), "r") as expected:
             # we use zip_longest to ensure that we don't have more than we expect
@@ -29,14 +35,14 @@ class TestShowCommand(CommandTest, TUITest):
                     continue
                 assert line == truth.strip("\n")
 
-    def test_command(self, setup):
+    def test_command(self, setup: Any) -> None:  # type: ignore
         """Test the command itself."""
         # redirect output of show to string
         file = StringIO()
         ShowCommand().execute(["einstein"], out=file)
         self._assert(file.getvalue().split("\n"))
 
-    def test_warning_missing_label(self, setup, caplog):
+    def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test warning for missing label."""
         ShowCommand().execute(["dummy"])
         assert (
@@ -45,7 +51,9 @@ class TestShowCommand(CommandTest, TUITest):
             "No entry with the label 'dummy' could be found.",
         ) in caplog.record_tuples
 
-    def test_cmdline(self, setup, monkeypatch, capsys):
+    def test_cmdline(
+        self, setup: Any, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    ) -> None:
         """Test the command-line access of the command."""
         self.run_module(monkeypatch, "main", ["cobib", "show", "einstein"])
         self._assert(capsys.readouterr().out.strip().split("\n"))
@@ -57,10 +65,10 @@ class TestShowCommand(CommandTest, TUITest):
             [True, "v\n"],
         ],
     )
-    def test_tui(self, setup, select, keys):
+    def test_tui(self, setup: Any, select: bool, keys: str) -> None:
         """Test the TUI access of the command."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             expected_screen = [
                 "@misc{knuthwebsite,",
                 "author = {Donald Knuth},",

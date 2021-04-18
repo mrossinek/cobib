@@ -14,12 +14,12 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
-from typing import IO, TYPE_CHECKING, List
+from typing import IO, TYPE_CHECKING, Any, List
 
 from cobib import __version__
 from cobib.config import config
 from cobib.database import Database
-from cobib.parsers import BibtexParser
+from cobib.parsers.bibtex import BibtexParser
 
 from .base_command import ArgumentParser, Command
 
@@ -34,7 +34,7 @@ class ShowCommand(Command):
 
     name = "show"
 
-    def execute(self, args: List[str], out: IO = sys.stdout) -> None:
+    def execute(self, args: List[str], out: IO[Any] = sys.stdout) -> None:
         """Shows an entry in its BibLaTex-format.
 
         This command simply shows/prints the specified entry as a BibLaTex-formmatted string.
@@ -79,7 +79,7 @@ class ShowCommand(Command):
         # populate buffer with entry data
         LOGGER.debug("Clearing current buffer contents.")
         tui.viewport.clear()
-        ShowCommand().execute([label], out=tui.viewport.buffer)
+        ShowCommand().execute([label], out=tui.viewport.buffer)  # type: ignore
         tui.viewport.buffer.split()
         if label in tui.selection:
             LOGGER.debug("Current entry is selected. Applying highlighting.")

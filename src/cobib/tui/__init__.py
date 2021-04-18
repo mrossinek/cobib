@@ -11,10 +11,12 @@ The code is split into several submodules:
 
 import curses
 
-from .buffer import InputBuffer, TextBuffer
-from .frame import Frame
-from .state import Mode, State
-from .tui import TUI
+from .buffer import InputBuffer as InputBuffer
+from .buffer import TextBuffer as TextBuffer
+from .frame import Frame as Frame
+from .state import Mode as Mode
+from .state import State as State
+from .tui import TUI as TUI
 
 
 def tui() -> None:
@@ -24,4 +26,4 @@ def tui() -> None:
     It simply passes the `cobib.tui.tui.TUI` initializer to the `curses.wrapper` method which takes
     care of all the rest.
     """
-    curses.wrapper(TUI)
+    curses.wrapper(TUI)  # pragma: no cover

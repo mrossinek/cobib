@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import re
 import subprocess
-from typing import IO, TYPE_CHECKING, Any, Dict, List, Tuple, Type, Union, cast
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union
 
 from pylatexenc.latexencode import UnicodeToLatexEncoder
 
@@ -206,7 +206,7 @@ class Entry:
             if isinstance(value, str):
                 self.data[key] = enc.unicode_to_latex(value)
 
-    def save(self, parser: cobib.parsers.base_parser.Parser = None) -> str:
+    def save(self, parser: Optional[cobib.parsers.base_parser.Parser] = None) -> str:
         """Saves an entry using the parsers `dump` method.
 
         This method is mainly used by the `Database.save` method and takes care of some final
@@ -227,7 +227,7 @@ class Entry:
         self.escape_special_chars(config.database.format.suppress_latex_warnings)
         if parser is None:
             # pylint: disable=import-outside-toplevel,cyclic-import
-            from cobib.parsers import YAMLParser
+            from cobib.parsers.yaml import YAMLParser
 
             parser = YAMLParser()
         return parser.dump(self) or ""  # `dump` may return `None`
@@ -296,7 +296,7 @@ class Entry:
         LOGGER.debug("Searching entry %s for %s.", self.label, query)
         matches: List[List[str]] = []
         # pylint: disable=import-outside-toplevel,cyclic-import
-        from cobib.parsers import BibtexParser
+        from cobib.parsers.bibtex import BibtexParser
 
         bibtex = BibtexParser().dump(self).split("\n")
         re_flags = re.IGNORECASE if ignore_case else 0
@@ -333,7 +333,7 @@ class Entry:
                 )
                 if grep.stdout is None:
                     continue
-                stdout = cast(IO[bytes], grep.stdout)
+                stdout = grep.stdout
                 # extract results
                 results = stdout.read().decode().split("\n--\n")
                 for match in results:

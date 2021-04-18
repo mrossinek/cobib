@@ -1,7 +1,10 @@
 """Tests for coBib's AddCommand."""
 # pylint: disable=no-self-use,unused-argument
 
+from __future__ import annotations
+
 from itertools import zip_longest
+from typing import TYPE_CHECKING, Any, Dict, List, Type
 
 import pytest
 
@@ -20,15 +23,18 @@ EXAMPLE_DUPLICATE_ENTRY_YAML = get_resource("example_duplicate_entry.yaml", "com
 EXAMPLE_MULTI_FILE_ENTRY_BIB = get_resource("example_multi_file_entry.bib", "commands")
 EXAMPLE_MULTI_FILE_ENTRY_YAML = get_resource("example_multi_file_entry.yaml", "commands")
 
+if TYPE_CHECKING:
+    import cobib.commands
+
 
 class TestAddCommand(CommandTest, TUITest):
     """Tests for coBib's AddCommand."""
 
-    def get_command(self):
+    def get_command(self) -> Type[cobib.commands.base_command.Command]:
         """Get the command tested by this class."""
         return AddCommand
 
-    def _assert(self, extra_filename):
+    def _assert(self, extra_filename: str) -> None:
         """Common assertion utility method."""
         # compare with reference file
         with open(EXAMPLE_LITERATURE, "r") as expected:
@@ -40,7 +46,7 @@ class TestAddCommand(CommandTest, TUITest):
             for line, truth in zip_longest(file, true_lines):
                 assert line == truth
 
-    def _assert_entry(self, label, **kwargs):
+    def _assert_entry(self, label: str, **kwargs) -> None:  # type: ignore
         """An additional assertion utility to check specific entry fields."""
         entry = Database()[label]
         for key, value in kwargs.items():
@@ -67,7 +73,7 @@ class TestAddCommand(CommandTest, TUITest):
             [["tag", "tag2"], {"tags": "tag, tag2"}],
         ],
     )
-    def test_command(self, setup, more_args, entry_kwargs):
+    def test_command(self, setup: Any, more_args: List[str], entry_kwargs: Dict[str, Any]) -> None:
         """Test the command itself."""
         git = setup.get("git", False)
 
@@ -89,7 +95,7 @@ class TestAddCommand(CommandTest, TUITest):
             # Note: we do not assert the arguments, because they depend on the available parsers
             self.assert_git_commit_message("add", None)
 
-    def test_add_new_entry(self, setup, caplog):
+    def test_add_new_entry(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test adding a new plain entry."""
         AddCommand().execute(["-l", "dummy"])
         assert (
@@ -107,7 +113,7 @@ class TestAddCommand(CommandTest, TUITest):
             assert lines[dummy_start + 2] == "  ID: dummy\n"
             assert lines[dummy_start + 3] == "...\n"
 
-    def test_skip_manual_add_if_exists(self, setup, caplog):
+    def test_skip_manual_add_if_exists(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test manual addition is skipped if the label exists already."""
         AddCommand().execute(["-l", "einstein"])
         assert (
@@ -117,7 +123,7 @@ class TestAddCommand(CommandTest, TUITest):
             "Please use `cobib edit einstein` instead!",
         ) in caplog.record_tuples
 
-    def test_warning_missing_label(self, setup, caplog):
+    def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test warning for missing label and any other input."""
         AddCommand().execute([""])
         assert (
@@ -134,7 +140,7 @@ class TestAddCommand(CommandTest, TUITest):
         ],
         indirect=["setup"],
     )
-    def test_overwrite_label(self, setup):
+    def test_overwrite_label(self, setup: Any) -> None:
         """Test add command while specifying a label manually.
 
         Regression test against #4.
@@ -159,15 +165,15 @@ class TestAddCommand(CommandTest, TUITest):
         indirect=["setup"],
     )
     # other variants are already covered by test_command
-    def test_cmdline(self, setup, monkeypatch):
+    def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test the command-line access of the command."""
         self.run_module(monkeypatch, "main", ["cobib", "add", "-b", EXAMPLE_MULTI_FILE_ENTRY_BIB])
         self._assert(EXAMPLE_MULTI_FILE_ENTRY_YAML)
 
-    def test_tui(self, setup):
+    def test_tui(self, setup: Any) -> None:
         """Test the TUI access of the command."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             self._assert(EXAMPLE_MULTI_FILE_ENTRY_YAML)
 
             assert "example_multi_file_entry" in screen.display[1]

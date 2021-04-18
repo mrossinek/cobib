@@ -1,10 +1,13 @@
 """Tests for coBib's UndoCommand."""
 # pylint: disable=no-self-use,unused-argument
 
+from __future__ import annotations
+
 import logging
 import os
 import subprocess
 from shutil import rmtree
+from typing import TYPE_CHECKING, Any, Type
 
 import pytest
 
@@ -18,15 +21,18 @@ from .command_test import CommandTest
 
 EXAMPLE_MULTI_FILE_ENTRY_BIB = get_resource("example_multi_file_entry.bib", "commands")
 
+if TYPE_CHECKING:
+    import cobib.commands
+
 
 class TestUndoCommand(CommandTest, TUITest):
     """Tests for coBib's UndoCommand."""
 
-    def get_command(self):
+    def get_command(self) -> Type[cobib.commands.base_command.Command]:
         """Get the command tested by this class."""
         return UndoCommand
 
-    def _assert(self):
+    def _assert(self) -> None:
         """Common assertion utility method."""
         assert Database().get("example_multi_file_entry", None) is None
 
@@ -37,9 +43,9 @@ class TestUndoCommand(CommandTest, TUITest):
         )
         message, _ = proc.communicate()
         # decode it
-        message = message.decode("utf-8").split("\n")
+        split_message = message.decode("utf-8").split("\n")
         # assert subject line
-        assert "Undo" in message[0]
+        assert "Undo" in split_message[0]
 
     @pytest.mark.parametrize(
         ["setup", "expected_exit"],
@@ -50,7 +56,9 @@ class TestUndoCommand(CommandTest, TUITest):
         ],
         indirect=["setup"],
     )
-    def test_command(self, setup, expected_exit, caplog):
+    def test_command(
+        self, setup: Any, expected_exit: bool, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """Test the command itself."""
         git = setup.get("git", False)
 
@@ -89,7 +97,7 @@ class TestUndoCommand(CommandTest, TUITest):
         ],
         indirect=["setup"],
     )
-    def test_skipping_undone_commits(self, setup, caplog):
+    def test_skipping_undone_commits(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test skipping already undone commits."""
         AddCommand().execute(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB])
         AddCommand().execute(["-b", get_resource("example_entry.bib")])
@@ -108,7 +116,7 @@ class TestUndoCommand(CommandTest, TUITest):
         ],
         indirect=["setup"],
     )
-    def test_warn_insufficient_setup(self, setup, caplog):
+    def test_warn_insufficient_setup(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test warning in case of insufficient setup."""
         rmtree(self.COBIB_TEST_DIR_GIT)
         UndoCommand().execute([])
@@ -129,7 +137,9 @@ class TestUndoCommand(CommandTest, TUITest):
         indirect=["setup"],
     )
     # other variants are already covered by test_command
-    def test_cmdline(self, setup, monkeypatch, caplog):
+    def test_cmdline(
+        self, setup: Any, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """Test the command-line access of the command."""
         AddCommand().execute(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB])
         self.run_module(monkeypatch, "main", ["cobib", "undo"])
@@ -137,7 +147,7 @@ class TestUndoCommand(CommandTest, TUITest):
         self._assert()
 
     # manually overwrite this test because we must enable git integration
-    def test_handle_argument_error(self, caplog):
+    def test_handle_argument_error(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test handling of ArgumentError."""
         # use temporary config
         config.database.file = self.COBIB_TEST_DIR / "database.yaml"
@@ -163,10 +173,10 @@ class TestUndoCommand(CommandTest, TUITest):
         ],
         indirect=["setup"],
     )
-    def test_tui(self, setup):
+    def test_tui(self, setup: Any) -> None:
         """Test the TUI access of the command."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             # check that the undone entry has actually been present in the buffer before
             assert (
                 "cobib.tui.buffer",

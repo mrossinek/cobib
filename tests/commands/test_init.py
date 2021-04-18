@@ -1,9 +1,12 @@
 """Tests for coBib's InitCommand."""
 # pylint: disable=no-self-use,unused-argument
 
+from __future__ import annotations
+
 import os
 from datetime import datetime
 from shutil import rmtree
+from typing import TYPE_CHECKING, Any, Type
 
 import pytest
 
@@ -12,11 +15,14 @@ from cobib.config import config
 
 from .command_test import CommandTest
 
+if TYPE_CHECKING:
+    import cobib.commands
+
 
 class TestInitCommand(CommandTest):
     """Tests for coBib's InitCommand."""
 
-    def get_command(self):
+    def get_command(self) -> Type[cobib.commands.base_command.Command]:
         """Get the command tested by this class."""
         return InitCommand
 
@@ -30,7 +36,7 @@ class TestInitCommand(CommandTest):
         indirect=["setup"],
     )
     @pytest.mark.parametrize(["safe"], [[False], [True]])
-    def test_command(self, setup, safe):
+    def test_command(self, setup: Any, safe: bool) -> None:
         """Test the command itself."""
         if safe:
             # fill database file
@@ -66,7 +72,7 @@ class TestInitCommand(CommandTest):
         ],
         indirect=["setup"],
     )
-    def test_warn_insufficient_config(self, setup, caplog):
+    def test_warn_insufficient_config(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test warning in case of insufficient config."""
         try:
             # store current time
@@ -108,7 +114,7 @@ class TestInitCommand(CommandTest):
         indirect=["setup"],
     )
     # other variants are already covered by test_command
-    def test_cmdline(self, setup, monkeypatch):
+    def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test the command-line access of the command."""
         # store current time
         now = float(datetime.now().timestamp())

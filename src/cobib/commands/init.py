@@ -26,7 +26,7 @@ import argparse
 import logging
 import os
 import sys
-from typing import IO, TYPE_CHECKING, List
+from typing import IO, TYPE_CHECKING, Any, List
 
 from cobib.config import config
 from cobib.utils.rel_path import RelPath
@@ -44,7 +44,7 @@ class InitCommand(Command):
 
     name = "init"
 
-    def execute(self, args: List[str], out: IO = sys.stdout) -> None:
+    def execute(self, args: List[str], out: IO[Any] = sys.stdout) -> None:
         """Initializes the database.
 
         Initializes the YAML database in the location specified by `config.database.file`.

@@ -16,7 +16,7 @@ from .parser_test import ParserTest
 class TestISBNParser(ParserTest):
     """Tests for coBib's ISBNParser."""
 
-    def test_from_isbn(self, caplog):
+    def test_from_isbn(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test parsing from ISBN."""
         entries = parsers.ISBNParser().parse("978-1-449-35573-9")
 
@@ -33,7 +33,7 @@ class TestISBNParser(ParserTest):
         assert entry.data["year"] == "2013"
 
     # regression test for https://gitlab.com/mrossinek/cobib/-/issues/53
-    def test_from_empty_isbn(self, caplog):
+    def test_from_empty_isbn(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test parsing an empty ISBN."""
         entries = parsers.ISBNParser().parse("3860704443")
         assert not entries
@@ -43,10 +43,12 @@ class TestISBNParser(ParserTest):
             (source, level) for source, level, _ in caplog.record_tuples
         ]
 
-    def test_catching_api_error(self, caplog, monkeypatch):
+    def test_catching_api_error(
+        self, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test catching API error."""
 
-        def raise_exception(*args, **kwargs):
+        def raise_exception(*args, **kwargs):  # type: ignore
             """Mock function to raise an Exception."""
             raise requests.exceptions.RequestException()
 
@@ -59,10 +61,12 @@ class TestISBNParser(ParserTest):
             "An Exception occurred while trying to query the ISBN: 978-1-449-35573-9.",
         ) in caplog.record_tuples
 
-    def test_catching_decode_error(self, caplog, monkeypatch):
+    def test_catching_decode_error(
+        self, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test catching json decode error."""
 
-        def raise_exception(*args, **kwargs):
+        def raise_exception(*args, **kwargs):  # type: ignore
             """Mock function to raise an Exception."""
             raise json.JSONDecodeError("", "", 0)
 
@@ -79,7 +83,7 @@ class TestISBNParser(ParserTest):
         else:
             pytest.fail("No Error caught by ISBNParser")
 
-    def test_dump(self, caplog):
+    def test_dump(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test dumping."""
         entry = Entry("dummy", {"ID": "dummy", "ENTRYTYPE": "unpublished"})
         parsers.ISBNParser().dump(entry)

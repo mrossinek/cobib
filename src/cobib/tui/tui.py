@@ -42,6 +42,8 @@ In order to not duplicate the information here, please refer to the end of `cobi
 where all settings are listed and commented in detail.
 """
 
+from __future__ import annotations
+
 import curses
 import fcntl
 import logging
@@ -99,23 +101,23 @@ class TUI:
     ANSI_MAP: Dict[str, int] = {}
     """A dictionary mapping ANSI color codes to `curses` color pairs."""
 
-    COMMANDS: Dict[str, Callable] = {
-        "Add": commands.AddCommand.tui,
-        "Delete": commands.DeleteCommand.tui,
-        "Edit": commands.EditCommand.tui,
-        "Export": commands.ExportCommand.tui,
-        "Filter": partial(commands.ListCommand.tui, sort_mode=False),
+    COMMANDS: Dict[str, Callable] = {  # type: ignore
+        "Add": commands.add.AddCommand.tui,
+        "Delete": commands.delete.DeleteCommand.tui,
+        "Edit": commands.edit.EditCommand.tui,
+        "Export": commands.export.ExportCommand.tui,
+        "Filter": partial(commands.list.ListCommand.tui, sort_mode=False),
         "Help": lambda self: self.help(),
-        "Modify": commands.ModifyCommand.tui,
-        "Open": commands.OpenCommand.tui,
+        "Modify": commands.modify.ModifyCommand.tui,
+        "Open": commands.open.OpenCommand.tui,
         "Prompt": lambda self: self.execute_command(None),
         "Quit": lambda self: self.quit(),
-        "Redo": commands.RedoCommand.tui,
-        "Search": commands.SearchCommand.tui,
+        "Redo": commands.redo.RedoCommand.tui,
+        "Search": commands.search.SearchCommand.tui,
         "Select": lambda self: self.select(),
-        "Show": commands.ShowCommand.tui,
-        "Sort": partial(commands.ListCommand.tui, sort_mode=True),
-        "Undo": commands.UndoCommand.tui,
+        "Show": commands.show.ShowCommand.tui,
+        "Sort": partial(commands.list.ListCommand.tui, sort_mode=True),
+        "Undo": commands.undo.UndoCommand.tui,
         "Wrap": lambda self: self.viewport.wrap(),
         "x": lambda self, update: self.viewport.scroll_x(update),
         "y": lambda self, update: self.viewport.scroll_y(update),
@@ -233,7 +235,7 @@ class TUI:
             # start key event loop
             LOGGER.debug("Starting key event loop.")
             self.loop()
-            LOGGER.info("Exiting TUI.")
+            LOGGER.info("Exiting TUI.")  # pragma: no cover
 
     def resize_handler(self, signum: Optional[int], frame) -> None:  # type: ignore
         # pylint: disable=unused-argument
@@ -441,13 +443,13 @@ class TUI:
                 break
 
             # highlight current line
-            current_attributes = []
+            current_attributes: List[Optional[int]] = []
             for x_pos in range(0, self.viewport.pad.getmaxyx()[1]):
                 x_ch = self.viewport.pad.inch(STATE.current_line, x_pos)
                 # store attributes by filtering out the character text
-                current_attributes.append(x_ch & curses.A_CHARTEXT)
+                current_attributes.append(x_ch & curses.A_CHARTEXT)  # type: ignore
                 # extract color information
-                x_color = x_ch & curses.A_COLOR
+                x_color = x_ch & curses.A_COLOR  # type: ignore
                 color_pair_content = curses.pair_content(curses.pair_number(x_color))
                 # if the current color attribute is lower in priority than the current line
                 # highlighting, use that instead
@@ -471,8 +473,9 @@ class TUI:
 
             # reset highlight of current line
             for x_pos in range(0, self.viewport.pad.getmaxyx()[1]):
-                if current_attributes[x_pos] is not None:
-                    self.viewport.pad.chgat(STATE.current_line, x_pos, 1, current_attributes[x_pos])
+                attr = current_attributes[x_pos]
+                if attr is not None:
+                    self.viewport.pad.chgat(STATE.current_line, x_pos, 1, attr)
 
     def select(self) -> None:
         """Toggles selection of the label currently under the cursor."""
@@ -591,7 +594,7 @@ class TUI:
                 command = cast(bytes, self.prompt.instr(0, 1)).decode("utf-8").strip()
                 break
             elif key == -1:  # no input
-                break
+                break  # pragma: no cover
             else:
                 # any normal key is simply echoed
                 self.prompt.resize(1, max(cur_x + 2, self.width))
@@ -607,12 +610,12 @@ class TUI:
         self.prompt.clear()
         self.prompt.refresh(0, 0, self.height - 1, 0, self.height, self.width - 1)
 
-        return cast(str, command)
+        return command
 
     def execute_command(
         self,
         command: Union[str, List[str]],
-        out: IO = None,
+        out: Optional[IO[Any]] = None,
         pass_selection: bool = False,
         skip_prompt: bool = False,
     ) -> Tuple[List[str], Any]:
@@ -654,8 +657,8 @@ class TUI:
                     command += ["--"]
                     command.extend(list(self.selection))
                 result = subcmd.execute(command[1:], out=out)
-            except SystemExit:
-                pass
+            except SystemExit:  # pragma: no cover
+                pass  # pragma: no cover
             # if error occurred print info to prompt
             if stderr.lines:
                 LOGGER.warning('The command "%s" resulted in an error.', " ".join(command))

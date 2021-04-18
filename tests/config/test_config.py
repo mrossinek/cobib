@@ -2,6 +2,7 @@
 # pylint: disable=unused-argument, redefined-outer-name
 
 import logging
+from typing import Any, Generator, List
 
 import pytest
 
@@ -13,7 +14,7 @@ from .. import get_resource
 EXAMPLE_LITERATURE = get_resource("example_literature.yaml")
 
 
-def test_config_init():
+def test_config_init() -> None:
     """Test Config initialization."""
     # empty init
     assert Config() == {}
@@ -23,16 +24,16 @@ def test_config_init():
     assert Config({"dummy": "test"}) == {"dummy": "test"}
     # init from non-dictionary
     with pytest.raises(TypeError):
-        Config(True)
+        Config(True)  # type: ignore
     with pytest.raises(TypeError):
-        Config(1)
+        Config(1)  # type: ignore
     with pytest.raises(TypeError):
-        Config("")
+        Config("")  # type: ignore
     with pytest.raises(TypeError):
-        Config([])
+        Config([])  # type: ignore
 
 
-def test_config_getattr():
+def test_config_getattr() -> None:
     """Tests the automatic attribute generation."""
     cfg = Config()
     dummy = cfg.dummy
@@ -40,7 +41,7 @@ def test_config_getattr():
     assert dummy == {}
 
 
-def test_config_recursive_getattr():
+def test_config_recursive_getattr() -> None:
     """Tests the recursive attribute generation."""
     cfg = Config()
     dummy = cfg.dummy.dummy
@@ -49,7 +50,7 @@ def test_config_recursive_getattr():
     assert dummy == {}
 
 
-def test_config_recursive_setattr():
+def test_config_recursive_setattr() -> None:
     """Tests the recursive attribute setting."""
     cfg = Config()
     cfg.dummy.dummy = "test"
@@ -58,20 +59,20 @@ def test_config_recursive_setattr():
     assert cfg.dummy == {"dummy": "test"}
 
 
-def test_config_load():
+def test_config_load() -> None:
     """Test loading another config file."""
     config.load(get_resource("debug.py"))
     assert config.database.file == str(EXAMPLE_LITERATURE)
 
 
-def test_config_load_from_open_file():
+def test_config_load_from_open_file() -> None:
     """Test loading another config from an open file."""
     with open(get_resource("debug.py")) as file:
         config.load(file)
     assert config.database.file == str(EXAMPLE_LITERATURE)
 
 
-def test_config_load_nothing():
+def test_config_load_nothing() -> None:
     """Test nothing changes when no XDG files are present."""
     Config.XDG_CONFIG_FILE = ""
     Config.LEGACY_XDG_CONFIG_FILE = ""
@@ -80,7 +81,7 @@ def test_config_load_nothing():
     config.validate()
 
 
-def test_config_load_xdg():
+def test_config_load_xdg() -> None:
     """Test loading config from XDG path."""
     Config.XDG_CONFIG_FILE = get_resource("debug.py")
     config.load()
@@ -88,7 +89,7 @@ def test_config_load_xdg():
 
 
 # TODO: remove legacy configuration support on 1.1.2022
-def assert_legacy_config():
+def assert_legacy_config() -> None:
     """Asserts the legacy configuration has been applied."""
     assert config.commands.edit.default_entry_type == "string"
     assert config.commands.open.command == "string"
@@ -106,7 +107,7 @@ def assert_legacy_config():
     assert config.tui.key_bindings.prompt == "p"
 
 
-def test_config_load_legacy():
+def test_config_load_legacy() -> None:
     """Test loading a legacy config file."""
     config.load_legacy_config(get_resource("legacy_config.ini", "config"))
     # first, it must pass the validation test
@@ -115,7 +116,7 @@ def test_config_load_legacy():
     assert_legacy_config()
 
 
-def test_config_load_legacy_xdg():
+def test_config_load_legacy_xdg() -> None:
     """Test loading a legacy config from XDG path."""
     Config.XDG_CONFIG_FILE = ""
     Config.LEGACY_XDG_CONFIG_FILE = get_resource("legacy_config.ini", "config")
@@ -124,14 +125,14 @@ def test_config_load_legacy_xdg():
     assert_legacy_config()
 
 
-def test_config_example():
+def test_config_example() -> None:
     """Test the example config."""
     config.clear()
     config.load(get_resource("example.py", "../src/cobib/config/"))
     assert config == Config.DEFAULTS
 
 
-def test_config_validation_failure(caplog):
+def test_config_validation_failure(caplog: pytest.LogCaptureFixture) -> None:
     """Tests SystemExit upon config validation failure."""
     with pytest.raises(SystemExit):
         config.load(get_resource("broken_config.py", "config"))
@@ -143,7 +144,7 @@ def test_config_validation_failure(caplog):
 
 
 @pytest.fixture
-def setup():
+def setup() -> Generator[Any, None, None]:
     """Setup debugging configuration."""
     config.load(get_resource("debug.py"))
     yield setup
@@ -151,7 +152,7 @@ def setup():
     config.defaults()
 
 
-def test_config_validation(setup):
+def test_config_validation(setup: Any) -> None:
     """Test the initial configuration passes all validation checks."""
     config.validate()
 
@@ -211,7 +212,7 @@ def test_config_validation(setup):
         [["tui", "key_bindings"], "show"],
     ],
 )
-def test_missing_config_fields(setup, sections, field):
+def test_missing_config_fields(setup: Any, sections: List[str], field: str) -> None:
     """Test raised RuntimeError for missing config fields."""
     with pytest.raises(RuntimeError) as exc_info:
         section = config
@@ -245,7 +246,7 @@ def test_missing_config_fields(setup, sections, field):
         ["selection_bg"],
     ],
 )
-def test_valid_tui_colors(setup, color):
+def test_valid_tui_colors(setup: Any, color: str) -> None:
     """Test curses color specification validation."""
     with pytest.raises(RuntimeError) as exc_info:
         config.tui.colors[color] = "test"
@@ -267,12 +268,12 @@ def test_valid_tui_colors(setup, color):
         ["selection", "\x1b[37;45m"],
     ],
 )
-def test_get_ansi_color(setup, color, ansi):
+def test_get_ansi_color(setup: Any, color: str, ansi: str) -> None:
     """Test default ANSI color code generation."""
     assert config.get_ansi_color(color) == ansi
 
 
-def test_ignored_tui_color(setup, caplog):
+def test_ignored_tui_color(setup: Any, caplog: pytest.LogCaptureFixture) -> None:
     """Test invalid TUI colors are ignored."""
     config.tui.colors.dummy = "white"
     config.validate()

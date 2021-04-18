@@ -36,11 +36,11 @@ import os
 import sys
 import tempfile
 from pathlib import Path
-from typing import IO, TYPE_CHECKING, List
+from typing import IO, TYPE_CHECKING, Any, List
 
 from cobib.config import config
 from cobib.database import Database, Entry
-from cobib.parsers import YAMLParser
+from cobib.parsers.yaml import YAMLParser
 
 from .base_command import ArgumentParser, Command
 
@@ -55,7 +55,7 @@ class EditCommand(Command):
 
     name = "edit"
 
-    def execute(self, args: List[str], out: IO = sys.stdout) -> None:
+    def execute(self, args: List[str], out: IO[Any] = sys.stdout) -> None:
         """Opens an entry for manual editing.
 
         This command opens an `cobib.database.Entry` in YAML format for manual editing.

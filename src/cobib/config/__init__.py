@@ -21,4 +21,4 @@ from cobib.config import config
 For more information take a look at the example configuration, `cobib.config.example`.
 """
 
-from .config import config
+from .config import config as config

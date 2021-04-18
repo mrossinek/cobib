@@ -13,6 +13,7 @@ from datetime import date
 from functools import partial
 from pathlib import Path
 from time import sleep
+from typing import Any, Callable, Dict, List, Tuple, Union
 
 import pyte
 import pytest
@@ -32,7 +33,7 @@ class TUITest:
     LOGGER = logging.getLogger("TUITest")
 
     @pytest.fixture
-    def patch_curses(self, monkeypatch):
+    def patch_curses(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Monkeypatch curses module methods."""
         monkeypatch.setattr(
             "curses.curs_set", lambda *args: self.LOGGER.debug("curs_set: %s", args)
@@ -58,7 +59,7 @@ class TUITest:
         monkeypatch.setattr("curses.endwin", lambda: self.LOGGER.debug("endwin"))
 
     @staticmethod
-    def init_subprocess_coverage():
+    def init_subprocess_coverage() -> Any:
         """Initializes the coverage reporting in a forked subprocess."""
         try:
             # pylint: disable=import-outside-toplevel
@@ -71,7 +72,7 @@ class TUITest:
         return cov
 
     @staticmethod
-    def end_subprocess_coverage(*_, cov=None):
+    def end_subprocess_coverage(*_, cov=None) -> None:  # type: ignore
         """Ends the subprocess coverage collection.
 
         Args:
@@ -82,7 +83,11 @@ class TUITest:
             cov.save()
 
     @staticmethod
-    def run_tui(keys, assertion, assertion_kwargs):
+    def run_tui(
+        keys: Union[str, List[Union[str, signal.Signals]]],  # pylint: disable=no-member
+        assertion: Callable,  # type: ignore
+        assertion_kwargs: Dict,  # type: ignore
+    ) -> None:
         """Spawns the coBib TUI in a forked pseudo-terminal.
 
         This method attaches a pyte object to the forked terminal to allow screen scraping. It also
@@ -91,10 +96,10 @@ class TUITest:
         produced by the subprocess.
 
         Args:
-            keys (str): a string of characters passed to the TUI process ad verbatim.
-            assertion (callable): a callable method to assert the TUI state. This callable must take
-                                  two arguments: a pyte screen object and the caplog.record_tuples.
-            assertion_kwargs (dict): additional keyword arguments propagated to the assertion call.
+            keys: a string of characters passed to the TUI process ad verbatim.
+            assertion: a callable method to assert the TUI state. This callable must take two
+                       arguments: a pyte screen object and the caplog.record_tuples.
+            assertion_kwargs: additional keyword arguments propagated to the assertion call.
         """
         # create pseudo-terminal
         pid, f_d = os.forkpty()
@@ -134,7 +139,7 @@ class TUITest:
                     screen = pyte.Screen(45, 10)
                     stream = pyte.ByteStream(screen)
                 else:
-                    os.write(f_d, str.encode(key))
+                    os.write(f_d, str.encode(str(key)))
             # scrape pseudo-terminal's screen
             while True:
                 try:
@@ -155,7 +160,7 @@ class TUITest:
             # "failed" test cases produced by the forked child processes)
             os.kill(pid, signal.SIGTERM)
             # read the child process log file
-            logs = []
+            logs: List[Tuple[str, int, str]] = []
             print("### Captured logs from child process ###")
             with open(TMP_LOGFILE, "r") as logfile:
                 for line in logfile.readlines():
@@ -163,12 +168,12 @@ class TUITest:
                     if not line.startswith(str(date.today())):
                         logs[-1] = (logs[-1][0], logs[-1][1], logs[-1][2] + line)
                         continue
-                    line = line.split()
+                    split_line = line.split()
                     logs.append(
                         (
-                            line[3],  # source
-                            getattr(logging, line[2].strip("[]")),  # log level
-                            " ".join(line[5:]),  # message
+                            split_line[3],  # source
+                            getattr(logging, split_line[2].strip("[]")),  # log level
+                            " ".join(split_line[5:]),  # message
                         )
                     )
             os.remove(TMP_LOGFILE)

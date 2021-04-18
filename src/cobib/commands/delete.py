@@ -14,7 +14,7 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
-from typing import IO, TYPE_CHECKING, List
+from typing import IO, TYPE_CHECKING, Any, List
 
 from cobib.database import Database
 
@@ -31,7 +31,7 @@ class DeleteCommand(Command):
 
     name = "delete"
 
-    def execute(self, args: List[str], out: IO = sys.stdout) -> None:
+    def execute(self, args: List[str], out: IO[Any] = sys.stdout) -> None:
         """Deletes an entry.
 
         This command deletes one (or multiple) entries from the database.

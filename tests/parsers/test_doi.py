@@ -15,7 +15,7 @@ from .parser_test import ParserTest
 class TestDOIParser(ParserTest):
     """Tests for coBib's DOIParser."""
 
-    def test_from_doi(self, caplog):
+    def test_from_doi(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test parsing from doi."""
         reference = self.EXAMPLE_ENTRY_DICT.copy()
         # In this specific case the bib file provided by this DOI includes additional (yet
@@ -36,7 +36,7 @@ class TestDOIParser(ParserTest):
         entry = list(entries.values())[0]
         assert entry.data == reference
 
-    def test_invalid_doi(self, caplog):
+    def test_invalid_doi(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test parsing an invalid DOI."""
         entries = parsers.DOIParser().parse("1812.09976")
         assert not entries
@@ -48,10 +48,12 @@ class TestDOIParser(ParserTest):
             "'1812.09976' is not a valid DOI.",
         ) in caplog.record_tuples
 
-    def test_catching_api_error(self, caplog, monkeypatch):
+    def test_catching_api_error(
+        self, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test catching API error."""
 
-        def raise_exception(*args, **kwargs):
+        def raise_exception(*args, **kwargs):  # type: ignore
             """Mock function to raise an Exception."""
             raise requests.exceptions.RequestException()
 
@@ -64,7 +66,7 @@ class TestDOIParser(ParserTest):
             "An Exception occurred while trying to query the DOI: 10.1021/acs.chemrev.8b00803.",
         ) in caplog.record_tuples
 
-    def test_dump(self, caplog):
+    def test_dump(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test dumping."""
         entry = Entry("dummy", {"ID": "dummy", "ENTRYTYPE": "unpublished"})
         parsers.DOIParser().dump(entry)

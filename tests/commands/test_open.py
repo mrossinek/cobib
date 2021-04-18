@@ -1,6 +1,10 @@
 """Tests for coBib's OpenCommand."""
 # pylint: disable=no-self-use,unused-argument
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Type
+
 import pytest
 
 from cobib.commands import OpenCommand
@@ -11,19 +15,22 @@ from .. import get_resource
 from ..tui.tui_test import TUITest
 from .command_test import CommandTest
 
+if TYPE_CHECKING:
+    import cobib.commands
+
 
 class MockStdin:
     """A mock object to replace sys.stdin."""
 
     # pylint: disable=missing-function-docstring
 
-    def __init__(self, string=None):
+    def __init__(self, string: Optional[List[str]] = None) -> None:
         # noqa: D107
         if string is None:
             string = []
         self.string = string + ["\n"]
 
-    def readline(self):
+    def readline(self) -> str:
         # noqa: D102
         return self.string.pop(0)
 
@@ -36,12 +43,12 @@ class TestOpenCommand(CommandTest, TUITest):
     TMP_FILE_A = "/tmp/a.txt"
     TMP_FILE_B = "/tmp/b.txt"
 
-    def get_command(self):
+    def get_command(self) -> Type[cobib.commands.base_command.Command]:
         """Get the command tested by this class."""
         return OpenCommand
 
     @pytest.fixture
-    def post_setup(self, monkeypatch, request):
+    def post_setup(self, monkeypatch: pytest.MonkeyPatch, request) -> None:  # type: ignore
         """Setup."""
         if not hasattr(request, "param"):
             # use default settings
@@ -59,7 +66,9 @@ class TestOpenCommand(CommandTest, TUITest):
 
         yield request.param
 
-    def _assert(self, output, logs=None, **kwargs):
+    def _assert(  # type: ignore
+        self, output: List[str], logs: Optional[List[Tuple[str, int, str]]] = None, **kwargs
+    ) -> None:
         """Common assertion utility method."""
         if not kwargs.get("multi_file", True):
             expected_log = [
@@ -154,7 +163,14 @@ class TestOpenCommand(CommandTest, TUITest):
         ],
         indirect=["post_setup"],
     )
-    def test_command(self, setup, post_setup, caplog, capsys, args):
+    def test_command(
+        self,
+        setup: Any,
+        post_setup: Any,
+        caplog: pytest.LogCaptureFixture,
+        capsys: pytest.CaptureFixture[str],
+        args: List[str],
+    ) -> None:
         """Test the command itself."""
         OpenCommand().execute(args)
 
@@ -163,7 +179,7 @@ class TestOpenCommand(CommandTest, TUITest):
 
         self._assert(true_out, true_log, **post_setup)
 
-    def test_warning_missing_label(self, setup, caplog):
+    def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test warning for missing label."""
         OpenCommand().execute(["dummy"])
         assert (
@@ -172,7 +188,7 @@ class TestOpenCommand(CommandTest, TUITest):
             "No entry with the label 'dummy' could be found.",
         ) in caplog.record_tuples
 
-    def test_warning_nothing_to_open(self, setup, caplog):
+    def test_warning_nothing_to_open(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test warning for label with nothing to open."""
         OpenCommand().execute(["einstein"])
         assert (
@@ -188,7 +204,13 @@ class TestOpenCommand(CommandTest, TUITest):
         ],
         indirect=["post_setup"],
     )
-    def test_cmdline(self, setup, post_setup, monkeypatch, capsys):
+    def test_cmdline(
+        self,
+        setup: Any,
+        post_setup: Any,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
         """Test the command-line access of the command."""
         self.run_module(monkeypatch, "main", ["cobib", "open", "knuthwebsite"])
 
@@ -203,10 +225,10 @@ class TestOpenCommand(CommandTest, TUITest):
             [True, "Gvo"],
         ],
     )
-    def test_tui(self, setup, select, keys):
+    def test_tui(self, setup: Any, select: bool, keys: str) -> None:
         """Test the TUI access of the command."""
 
-        def assertion(screen, logs, **kwargs):
+        def assertion(screen, logs, **kwargs):  # type: ignore
             expected_log = [
                 ("cobib.commands.open", 10, "Open command triggered from TUI."),
                 ("cobib.commands.open", 10, "Starting Open command."),

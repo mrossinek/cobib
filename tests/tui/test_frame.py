@@ -1,6 +1,7 @@
 """Tests for coBib's TUI Frame."""
 
 import re
+from typing import Any, Generator, List, Optional, Set, Tuple, Union
 
 import pytest
 
@@ -18,15 +19,15 @@ class TestTextFrame:
     """Tests for coBib's Frame."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, monkeypatch):
+    def setup(self, monkeypatch: pytest.MonkeyPatch) -> Generator[Any, None, None]:
         """Setup."""
         # pylint: disable=attribute-defined-outside-init
         monkeypatch.setattr("curses.newpad", lambda *args: MockCursesPad())
-        self.frame = Frame(MockTUI(), 10, 20)
+        self.frame = Frame(MockTUI(), 10, 20)  # type: ignore
         yield
         STATE.reset()
 
-    def test_clear(self):
+    def test_clear(self) -> None:
         """Test clear method."""
         self.frame.buffer.lines = ["test"]
         self.frame.clear()
@@ -74,7 +75,9 @@ class TestTextFrame:
             ],
         ],
     )
-    def test_revert(self, caplog, lines, selection, mode):
+    def test_revert(
+        self, caplog: pytest.LogCaptureFixture, lines: List[str], selection: Set[str], mode: str
+    ) -> None:
         """Test revert method."""
         buffer = TextBuffer()
         buffer.lines = lines
@@ -105,7 +108,7 @@ class TestTextFrame:
             if record[0] in ("MockCursesPad", "cobib.tui.frame")
         ] == expected_log
 
-    def test_revert_empty_history(self, caplog):
+    def test_revert_empty_history(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test revert with empty history method."""
         self.frame.revert()
         expected_log = [("cobib.tui.frame", 10, "Empty frame history, nothing to revert")]
@@ -113,7 +116,7 @@ class TestTextFrame:
             record for record in caplog.record_tuples if record[0] == "cobib.tui.frame"
         ] == expected_log
 
-    def test_resize(self, caplog):
+    def test_resize(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test resize method."""
         self.frame.resize(10, 10)
         expected_log = [
@@ -123,7 +126,7 @@ class TestTextFrame:
             record for record in caplog.record_tuples if record[0] == "MockCursesPad"
         ] == expected_log
 
-    def test_refresh(self, caplog):
+    def test_refresh(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test refresh method."""
         self.frame.height = 10
         self.frame.width = 10
@@ -135,7 +138,7 @@ class TestTextFrame:
             record for record in caplog.record_tuples if record[0] == "MockCursesPad"
         ] == expected_log
 
-    def test_view(self, caplog):
+    def test_view(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test view method."""
         self.frame.buffer.lines = [
             "Label0  Title0 by Author0",
@@ -160,7 +163,9 @@ class TestTextFrame:
             record for record in caplog.record_tuples if record[0] == "MockCursesPad"
         ] == expected_log
 
-    def test_view_with_ansi_map(self, caplog, monkeypatch):
+    def test_view_with_ansi_map(
+        self, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test view method with ANSI color map."""
         monkeypatch.setattr("curses.color_pair", lambda *args: args)
         # create ANSI color map for testing purposes
@@ -222,7 +227,17 @@ class TestTextFrame:
         ],
     )
     # when `scrolloff` is None, the default will be used
-    def test_scroll_y(self, caplog, initialize, update, repeat, top, cur, msg, scrolloff):
+    def test_scroll_y(
+        self,
+        caplog: pytest.LogCaptureFixture,
+        initialize: Tuple[int, int],
+        update: Union[int, str],
+        repeat: int,
+        top: int,
+        cur: int,
+        msg: str,
+        scrolloff: Optional[int],
+    ) -> None:
         """Test scroll_y method."""
         config.defaults()
         if scrolloff:
@@ -261,7 +276,15 @@ class TestTextFrame:
             [70, -70, 1, 0, "Scroll viewport horizontally by -70 columns."],
         ],
     )
-    def test_scroll_x(self, caplog, initialize, update, repeat, left, msg):
+    def test_scroll_x(
+        self,
+        caplog: pytest.LogCaptureFixture,
+        initialize: int,
+        update: Union[int, str],
+        repeat: int,
+        left: int,
+        msg: str,
+    ) -> None:
         """Test scroll_x method."""
         text = "A very long line. " * 5
         self.frame.buffer.lines = [text]
@@ -275,7 +298,7 @@ class TestTextFrame:
             assert ("cobib.tui.frame", 10, msg) in caplog.record_tuples
         assert STATE.left_edge == left
 
-    def test_wrap(self):
+    def test_wrap(self) -> None:
         """Test wrap method."""
         self.frame.buffer.lines = ["Long line with some text" for _ in range(10)]
         self.frame.wrap()
@@ -306,10 +329,16 @@ class TestTextFrame:
             ],
         ],
     )
-    def test_get_current_label(self, caplog, lines, cur_y, mode):
+    def test_get_current_label(
+        self,
+        caplog: pytest.LogCaptureFixture,
+        lines: List[str],
+        cur_y: int,
+        mode: str,
+    ) -> None:
         """Test get_current_label method."""
-        self.frame.pad.lines = lines
-        self.frame.pad.current_pos[0] = cur_y
+        self.frame.pad.lines = lines  # type: ignore
+        self.frame.pad.current_pos[0] = cur_y  # type: ignore
         STATE.mode = mode
         cur_label, label_y = self.frame.get_current_label()
         assert cur_label == "Label0"
@@ -335,10 +364,16 @@ class TestTextFrame:
             [["@misc{Label0,", "author = {Nobody.}}"], 1, "coBib version - Label0"],
         ],
     )
-    def test_get_current_label_show(self, caplog, lines, cur_y, topstatus):
+    def test_get_current_label_show(
+        self,
+        caplog: pytest.LogCaptureFixture,
+        lines: List[str],
+        cur_y: int,
+        topstatus: str,
+    ) -> None:
         """Test get_current_label method in SHOW mode."""
-        self.frame.pad.lines = lines
-        self.frame.pad.current_pos[0] = cur_y
+        self.frame.pad.lines = lines  # type: ignore
+        self.frame.pad.current_pos[0] = cur_y  # type: ignore
         STATE.topstatus = topstatus
         STATE.mode = Mode.SHOW.value
         cur_label, label_y = self.frame.get_current_label()
@@ -369,7 +404,9 @@ class TestTextFrame:
             [{"knuthwebsite", "latexcompanion"}, Mode.SHOW.value],
         ],
     )
-    def test_update_list(self, caplog, selection, mode):
+    def test_update_list(
+        self, caplog: pytest.LogCaptureFixture, selection: Set[str], mode: str
+    ) -> None:
         """Test update_list method."""
         # load testing config
         config.load(get_resource("debug.py"))
@@ -432,7 +469,7 @@ class TestTextFrame:
             if record[0] in ("MockCursesPad", "cobib.tui.frame")
         ] == expected_log
 
-    def test_update_list_out_of_view(self):
+    def test_update_list_out_of_view(self) -> None:
         """Test update_list method."""
         # load testing config
         config.load(get_resource("debug.py"))

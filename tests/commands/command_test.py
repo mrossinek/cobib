@@ -1,6 +1,8 @@
 """coBib command test class."""
 # pylint: disable=no-self-use
 
+from __future__ import annotations
+
 import json
 import logging
 import os
@@ -10,6 +12,7 @@ import tempfile
 from abc import abstractmethod
 from pathlib import Path
 from shutil import copyfile, rmtree
+from typing import TYPE_CHECKING, Any, Dict, Optional, Type
 
 import pytest
 
@@ -22,6 +25,9 @@ from ..cmdline_test import CmdLineTest
 
 TMPDIR = Path(tempfile.gettempdir()).resolve()
 
+if TYPE_CHECKING:
+    import cobib.commands
+
 
 class CommandTest(CmdLineTest):
     """The base class for coBib's command test classes."""
@@ -30,15 +36,15 @@ class CommandTest(CmdLineTest):
     COBIB_TEST_DIR_GIT = COBIB_TEST_DIR / ".git"
 
     @abstractmethod
-    def get_command(self):
+    def get_command(self) -> Type[cobib.commands.base_command.Command]:
         """Get the command tested by this class."""
 
     @abstractmethod
-    def test_command(self):
+    def test_command(self) -> None:
         """Test the command itself."""
 
     @pytest.fixture
-    def setup(self, request):
+    def setup(self, request) -> None:  # type: ignore
         """Setup."""
         log_to_stream(logging.DEBUG)
 
@@ -85,7 +91,9 @@ class CommandTest(CmdLineTest):
         # clean up config
         config.defaults()
 
-    def assert_git_commit_message(self, command, args=None):
+    def assert_git_commit_message(
+        self, command: str, args: Optional[Dict[str, Any]] = None
+    ) -> None:
         """Assert the last auto-generated git commit message."""
         # get last commit message
         proc = subprocess.Popen(
@@ -94,17 +102,19 @@ class CommandTest(CmdLineTest):
         )
         message, _ = proc.communicate()
         # decode it
-        message = message.decode("utf-8").split("\n")
+        split_msg = message.decode("utf-8").split("\n")
+        if split_msg is None:
+            return
         # assert subject line
-        assert f"Auto-commit: {command.title()}Command" in message[0]
+        assert f"Auto-commit: {command.title()}Command" in split_msg[0]
 
         if args is not None:
             # assert args
-            args = json.dumps(args, indent=2, default=str)
-            for ref, truth in zip(args.split("\n"), message[2:]):
+            args_str = json.dumps(args, indent=2, default=str)
+            for ref, truth in zip(args_str.split("\n"), split_msg[2:]):
                 assert ref == truth
 
-    def test_handle_argument_error(self, caplog):
+    def test_handle_argument_error(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test handling of ArgumentError."""
         command_cls = self.get_command()
         command_cls().execute(["--dummy"])

@@ -33,7 +33,7 @@ import argparse
 import logging
 import os
 import sys
-from typing import IO, TYPE_CHECKING, List, Tuple
+from typing import IO, TYPE_CHECKING, Any, List, Tuple
 
 from cobib.database import Database
 
@@ -66,7 +66,7 @@ class ModifyCommand(Command):
         field, value = string.split(":")
         return (field, value)
 
-    def execute(self, args: List[str], out: IO = sys.stdout) -> None:
+    def execute(self, args: List[str], out: IO[Any] = sys.stdout) -> None:
         """Modifies multiple entries in bulk.
 
         This command allows bulk modification of multiple entries.

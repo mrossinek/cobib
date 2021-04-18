@@ -1,10 +1,12 @@
 """Tests for coBib's Entry class."""
 
+from typing import Any, Dict, List, Tuple
+
 import pytest
 
 from cobib.config import config
 from cobib.database import Entry
-from cobib.parsers import BibtexParser
+from cobib.parsers.bibtex import BibtexParser
 from cobib.utils.rel_path import RelPath
 
 from .. import get_resource
@@ -31,7 +33,7 @@ EXAMPLE_ENTRY_DICT = {
 }
 
 
-def test_equality():
+def test_equality() -> None:
     """Test entry equality."""
     entry_1 = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     entry_2 = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
@@ -41,14 +43,14 @@ def test_equality():
     assert entry_1 == entry_2
 
 
-def test_mismatching_label_id_fix():
+def test_mismatching_label_id_fix() -> None:
     """Test that the label takes precedence over the label upon mismatch."""
     entry = Entry("Cao2019", EXAMPLE_ENTRY_DICT)
     assert entry.label == "Cao2019"
     assert entry.data["ID"] == "Cao2019"
 
 
-def test_entry_set_label():
+def test_entry_set_label() -> None:
     """Test label changing."""
     # this test may fail if the input dict is not copied
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
@@ -57,7 +59,7 @@ def test_entry_set_label():
     assert entry.data["ID"] == "Cao2019"
 
 
-def test_entry_set_tags():
+def test_entry_set_tags() -> None:
     """Test tags setting."""
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     assert entry.tags is None
@@ -86,7 +88,7 @@ def test_entry_set_tags():
         [EXAMPLE_BIBTEX_FILE, EXAMPLE_YAML_FILE],
     ],
 )
-def test_entry_set_file(files):
+def test_entry_set_file(files: List[str]) -> None:
     """Test file setting."""
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     entry.file = files[0] if len(files) == 1 else files
@@ -105,14 +107,14 @@ def test_entry_set_file(files):
         [{("author", False): ["wrong_author"], ("year", True): ["2019"]}, False],
     ],
 )
-def test_entry_matches(filter_, or_):
+def test_entry_matches(filter_: Dict[Tuple[str, bool], Any], or_: bool) -> None:
     """Test match filter."""
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     # author must match
     assert entry.matches(filter_, or_=or_)
 
 
-def test_match_with_wrong_key():
+def test_match_with_wrong_key() -> None:
     """Asserts issue #1 is fixed.
 
     When matches() is called with a key in the filter which does not exist in the entry, the key
@@ -209,7 +211,7 @@ def test_match_with_wrong_key():
         ],
     ],
 )
-def test_search(query, context, ignore_case, expected):
+def test_search(query: str, context: int, ignore_case: bool, expected: List[List[str]]) -> None:
     """Test search method."""
     entry = Entry(
         "search_dummy",
@@ -231,7 +233,7 @@ def test_search(query, context, ignore_case, expected):
     assert results == expected
 
 
-def test_search_with_file():
+def test_search_with_file() -> None:
     """Test search method with associated file."""
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     entry.file = EXAMPLE_YAML_FILE
@@ -249,7 +251,7 @@ def test_search_with_file():
 
 @pytest.mark.parametrize("original_type", [int, str])
 @pytest.mark.parametrize("converted_type", [int, str])
-def test_month_conversion(original_type, converted_type):
+def test_month_conversion(original_type: type, converted_type: type) -> None:
     """Test month conversion.
 
     Args:
@@ -272,7 +274,7 @@ def test_month_conversion(original_type, converted_type):
         assert entry.data["month"] == "aug"
 
 
-def test_escape_special_chars():
+def test_escape_special_chars() -> None:
     """Test escaping of special characters.
 
     This also tests ensures that special characters in the label remain unchanged.
@@ -288,7 +290,7 @@ def test_escape_special_chars():
     assert entry.data == reference
 
 
-def test_save():
+def test_save() -> None:
     """Test save method."""
     config.database.format.month = int
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)

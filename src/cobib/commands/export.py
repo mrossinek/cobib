@@ -44,11 +44,11 @@ import argparse
 import logging
 import os
 import sys
-from typing import IO, TYPE_CHECKING, List
+from typing import IO, TYPE_CHECKING, Any, List
 from zipfile import ZipFile
 
 from cobib.database import Database
-from cobib.parsers import BibtexParser
+from cobib.parsers.bibtex import BibtexParser
 from cobib.utils.rel_path import RelPath
 
 from .base_command import ArgumentParser, Command
@@ -65,7 +65,7 @@ class ExportCommand(Command):
 
     name = "export"
 
-    def execute(self, args: List[str], out: IO = sys.stdout) -> None:
+    def execute(self, args: List[str], out: IO[Any] = sys.stdout) -> None:
         """Exports the database.
 
         This command exports the database (or a selected subset of entries).
@@ -147,11 +147,15 @@ class ExportCommand(Command):
                     largs.bibtex.write(entry_str)
                 if largs.zip is not None:
                     if "file" in entry.data.keys() and entry.file is not None:
-                        path = RelPath(entry.file).path
-                        LOGGER.debug(
-                            'Adding "%s" associated with "%s" to the zip file.', path, label
-                        )
-                        largs.zip.write(path, path.name)
+                        files = entry.file
+                        if not isinstance(files, list):
+                            files = [files]
+                        for file in files:
+                            path = RelPath(file).path
+                            LOGGER.debug(
+                                'Adding "%s" associated with "%s" to the zip file.', path, label
+                            )
+                            largs.zip.write(path, path.name)
             except KeyError:
                 msg = f"No entry with the label '{label}' could be found."
                 print(msg)

@@ -44,11 +44,14 @@ lint:
         - which python
         - python <<< 'import enchant; print(enchant.list_dicts())'
         - tox -e lint
+        - head -1 cobertura.xml | awk -F'line-rate*=*\"' '{sub(/".*/,"",$2); printf "mypy coverage %.0f", $2 * 100; print "%"}'
+    coverage: '/mypy coverage \d+%/'
     artifacts:
         when: always
         expire_in: 30 days
         paths:
             - cobertura.xml
+            - htmlmypy
         reports:
             cobertura: cobertura.xml
 
@@ -87,6 +90,7 @@ coverage:
         expire_in: 30 days
         paths:
             - coverage.xml
+            - htmlcov
         reports:
             cobertura: coverage.xml
 

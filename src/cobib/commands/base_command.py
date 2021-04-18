@@ -32,11 +32,11 @@ class Command(ABC):
     """The commands `name` is used to extract the available commands for the command-line interface.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """The initializer of any concrete implementation should *not* take any arguments!"""
 
     @abstractmethod
-    def execute(self, args: List[str], out: IO = sys.stdout) -> Any:
+    def execute(self, args: List[str], out: IO[Any] = sys.stdout) -> Any:
         """Actually executes the command.
 
         This means, all of the command-specific logic and action needs to be implemented by this
@@ -78,7 +78,7 @@ class Command(ABC):
             tui: the runtime-instance of coBib's TUI.
         """
 
-    def git(self, args: Optional[Dict] = None, force: bool = False) -> None:
+    def git(self, args: Optional[Dict[str, Any]] = None, force: bool = False) -> None:
         """Generates a git commit to track the commands changes.
 
         This function only has an effect when `config.database.git` is enabled *and* the database
@@ -132,7 +132,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
     # TODO: once Python 3.9 becomes the default, make use of the exit_on_error argument.
 
-    def exit(self, status: int = 0, message: str = None) -> NoReturn:
+    def exit(self, status: int = 0, message: Optional[str] = None) -> NoReturn:
         """Overwrite the exit method to raise an error rather than exit.
 
         Args:
@@ -144,4 +144,4 @@ class ArgumentParser(argparse.ArgumentParser):
         """
         if status:
             raise argparse.ArgumentError(None, f"Error: {message}")
-        super().exit(status, message)
+        super().exit(status, message)  # pragma: no cover

@@ -24,7 +24,7 @@ import argparse
 import logging
 import subprocess
 import sys
-from typing import IO, TYPE_CHECKING, List
+from typing import IO, TYPE_CHECKING, Any, List
 
 from cobib.config import config
 from cobib.database import Database
@@ -43,7 +43,7 @@ class UndoCommand(Command):
 
     name = "undo"
 
-    def execute(self, args: List[str], out: IO = sys.stdout) -> None:
+    def execute(self, args: List[str], out: IO[Any] = sys.stdout) -> None:
         """Undoes the last change.
 
         This command is *only* available if coBib's git-integration has been enabled via
@@ -133,7 +133,7 @@ class UndoCommand(Command):
                 )
                 undo.communicate()
                 if undo.returncode != 0:
-                    LOGGER.error(
+                    LOGGER.error(  # pragma: no cover
                         "Undo was unsuccessful. Please consult the logs and git history of your "
                         "database for more information."
                     )
