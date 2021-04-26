@@ -128,18 +128,18 @@ class UndoCommand(Command):
                     f"git -C {root} revert --no-commit {sha}",
                     f"git -C {root} commit --no-gpg-sign --quiet --message 'Undo {sha}'",
                 ]
-                undo = subprocess.Popen(
+                with subprocess.Popen(
                     "; ".join(commands), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                )
-                undo.communicate()
-                if undo.returncode != 0:
-                    LOGGER.error(  # pragma: no cover
-                        "Undo was unsuccessful. Please consult the logs and git history of your "
-                        "database for more information."
-                    )
-                else:
-                    # update Database
-                    Database().read()
+                ) as undo:
+                    undo.communicate()
+                    if undo.returncode != 0:
+                        LOGGER.error(  # pragma: no cover
+                            "Undo was unsuccessful. Please consult the logs and git history of your"
+                            " database for more information."
+                        )
+                    else:
+                        # update Database
+                        Database().read()
                 break
         else:
             msg = "Could not find a commit to undo. Please commit something first!"

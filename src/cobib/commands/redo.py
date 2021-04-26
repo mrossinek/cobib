@@ -118,18 +118,18 @@ class RedoCommand(Command):
                     f"git -C {root} revert --no-commit {sha}",
                     f"git -C {root} commit --no-gpg-sign --quiet --message 'Redo {sha}'",
                 ]
-                redo = subprocess.Popen(
+                with subprocess.Popen(
                     "; ".join(commands), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                )
-                redo.communicate()
-                if redo.returncode != 0:
-                    LOGGER.error(  # pragma: no cover
-                        "Redo was unsuccessful. Please consult the logs and git history of your "
-                        "database for more information."
-                    )
-                else:
-                    # update Database
-                    Database().read()
+                ) as redo:
+                    redo.communicate()
+                    if redo.returncode != 0:
+                        LOGGER.error(  # pragma: no cover
+                            "Redo was unsuccessful. Please consult the logs and git history of your"
+                            " database for more information."
+                        )
+                    else:
+                        # update Database
+                        Database().read()
                 break
         else:
             msg = "Could not find a commit to redo. You must have undone something first!"

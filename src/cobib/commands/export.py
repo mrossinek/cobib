@@ -125,14 +125,15 @@ class ExportCommand(Command):
             LOGGER.error(msg)
             return
         if largs.zip is not None:
-            largs.zip = ZipFile(largs.zip.name, "w")
-        out = open(os.devnull, "w")
+            largs.zip = ZipFile(largs.zip.name, "w")  # pylint: disable=consider-using-with
+
         if largs.selection:
             LOGGER.info("Selection given. Interpreting `filter` as a list of labels")
             labels = largs.filter
         else:
             LOGGER.debug("Gathering filtered list of entries to be exported.")
-            labels = ListCommand().execute(largs.filter, out=out)
+            with open(os.devnull, "w") as devnull:
+                labels = ListCommand().execute(largs.filter, out=devnull)
 
         bibtex_parser = BibtexParser()
 

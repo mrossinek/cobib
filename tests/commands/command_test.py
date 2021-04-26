@@ -96,23 +96,23 @@ class CommandTest(CmdLineTest):
     ) -> None:
         """Assert the last auto-generated git commit message."""
         # get last commit message
-        proc = subprocess.Popen(
+        with subprocess.Popen(
             ["git", "-C", self.COBIB_TEST_DIR, "show", "--format=format:%B", "--no-patch", "HEAD"],
             stdout=subprocess.PIPE,
-        )
-        message, _ = proc.communicate()
-        # decode it
-        split_msg = message.decode("utf-8").split("\n")
-        if split_msg is None:
-            return
-        # assert subject line
-        assert f"Auto-commit: {command.title()}Command" in split_msg[0]
+        ) as proc:
+            message, _ = proc.communicate()
+            # decode it
+            split_msg = message.decode("utf-8").split("\n")
+            if split_msg is None:
+                return
+            # assert subject line
+            assert f"Auto-commit: {command.title()}Command" in split_msg[0]
 
-        if args is not None:
-            # assert args
-            args_str = json.dumps(args, indent=2, default=str)
-            for ref, truth in zip(args_str.split("\n"), split_msg[2:]):
-                assert ref == truth
+            if args is not None:
+                # assert args
+                args_str = json.dumps(args, indent=2, default=str)
+                for ref, truth in zip(args_str.split("\n"), split_msg[2:]):
+                    assert ref == truth
 
     def test_handle_argument_error(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test handling of ArgumentError."""

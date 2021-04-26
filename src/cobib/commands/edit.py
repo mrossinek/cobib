@@ -127,17 +127,17 @@ class EditCommand(Command):
             return
 
         LOGGER.debug("Creating temporary file.")
-        tmp_file = tempfile.NamedTemporaryFile(mode="w+", prefix="cobib-", suffix=".yaml")
-        tmp_file.write(prv)
-        tmp_file.flush()
-        LOGGER.debug('Starting editor "%s".', config.commands.edit.editor)
-        status = os.system(config.commands.edit.editor + " " + tmp_file.name)
-        assert status == 0
-        LOGGER.debug("Editor finished successfully.")
-        new_entries = YAMLParser().parse(tmp_file.name)
-        new_entry = new_entries[list(new_entries.keys())[0]]
-        tmp_file.close()
-        assert not Path(tmp_file.name).exists()
+        with tempfile.NamedTemporaryFile(mode="w+", prefix="cobib-", suffix=".yaml") as tmp_file:
+            tmp_file_name = tmp_file.name
+            tmp_file.write(prv)
+            tmp_file.flush()
+            LOGGER.debug('Starting editor "%s".', config.commands.edit.editor)
+            status = os.system(config.commands.edit.editor + " " + tmp_file.name)
+            assert status == 0
+            LOGGER.debug("Editor finished successfully.")
+            new_entries = YAMLParser().parse(tmp_file.name)
+            new_entry = new_entries[list(new_entries.keys())[0]]
+        assert not Path(tmp_file_name).exists()
         if entry == new_entry and not largs.add:
             LOGGER.info("No changes detected.")
             return

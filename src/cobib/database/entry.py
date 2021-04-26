@@ -328,14 +328,14 @@ class Entry:
             for file_ in files:
                 grep_prog = config.commands.search.grep
                 LOGGER.debug("Searching associated file %s with %s", file_, grep_prog)
-                grep = subprocess.Popen(
+                with subprocess.Popen(
                     [grep_prog, f"-C{context}", query, file_], stdout=subprocess.PIPE
-                )
-                if grep.stdout is None:
-                    continue
-                stdout = grep.stdout
-                # extract results
-                results = stdout.read().decode().split("\n--\n")
+                ) as grep:
+                    if grep.stdout is None:
+                        continue
+                    stdout = grep.stdout
+                    # extract results
+                    results = stdout.read().decode().split("\n--\n")
                 for match in results:
                     if match:
                         matches.append([line.strip() for line in match.split("\n") if line.strip()])

@@ -37,15 +37,15 @@ class TestRedoCommand(CommandTest, TUITest):
         assert Database().get("example_multi_file_entry", None) is not None
 
         # get last commit message
-        proc = subprocess.Popen(
+        with subprocess.Popen(
             ["git", "-C", self.COBIB_TEST_DIR, "show", "--format=format:%B", "--no-patch", "HEAD"],
             stdout=subprocess.PIPE,
-        )
-        message, _ = proc.communicate()
-        # decode it
-        split_message = message.decode("utf-8").split("\n")
-        # assert subject line
-        assert "Redo" in split_message[0]
+        ) as proc:
+            message, _ = proc.communicate()
+            # decode it
+            split_message = message.decode("utf-8").split("\n")
+            # assert subject line
+            assert "Redo" in split_message[0]
 
     @pytest.mark.parametrize(
         ["setup", "expected_exit"],

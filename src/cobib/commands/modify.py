@@ -135,13 +135,13 @@ class ModifyCommand(Command):
             print(exc.message, file=sys.stderr)
             return
 
-        out = open(os.devnull, "w")
         if largs.selection:
             LOGGER.info("Selection given. Interpreting `filter` as a list of labels")
             labels = largs.filter
         else:
             LOGGER.debug("Gathering filtered list of entries to be modified.")
-            labels = ListCommand().execute(largs.filter, out=out)
+            with open(os.devnull, "w") as devnull:
+                labels = ListCommand().execute(largs.filter, out=devnull)
 
         field, value = largs.modification
 
