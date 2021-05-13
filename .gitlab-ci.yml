@@ -42,6 +42,7 @@ lint:
         - apt-get install -y python3-enchant
         - source venv/bin/activate
         - which python
+        - pip install pyenchant
         - python <<< 'import enchant; print(enchant.list_dicts())'
         - tox -e lint
         - head -1 cobertura.xml | awk -F'line-rate*=*\"' '{sub(/".*/,"",$2); printf "mypy coverage %.0f", $2 * 100; print "%"}'
