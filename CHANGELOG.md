@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 - the `config.database.format.month` setting is deprecated in favor of proper three-letter code encoding to support common citation style macros (!34)
 
+### Fixed
+- renaming the label during the `edit` command does not leave the previous label entry behind
+
 
 ## [3.0.0] - 2021-04-10
 

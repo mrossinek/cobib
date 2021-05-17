@@ -135,13 +135,15 @@ class EditCommand(Command):
             assert status == 0
             LOGGER.debug("Editor finished successfully.")
             new_entries = YAMLParser().parse(tmp_file.name)
-            new_entry = new_entries[list(new_entries.keys())[0]]
+            new_entry = list(new_entries.values())[0]
         assert not Path(tmp_file_name).exists()
         if entry == new_entry and not largs.add:
             LOGGER.info("No changes detected.")
             return
 
         bib.update({new_entry.label: new_entry})
+        if new_entry.label != largs.label:
+            bib.pop(largs.label)
         bib.save()
 
         self.git(args=vars(largs))
