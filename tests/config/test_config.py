@@ -2,6 +2,7 @@
 # pylint: disable=unused-argument, redefined-outer-name
 
 import logging
+import tempfile
 from typing import Any, Generator, List
 
 import pytest
@@ -97,7 +98,6 @@ def assert_legacy_config() -> None:
     assert config.commands.search.ignore_case is True
     assert config.database.file == "string"
     assert config.database.git is True
-    assert config.database.format.month == str
     assert config.parsers.bibtex.ignore_non_standard_types is True
     assert config.tui.default_list_args == ["string"]
     assert config.tui.prompt_before_quit is False
@@ -168,8 +168,10 @@ def test_config_validation(setup: Any) -> None:
         [["commands", "search"], "ignore_case"],
         [["database"], "file"],
         [["database"], "git"],
-        [["database", "format"], "month"],
         [["database", "format"], "suppress_latex_warnings"],
+        [["database", "stringify", "list_separator"], "file"],
+        [["database", "stringify", "list_separator"], "tags"],
+        [["database", "stringify", "list_separator"], "url"],
         [["parsers", "bibtex"], "ignore_non_standard_types"],
         [["tui"], "default_list_args"],
         [["tui"], "prompt_before_quit"],
@@ -217,7 +219,7 @@ def test_missing_config_fields(setup: Any, sections: List[str], field: str) -> N
     with pytest.raises(RuntimeError) as exc_info:
         section = config
         for sec in sections[:-1]:
-            section = config[sec]
+            section = section[sec]
         del section[sections[-1]][field]
         config.validate()
     assert f"config.{'.'.join(sections)}.{field}" in str(exc_info.value)
@@ -282,3 +284,47 @@ def test_ignored_tui_color(setup: Any, caplog: pytest.LogCaptureFixture) -> None
         logging.WARNING,
         "Ignoring unknown TUI color: dummy.",
     ) in caplog.record_tuples
+
+
+@pytest.mark.parametrize(["setting", "value"], [[["database", "format", "month"], str]])
+def test_deprecation_warning(
+    setting: List[str], value: Any, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test logged warning for deprecated setting."""
+    section = config
+    for sec in setting[:-1]:
+        section = section[sec]
+    section[setting[-1]] = value
+    config.validate()
+    for source, level, message in caplog.record_tuples:
+        if (
+            source == "cobib.config.config"
+            and level == logging.WARNING
+            and f"The config.{'.'.join(setting)} setting is deprecated" in message
+        ):
+            break
+    else:
+        assert False, "Missing deprecation warning!"
+
+
+@pytest.mark.parametrize(
+    ["setting", "attribute"], [["[FORMAT]\nmonth=str", "database.format.month"]]
+)
+def test_deprecation_warning_legacy(
+    setting: str, attribute: str, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test logged warning for deprecated setting."""
+    with tempfile.NamedTemporaryFile("w") as legacy_file:
+        legacy_file.write(setting)
+        legacy_file.seek(0)
+        config.load_legacy_config(legacy_file.name)
+        config.validate()
+    for source, level, message in caplog.record_tuples:
+        if (
+            source == "cobib.config.config"
+            and level == logging.WARNING
+            and f"The config.{attribute} setting is deprecated" in message
+        ):
+            break
+    else:
+        assert False, "Missing deprecation warning!"

@@ -107,7 +107,8 @@ class OpenCommand(Command):
                 entry = bib[label]
                 for field in ("file", "url"):
                     if field in entry.data.keys() and entry.data[field]:
-                        for val in entry.data[field].split(","):
+                        value = entry.data[field]
+                        for val in value:
                             val = val.strip()
                             LOGGER.debug('Parsing "%s" for URLs.', val)
                             things_to_open[field] += [urlparse(val)]

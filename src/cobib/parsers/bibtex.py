@@ -37,6 +37,8 @@ class BibtexParser(Parser):
         # noqa: D102
         bparser = bibtexparser.bparser.BibTexParser()
         bparser.ignore_nonstandard_types = config.parsers.bibtex.ignore_non_standard_types
+        bparser.common_strings = True
+        bparser.interpolate_strings = False
         try:
             LOGGER.debug("Loading BibTex data from file: %s.", string)
             with open(string, "r") as file:
@@ -46,14 +48,27 @@ class BibtexParser(Parser):
             database = bibtexparser.loads(string, parser=bparser)
         bib = OrderedDict()
         for entry in database.entries:
-            bib[entry["ID"]] = Entry(entry["ID"], entry)
+            if "month" in entry.keys() and isinstance(
+                entry["month"], bibtexparser.bibtexexpression.BibDataStringExpression
+            ):
+                entry["month"] = entry["month"].expr[0].name
+            label = entry.pop("ID")
+            bib[label] = Entry(label, entry)
         return bib
 
     def dump(self, entry: Entry) -> str:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
         database = bibtexparser.bibdatabase.BibDatabase()
-        database.entries = [entry.data]
+        stringified_entry = entry.stringify()
+        if "month" in stringified_entry.keys():
+            # convert month to bibtexexpression
+            stringified_entry["month"] = bibtexparser.bibtexexpression.BibDataStringExpression(
+                [bibtexparser.bibdatabase.BibDataString(database, stringified_entry["month"])]
+            )
+        database.entries = [stringified_entry]
         LOGGER.debug("Converting entry %s to BibTex format.", entry.label)
-        string: str = bibtexparser.dumps(database)
+        writer = bibtexparser.bwriter.BibTexWriter()
+        writer.common_strings = True
+        string: str = writer.write(database)
         return string

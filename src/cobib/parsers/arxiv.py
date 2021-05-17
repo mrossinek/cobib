@@ -14,7 +14,7 @@ import logging
 import re
 import sys
 from collections import OrderedDict
-from typing import Dict
+from typing import Any, Dict
 
 import requests
 from bs4 import BeautifulSoup
@@ -52,7 +52,8 @@ class ArxivParser(Parser):
             LOGGER.warning(msg)
             print(msg, file=sys.stderr)
             return OrderedDict()
-        entry = {}
+        label = ""
+        entry: Dict[str, Any] = {}
         entry["archivePrefix"] = "arXiv"
         for key in xml.feed.entry.findChildren(recursive=False):
             if key.name == "arxiv:doi":
@@ -66,11 +67,8 @@ class ArxivParser(Parser):
                 # The year must also be stored as a string for compatibility reasons with
                 # bibtexparser. However, we perform a conversion to an integer first, to ensure that
                 # the year can actually be represented as such.
-                entry["year"] = str(int(key.contents[0].split("-")[0]))
-                if "ID" in entry.keys():
-                    entry["ID"] = entry["ID"] + str(entry["year"])
-                else:
-                    entry["ID"] = str(entry["year"])
+                entry["year"] = int(key.contents[0].split("-")[0])
+                label += str(entry["year"])
             elif key.name == "title":
                 entry["title"] = re.sub(r"\s+", " ", key.contents[0].strip().replace("\n", " "))
             elif key.name == "author":
@@ -79,10 +77,7 @@ class ArxivParser(Parser):
                     entry["author"] = ""
                 name = [n.contents[0] for n in key.findChildren()][0]
                 if first:
-                    if "ID" in entry.keys():
-                        entry["ID"] = name.split()[-1] + entry["ID"]
-                    else:
-                        entry["ID"] = name.split()[-1]
+                    label = name.split()[-1] + label
                     first = False
                 entry["author"] += "{} and ".format(name)
             elif key.name == "summary":
@@ -96,7 +91,7 @@ class ArxivParser(Parser):
         # strip last 'and' from author field
         entry["author"] = entry["author"][:-5]
         bib = OrderedDict()
-        bib[entry["ID"]] = Entry(entry["ID"], entry)
+        bib[label] = Entry(label, entry)
         return bib
 
     def dump(self, entry: Entry) -> None:

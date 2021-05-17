@@ -71,38 +71,34 @@ class ISBNParser(Parser):
             LOGGER.warning(msg)
             print(msg, file=sys.stderr)
             return OrderedDict()
+        label = ""
         entry = {}
         for key, value in contents[list(contents.keys())[0]].items():
             if key in ["title", "url"]:
                 entry[key] = value
             elif key == "number_of_pages":
                 # we explicitly convert to a string to prevent type errors in the bibtexparser
-                entry["pages"] = str(value)
+                str_val = str(value)
+                entry["pages"] = int(str_val) if str_val.isnumeric() else str_val
             elif key == "publish_date":
                 entry["date"] = value
                 try:
                     match = re.search(r"\d{4}", value)
                     if match is None:
                         raise AttributeError  # pragma: no cover
-                    entry["year"] = match.group()
-                    if "ID" in entry.keys():
-                        entry["ID"] += str(entry["year"])
-                    else:
-                        entry["ID"] = str(entry["year"])
+                    entry["year"] = int(match.group())
+                    label += str(entry["year"])
                 except AttributeError:  # pragma: no cover
                     pass  # pragma: no cover
             elif key == "authors":
-                if "ID" in entry.keys():
-                    entry["ID"] = value[0]["name"].split()[-1] + entry["ID"]
-                else:
-                    entry["ID"] = value[0]["name"].split()[-1]
+                label = value[0]["name"].split()[-1] + label
                 entry["author"] = " and".join([a["name"] for a in value])
             elif key == "publishers":
                 entry["publisher"] = " and".join([a["name"] for a in value])
         # set entry-type do 'book'
         entry["ENTRYTYPE"] = "book"
         bib = OrderedDict()
-        bib[entry["ID"]] = Entry(entry["ID"], entry)
+        bib[label] = Entry(label, entry)
         return bib
 
     def dump(self, entry: Entry) -> None:

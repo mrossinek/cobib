@@ -40,7 +40,7 @@ class TestArxivParser(ParserTest):
         )
         assert entry.data["doi"].startswith("10.1021/acs.chemrev.8b00803")
         assert entry.data["title"] == "Quantum Chemistry in the Age of Quantum Computing"
-        assert entry.data["year"] == "2018"
+        assert entry.data["year"] == 2018
 
     # regression test for https://gitlab.com/mrossinek/cobib/-/issues/57
     def test_invalid_arxiv_id(self) -> None:
@@ -61,7 +61,7 @@ class TestArxivParser(ParserTest):
             == "Sergey Bravyi and Jay M. Gambetta and Antonio Mezzacapo and Kristan Temme"
         )
         assert entry.data["title"] == "Tapering off qubits to simulate fermionic Hamiltonians"
-        assert entry.data["year"] == "2017"
+        assert entry.data["year"] == 2017
 
     def test_catching_api_error(
         self, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch

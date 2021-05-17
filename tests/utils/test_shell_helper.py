@@ -1,15 +1,31 @@
 """Tests for coBib's shell helper functions."""
 
+import logging
 from itertools import zip_longest
-from typing import List
+from typing import Generator, List
 
 import pytest
 
 from cobib.config import config
 from cobib.utils import shell_helper
+from cobib.utils.rel_path import RelPath
 
 from .. import get_resource
 from ..cmdline_test import CmdLineTest
+
+LOGGER = logging.getLogger()
+
+
+@pytest.fixture(autouse=True)
+def ensure_logging_not_altered() -> Generator[None, None, None]:
+    """Ensures that the logging framework remains unaltered.
+
+    Reference:
+        https://github.com/pytest-dev/pytest/issues/5743
+    """
+    before_handlers = list(LOGGER.handlers)
+    yield
+    LOGGER.handlers = before_handlers
 
 
 class TestListCommands(CmdLineTest):
@@ -162,3 +178,65 @@ class TestPrintExampleConfig(CmdLineTest):
         with pytest.raises(SystemExit):
             self.run_module(monkeypatch, "main", ["cobib", "_example_config"])
         self._assert(capsys.readouterr().out.split("\n"))
+
+
+class TestLintDatabase(CmdLineTest):
+    """Tests for the shell helper to lint the database."""
+
+    REL_PATH = RelPath(get_resource("linting_database.yaml", "utils"))
+    EXPECTED = [
+        f"{REL_PATH}:5 Converted the field 'file' of entry 'dummy' to a list. You can consider "
+        "storing it as such directly.",
+        f"{REL_PATH}:6 Converting field 'month' of entry 'dummy' from '8' to 'aug'.",
+        f"{REL_PATH}:7 Converting field 'number' of entry 'dummy' to integer: 1.",
+        f"{REL_PATH}:8 Converted the field 'tags' of entry 'dummy' to a list. You can consider "
+        "storing it as such directly.",
+        f"{REL_PATH}:9 Converted the field 'url' of entry 'dummy' to a list. You can consider "
+        "storing it as such directly.",
+        f"{REL_PATH}:4 The field 'ID' of entry 'dummy' is no longer required. It will be inferred "
+        "from the entry label.",
+    ]
+
+    @staticmethod
+    @pytest.fixture(autouse=True)
+    def setup() -> None:
+        """Load testing config."""
+        config.database.file = str(TestLintDatabase.REL_PATH)
+
+    # pylint: disable=no-self-use
+    def test_no_lint_warnings(self) -> None:
+        """Test the case of no raised lint warnings."""
+        config.load(get_resource("debug.py"))
+        lint_messages = shell_helper.lint_database()
+        for msg, exp in zip_longest(
+            lint_messages, ["Congratulations! Your database triggers no lint messages."]
+        ):
+            if msg.strip() and exp:
+                assert msg == exp
+
+    # pylint: disable=no-self-use
+    def test_method(self) -> None:
+        """Test the shell_helper method itself."""
+        lint_messages = shell_helper.lint_database()
+        for msg, exp in zip_longest(lint_messages, TestLintDatabase.EXPECTED):
+            if msg.strip() and exp:
+                assert msg == exp
+
+    def test_cmdline(
+        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Test the command-line access of the helper method."""
+        self.run_module(monkeypatch, "helper_main", ["cobib", "_lint_database"])
+        for msg, exp in zip_longest(capsys.readouterr().out.split("\n"), TestLintDatabase.EXPECTED):
+            if msg.strip() and exp:
+                assert msg == exp
+
+    def test_cmdline_via_main(
+        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Test the command-line access of the helper method via the main method."""
+        with pytest.raises(SystemExit):
+            self.run_module(monkeypatch, "main", ["cobib", "_lint_database"])
+        for msg, exp in zip_longest(capsys.readouterr().out.split("\n"), TestLintDatabase.EXPECTED):
+            if msg.strip() and exp:
+                assert msg == exp

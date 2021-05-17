@@ -66,25 +66,28 @@ class TestAddCommand(CommandTest, TUITest):
             [[], {}],
             [
                 ["-f", "test/debug.py"],
-                {"file": str(RelPath("test/debug.py"))},
+                {"file": [str(RelPath("test/debug.py"))]},
             ],
-            [["-l", "dummy_label"], {"ID": "dummy_label"}],
-            [["tag"], {"tags": "tag"}],
-            [["tag", "tag2"], {"tags": "tag, tag2"}],
+            [["-l", "dummy_label"], {}],
+            [["tag"], {"tags": ["tag"]}],
+            [["tag", "tag2"], {"tags": ["tag", "tag2"]}],
         ],
     )
     def test_command(self, setup: Any, more_args: List[str], entry_kwargs: Dict[str, Any]) -> None:
         """Test the command itself."""
         git = setup.get("git", False)
 
-        label = entry_kwargs.get("ID", "example_multi_file_entry")
+        try:
+            label = more_args[more_args.index("-l") + 1]
+        except ValueError:
+            label = "example_multi_file_entry"
         args = ["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB] + more_args
 
         AddCommand().execute(args)
 
         assert Database()[label]
 
-        if entry_kwargs:
+        if entry_kwargs or label != "example_multi_file_entry":
             self._assert_entry(label, **entry_kwargs)
         else:
             # only when we don't use extra arguments the files will match
@@ -110,8 +113,7 @@ class TestAddCommand(CommandTest, TUITest):
             assert dummy_start > 0
             assert lines[dummy_start - 1] == "---\n"
             assert lines[dummy_start + 1] == "  ENTRYTYPE: article\n"
-            assert lines[dummy_start + 2] == "  ID: dummy\n"
-            assert lines[dummy_start + 3] == "...\n"
+            assert lines[dummy_start + 2] == "...\n"
 
     def test_skip_manual_add_if_exists(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test manual addition is skipped if the label exists already."""

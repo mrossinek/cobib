@@ -47,8 +47,7 @@ class TestEditCommand(CommandTest, TUITest):
                 assert dummy_start > 0
                 assert lines[dummy_start - 1] == "---\n"
                 assert lines[dummy_start + 1] == "  ENTRYTYPE: article\n"
-                assert lines[dummy_start + 2] == "  ID: dummy\n"
-                assert lines[dummy_start + 3] == "...\n"
+                assert lines[dummy_start + 2] == "...\n"
         else:
             if logs is not None:
                 assert ("cobib.commands.edit", 20, "No changes detected.") in logs

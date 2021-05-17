@@ -407,13 +407,19 @@ you already have an existing database file, it will be preserved. Nonetheless,
 it is a good idea to make a backup before doing so, just in case.
 Also be sure to at least set a \fIname\fR and \fIemail\fR in the git config!
 .TP
-.IR config.database.format.month = int
-This field may either be \fIint\fR (default) or \fIstr\fR and it specifies the
-type into which the \fBmonth\fR field should be converted before storing.
-.TP
 .IR config.database.format.suppress_latex_warnings = True
 This boolean field indicates whether latex warnings will be ignored during the
 escaping of special characters.
+.TP
+Some fields are internally stored as lists. Upon conversion to the BibTeX format, these need to be
+converted to a basic string. In this process the entries of the list will be joined using the
+separators configured by the following settings.
+.TP
+.IR config.database.stringify.list_separator.file = ',\ '
+.TP
+.IR config.database.stringify.list_separator.tags = ',\ '
+.TP
+.IR config.database.stringify.list_separator.url = ',\ '
 .PP
 .BR PARSERS
 .TP

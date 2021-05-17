@@ -4,7 +4,6 @@ from typing import Any, Dict, List, Tuple
 
 import pytest
 
-from cobib.config import config
 from cobib.database import Entry
 from cobib.parsers.bibtex import BibtexParser
 from cobib.utils.rel_path import RelPath
@@ -16,21 +15,39 @@ EXAMPLE_YAML_FILE = get_resource("example_entry.yaml")
 
 EXAMPLE_ENTRY_DICT = {
     "ENTRYTYPE": "article",
-    "ID": "Cao_2019",
     "author": "Yudong Cao and Jonathan Romero and Jonathan P. Olson and Matthias Degroote and Peter"
     + " D. Johnson and M{\\'a}ria Kieferov{\\'a} and Ian D. Kivlichan and Tim Menke and Borja "
     + "Peropadre and Nicolas P. D. Sawaya and Sukin Sim and Libor Veis and Al{\\'a}n Aspuru-Guzik",
     "doi": "10.1021/acs.chemrev.8b00803",
     "journal": "Chemical Reviews",
-    "month": "8",
-    "number": "19",
+    "month": "aug",
+    "number": 19,
     "pages": "10856--10915",
     "publisher": "American Chemical Society ({ACS})",
     "title": "Quantum Chemistry in the Age of Quantum Computing",
     "url": "https://doi.org/10.1021%2Facs.chemrev.8b00803",
-    "volume": "119",
-    "year": "2019",
+    "volume": 119,
+    "year": 2019,
 }
+
+
+def test_init_logging(caplog: pytest.LogCaptureFixture) -> None:
+    """Test init logging for linting purposes."""
+    entry = Entry("dummy", {"ID": "dummy", "number": "1"})
+    assert entry.data["number"] == 1
+    assert (
+        "cobib.database.entry",
+        20,
+        "Converting field 'number' of entry 'dummy' to integer: 1.",
+    ) in caplog.record_tuples
+    assert entry.label == "dummy"
+    assert "ID" not in entry.data.keys()
+    assert (
+        "cobib.database.entry",
+        20,
+        "The field 'ID' of entry 'dummy' is no longer required. It will be inferred from the entry "
+        "label.",
+    ) in caplog.record_tuples
 
 
 def test_equality() -> None:
@@ -43,42 +60,33 @@ def test_equality() -> None:
     assert entry_1 == entry_2
 
 
-def test_mismatching_label_id_fix() -> None:
-    """Test that the label takes precedence over the label upon mismatch."""
-    entry = Entry("Cao2019", EXAMPLE_ENTRY_DICT)
-    assert entry.label == "Cao2019"
-    assert entry.data["ID"] == "Cao2019"
-
-
 def test_entry_set_label() -> None:
     """Test label changing."""
     # this test may fail if the input dict is not copied
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     entry.label = "Cao2019"
     assert entry.label == "Cao2019"
-    assert entry.data["ID"] == "Cao2019"
 
 
-def test_entry_set_tags() -> None:
+def test_entry_set_tags(caplog: pytest.LogCaptureFixture) -> None:
     """Test tags setting."""
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
-    assert entry.tags is None
+    assert entry.tags == []
     # NB: tags must be a list
     entry.tags = ["foo"]
-    assert entry.tags == "foo"
-    # '+' signs are stripped
-    entry.tags = ["+foo"]
-    assert entry.tags == "foo"
-    # also multiple occurrences
-    entry.tags = ["++foo"]
-    assert entry.tags == "foo"
+    assert entry.tags == ["foo"]
     # list works as expected
     entry.tags = ["foo", "bar"]
-    assert entry.tags == "foo, bar"
-    entry.tags = ["+foo", "bar"]
-    assert entry.tags == "foo, bar"
-    entry.tags = ["+foo", "+bar"]
-    assert entry.tags == "foo, bar"
+    assert entry.tags == ["foo", "bar"]
+    # check lint logging
+    entry.tags = "foo, bar"  # type: ignore
+    assert entry.tags == ["foo", "bar"]
+    assert (
+        "cobib.database.entry",
+        20,
+        "Converted the field 'tags' of entry 'Cao_2019' to a list. You can consider storing it as "
+        "such directly.",
+    ) in caplog.record_tuples
 
 
 @pytest.mark.parametrize(
@@ -88,12 +96,74 @@ def test_entry_set_tags() -> None:
         [EXAMPLE_BIBTEX_FILE, EXAMPLE_YAML_FILE],
     ],
 )
-def test_entry_set_file(files: List[str]) -> None:
+def test_entry_set_file(files: List[str], caplog: pytest.LogCaptureFixture) -> None:
     """Test file setting."""
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
-    entry.file = files[0] if len(files) == 1 else files
-    expected = ", ".join(str(RelPath(file)) for file in files)
-    assert entry.data["file"] == expected
+    entry.file = files[0] if len(files) == 1 else files  # type: ignore
+    expected = [str(RelPath(file)) for file in files]
+    assert entry.file == expected
+    # check lint logging
+    if len(files) > 1:
+        entry.file = ", ".join(files)  # type: ignore
+        assert entry.file == expected
+        assert (
+            "cobib.database.entry",
+            20,
+            "Converted the field 'file' of entry 'Cao_2019' to a list. You can consider storing it "
+            "as such directly.",
+        ) in caplog.record_tuples
+
+
+def test_entry_set_url(caplog: pytest.LogCaptureFixture) -> None:
+    """Test url setting."""
+    entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
+    entry.url = "https://dummy.org/, https://dummy.com/"  # type: ignore
+    assert entry.url == ["https://dummy.org/", "https://dummy.com/"]
+    assert (
+        "cobib.database.entry",
+        20,
+        "Converted the field 'url' of entry 'Cao_2019' to a list. You can consider storing it as "
+        "such directly.",
+    ) in caplog.record_tuples
+
+
+@pytest.mark.parametrize(
+    ["month", "expected"],
+    [
+        [(1, "January"), "jan"],
+        [(2, "February"), "feb"],
+        [(3, "March"), "mar"],
+        [(4, "April"), "apr"],
+        [(5, "May"), "may"],
+        [(6, "June"), "jun"],
+        [(7, "July"), "jul"],
+        [(8, "August"), "aug"],
+        [(9, "September"), "sep"],
+        [(10, "October"), "oct"],
+        [(11, "November"), "nov"],
+        [(12, "December"), "dec"],
+    ],
+)
+def test_entry_set_month(
+    month: Tuple[int, str], expected: str, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test month setting."""
+    entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
+    assert entry.data["month"] == "aug"
+    entry.month = month[0]  # type: ignore
+    assert entry.data["month"] == expected
+    assert (
+        "cobib.database.entry",
+        20,
+        f"Converting field 'month' of entry 'Cao_2019' from '{month[0]}' to '{expected}'.",
+    ) in caplog.record_tuples
+    entry.month = month[1]
+    assert entry.data["month"] == expected
+    assert (
+        "cobib.database.entry",
+        20,
+        f"Converting field 'month' of entry 'Cao_2019' from '{month[1]}' to '{expected}'.",
+    ) in caplog.record_tuples
 
 
 @pytest.mark.parametrize(
@@ -217,7 +287,6 @@ def test_search(query: str, context: int, ignore_case: bool, expected: List[List
         "search_dummy",
         {
             "ENTRYTYPE": "article",
-            "ID": "search_dummy",
             "abstract": "\n".join(
                 [
                     "search_query",
@@ -236,9 +305,8 @@ def test_search(query: str, context: int, ignore_case: bool, expected: List[List
 def test_search_with_file() -> None:
     """Test search method with associated file."""
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
-    entry.file = EXAMPLE_YAML_FILE
+    entry.file = EXAMPLE_YAML_FILE  # type: ignore
     results = entry.search("Chemical", context=0)
-    print(results)
     expected = [
         [" journal = {Chemical Reviews},"],
         [" publisher = {American Chemical Society ({ACS})},"],
@@ -249,31 +317,6 @@ def test_search_with_file() -> None:
         assert res == exp
 
 
-@pytest.mark.parametrize("original_type", [int, str])
-@pytest.mark.parametrize("converted_type", [int, str])
-def test_month_conversion(original_type: type, converted_type: type) -> None:
-    """Test month conversion.
-
-    Args:
-        original_type (type): original type which to convert from.
-        converted_type (type): type to use for storing the 'month' field.
-    """
-    config.load(get_resource("debug.py"))
-    config.database.format.month = converted_type
-    entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
-    if original_type == int:
-        entry.data["month"] = "8"
-    elif original_type == str:
-        entry.data["month"] = "aug"
-
-    entry.convert_month(converted_type)
-
-    if converted_type == int:
-        assert entry.data["month"] == "8"
-    elif converted_type == str:
-        assert entry.data["month"] == "aug"
-
-
 def test_escape_special_chars() -> None:
     """Test escaping of special characters.
 
@@ -281,20 +324,38 @@ def test_escape_special_chars() -> None:
     """
     reference = {
         "ENTRYTYPE": "book",
-        "ID": "LaTeX_Einführung",
         "title": 'LaTeX Einf{\\"u}hrung',
     }
     entries = BibtexParser().parse(get_resource("example_entry_umlaut.bib", "database"))
     entry = list(entries.values())[0]
     entry.escape_special_chars()
     assert entry.data == reference
+    assert entry.label == "LaTeX_Einführung"
 
 
 def test_save() -> None:
     """Test save method."""
-    config.database.format.month = int
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     entry_str = entry.save()
     with open(EXAMPLE_YAML_FILE, "r") as expected:
         for line, truth in zip(entry_str.split("\n"), expected):
             assert line == truth.strip("\n")
+
+
+def test_stringify() -> None:
+    """Test stringify method."""
+    entry = Entry(
+        "dummy",
+        {
+            "file": ["/tmp/a.txt", "/tmp/b.txt"],
+            "month": 8,
+            "tags": ["tag1", "tag2"],
+        },
+    )
+    expected = {
+        "ID": "dummy",
+        "file": "/tmp/a.txt, /tmp/b.txt",
+        "month": "aug",
+        "tags": "tag1, tag2",
+    }
+    assert entry.stringify() == expected

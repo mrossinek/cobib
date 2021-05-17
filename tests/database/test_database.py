@@ -22,7 +22,6 @@ DUMMY_ENTRY = Entry(
     "dummy",
     {
         "ENTRYTYPE": "misc",
-        "ID": "dummy",
         "author": "D. Dummy",
         "title": "Something dumb",
     },
@@ -31,7 +30,6 @@ DUMMY_ENTRY = Entry(
 DUMMY_ENTRY_YAML = """---
 dummy:
     ENTRYTYPE: misc
-    ID: dummy
     author: D. Dummy
     title: Something dumb
 ...

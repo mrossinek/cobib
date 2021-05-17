@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import re
 import subprocess
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 from pylatexenc.latexencode import UnicodeToLatexEncoder
 
@@ -24,8 +24,7 @@ class Entry:
     coBib's `Database` stores the bibliographic information in entries which are instances of this
     class. This only contains a `label` which is a string used as a key to associate this entry as
     well as a free-form `data` dictionary, which can contain arbitrary key-value pairs.
-    Two fields will *always* be present in the `data` dictionary:
-    * `ID`: which must match the `label` of the entry.
+    One field will *always* be present in the `data` dictionary:
     * `ENTRYTYPE`: which specifies the BibLaTex type of the entry.
 
     Only through the context imposed by BibLaTex will the other `data` fields be interpreted.
@@ -46,23 +45,37 @@ class Entry:
                 (`str`) to any other data. Some fields are exposed as properties of this class for
                 convenience.
         """
-        label = str(label)
-
         LOGGER.debug("Initializing entry: %s", label)
 
-        self._label: str = label
+        self._label: str = str(label)
 
-        self.data: Dict[str, Any] = data.copy()
+        self.data: Dict[str, Any] = {}
         """The actual bibliographic data."""
 
-        if self.data["ID"] != self._label:
-            # sanity check for matching label and ID
-            LOGGER.warning(
-                "Mismatching label '%s' and ID '%s'. Overwriting ID with label.",
-                self._label,
-                self.data["ID"],
+        for key, value in data.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+            elif isinstance(value, str) and value.isnumeric():
+                LOGGER.info(
+                    "Converting field '%s' of entry '%s' to integer: %s.",
+                    key,
+                    label,
+                    value,
+                    extra={"entry": label, "field": key},
+                )
+                self.data[key] = int(value)
+            else:
+                self.data[key] = value
+
+        if "ID" in self.data.keys():
+            self.data.pop("ID")
+            LOGGER.info(
+                "The field '%s' of entry '%s' is no longer required. It will be inferred from the "
+                "entry label.",
+                "ID",
+                label,
+                extra={"entry": label, "field": "ID"},
             )
-            self.label = self._label
 
     def __eq__(self, other: object) -> bool:
         """Checks equality of two entries."""
@@ -84,45 +97,46 @@ class Entry:
         """Sets the `Database` ID of this entry.
 
         Args:
-            label: the ID of this entry. This property setter also ensures that the `Entry.label`
-                and `Entry.data["ID"]` fields are consistent.
+            label: the ID of this entry.
         """
         LOGGER.debug("Changing the label '%s' to '%s'.", self.label, label)
-        self._label = label
-        LOGGER.debug("Changing the ID '%s' to '%s'.", self.data["ID"], label)
-        self.data["ID"] = label
+        self._label = str(label)
 
     @property
-    def tags(self) -> str:
-        """The tags of this entry.
-
-        The setter of this property will strip `+` symbols from the tags as these are an artifact of
-        the command-line syntax. Internally, the list of tags is stored as a comma-separated list
-        encoded in a string.
-        """
-        return self.data.get("tags", None)
+    def tags(self) -> List[str]:
+        """The tags of this entry."""
+        return self.data.get("tags", [])
 
     @tags.setter
-    def tags(self, tags: List[str]) -> None:
+    def tags(self, tags: Union[str, List[str]]) -> None:
         """Sets the tags of this entry.
 
         Args:
-            tags: a list of tags. Tags will be stripped from `+` symbols as these are an artifact of
-                the command-line syntax. Internally, the list of tags is stored as a comma-separated
-                list encoded in a string.
+            tags: a single or list of tags.
         """
-        self.data["tags"] = "".join(tag.strip("+") + ", " for tag in tags).strip(", ")
+        if isinstance(tags, list):
+            self.data["tags"] = tags
+        else:
+            self.data["tags"] = tags.split(config.database.stringify.list_separator.tags)
+            if len(self.data["tags"]) > 1:
+                LOGGER.info(
+                    "Converted the field '%s' of entry '%s' to a list. You can consider storing it "
+                    "as such directly.",
+                    "tags",
+                    self.label,
+                    extra={"entry": self.label, "field": "tags"},
+                )
         LOGGER.debug("Adding the tags '%s' to '%s'.", self.data["tags"], self.label)
 
     @property
-    def file(self) -> Union[str, List[str]]:
+    def file(self) -> List[str]:
         # noqa: D402 (we skip this error because file(s) raises a false negative)
         """The associated file(s) of this entry.
 
-        The setter of this property will be convert the strings to absolute paths. If multiple files
-        are specified, they will be stored as a comma-separated list encoded in a string.
+        The setter of this property will convert the strings to paths relative to the user's home
+        directory. Internally, this field will always be stored as a list.
         """
-        return self.data.get("file", None)
+        return self.data.get("file", [])
 
     @file.setter
     def file(self, file: Union[str, List[str]]) -> None:
@@ -131,60 +145,116 @@ class Entry:
 
         Args:
             file: can be either a single path (`str`) or a list thereof. In either case, the strings
-                will be converted to absolute paths. If multiple files were specified, they will be
-                stored as a comma-separated list encoded in a string.
+                will be converted to paths relative to the user's home directory. Internally, this
+                field will always be stored as a list.
         """
         if isinstance(file, list):
             paths = [RelPath(f) for f in file]
         else:
-            paths = [RelPath(file)]
-        self.data["file"] = ", ".join(str(p) for p in paths)
+            paths = [RelPath(f) for f in file.split(config.database.stringify.list_separator.file)]
+            if len(paths) > 1:
+                LOGGER.info(
+                    "Converted the field '%s' of entry '%s' to a list. You can consider storing it "
+                    "as such directly.",
+                    "file",
+                    self.label,
+                    extra={"entry": self.label, "field": "file"},
+                )
+        self.data["file"] = [str(p) for p in paths]
         LOGGER.debug("Adding '%s' as the file to '%s'.", self.data["file"], self.label)
 
-    def convert_month(self, type_: Type[Union[int, str]] = config.database.format.month) -> None:
-        """Converts the month into the specified type.
+    @property
+    def url(self) -> List[str]:
+        """The associated URL(s) of this entry."""
+        return self.data.get("url", [])
 
-        The month field of an entry may be stored either in string or number format. This function
-        is used to convert between the two options. The default can be configured via
-        `config.database.format.month`.
+    @url.setter
+    def url(self, url: Union[str, List[str]]) -> None:
+        """Sets the associated URL(s) of this entry.
 
         Args:
-            type_: may be either `str` or `int` indicating the format of the month field.
+            url: can be either a single URL (`str`) or a list thereof. Internally, this field will
+            always be stored as a list.
         """
-        month = self.data.get("month", None)
-        if month is None:
-            return
-        try:
-            month = int(month)
-        except ValueError:
-            pass
-        if not isinstance(month, type_):
-            LOGGER.debug("Converting month type for %s", self.label)
-            months = [
-                "jan",
-                "feb",
-                "mar",
-                "apr",
-                "may",
-                "jun",
-                "jul",
-                "aug",
-                "sep",
-                "oct",
-                "nov",
-                "dec",
-            ]
-            if isinstance(month, str):
-                self.data["month"] = str(months.index(month) + 1)
-            elif isinstance(month, int):
+        if isinstance(url, list):
+            self.data["url"] = url
+        else:
+            self.data["url"] = url.split(config.database.stringify.list_separator.url)
+            if len(self.data["url"]) > 1:
+                LOGGER.info(
+                    "Converted the field '%s' of entry '%s' to a list. You can consider storing it "
+                    "as such directly.",
+                    "url",
+                    self.label,
+                    extra={"entry": self.label, "field": "url"},
+                )
+        LOGGER.debug("Adding '%s' as the url to '%s'.", self.data["url"], self.label)
+
+    @property
+    def month(self) -> str:
+        """Returns the month."""
+        return self.data.get("month", None)
+
+    @month.setter
+    def month(self, month: Union[int, str]) -> None:
+        """Sets the month."""
+        months = [
+            "jan",
+            "feb",
+            "mar",
+            "apr",
+            "may",
+            "jun",
+            "jul",
+            "aug",
+            "sep",
+            "oct",
+            "nov",
+            "dec",
+        ]
+        if month in months:
+            self.data["month"] = month
+        else:
+            if isinstance(month, int):
                 self.data["month"] = months[month - 1]
+            elif isinstance(month, str):
+                if month.isnumeric():
+                    self.data["month"] = months[int(month) - 1]
+                else:
+                    self.data["month"] = month.lower()[:3]
+            LOGGER.info(
+                "Converting field '%s' of entry '%s' from '%s' to '%s'.",
+                "month",
+                self.label,
+                month,
+                self.data["month"],
+                extra={"entry": self.label, "field": "month"},
+            )
+
+    def stringify(self) -> Dict[str, str]:
+        """Returns an identical entry to self but with all fields converted to strings.
+
+        Returns:
+            An `Entry` with purely string fields.
+        """
+        data = {}
+        data["ID"] = self.label
+        for field, value in self.data.items():
+            if (
+                isinstance(value, list)
+                and field in config["database"]["stringify"]["list_separator"].keys()
+            ):
+                data[field] = config["database"]["stringify"]["list_separator"][field].join(value)
+            else:
+                data[field] = str(value)
+        return data
 
     def escape_special_chars(self, suppress_warnings: bool = True) -> None:
         """Escapes special characters in the bibliographic data.
 
         Special characters should be escaped to ensure proper rendering in LaTeX documents. This
         function leverages the existing implementation of the `pylatexenc` module to do said
-        conversion. The only fields exempted from the conversion are the `ID` and `file` fields of
+        conversion. The only fields exempted from the conversion are the `file` and `url` fields of
         the `Entry.data` dictionary.
 
         Args:
@@ -199,7 +269,7 @@ class Entry:
             unknown_char_warning=not suppress_warnings or LOGGER.isEnabledFor(logging.DEBUG),
         )
         for key, value in self.data.items():
-            if key in ("ID", "file"):
+            if key in ("file", "url"):
                 # do NOT these fields and keep any special characters
                 self.data[key] = value
                 continue
@@ -211,9 +281,8 @@ class Entry:
 
         This method is mainly used by the `Database.save` method and takes care of some final
         conversions depending on the user's configuration. Applying such modifications (like e.g.
-        month conversion and special character escaping) only before saving ensures a consistent
-        state of the database while also providing a fast startup because these conversions are
-        prevented at that time.
+        special character escaping) only before saving ensures a consistent state of the database
+        while also providing a fast startup because these conversions are prevented at that time.
 
         Args:
             parser: the parser instance to use for dumping. If set to `None` it will default to a
@@ -223,7 +292,6 @@ class Entry:
         Returns:
             The string-representation of this entry as produced by the provided parser.
         """
-        self.convert_month(config.database.format.month)
         self.escape_special_chars(config.database.format.suppress_latex_warnings)
         if parser is None:
             # pylint: disable=import-outside-toplevel,cyclic-import
@@ -232,24 +300,26 @@ class Entry:
             parser = YAMLParser()
         return parser.dump(self) or ""  # `dump` may return `None`
 
-    def matches(self, filter_: Dict[Tuple[str, bool], Any], or_: bool) -> bool:
+    def matches(self, filter_: Dict[Tuple[str, bool], List[str]], or_: bool) -> bool:
         """Check whether this entry matches the supplied filter.
 
         coBib provides an extensive filtering implementation. The filter is specified in the form
         of a dictionary whose keys consist of pairs of `(str, bool)` entries where the string
         indicates the field to match against and the boolean whether a positive (`true`) or negative
-        (`false`) match is required. The value obviously refers to what needs to be matched.
+        (`false`) match is required. The values of the dictionary must be a `List[str]`. Although
+        this means that field types cannot be leveraged for more detailed comparisons other than
+        sub-string containment, this is a limitation resulting from the targeted command-line
+        interface.
 
         Some examples:
 
-        | `filter_`                                        | `or_`    | Meaning                    |
-        | ------------------------------------------------ | -------- | -------------------------- |
-        | `{('year', True): 2020}`                         | *either* | `year` identical to 2020   |
-        | `{('year', False): 2020}`                        | *either* | `year` anything but 2020   |
-        | `{('year', True): 2020, ('year', True): 2021}`   | True     | `year` either 2020 or 2021 |
-        | `{('year', True): 2020, ('year', True): 2021}`   | False    | cannot match anything      |
-        | `{('year', False): 2020, ('year', True): 2021}`  | False    | `year` identical to 2021   |
-        | `{('year', False): 2020, ('year', False): 2021}` | False    | `year` is not 2020 or 2021 |
+        | `filter_`                             | `or_`    | Meaning                               |
+        | ------------------------------------- | -------- | ------------------------------------- |
+        | `{('year', True): ['2020']}`          | *either* | `year` contains 2020                  |
+        | `{('year', False): ['2020']}`         | *either* | `year` does not contain 2020          |
+        | `{('year', True): ['2020', '2021']}`  | True     | `year` contains either 2020 or 2021   |
+        | `{('year', True): ['2020', '2021']}`  | False    | cannot match anything                 |
+        | `{('year', False): ['2020', '2021']}` | False    | `year` contains neither 2020 nor 2021 |
 
         Args:
             filter_: dictionary describing the filter as explained above.
@@ -261,12 +331,13 @@ class Entry:
         """
         LOGGER.debug("Checking whether entry %s matches.", self.label)
         match_list = []
+        stringified_data = self.stringify()
         for key, values in filter_.items():
-            if key[0] not in self.data.keys():
+            if key[0] not in stringified_data.keys():
                 match_list.append(not key[1])
                 continue
             for val in values:
-                if val not in self.data[key[0]]:
+                if val not in stringified_data[key[0]]:
                     match_list.append(not key[1])
                 else:
                     match_list.append(key[1])
@@ -318,26 +389,19 @@ class Entry:
                         break
                     matches[-1].append(string)
 
-        if self.file:
-            files = []
-            if isinstance(self.file, list):
-                files = self.file
-            else:
-                files = self.file.split(", ")
-
-            for file_ in files:
-                grep_prog = config.commands.search.grep
-                LOGGER.debug("Searching associated file %s with %s", file_, grep_prog)
-                with subprocess.Popen(
-                    [grep_prog, f"-C{context}", query, file_], stdout=subprocess.PIPE
-                ) as grep:
-                    if grep.stdout is None:
-                        continue
-                    stdout = grep.stdout
-                    # extract results
-                    results = stdout.read().decode().split("\n--\n")
-                for match in results:
-                    if match:
-                        matches.append([line.strip() for line in match.split("\n") if line.strip()])
+        for file_ in self.file:
+            grep_prog = config.commands.search.grep
+            LOGGER.debug("Searching associated file %s with %s", file_, grep_prog)
+            with subprocess.Popen(
+                [grep_prog, f"-C{context}", query, file_], stdout=subprocess.PIPE
+            ) as grep:
+                if grep.stdout is None:
+                    continue
+                stdout = grep.stdout
+                # extract results
+                results = stdout.read().decode().split("\n--\n")
+            for match in results:
+                if match:
+                    matches.append([line.strip() for line in match.split("\n") if line.strip()])
 
         return matches

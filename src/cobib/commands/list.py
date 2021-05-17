@@ -37,7 +37,7 @@ To give an example, you can find the following filters in the output of `cobib l
 --year YEAR
 ```
 As you can see, each field is used twice: once with a `++` and once with a `--` prefix.
-These allow you two specify positive and negative matches, respectively.
+These allow you to specify positive and negative matches, respectively.
 For example:
 ```
 cobib list ++year 2020
@@ -147,7 +147,7 @@ class ListCommand(Command):
             action="store_true",
             help="concatenate filters with OR instead of AND",
         )
-        unique_keys: Set[str] = set()
+        unique_keys: Set[str] = {"ID"}
         LOGGER.debug("Gathering possible filter arguments.")
         for entry in Database().values():
             unique_keys.update(entry.data.keys())
@@ -197,7 +197,7 @@ class ListCommand(Command):
             if entry.matches(_filter, largs.OR):
                 LOGGER.debug('Entry "%s" matches the filter.', key)
                 labels.append(key)
-                table.append([entry.data.get(c, "") for c in columns])
+                table.append([entry.stringify().get(c, "") for c in columns])
                 if largs.long:
                     table[-1][1] = table[-1][1]
                 else:

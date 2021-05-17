@@ -21,13 +21,13 @@ def main() -> None:
 
     coBib's main function used to parse optional keyword arguments and subcommands.
     """
+    # initialize logging
+    log_to_stream()
+
     if len(sys.argv) > 1 and any(a[0] == "_" for a in sys.argv):
         # shell helper function called
         helper_main()
         sys.exit()
-
-    # initialize logging
-    log_to_stream()
 
     subcommands = [cmd.split(":")[0] for cmd in shell_helper.list_commands()]
     parser = argparse.ArgumentParser(
@@ -121,8 +121,6 @@ def helper_main() -> None:
 
     # load configuration
     config.load(args.config)
-    # initialize database
-    Database()
 
     helper = getattr(shell_helper, args.helper.strip("_"))
     # any shell helper function will return a list of the requested items

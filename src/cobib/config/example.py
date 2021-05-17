@@ -71,15 +71,20 @@ config.database.git = False
 # DATABASE.FORMAT
 # You can also specify some aspects about the format of the database.
 
-# You can specify the type of the `month` field. It can be either `int` or `str` and will be
-# converted automatically. I.e. '8' will become 'aug' if you set this to `str`.
-config.database.format.month = int
-
 # You can specify whether latex warnings should not be ignored during the escaping of special
 # characters. This is a simple option which gets passed on to the internally used `pylatexenc`
 # library.
 config.database.format.suppress_latex_warnings = True
 
+# DATABASE.STRINGIFY
+# You can customize the functions which convert non-string fields.
+
+# Three fields are currently explicitly stored as lists internally. Upon conversion to the BibTeX
+# format, these need to be converted to a basic string. In this process the entries of the list will
+# be joined using the separators configured by the following settings.
+config.database.stringify.list_separator.file = ", "
+config.database.stringify.list_separator.tags = ", "
+config.database.stringify.list_separator.url = ", "
 
 # PARSERS
 # These settings affect some parser specific behavior.

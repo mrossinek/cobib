@@ -68,10 +68,16 @@ class Config(Dict[str, Any]):
         "database": {
             "file": "~/.local/share/cobib/literature.yaml",
             "format": {
-                "month": int,
                 "suppress_latex_warnings": True,
             },
             "git": False,
+            "stringify": {
+                "list_separator": {
+                    "file": ", ",
+                    "tags": ", ",
+                    "url": ", ",
+                },
+            },
         },
         "parsers": {
             "bibtex": {
@@ -414,13 +420,28 @@ class Config(Dict[str, Any]):
             isinstance(self.database.git, bool), "config.database.git should be a boolean."
         )
         # DATABASE.FORMAT section
-        self._assert(
-            self.database.format.month in (int, str),
-            "config.database.format.month should be either the `int` or `str` type.",
-        )
+        if "month" in self["database"]["format"].keys():
+            LOGGER.warning(
+                "The config.database.format.month setting is deprecated as of version 3.1.0! "
+                "Instead, coBib will store the month as a three-letter code which is a common "
+                "format for which most citation styles include macros. See also "
+                "https://www.bibtex.com/f/month-field/"
+            )
         self._assert(
             isinstance(self.database.format.suppress_latex_warnings, bool),
             "config.database.format.suppress_latex_warnings should be a boolean.",
+        )
+        self._assert(
+            isinstance(self.database.stringify.list_separator.file, str),
+            "config.database.stringify.list_separator.file should be a string.",
+        )
+        self._assert(
+            isinstance(self.database.stringify.list_separator.tags, str),
+            "config.database.stringify.list_separator.tags should be a string.",
+        )
+        self._assert(
+            isinstance(self.database.stringify.list_separator.url, str),
+            "config.database.stringify.list_separator.url should be a string.",
         )
 
         # PARSER section

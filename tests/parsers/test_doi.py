@@ -21,9 +21,7 @@ class TestDOIParser(ParserTest):
         # In this specific case the bib file provided by this DOI includes additional (yet
         # unnecessary) brackets in the escaped special characters of the author field. Thus, we
         # correct for this inconsistency manually before asserting the equality.
-        reference["author"] = reference["author"].replace("'a", "'{a}")
-        # We also need to fix the month format for this specific test.
-        reference["month"] = "aug"
+        reference["author"] = str(reference["author"]).replace("'a", "'{a}")
         entries = parsers.DOIParser().parse("10.1021/acs.chemrev.8b00803")
 
         if (
