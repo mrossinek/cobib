@@ -165,7 +165,7 @@ class AddCommand(Command):
                 new_entries = {
                     largs.label: Entry(
                         largs.label,
-                        {"ID": largs.label, "ENTRYTYPE": config.commands.edit.default_entry_type},
+                        {"ENTRYTYPE": config.commands.edit.default_entry_type},
                     )
                 }
                 edit_entries = True

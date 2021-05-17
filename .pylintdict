@@ -14,6 +14,7 @@ automagically
 backend
 biblatex
 bibtex
+bibtexexpression
 bibtexparser
 bool
 boolean
@@ -35,6 +36,7 @@ einstein
 enum
 esc
 fmt
+formatter
 getter
 github
 html
@@ -52,6 +54,7 @@ json
 kwargs
 listcommand
 logfile
+logrecord
 mendeley
 monkeypatch
 monkeypatching
@@ -100,6 +103,7 @@ stdin
 stdout
 stdscr
 str
+stringify
 subcommand
 subcommands
 submodules

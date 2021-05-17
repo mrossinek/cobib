@@ -6,10 +6,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- the YAML format of the database has been extended to support the following: (#55)
+    - numbers can be stored as integers
+    - the `ID` field is no longer required and will be properly inferred from the label
+    - the following fields can be stored as lists: `file`, `tags`, `url`
+- three new configuration options were added to complement the above list format options:
+    - `config.database.stringify.list_separator.file`
+    - `config.database.stringify.list_separator.tags`
+    - `config.database.stringify.list_separator.url`
+- the `_lint_database` shell utility has been added which can be used to detect possible improvements for the database
+
+
 ### Changed
 - use file paths relative to user-home (achieved by replacing `os.path` with `pathlib`) (#69)
 - the shell helper `_list_tags` has been renamed to `_list_labels`
 - (DEV): the `logging` and `zsh_helper` modules have been relocated to the `cobib.utils` package
+- `+` symbols will no longer be stripped from tags (this was a left-over artifact from pre-v1.0.0)
+
+### Deprecated
+- the `config.database.format.month` setting is deprecated in favor of proper three-letter code encoding to support common citation style macros (!34)
 
 
 ## [3.0.0] - 2021-04-10

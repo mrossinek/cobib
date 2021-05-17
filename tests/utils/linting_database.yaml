@@ -1,0 +1,10 @@
+---
+dummy:
+  ENTRYTYPE: article
+  ID: dummy
+  file: /tmp/a.txt, /tmp/b.txt
+  month: 8
+  number: "1"
+  tags: a, b
+  url: https://dummy.org/, https://dummy.com/
+...

@@ -1,7 +1,10 @@
 ---
 example_multi_file_entry:
   ENTRYTYPE: misc
-  ID: example_multi_file_entry
-  file: /tmp/a.txt, /tmp/b.txt
-  url: https://www.duckduckgo.com, https://www.google.com
+  file:
+  - /tmp/a.txt
+  - /tmp/b.txt
+  url:
+  - https://www.duckduckgo.com
+  - https://www.google.com
 ...

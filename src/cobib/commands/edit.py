@@ -15,8 +15,7 @@ adding the `--add` command-line argument:
 ```
 cobib edit --add <new label ID>
 ```
-This entry will be entirely empty except for the two fields which are always present:
-* `ID`: set to the new Entry label.
+This entry will be entirely empty except for the one field which is always present:
 * `ENTRYTYPE`: set to the default value configured via `config.commands.edit.default_entry_type`.
 
 You can also trigger this command from the `cobib.tui.tui.TUI`.
@@ -111,7 +110,7 @@ class EditCommand(Command):
                 # add a new entry for the unknown label
                 entry = Entry(
                     largs.label,
-                    {"ID": largs.label, "ENTRYTYPE": config.commands.edit.default_entry_type},
+                    {"ENTRYTYPE": config.commands.edit.default_entry_type},
                 )
                 prv = yml.dump(entry)
             else:

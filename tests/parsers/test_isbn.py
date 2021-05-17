@@ -28,9 +28,9 @@ class TestISBNParser(ParserTest):
         entry = list(entries.values())[0]
         assert entry.label == "Lutz2013"
         assert entry.data["author"] == "Mark Lutz"
-        assert entry.data["pages"] == "1540"
+        assert entry.data["pages"] == 1540
         assert entry.data["title"] == "Learning Python"
-        assert entry.data["year"] == "2013"
+        assert entry.data["year"] == 2013
 
     # regression test for https://gitlab.com/mrossinek/cobib/-/issues/53
     def test_from_empty_isbn(self, caplog: pytest.LogCaptureFixture) -> None:

@@ -101,7 +101,8 @@ class Database(OrderedDict):  # type: ignore
         """
         if cls._instance is None:
             cls()
-        _instance = cast(Database, cls._instance)
+            return
+        _instance = cls._instance
 
         file = RelPath(config.database.file).path
         try:
