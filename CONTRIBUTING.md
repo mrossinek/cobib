@@ -24,13 +24,13 @@ tox -e lint
 ```
 
 ## Coverage
-You can check the coverage with the `pytest-cov` plugin:
+You can check the coverage with:
 ```
 tox -e coverage
 ```
 
 ## Documentation
-When working on coBib you may find the online documentation at https://mrossinek.gitlab.io/cobib/ or a locally generated version, useful.
+When working on coBib you may find the online documentation at https://mrossinek.gitlab.io/cobib/cobib.html or a locally generated version, useful.
 For the latter, please refer to the README.
 
 Once you have opened a merge request on GitLab, you can also view an automatically generated version of the documentation for your branch through the `View App` button below the `Pipeline` results.
