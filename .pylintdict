@@ -55,6 +55,7 @@ kwargs
 listcommand
 logfile
 logrecord
+md
 mendeley
 monkeypatch
 monkeypatching
@@ -79,6 +80,7 @@ pypi
 pyte
 pytest
 readline
+readme
 readthedocs
 rgb
 ripgrep
