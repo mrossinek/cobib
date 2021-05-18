@@ -12,9 +12,6 @@ equivalent:
 config['database']['git'] = True
 config.database.git = True
 ```
-
-Note, if you are reading this in the online-documentation, be sure to expand the source below by
-clicking on "View Source".
 """
 
 # Generally, you won't need these, but the default configuration relies on them.
