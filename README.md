@@ -181,6 +181,10 @@ coBib is written in Python and uses a YAML file to store its bibliography in a p
 ### Changelog
 You can find the detailed changes throughout coBib's history in [the Changelog](https://gitlab.com/mrossinek/cobib/-/blob/master/CHANGELOG.md).
 
+
+## License
+coBib is licensed under the [MIT License](https://gitlab.com/mrossinek/cobib/-/blob/master/LICENSE.txt).
+
 [^1]:
 References like this one get interpreted by the documentation generator. If you are reading this as the README page, you may find the [online documentation](https://mrossinek.gitlab.io/cobib/cobib.html) more enjoyable.
 
