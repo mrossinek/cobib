@@ -10,8 +10,9 @@ cobib modify tags:private --selection -- DummyID1 DummyID2 ...
 ```
 which will set the tags of all listed entries to `private`.
 
-In the future, we plan to support an `--append` option which will allow appending to existing values
-of a field rather than simply overwriting all previous contents.
+You can use the `--add` option to not overwrite but append to existing values of a field. `str`
+fields will be concatenated with*out* any spaces, lists will be appended, and numeric fields will be
+added. Any other kind of field will be converted to a `str`.
 
 As with other commands, you can also use filters (see also `cobib.commands.list`) rather than a
 manual selection to specify the entries which to modify:
@@ -82,7 +83,9 @@ class ModifyCommand(Command):
                       modification that should be applied to all matching entries. By default, the
                       modification will overwrite any existing data in the specified `field` with
                       the new `value`.
-                    * `-a`, `--append`: **TO BE IMPLEMENTED**.
+                    * `-a`, `--add`: when specified, the modification's value will be added to the
+                      entry's field rather than overwrite it. If the field in question is numeric,
+                      the numbers will be added.
                     * `-s`, `--selection`: when specified, the positional arguments will *not* be
                       interpreted as filters but rather as a direct list of entry labels. This can
                       be used on the command-line but is mainly meant for the TUIs visual selection
@@ -104,9 +107,9 @@ class ModifyCommand(Command):
         )
         parser.add_argument(
             "-a",
-            "--append",
+            "--add",
             action="store_true",
-            help="Appends to the modified field rather than overwriting it.",
+            help="Adds to the modified field rather than overwriting it.",
         )
         parser.add_argument(
             "-s",
@@ -145,18 +148,48 @@ class ModifyCommand(Command):
 
         field, value = largs.modification
 
-        if largs.append:
-            msg = "The append-mode of the `modify` command has not been implemented yet."
-            print(msg)
-            LOGGER.warning(msg)
-            sys.exit(1)
-
         bib = Database()
 
-        for label in labels:
+        for label in labels:  # pylint: disable=too-many-nested-blocks
             try:
                 entry = bib[label]
-                entry.data[field] = value
+
+                if not largs.add:
+                    new_value = value
+                else:
+                    if hasattr(entry, field):
+                        prev_value = getattr(entry, field, None)
+                    else:
+                        prev_value = entry.data.get(field, None)
+
+                    try:
+                        if prev_value is None:
+                            new_value = value
+                        elif isinstance(prev_value, str):
+                            new_value = prev_value + value
+                        elif isinstance(prev_value, list):
+                            new_value = prev_value + [value]
+                        elif isinstance(prev_value, int):
+                            if value.isnumeric():
+                                new_value = prev_value + int(value)
+                            else:
+                                raise TypeError
+                        else:
+                            raise TypeError
+                    except TypeError:
+                        LOGGER.warning(
+                            "Encountered an unexpected field type to add to. Converting the field "
+                            "'%s' of entry '%s' to a simple string: '%s'.",
+                            field,
+                            label,
+                            str(prev_value) + value,
+                        )
+                        new_value = str(prev_value) + value
+
+                if hasattr(entry, field):
+                    setattr(entry, field, new_value)
+                else:
+                    entry.data[field] = new_value
 
                 bib.update({label: entry})
 

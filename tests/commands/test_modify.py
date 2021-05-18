@@ -39,8 +39,9 @@ class TestModifyCommand(CommandTest, TUITest):
             ["tags:test", ["++ID", "einstein"], False],
         ],
     )
+    @pytest.mark.parametrize("add", [False, True])
     def test_command(
-        self, setup: Any, modification: str, filters: List[str], selection: bool
+        self, setup: Any, modification: str, filters: List[str], selection: bool, add: bool
     ) -> None:
         """Test the command itself."""
         git = setup.get("git", False)
@@ -50,16 +51,24 @@ class TestModifyCommand(CommandTest, TUITest):
         if selection:
             args = ["-s"] + args
 
+        expected = ["test"]
+
+        if add:
+            # first insert something to add to
+            ModifyCommand().execute(["tags:dummy", "++ID", "einstein"])
+            args = ["-a"] + args
+            expected = ["dummy"] + expected
+
         ModifyCommand().execute(args)
 
-        assert Database()["einstein"].data["tags"] == "test"
+        assert Database()["einstein"].data["tags"] == expected
 
         if git:
             # assert the git commit message
             self.assert_git_commit_message(
                 "modify",
                 {
-                    "append": False,
+                    "add": add,
                     "selection": selection,
                     "modification": modification.split(":"),
                     "filter": filters,
@@ -67,24 +76,24 @@ class TestModifyCommand(CommandTest, TUITest):
             )
 
     @pytest.mark.parametrize(
-        ["setup"],
+        ["modification", "expected"],
         [
-            [{"git": False}],
+            ["author: and Knuth", "Albert Einstein and Knuth"],
+            ["dummy:test", "test"],
+            ["number:2", 12],
+            ["number:a", "10a"],
         ],
-        indirect=["setup"],
     )
-    def test_append_mode(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test command's append mode."""
-        args = ["-a", "tags:test", "--", "++ID", "einstein"]
+    def test_add_mode(self, setup: Any, modification: str, expected: Any) -> None:
+        """Test more cases of the add mode."""
+        # modify some data
+        args = ["-a", modification, "++ID", "einstein"]
 
-        with pytest.raises(SystemExit):
-            ModifyCommand().execute(args)
+        field, _ = modification.split(":")
 
-        assert (
-            "cobib.commands.modify",
-            30,
-            "The append-mode of the `modify` command has not been implemented yet.",
-        ) in caplog.record_tuples
+        ModifyCommand().execute(args)
+
+        assert Database()["einstein"].data[field] == expected
 
     def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test warning for missing label."""
@@ -115,7 +124,7 @@ class TestModifyCommand(CommandTest, TUITest):
     def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch, args: List[str]) -> None:
         """Test the command-line access of the command."""
         self.run_module(monkeypatch, "main", ["cobib", "modify"] + args)
-        assert Database()["einstein"].data["tags"] == "test"
+        assert Database()["einstein"].data["tags"] == ["test"]
 
     @pytest.mark.parametrize(
         ["select", "keys"],

@@ -124,11 +124,14 @@ The modification must be provided in the format \fI<field>:<value>\fR and will
 set the field of all selected entries to the given value.
 .PP
 .in +8n
-.BR \-a ", " \-\-append
+.BR \-a ", " \-\-add
 .in +4n
-This is \fBNOT\fR implemented yet. However, in the future this will provide the
-possibility to append the new value to the modified field rather than
-overwriting it.
+Specifying this flag will add the modification's value to the specified field of
+the entry rather than overwriting it. In doing so, strings will be concatenated
+with\fBOUT\fR any spaces, lists will be appended to, numbers will be added, and
+anything else will be converted to a string field.
+If the field did not exist previously, it will simply be initialized with the
+new value.
 .PP
 .in +8n
 .BR \-s ", " \-\-selection

@@ -16,7 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `config.database.stringify.list_separator.tags`
     - `config.database.stringify.list_separator.url`
 - the `_lint_database` shell utility has been added which can be used to detect possible improvements for the database
-
+- the append-mode of the `ModifyCommand` was implemented (#60):
+    - specifying `-a`/`--add` will add the modification value to the field of the entries rather than overwrite it
+    - this can be used for string or list concatenation and even number addition on numeric fields
 
 ### Changed
 - use file paths relative to user-home (achieved by replacing `os.path` with `pathlib`) (#69)
