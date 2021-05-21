@@ -35,8 +35,8 @@ class TestListCommand(CommandTest, TUITest):
         [
             [[], ["einstein", "latexcompanion", "knuthwebsite"]],
             [["-r"], ["knuthwebsite", "latexcompanion", "einstein"]],
-            [["-s", "year"], ["einstein", "knuthwebsite", "latexcompanion"]],
-            [["-r", "-s", "year"], ["latexcompanion", "knuthwebsite", "einstein"]],
+            [["-s", "year"], ["knuthwebsite", "einstein", "latexcompanion"]],
+            [["-r", "-s", "year"], ["latexcompanion", "einstein", "knuthwebsite"]],
             [["++author", "Einstein"], ["einstein"]],
             [["--author", "Einstein"], ["latexcompanion", "knuthwebsite"]],
             [["++author", "Einstein", "++author", "Knuth"], []],

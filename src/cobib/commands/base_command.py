@@ -9,7 +9,7 @@ import os
 import shlex
 import sys
 from abc import ABC, abstractmethod
-from typing import IO, TYPE_CHECKING, Any, Dict, List, NoReturn, Optional
+from typing import IO, TYPE_CHECKING, Any, Dict, Generator, List, NoReturn, Optional
 
 from cobib.config import config
 from cobib.utils.rel_path import RelPath
@@ -64,7 +64,7 @@ class Command(ABC):
 
     @staticmethod
     @abstractmethod
-    def tui(tui: cobib.tui.TUI) -> None:
+    def tui(tui: cobib.tui.TUI) -> Optional[Generator[List[str], None, None]]:
         """TUI command interface.
 
         This function serves as the commands entry-point from the `cobib.tui.tui.TUI` instance.
@@ -76,6 +76,11 @@ class Command(ABC):
 
         Args:
             tui: the runtime-instance of coBib's TUI.
+
+        Returns:
+            This method usually returns nothing. However, in certain cases (such as the
+            `cobib.commands.list.ListCommand`) this method may `yield` the command arguments for
+            further processing to the calling frame.
         """
 
     def git(self, args: Optional[Dict[str, Any]] = None, force: bool = False) -> None:

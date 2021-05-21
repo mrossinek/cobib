@@ -52,7 +52,6 @@ import shlex
 import signal
 import struct
 import sys
-from functools import partial
 from termios import TIOCGWINSZ
 from typing import IO, Any, Callable, Dict, List, Optional, Set, Tuple, Union, cast
 
@@ -106,7 +105,7 @@ class TUI:
         "Delete": commands.delete.DeleteCommand.tui,
         "Edit": commands.edit.EditCommand.tui,
         "Export": commands.export.ExportCommand.tui,
-        "Filter": partial(commands.list.ListCommand.tui, sort_mode=False),
+        "Filter": commands.list.ListCommand.tui_filter,
         "Help": lambda self: self.help(),
         "Modify": commands.modify.ModifyCommand.tui,
         "Open": commands.open.OpenCommand.tui,
@@ -116,7 +115,7 @@ class TUI:
         "Search": commands.search.SearchCommand.tui,
         "Select": lambda self: self.select(),
         "Show": commands.show.ShowCommand.tui,
-        "Sort": partial(commands.list.ListCommand.tui, sort_mode=True),
+        "Sort": commands.list.ListCommand.tui_sort,
         "Undo": commands.undo.UndoCommand.tui,
         "Wrap": lambda self: self.viewport.wrap(),
         "x": lambda self, update: self.viewport.scroll_x(update),
