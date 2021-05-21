@@ -36,6 +36,12 @@ class TestISBNParser(ParserTest):
     def test_from_empty_isbn(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test parsing an empty ISBN."""
         entries = parsers.ISBNParser().parse("3860704443")
+
+        if any(
+            s == "cobib.parsers.isbn" and t == logging.ERROR for s, t, _ in caplog.record_tuples
+        ):
+            pytest.skip("The requests API encountered an error. Skipping test.")
+
         assert not entries
         assert entries == {}
 
