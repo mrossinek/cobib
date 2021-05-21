@@ -206,11 +206,11 @@ class ListCommand(Command):
         LOGGER.debug("Column widths determined to be: %s", widths)
         if largs.sort:
             LOGGER.debug("Sorting table in %s order.", "reverse" if largs.reverse else "normal")
-            labels, table = zip(
+            labels, table = zip(  # type: ignore
                 *sorted(
                     zip(labels, table),
                     reverse=largs.reverse,
-                    key=itemgetter(columns.index(largs.sort)),
+                    key=lambda row: row[1][columns.index(largs.sort)],  # type: ignore
                 )
             )
         elif largs.reverse:

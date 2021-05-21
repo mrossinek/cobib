@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - renaming the label during the `edit` command does not leave the previous label entry behind
+- the sorting of the `list` command
 
 
 ## [3.0.0] - 2021-04-10
