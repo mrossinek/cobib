@@ -143,7 +143,7 @@ class EditCommand(Command):
 
         bib.update({new_entry.label: new_entry})
         if new_entry.label != largs.label:
-            bib.pop(largs.label)
+            bib.rename(largs.label, new_entry.label)
         bib.save()
 
         self.git(args=vars(largs))

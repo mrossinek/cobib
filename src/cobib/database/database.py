@@ -6,7 +6,7 @@ import logging
 import re
 import sys
 from collections import OrderedDict
-from typing import TYPE_CHECKING, Dict, List, Optional, cast
+from typing import TYPE_CHECKING, Dict, List, Optional, Union, cast
 
 from cobib.config import config
 from cobib.utils.rel_path import RelPath
@@ -29,9 +29,11 @@ class Database(OrderedDict):  # type: ignore
     _instance: Optional[Database] = None
     """The singleton instance of this class."""
 
-    _unsaved_entries: List[str] = []
-    """The list of changed entries which have not been written to the database file, yet.
-    This variable is a list in order to preserve the order of the entries."""
+    _unsaved_entries: Dict[Union[str], Union[None, str]] = {}
+    """A dictionary of changed entries which have not been written to the database file, yet.
+    The keys are the entry labels. If it the entry was removed, the value of this key is `None`.
+    Otherwise it is set to the label of the changed entry (which may be different from the previous
+    label, indicating a renaming of the entry)."""
 
     def __new__(cls) -> "Database":
         """Singleton constructor.
@@ -42,7 +44,7 @@ class Database(OrderedDict):  # type: ignore
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             # store all unsaved entries in a list in order to preserve their order
-            cls._unsaved_entries = []
+            cls._unsaved_entries = {}
         if not cls._instance and not cls._unsaved_entries:
             cls.read()
         return cls._instance
@@ -61,9 +63,7 @@ class Database(OrderedDict):  # type: ignore
         """
         for label in new_entries.keys():
             LOGGER.debug("Updating entry %s", label)
-            if label in Database._unsaved_entries:
-                Database._unsaved_entries.remove(label)
-            Database._unsaved_entries.append(label)
+            Database._unsaved_entries[label] = label
         super().update(new_entries)
 
     def pop(self, label: str) -> cobib.database.Entry:  # type: ignore
@@ -83,10 +83,21 @@ class Database(OrderedDict):  # type: ignore
         """
         entry: cobib.database.Entry = super().pop(label)
         LOGGER.debug("Removing entry: %s", label)
-        if label in Database._unsaved_entries:
-            Database._unsaved_entries.remove(label)
-        Database._unsaved_entries.append(label)
+        Database._unsaved_entries[label] = None
         return entry
+
+    def rename(self, old_label: str, new_label: str) -> None:  # pylint: disable=no-self-use
+        """Renames an entry label.
+
+        This function performs no actual changes to the database. It merely registers a rename
+        operation in `Database._unsaved_entries`.
+
+        Args:
+            old_label: the previous label.
+            new_label: the new label.
+        """
+        LOGGER.debug("Renaming entry '%s' to '%s'.", old_label, new_label)
+        Database._unsaved_entries[old_label] = new_label
 
     @classmethod
     def read(cls) -> None:
@@ -164,7 +175,7 @@ class Database(OrderedDict):  # type: ignore
                 if matches is None:
                     raise AttributeError
                 new_label = matches.groups()[0]
-                if new_label in cls._unsaved_entries:
+                if new_label in cls._unsaved_entries.keys():
                     LOGGER.debug('Entry "%s" found. Starting to replace lines.', new_label)
                     overwrite = True
                     cur_label = new_label
@@ -175,26 +186,31 @@ class Database(OrderedDict):  # type: ignore
                 LOGGER.debug('Reached end of entry "%s".', cur_label)
                 overwrite = False
 
-                entry = _instance.get(cur_label, None)
+                new_label = cls._unsaved_entries.pop(cur_label)  # type: ignore
+                entry = _instance.get(new_label, None)
                 if entry:
-                    LOGGER.debug('Writing modified entry "%s".', cur_label)
+                    LOGGER.debug('Writing modified entry "%s".', new_label)
                     entry_str = entry.save(parser=yml)
                     buffer.append("\n".join(entry_str.split("\n")[1:]))
                 else:
                     # Entry has been deleted. Pop the previous `---` line.
-                    LOGGER.debug('Deleting entry "%s".', cur_label)
+                    LOGGER.debug('Deleting entry "%s".', new_label)
                     buffer.pop()
-                cls._unsaved_entries.remove(cur_label)
+                # we pop `new_label` too, because in case of a rename it differs from `cur_label`
+                cls._unsaved_entries.pop(new_label, None)
             elif not overwrite:
                 # keep previous line
                 buffer.append(line)
 
         if cls._unsaved_entries:
-            for label in cls._unsaved_entries.copy():
+            for label in cls._unsaved_entries.copy().values():
+                if label is None:
+                    # should never occur but we avoid a type exception
+                    continue
                 LOGGER.debug('Adding new entry "%s".', label)
                 entry_str = _instance[label].save(parser=yml)
                 buffer.append(entry_str)
-                cls._unsaved_entries.remove(label)
+                cls._unsaved_entries.pop(label)
 
         with open(file, "w") as bib:
             for line in buffer:

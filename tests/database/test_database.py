@@ -75,7 +75,7 @@ def test_database_update() -> None:
     bib = Database()
     bib.update(entries)  # type: ignore
     # pylint: disable=protected-access
-    assert Database._unsaved_entries == list(entries.keys())
+    assert Database._unsaved_entries == {e: e for e in list(entries.keys())}
     for key, val in entries.items():
         assert bib[key] == val
 
@@ -86,12 +86,23 @@ def test_database_pop() -> None:
     bib = Database()
     bib.update(entries)  # type: ignore
     # pylint: disable=protected-access
-    Database._unsaved_entries = []
-    assert Database._unsaved_entries == []
+    Database._unsaved_entries = {}
+    assert Database._unsaved_entries == {}
     entry = bib.pop("dummy1")
     assert entry == "test1"
     assert "dummy1" not in bib.keys()
-    assert Database._unsaved_entries == ["dummy1"]
+    assert Database._unsaved_entries == {"dummy1": None}
+
+
+def test_database_rename() -> None:
+    """Test Database rename method."""
+    bib = Database()
+    # pylint: disable=protected-access
+    Database._unsaved_entries = {}
+    assert Database._unsaved_entries == {}
+    bib.rename("einstein", "dummy")
+    # pylint: disable=protected-access
+    assert Database._unsaved_entries == {"einstein": "dummy"}
 
 
 def test_database_read() -> None:
@@ -99,7 +110,7 @@ def test_database_read() -> None:
     bib = Database()
     bib.read()
     # pylint: disable=protected-access
-    assert Database._unsaved_entries == []
+    assert Database._unsaved_entries == {}
     assert list(bib.keys()) == ["einstein", "latexcompanion", "knuthwebsite"]
 
 
@@ -122,7 +133,7 @@ def test_database_save_add() -> None:
 
     try:
         # pylint: disable=protected-access
-        assert Database._unsaved_entries == []
+        assert Database._unsaved_entries == {}
 
         with open(config.database.file, "r") as file:
             # NOTE: do NOT use zip_longest to omit last entries (for testing simplicity)
@@ -151,7 +162,7 @@ def test_database_save_modify() -> None:
 
     try:
         # pylint: disable=protected-access
-        assert Database._unsaved_entries == []
+        assert Database._unsaved_entries == {}
 
         with open(config.database.file, "r") as file:
             with open(EXAMPLE_LITERATURE, "r") as expected:
@@ -184,7 +195,7 @@ def test_database_save_delete() -> None:
 
     try:
         # pylint: disable=protected-access
-        assert Database._unsaved_entries == []
+        assert Database._unsaved_entries == {}
 
         with open(config.database.file, "r") as file:
             with open(EXAMPLE_LITERATURE, "r") as expected:
