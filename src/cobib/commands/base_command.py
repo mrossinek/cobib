@@ -77,10 +77,8 @@ class Command(ABC):
         Args:
             tui: the runtime-instance of coBib's TUI.
 
-        Returns:
-            This method usually returns nothing. However, in certain cases (such as the
-            `cobib.commands.list.ListCommand`) this method may `yield` the command arguments for
-            further processing to the calling frame.
+        Yields:
+            Optionally, this method may `yield` the command arguments for further processing.
         """
 
     def git(self, args: Optional[Dict[str, Any]] = None, force: bool = False) -> None:
