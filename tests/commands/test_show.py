@@ -23,11 +23,15 @@ class TestShowCommand(CommandTest, TUITest):
     """Tests for coBib's ShowCommand."""
 
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        """Get the command tested by this class."""
+        # noqa: D102
         return ShowCommand
 
     def _assert(self, output: List[str]) -> None:
-        """Common assertion utility method."""
+        """Common assertion utility method.
+
+        Args:
+            output: the actual output of the command.
+        """
         with open(get_resource("example_literature.bib"), "r") as expected:
             # we use zip_longest to ensure that we don't have more than we expect
             for line, truth in zip_longest(output, expected):
@@ -36,14 +40,23 @@ class TestShowCommand(CommandTest, TUITest):
                 assert line == truth.strip("\n")
 
     def test_command(self, setup: Any) -> None:  # type: ignore
-        """Test the command itself."""
+        """Test the command itself.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+        """
         # redirect output of show to string
         file = StringIO()
         ShowCommand().execute(["einstein"], out=file)
         self._assert(file.getvalue().split("\n"))
 
     def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test warning for missing label."""
+        """Test warning for missing label.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
         ShowCommand().execute(["dummy"])
         assert (
             "cobib.commands.show",
@@ -54,7 +67,13 @@ class TestShowCommand(CommandTest, TUITest):
     def test_cmdline(
         self, setup: Any, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
     ) -> None:
-        """Test the command-line access of the command."""
+        """Test the command-line access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            monkeypatch: the built-in pytest fixture.
+            capsys: the built-in pytest fixture.
+        """
         self.run_module(monkeypatch, "main", ["cobib", "show", "einstein"])
         self._assert(capsys.readouterr().out.strip().split("\n"))
 
@@ -66,7 +85,13 @@ class TestShowCommand(CommandTest, TUITest):
         ],
     )
     def test_tui(self, setup: Any, select: bool, keys: str) -> None:
-        """Test the TUI access of the command."""
+        """Test the TUI access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            select: whether to use the TUI selection.
+            keys: the string of keys to pass to the TUI.
+        """
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             expected_screen = [

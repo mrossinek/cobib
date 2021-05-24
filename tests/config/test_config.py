@@ -35,7 +35,7 @@ def test_config_init() -> None:
 
 
 def test_config_getattr() -> None:
-    """Tests the automatic attribute generation."""
+    """Test the automatic attribute generation."""
     cfg = Config()
     dummy = cfg.dummy
     assert isinstance(cfg.dummy, Config)
@@ -43,7 +43,7 @@ def test_config_getattr() -> None:
 
 
 def test_config_recursive_getattr() -> None:
-    """Tests the recursive attribute generation."""
+    """Test the recursive attribute generation."""
     cfg = Config()
     dummy = cfg.dummy.dummy
     assert isinstance(cfg.dummy, Config)
@@ -52,7 +52,7 @@ def test_config_recursive_getattr() -> None:
 
 
 def test_config_recursive_setattr() -> None:
-    """Tests the recursive attribute setting."""
+    """Test the recursive attribute setting."""
     cfg = Config()
     cfg.dummy.dummy = "test"
     assert isinstance(cfg.dummy, Config)
@@ -74,7 +74,7 @@ def test_config_load_from_open_file() -> None:
 
 
 def test_config_load_nothing() -> None:
-    """Test nothing changes when no XDG files are present."""
+    """Test that nothing changes when no XDG files are present."""
     Config.XDG_CONFIG_FILE = ""
     Config.LEGACY_XDG_CONFIG_FILE = ""
     config.load()
@@ -83,7 +83,7 @@ def test_config_load_nothing() -> None:
 
 
 def test_config_load_xdg() -> None:
-    """Test loading config from XDG path."""
+    """Test loading a config from XDG path."""
     Config.XDG_CONFIG_FILE = get_resource("debug.py")
     config.load()
     assert config.database.file == str(EXAMPLE_LITERATURE)
@@ -91,7 +91,7 @@ def test_config_load_xdg() -> None:
 
 # TODO: remove legacy configuration support on 1.1.2022
 def assert_legacy_config() -> None:
-    """Asserts the legacy configuration has been applied."""
+    """Assert the legacy configuration has been applied."""
     assert config.commands.edit.default_entry_type == "string"
     assert config.commands.open.command == "string"
     assert config.commands.search.grep == "string"
@@ -126,14 +126,18 @@ def test_config_load_legacy_xdg() -> None:
 
 
 def test_config_example() -> None:
-    """Test the example config."""
+    """Test that the example config matches the default values."""
     config.clear()
     config.load(get_resource("example.py", "../src/cobib/config/"))
     assert config == Config.DEFAULTS
 
 
 def test_config_validation_failure(caplog: pytest.LogCaptureFixture) -> None:
-    """Tests SystemExit upon config validation failure."""
+    """Test for a `SystemExit` upon config validation failure.
+
+    Args:
+        caplog: the built-in pytest fixture.
+    """
     with pytest.raises(SystemExit):
         config.load(get_resource("broken_config.py", "config"))
     assert (
@@ -145,7 +149,11 @@ def test_config_validation_failure(caplog: pytest.LogCaptureFixture) -> None:
 
 @pytest.fixture
 def setup() -> Generator[Any, None, None]:
-    """Setup debugging configuration."""
+    """Setup debugging configuration.
+
+    Yields:
+        Access to the local fixture variables.
+    """
     config.load(get_resource("debug.py"))
     yield setup
     config.clear()
@@ -153,7 +161,11 @@ def setup() -> Generator[Any, None, None]:
 
 
 def test_config_validation(setup: Any) -> None:
-    """Test the initial configuration passes all validation checks."""
+    """Test that the initial configuration passes all validation checks.
+
+    Args:
+        setup: a local pytest fixture.
+    """
     config.validate()
 
 
@@ -215,7 +227,13 @@ def test_config_validation(setup: Any) -> None:
     ],
 )
 def test_missing_config_fields(setup: Any, sections: List[str], field: str) -> None:
-    """Test raised RuntimeError for missing config fields."""
+    """Test raised RuntimeError for missing config fields.
+
+    Args:
+        setup: a local pytest fixture.
+        sections: a list of section names in the nested configuration.
+        field: the name of the configuration setting.
+    """
     with pytest.raises(RuntimeError) as exc_info:
         section = config
         for sec in sections[:-1]:
@@ -249,7 +267,12 @@ def test_missing_config_fields(setup: Any, sections: List[str], field: str) -> N
     ],
 )
 def test_valid_tui_colors(setup: Any, color: str) -> None:
-    """Test curses color specification validation."""
+    """Test curses color specification validation.
+
+    Args:
+        setup: a local pytest fixture.
+        color: the name of the color.
+    """
     with pytest.raises(RuntimeError) as exc_info:
         config.tui.colors[color] = "test"
         config.validate()
@@ -271,12 +294,23 @@ def test_valid_tui_colors(setup: Any, color: str) -> None:
     ],
 )
 def test_get_ansi_color(setup: Any, color: str, ansi: str) -> None:
-    """Test default ANSI color code generation."""
+    """Test default ANSI color code generation.
+
+    Args:
+        setup: a local pytest fixture.
+        color: the name of the color.
+        ansi: the expected ANSI code.
+    """
     assert config.get_ansi_color(color) == ansi
 
 
 def test_ignored_tui_color(setup: Any, caplog: pytest.LogCaptureFixture) -> None:
-    """Test invalid TUI colors are ignored."""
+    """Test invalid TUI colors are ignored.
+
+    Args:
+        setup: a local pytest fixture.
+        caplog: the built-in pytest fixture.
+    """
     config.tui.colors.dummy = "white"
     config.validate()
     assert (
@@ -290,7 +324,13 @@ def test_ignored_tui_color(setup: Any, caplog: pytest.LogCaptureFixture) -> None
 def test_deprecation_warning(
     setting: List[str], value: Any, caplog: pytest.LogCaptureFixture
 ) -> None:
-    """Test logged warning for deprecated setting."""
+    """Test logged warning for deprecated setting.
+
+    Args:
+        setting: the list of attribute names leading to the deprecated setting.
+        value: a value to use for the deprecated setting.
+        caplog: the built-in pytest fixture.
+    """
     section = config
     for sec in setting[:-1]:
         section = section[sec]
@@ -313,7 +353,13 @@ def test_deprecation_warning(
 def test_deprecation_warning_legacy(
     setting: str, attribute: str, caplog: pytest.LogCaptureFixture
 ) -> None:
-    """Test logged warning for deprecated setting."""
+    """Test logged warning for deprecated setting.
+
+    Args:
+        setting: the legacy formatted string of the deprecated setting.
+        attribute: the new formatted name of the deprecated setting.
+        caplog: the built-in pytest fixture.
+    """
     with tempfile.NamedTemporaryFile("w") as legacy_file:
         legacy_file.write(setting)
         legacy_file.seek(0)

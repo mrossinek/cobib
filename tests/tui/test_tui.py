@@ -1,5 +1,5 @@
 """Tests for coBib's TUI."""
-# pylint: disable=no-self-use,unused-argument
+# pylint: disable=no-self-use,unused-argument,too-many-public-methods
 
 import copy
 import tempfile
@@ -22,14 +22,23 @@ from .tui_test import TUITest
 
 
 class TestTUI(CmdLineTest, TUITest):
-    """Tests for coBib's TUI."""
+    """Tests for coBib's TUI.
 
-    # pylint: disable=too-many-public-methods
+    This class derives the `tests.tui.tui_test.TUITest` as well as the
+    `tests.cmdline_test.CmdLineTest` because it also ensures that the TUI can be started from the
+    command-line interface.
+    """
 
     @staticmethod
     @pytest.fixture(autouse=True)
     def setup() -> Generator[Any, None, None]:
-        """Setup."""
+        """Setup.
+
+        This fixture is automatically enabled for all tests in this class.
+
+        Yields:
+            This method yields control to the actual test after which it will tear down the setup.
+        """
         # pylint: disable=attribute-defined-outside-init
         config.load(get_resource("debug.py"))
         original_keydict = copy.deepcopy(TUI.KEYDICT)
@@ -40,7 +49,12 @@ class TestTUI(CmdLineTest, TUITest):
         TUI.KEYDICT = copy.deepcopy(original_keydict)
 
     def test_colors(self, patch_curses: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test colors method."""
+        """Test `cobib.tui.tui.TUI.colors`.
+
+        Args:
+            patch_curses: the `tests.tui.tui_test.TUITest.patch_curses` fixture.
+            caplog: the built-in pytest fixture.
+        """
         TUI.colors()
         assert TUI.ANSI_MAP == {
             "\x1b[30;43m": 2,
@@ -85,7 +99,12 @@ class TestTUI(CmdLineTest, TUITest):
         assert caplog.record_tuples == expected_log
 
     def test_config_color(self, patch_curses: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test setting a non-default color."""
+        """Test `cobib.tui.tui.TUI.colors` when setting a non-default color value.
+
+        Args:
+            patch_curses: the `tests.tui.tui_test.TUITest.patch_curses` fixture.
+            caplog: the built-in pytest fixture.
+        """
         config.tui.colors.selection_fg = "red"
         TUI.colors()
         assert ("TUITest", 10, "init_pair: (9, 1, 5)") in caplog.record_tuples
@@ -105,7 +124,14 @@ class TestTUI(CmdLineTest, TUITest):
         monkeypatch: pytest.MonkeyPatch,
         can_change_color: bool,
     ) -> None:
-        """Test overwriting the RGB color value."""
+        """Test overwriting the RGB color value.
+
+        Args:
+            patch_curses: the `tests.tui.tui_test.TUITest.patch_curses` fixture.
+            caplog: the built-in pytest fixture.
+            monkeypatch: the built-in pytest fixture.
+            can_change_color: whether `curses.can_change_color` is enabled.
+        """
         monkeypatch.setattr("curses.can_change_color", lambda: can_change_color)
         config.tui.colors.white = "#AA0000"
         TUI.colors()
@@ -121,7 +147,12 @@ class TestTUI(CmdLineTest, TUITest):
     def test_config_unknown_color(
         self, patch_curses: Any, caplog: pytest.LogCaptureFixture
     ) -> None:
-        """Test setting an unknown color logs warning."""
+        """Test that setting an unknown color logs a warning.
+
+        Args:
+            patch_curses: the `tests.tui.tui_test.TUITest.patch_curses` fixture.
+            caplog: the built-in pytest fixture.
+        """
         config.tui.colors.dummy_fg = "white"
         TUI.colors()
         assert (
@@ -131,7 +162,11 @@ class TestTUI(CmdLineTest, TUITest):
         ) in caplog.record_tuples
 
     def test_bind_keys(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test bind_keys method."""
+        """Test `cobib.tui.tui.TUI.bind_keys`.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         TUI.bind_keys()
         assert TUI.KEYDICT == {
             258: ("y", 1),
@@ -193,7 +228,11 @@ class TestTUI(CmdLineTest, TUITest):
         assert caplog.record_tuples == expected_log
 
     def test_config_bind_key(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test binding a non-default key."""
+        """Test `cobib.tui.tui.TUI.bind_keys` when binding a non-default key.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         config.tui.key_bindings.prompt = "p"
         TUI.bind_keys()
         assert ord(":") not in TUI.KEYDICT.keys()
@@ -201,7 +240,11 @@ class TestTUI(CmdLineTest, TUITest):
         assert ("cobib.tui.tui", 20, "Binding key p to the Prompt command.") in caplog.record_tuples
 
     def test_config_unknown_command(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test binding an unknown command logs warning."""
+        """Test that binding an unknown command logs a warning.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         config.tui.key_bindings.dummy = "p"
         TUI.bind_keys()
         assert (
@@ -211,7 +254,7 @@ class TestTUI(CmdLineTest, TUITest):
         ) in caplog.record_tuples
 
     def test_infoline(self) -> None:
-        """Test infoline method."""
+        """Test `cobib.tui.tui.TUI.infoline`."""
         infoline = TUI.infoline()
         assert (
             infoline
@@ -227,7 +270,12 @@ class TestTUI(CmdLineTest, TUITest):
         ],
     )
     def test_statusbar(self, attr: int, caplog: pytest.LogCaptureFixture) -> None:
-        """Test statusbar method."""
+        """Test `cobib.tui.tui.TUI.statusbar`.
+
+        Args:
+            attr: the attribute number to use for the printed text.
+            caplog: the built-in pytest fixture.
+        """
         pad = MockCursesPad()
         text = "Test statusbar text"
         TUI.statusbar(pad, text, attr)
@@ -241,7 +289,12 @@ class TestTUI(CmdLineTest, TUITest):
         assert caplog.record_tuples == expected_log
 
     def test_init(self, patch_curses: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test TUI initialization."""
+        """Test `cobib.tui.tui.TUI.__init__`.
+
+        Args:
+            patch_curses: the `tests.tui.tui_test.TUITest.patch_curses` fixture.
+            caplog: the built-in pytest fixture.
+        """
         stdscr = MockCursesPad()
         stdscr.size = (24, 80)
         tui = TUI(stdscr, debug=True)
@@ -334,7 +387,12 @@ class TestTUI(CmdLineTest, TUITest):
         ] == expected_log
 
     def test_resize(self, patch_curses: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test resize_handler method."""
+        """Test `cobib.tui.tui.TUI.resize_handler`.
+
+        Args:
+            patch_curses: the `tests.tui.tui_test.TUITest.patch_curses` fixture.
+            caplog: the built-in pytest fixture.
+        """
         stdscr = MockCursesPad()
         stdscr.size = (24, 80)
         tui = TUI(stdscr, debug=True)
@@ -389,7 +447,7 @@ class TestTUI(CmdLineTest, TUITest):
             assert log[2] == truth[2]
 
     def test_resize_live(self) -> None:
-        """Tests the resizing on a running TUI."""
+        """Test `cobib.tui.tui.TUI.resize_handler` while the TUI is actually running."""
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             expected_screen = [
@@ -414,7 +472,12 @@ class TestTUI(CmdLineTest, TUITest):
         self.run_tui([SIGWINCH], assertion, {})
 
     def test_help(self, patch_curses: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test help method."""
+        """Test `cobib.tui.tui.TUI.help`.
+
+        Args:
+            patch_curses: the `tests.tui.tui_test.TUITest.patch_curses` fixture.
+            caplog: the built-in pytest fixture.
+        """
         stdscr = MockCursesPad()
         stdscr.size = (24, 80)
         tui = TUI(stdscr, debug=True)
@@ -463,7 +526,7 @@ class TestTUI(CmdLineTest, TUITest):
             assert log == truth
 
     def test_help_live(self) -> None:
-        """Tests the help popup on a running TUI."""
+        """Test `cobib.tui.tui.TUI.help` while the TUI is actually running."""
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             header_check = ["coBib TUI Help" in line for line in screen.display]
@@ -477,8 +540,8 @@ class TestTUI(CmdLineTest, TUITest):
 
         self.run_tui("?", assertion, {})
 
-    def test_help_no_artefacts(self) -> None:
-        """Tests the help popup on a running TUI."""
+    def test_help_no_artifacts(self) -> None:
+        """Test that the help popup leaves no rendering artifacts behind."""
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             expected_lines = [
@@ -503,7 +566,13 @@ class TestTUI(CmdLineTest, TUITest):
     def test_select(
         self, patch_curses: Any, caplog: pytest.LogCaptureFixture, selection: Set[str]
     ) -> None:
-        """Test select method."""
+        """Test `cobib.tui.tui.TUI.select`.
+
+        Args:
+            patch_curses: the `tests.tui.tui_test.TUITest.patch_curses` fixture.
+            caplog: the built-in pytest fixture.
+            selection: the set of selected labels.
+        """
         stdscr = MockCursesPad()
         stdscr.size = (24, 80)
         tui = TUI(stdscr, debug=True)
@@ -540,7 +609,12 @@ class TestTUI(CmdLineTest, TUITest):
         ],
     )
     def test_select_list_live(self, keys: str, assertion_kwargs: Dict[str, Any]) -> None:
-        """Tests the select method in the list view on a running TUI."""
+        """Tests the select method in the list view while the TUI is actually running.
+
+        Args:
+            keys: the string of keys to send to the running TUI.
+            assertion_kwargs: additional keyword arguments to pass to the assertion method.
+        """
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             term_width = len(screen.buffer[0])
@@ -560,7 +634,7 @@ class TestTUI(CmdLineTest, TUITest):
         self.run_tui(keys, assertion, assertion_kwargs)
 
     def test_select_show_live(self) -> None:
-        """Tests the select method in the show view on a running TUI."""
+        """Tests the select method in the show view while the TUI is actually running."""
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             expected_screen = [
@@ -582,7 +656,7 @@ class TestTUI(CmdLineTest, TUITest):
         self.run_tui("v\n", assertion, {})
 
     def test_select_search_live(self) -> None:
-        """Tests the select method in the search view on a running TUI."""
+        """Tests the select method in the search view while the TUI is actually running."""
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             expected_screen = [
@@ -611,7 +685,13 @@ class TestTUI(CmdLineTest, TUITest):
     def test_prompt_print(
         self, patch_curses: Any, caplog: pytest.LogCaptureFixture, text: List[str]
     ) -> None:
-        """Test prompt_print method."""
+        """Test `cobib.tui.tui.TUI.prompt_print`.
+
+        Args:
+            patch_curses: the `tests.tui.tui_test.TUITest.patch_curses` fixture.
+            caplog: the built-in pytest fixture.
+            text: the text to print to the prompt.
+        """
         stdscr = MockCursesPad()
         stdscr.size = (24, 80)
         tui = TUI(stdscr, debug=True)
@@ -646,7 +726,15 @@ class TestTUI(CmdLineTest, TUITest):
         returned_char: int,
         mode: str,
     ) -> None:
-        """Test quit method."""
+        """Test `cobib.tui.tui.TUI.quit`.
+
+        Args:
+            patch_curses: the `tests.tui.tui_test.TUITest.patch_curses` fixture.
+            caplog: the built-in pytest fixture.
+            prompt_quit: whether to prompt before actually quitting.
+            returned_char: the value for `tests.tui.mock_curses.MockCursesPad.returned_chars`.
+            mode: the `cobib.tui.state.Mode` value.
+        """
         stdscr = MockCursesPad()
         stdscr.size = (24, 80)
         config.tui.prompt_before_quit = prompt_quit
@@ -692,7 +780,13 @@ class TestTUI(CmdLineTest, TUITest):
         caplog: pytest.LogCaptureFixture,
         keys: Union[str, List[List[int]]],
     ) -> None:
-        """Test loop method."""
+        """Test `cobib.tui.tui.TUI.loop`.
+
+        Args:
+            patch_curses: the `tests.tui.tui_test.TUITest.patch_curses` fixture.
+            caplog: the built-in pytest fixture.
+            keys: the keys to send to the TUI.
+        """
         stdscr = MockCursesPad()
         stdscr.size = (24, 80)
         stdscr.returned_chars = keys  # type: ignore
@@ -709,7 +803,12 @@ class TestTUI(CmdLineTest, TUITest):
     def test_loop_inactive_commands(
         self, patch_curses: Any, caplog: pytest.LogCaptureFixture
     ) -> None:
-        """Test inactive commands are not triggered."""
+        """Test that inactive commands are not triggered during the TUI loop.
+
+        Args:
+            patch_curses: the `tests.tui.tui_test.TUITest.patch_curses` fixture.
+            caplog: the built-in pytest fixture.
+        """
         stdscr = MockCursesPad()
         stdscr.size = (24, 80)
         stdscr.returned_chars = [ord("q"), ord("\n")]
@@ -746,7 +845,13 @@ class TestTUI(CmdLineTest, TUITest):
     def test_prompt_handler(
         self, patch_curses: Any, keys: List[Union[int, str]], expected: str
     ) -> None:
-        """Test prompt_handler method."""
+        """Test `cobib.tui.tui.TUI.prompt_handler`.
+
+        Args:
+            patch_curses: the `tests.tui.tui_test.TUITest.patch_curses` fixture.
+            keys: the keys to send to the prompt handler.
+            expected: the expected string to be returned from the prompt handler.
+        """
         stdscr = MockCursesPad()
         stdscr.size = (24, 80)
         config.tui.prompt_before_quit = False
@@ -766,7 +871,12 @@ class TestTUI(CmdLineTest, TUITest):
         ],
     )
     def test_prompt_live(self, keys: str, assertion_kwargs: Dict[str, str]) -> None:
-        """Tests the prompt in a running TUI."""
+        """Test `cobib.tui.tui.TUI.prompt_handler` while the TUI is actually running.
+
+        Args:
+            keys: the string of keys to send to the running TUI.
+            assertion_kwargs: additional keyword arguments to pass to the assertion method.
+        """
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             assert screen.display[-1].strip() == kwargs["contents"]
@@ -774,7 +884,7 @@ class TestTUI(CmdLineTest, TUITest):
         self.run_tui(keys, assertion, assertion_kwargs)
 
     def test_execute_command(self) -> None:
-        """Test execute_command method."""
+        """Test `cobib.tui.tui.TUI.execute_command`."""
         pytest.skip("This method is tested implicitly by the test.commands.*.test_tui methods.")
 
     @pytest.mark.parametrize(
@@ -800,7 +910,12 @@ class TestTUI(CmdLineTest, TUITest):
         ],
     )
     def test_scroll_live(self, keys: str, assertion_kwargs: Dict[str, Union[int, str]]) -> None:
-        """Tests scrolling on a running TUI."""
+        """Test scrolling while the TUI is actually running.
+
+        Args:
+            keys: the string of keys to send to the running TUI.
+            assertion_kwargs: additional keyword arguments to pass to the assertion method.
+        """
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             direction = kwargs["direction"]
@@ -831,7 +946,12 @@ class TestTUI(CmdLineTest, TUITest):
         ],
     )
     def test_wrap_live(self, keys: str, assertion_kwargs: Dict[str, bool]) -> None:
-        """Tests wrapping on a running TUI."""
+        """Test wrapping while the TUI is actually running.
+
+        Args:
+            keys: the string of keys to send to the running TUI.
+            assertion_kwargs: additional keyword arguments to pass to the assertion method.
+        """
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             state = kwargs["state"]
@@ -849,7 +969,12 @@ class TestTUI(CmdLineTest, TUITest):
             [["-l", str(PurePath(tempfile.gettempdir()) / "cobib_test.log")]],
         ],
     )
-    def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch, kwargs: List[str]) -> None:
-        """Test the command-line startup of the TUI."""
+    def test_cmdline(self, monkeypatch: pytest.MonkeyPatch, kwargs: List[str]) -> None:
+        """Test the command-line access of the TUI.
+
+        Args:
+            monkeypatch: the built-in pytest fixture.
+            kwargs: the additional arguments to pass to the command line call.
+        """
         monkeypatch.setattr("cobib.tui.tui", lambda: None)
         self.run_module(monkeypatch, "main", ["cobib"] + kwargs)

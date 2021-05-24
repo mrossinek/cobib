@@ -2,7 +2,7 @@
 
 import logging
 from itertools import zip_longest
-from typing import Generator, List
+from typing import Generator, List, Optional, Set, Union
 
 import pytest
 
@@ -28,9 +28,70 @@ def ensure_logging_not_altered() -> Generator[None, None, None]:
     LOGGER.handlers = before_handlers
 
 
-class TestListCommands(CmdLineTest):
-    """Tests for the shell helper to list commands."""
+class ShellHelperTest(CmdLineTest):
+    """A base class for some common shell helper unit tests."""
 
+    COMMAND: Optional[str] = None
+    """The name of the shell helper command-"""
+
+    EXPECTED: Optional[Union[str, List[str], Set[str]]] = None
+    """The expected outcome."""
+
+    def _assert(self, out: str) -> None:
+        """The utility assertion method.
+
+        Args:
+            out: The captured output of the shell helper function.
+        """
+        if isinstance(self.EXPECTED, list):
+            assert out.split() == self.EXPECTED
+        elif isinstance(self.EXPECTED, set):
+            assert set(out.split()) == self.EXPECTED
+
+    def test_method(self) -> None:
+        """Test the shell_helper method itself."""
+        cmds = getattr(shell_helper, str(self.COMMAND))()
+        self._assert("\n".join(cmds))
+
+    def test_cmdline(
+        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Test the command-line access of the helper method.
+
+        Args:
+            monkeypatch: the built-in pytest fixture.
+            capsys: the built-in pytest fixture.
+        """
+        CmdLineTest.run_module(monkeypatch, "helper_main", ["cobib", f"_{self.COMMAND}"])
+        self._assert(capsys.readouterr().out)
+
+    def test_cmdline_via_main(
+        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Test the command-line access of the helper method via the main method.
+
+        Args:
+            monkeypatch: the built-in pytest fixture.
+            capsys: the built-in pytest fixture.
+        """
+        with pytest.raises(SystemExit):
+            CmdLineTest.run_module(monkeypatch, "main", ["cobib", f"_{self.COMMAND}"])
+        self._assert(capsys.readouterr().out)
+
+
+class TestListCommands(ShellHelperTest):
+    """Tests for the shell helper which lists the available commands."""
+
+    @staticmethod
+    @pytest.fixture(autouse=True)
+    def setup() -> None:
+        """Setup debugging config.
+
+        This fixture is automatically enabled for all tests in this class.
+        """
+        config.load(get_resource("debug.py"))
+
+    COMMAND = "list_commands"
     EXPECTED = [
         "add",
         "delete",
@@ -46,65 +107,18 @@ class TestListCommands(CmdLineTest):
         "undo",
     ]
 
-    @staticmethod
-    @pytest.fixture(autouse=True)
-    def setup() -> None:
-        """Load testing config."""
-        config.load(get_resource("debug.py"))
 
-    # pylint: disable=no-self-use
-    def test_method(self) -> None:
-        """Test the shell_helper method itself."""
-        cmds = shell_helper.list_commands()
-        cmds = [c.split(":")[0] for c in cmds]
-        assert cmds == TestListCommands.EXPECTED
+class TestListLabels(ShellHelperTest):
+    """Tests for the shell helper which lists the existing labels."""
 
-    def test_cmdline(
-        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        """Test the command-line access of the helper method."""
-        self.run_module(monkeypatch, "helper_main", ["cobib", "_list_commands"])
-        assert capsys.readouterr().out.split() == TestListCommands.EXPECTED
-
-    def test_cmdline_via_main(
-        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        """Test the command-line access of the helper method via the main method."""
-        with pytest.raises(SystemExit):
-            self.run_module(monkeypatch, "main", ["cobib", "_list_commands"])
-        assert capsys.readouterr().out.split() == TestListCommands.EXPECTED
-
-
-class TestListLabels(CmdLineTest):
-    """Tests for the shell helper to list labels."""
-
+    COMMAND = "list_labels"
     EXPECTED = ["einstein", "latexcompanion", "knuthwebsite"]
 
-    # pylint: disable=no-self-use
-    def test_method(self) -> None:
-        """Test the shell_helper method itself."""
-        labels = shell_helper.list_labels()
-        assert labels == TestListLabels.EXPECTED
 
-    def test_cmdline(
-        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        """Test the command-line access of the helper method."""
-        self.run_module(monkeypatch, "helper_main", ["cobib", "_list_labels"])
-        assert capsys.readouterr().out.split() == TestListLabels.EXPECTED
+class TestListFilters(ShellHelperTest):
+    """Tests for the shell helper which lists the existing filters."""
 
-    def test_cmdline_via_main(
-        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        """Test the command-line access of the helper method via the main method."""
-        with pytest.raises(SystemExit):
-            self.run_module(monkeypatch, "main", ["cobib", "_list_labels"])
-        assert capsys.readouterr().out.split() == TestListLabels.EXPECTED
-
-
-class TestListFilters(CmdLineTest):
-    """Tests for the shell helper to list filters."""
-
+    COMMAND = "list_filters"
     EXPECTED = {
         "publisher",
         "ENTRYTYPE",
@@ -121,68 +135,27 @@ class TestListFilters(CmdLineTest):
         "url",
     }
 
-    # pylint: disable=no-self-use
-    def test_method(self) -> None:
-        """Test the shell_helper method itself."""
-        filters = shell_helper.list_filters()
-        assert filters == TestListFilters.EXPECTED
 
-    def test_cmdline(
-        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        """Test the command-line access of the helper method."""
-        self.run_module(monkeypatch, "helper_main", ["cobib", "_list_filters"])
-        assert set(capsys.readouterr().out.split()) == TestListFilters.EXPECTED
+class TestPrintExampleConfig(ShellHelperTest):
+    """Tests for the shell helper which prints the example configuration."""
 
-    def test_cmdline_via_main(
-        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        """Test the command-line access of the helper method via the main method."""
-        with pytest.raises(SystemExit):
-            self.run_module(monkeypatch, "main", ["cobib", "_list_filters"])
-        assert set(capsys.readouterr().out.split()) == TestListFilters.EXPECTED
+    COMMAND = "example_config"
+    EXPECTED = get_resource("example.py", "../src/cobib/config")
 
-
-class TestPrintExampleConfig(CmdLineTest):
-    """Tests for the shell helper to print the example config."""
-
-    # pylint: disable=no-self-use
-    def test_method(self) -> None:
-        """Test the shell_helper method itself."""
-        example = shell_helper.example_config()
-        with open(get_resource("example.py", "../src/cobib/config"), "r") as expected:
-            for line, truth in zip_longest(example, expected):
-                assert line == truth.strip()
-
-    def _assert(self, output: List[str]) -> None:
-        """Common assertion utility method."""
-        with open(get_resource("example.py", "../src/cobib/config"), "r") as expected:
-            for line, truth in zip_longest(output, expected):
+    def _assert(self, out: str) -> None:
+        with open(self.EXPECTED, "r") as expected:
+            for line, truth in zip_longest(out.split("\n"), expected):
                 try:
                     assert line == truth.strip()
                 except AttributeError:
                     # an empty string can equal no string (i.e. None)
                     assert bool(line) == bool(truth)
 
-    def test_cmdline(
-        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        """Test the command-line access of the helper method."""
-        self.run_module(monkeypatch, "helper_main", ["cobib", "_example_config"])
-        self._assert(capsys.readouterr().out.split("\n"))
 
-    def test_cmdline_via_main(
-        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        """Test the command-line access of the helper method via the main method."""
-        with pytest.raises(SystemExit):
-            self.run_module(monkeypatch, "main", ["cobib", "_example_config"])
-        self._assert(capsys.readouterr().out.split("\n"))
+class TestLintDatabase(ShellHelperTest):
+    """Tests for the shell helper which lints the users database."""
 
-
-class TestLintDatabase(CmdLineTest):
-    """Tests for the shell helper to lint the database."""
-
+    COMMAND = "lint_database"
     REL_PATH = RelPath(get_resource("linting_database.yaml", "utils"))
     EXPECTED = [
         f"{REL_PATH}:5 Converted the field 'file' of entry 'dummy' to a list. You can consider "
@@ -200,8 +173,16 @@ class TestLintDatabase(CmdLineTest):
     @staticmethod
     @pytest.fixture(autouse=True)
     def setup() -> None:
-        """Load testing config."""
+        """Set linting database path.
+
+        This fixture is automatically enabled for all tests in this class.
+        """
         config.database.file = str(TestLintDatabase.REL_PATH)
+
+    def _assert(self, out: str) -> None:
+        for msg, truth in zip_longest(out.split("\n"), self.EXPECTED):
+            if msg.strip() and truth:
+                assert msg == truth
 
     # pylint: disable=no-self-use
     def test_no_lint_warnings(self) -> None:
@@ -211,32 +192,5 @@ class TestLintDatabase(CmdLineTest):
         for msg, exp in zip_longest(
             lint_messages, ["Congratulations! Your database triggers no lint messages."]
         ):
-            if msg.strip() and exp:
-                assert msg == exp
-
-    # pylint: disable=no-self-use
-    def test_method(self) -> None:
-        """Test the shell_helper method itself."""
-        lint_messages = shell_helper.lint_database()
-        for msg, exp in zip_longest(lint_messages, TestLintDatabase.EXPECTED):
-            if msg.strip() and exp:
-                assert msg == exp
-
-    def test_cmdline(
-        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        """Test the command-line access of the helper method."""
-        self.run_module(monkeypatch, "helper_main", ["cobib", "_lint_database"])
-        for msg, exp in zip_longest(capsys.readouterr().out.split("\n"), TestLintDatabase.EXPECTED):
-            if msg.strip() and exp:
-                assert msg == exp
-
-    def test_cmdline_via_main(
-        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        """Test the command-line access of the helper method via the main method."""
-        with pytest.raises(SystemExit):
-            self.run_module(monkeypatch, "main", ["cobib", "_lint_database"])
-        for msg, exp in zip_longest(capsys.readouterr().out.split("\n"), TestLintDatabase.EXPECTED):
             if msg.strip() and exp:
                 assert msg == exp

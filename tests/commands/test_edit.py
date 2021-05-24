@@ -29,14 +29,20 @@ class TestEditCommand(CommandTest, TUITest):
     """
 
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        """Get the command tested by this class."""
+        # noqa: D102
         return EditCommand
 
     @staticmethod
     def _assert(
         changes: bool, logs: Optional[List[Tuple[str, int, str]]] = None, label: str = "dummy"
     ) -> None:
-        """Common assertion utility method."""
+        """Common assertion utility method.
+
+        Args:
+            changes: whether actual changes were applied.
+            logs: the list of logged messages.
+            label: the label of the edited `Entry`.
+        """
         if changes:
             if logs is not None:
                 assert ("cobib.commands.edit", 20, f"'{label}' was successfully edited.") in logs
@@ -70,7 +76,14 @@ class TestEditCommand(CommandTest, TUITest):
     def test_command(
         self, setup: Any, caplog: pytest.LogCaptureFixture, args: List[str], changes: bool
     ) -> None:
-        """Test the command itself."""
+        """Test the command itself.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+            args: the arguments to pass to the command.
+            changes: whether actual changes will be applied.
+        """
         git = setup.get("git", False)
 
         EditCommand().execute(args)
@@ -93,7 +106,12 @@ class TestEditCommand(CommandTest, TUITest):
             self.assert_git_commit_message("edit", {"label": args[-1], "add": "-a" in args})
 
     def test_ignore_add_if_label_exists(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test that the `add` argument is ignored if the label already exists."""
+        """Test that the `add` argument is ignored if the label already exists.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
         EditCommand().execute(["-a", "einstein"])
         assert (
             "cobib.commands.edit",
@@ -102,7 +120,12 @@ class TestEditCommand(CommandTest, TUITest):
         ) in caplog.record_tuples
 
     def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test warning for missing label."""
+        """Test warning for missing label.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
         EditCommand().execute(["dummy"])
         assert (
             "cobib.commands.edit",
@@ -119,12 +142,21 @@ class TestEditCommand(CommandTest, TUITest):
         indirect=["setup"],
     )
     def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test the command-line access of the command."""
+        """Test the command-line access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            monkeypatch: the built-in pytest fixture.
+        """
         self.run_module(monkeypatch, "main", ["cobib", "edit", "-a", "dummy"])
         self._assert(changes=True, logs=None)
 
     def test_tui(self, setup: Any) -> None:
-        """Test the TUI access of the command."""
+        """Test the TUI access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+        """
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             true_log = [log for log in logs if log[0] == "cobib.commands.edit"]

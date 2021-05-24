@@ -1,4 +1,8 @@
-"""Tests for coBib's main executable."""
+"""Tests for coBib's main executable.
+
+Since all commands are tested separately in their respective test files, the tests here mainly deal
+with testing the global parser arguments.
+"""
 # pylint: disable=unused-argument
 
 import logging
@@ -16,11 +20,7 @@ from .cmdline_test import CmdLineTest
 
 
 class TestMainExecutable(CmdLineTest):
-    """Tests for coBib's main executable.
-
-    Note: all commands are tested separately in their respective test files.
-    Therefore, the tests here mainly deal with testing the global parser arguments.
-    """
+    """Tests for coBib's main executable."""
 
     @staticmethod
     @pytest.fixture
@@ -31,7 +31,13 @@ class TestMainExecutable(CmdLineTest):
     def test_version(
         self, setup: Any, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
     ) -> None:
-        """Tests the version parser argument."""
+        """Tests the version parser argument.
+
+        Args:
+            setup: a local pytest fixture.
+            monkeypatch: the built-in pytest fixture.
+            capsys: the built-in pytest fixture.
+        """
         with pytest.raises(SystemExit):
             self.run_module(monkeypatch, "main", ["cobib", "--version"])
         # pylint: disable=import-outside-toplevel
@@ -62,7 +68,16 @@ class TestMainExecutable(CmdLineTest):
         verbosity_arg: str,
         level: int,
     ) -> None:
-        """Tests the verbosity parser argument."""
+        """Tests the verbosity parser argument.
+
+        Args:
+            setup: a local pytest fixture.
+            monkeypatch: the built-in pytest fixture.
+            main: the name of the `main` executable of the module to run.
+            args: the list of values with which to monkeypatch `sys.argv`.
+            verbosity_arg: the value of the verbosity argument.
+            level: the level of the verbosity argument.
+        """
         # we choose the open command as an arbitrary choice which has minimal side effects
         args = ["cobib"] + args
         if verbosity_arg:
@@ -80,7 +95,14 @@ class TestMainExecutable(CmdLineTest):
     def test_logfile(
         self, setup: Any, monkeypatch: pytest.MonkeyPatch, main: str, args: List[str]
     ) -> None:
-        """Tests the logfile parser argument."""
+        """Tests the logfile parser argument.
+
+        Args:
+            setup: a local pytest fixture.
+            monkeypatch: the built-in pytest fixture.
+            main: the name of the `main` executable of the module to run.
+            args: the list of values with which to monkeypatch `sys.argv`.
+        """
         logfile = str(Path(tempfile.gettempdir()) / "cobib_test_logging.log")
         # we choose the open command as an arbitrary choice which has minimal side effects
         self.run_module(monkeypatch, main, ["cobib", "-l", logfile] + args)
@@ -98,7 +120,13 @@ class TestMainExecutable(CmdLineTest):
         ],
     )
     def test_configfile(self, monkeypatch: pytest.MonkeyPatch, main: str, args: List[str]) -> None:
-        """Tests the configfile parser argument."""
+        """Tests the configfile parser argument.
+
+        Args:
+            monkeypatch: the built-in pytest fixture.
+            main: the name of the `main` executable of the module to run.
+            args: the list of values with which to monkeypatch `sys.argv`.
+        """
         # we choose the open command as an arbitrary choice which has minimal side effects
         self.run_module(monkeypatch, main, ["cobib", "-c", get_resource("debug.py")] + args)
         assert config.database.file == get_resource("example_literature.yaml")

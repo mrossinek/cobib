@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Type
+from typing import TYPE_CHECKING, Any, Dict, Generator, List, Optional, Tuple, Type
 
 import pytest
 
@@ -16,11 +16,13 @@ from ..tui.tui_test import TUITest
 from .command_test import CommandTest
 
 if TYPE_CHECKING:
+    import _pytest.fixtures
+
     import cobib.commands
 
 
 class MockStdin:
-    """A mock object to replace sys.stdin."""
+    """A mock object to replace `sys.stdin`."""
 
     # pylint: disable=missing-function-docstring
 
@@ -44,12 +46,22 @@ class TestOpenCommand(CommandTest, TUITest):
     TMP_FILE_B = "/tmp/b.txt"
 
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        """Get the command tested by this class."""
+        # noqa: D102
         return OpenCommand
 
     @pytest.fixture
-    def post_setup(self, monkeypatch: pytest.MonkeyPatch, request) -> None:  # type: ignore
-        """Setup."""
+    def post_setup(
+        self, monkeypatch: pytest.MonkeyPatch, request: _pytest.fixtures.SubRequest
+    ) -> Generator[Dict[str, Any], None, None]:
+        """Additional setup instructions.
+
+        Args:
+            monkeypatch: the built-in pytest fixture.
+            request: a pytest sub-request providing access to nested parameters.
+
+        Yields:
+            The internally used parameters for potential later re-use during the actual test.
+        """
         if not hasattr(request, "param"):
             # use default settings
             request.param = {"stdin_list": None, "multi_file": True}
@@ -69,7 +81,13 @@ class TestOpenCommand(CommandTest, TUITest):
     def _assert(  # type: ignore
         self, output: List[str], logs: Optional[List[Tuple[str, int, str]]] = None, **kwargs
     ) -> None:
-        """Common assertion utility method."""
+        """Common assertion utility method.
+
+        Args:
+            output: the list of lines printed to `sys.stdout`.
+            logs: the list of logged messages.
+            kwargs: additional test-specific keyword arguments.
+        """
         if not kwargs.get("multi_file", True):
             expected_log = [
                 ("cobib.commands.open", 10, "Starting Open command."),
@@ -171,7 +189,15 @@ class TestOpenCommand(CommandTest, TUITest):
         capsys: pytest.CaptureFixture[str],
         args: List[str],
     ) -> None:
-        """Test the command itself."""
+        """Test the command itself.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            post_setup: an additional setup fixture.
+            caplog: the built-in pytest fixture.
+            capsys: the built-in pytest fixture.
+            args: the arguments to pass to the command.
+        """
         OpenCommand().execute(args)
 
         true_log = [rec for rec in caplog.record_tuples if rec[0] == "cobib.commands.open"]
@@ -180,7 +206,12 @@ class TestOpenCommand(CommandTest, TUITest):
         self._assert(true_out, true_log, **post_setup)
 
     def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test warning for missing label."""
+        """Test warning for missing label.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
         OpenCommand().execute(["dummy"])
         assert (
             "cobib.commands.open",
@@ -189,7 +220,12 @@ class TestOpenCommand(CommandTest, TUITest):
         ) in caplog.record_tuples
 
     def test_warning_nothing_to_open(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test warning for label with nothing to open."""
+        """Test warning for label with nothing to open.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
         OpenCommand().execute(["einstein"])
         assert (
             "cobib.commands.open",
@@ -211,7 +247,14 @@ class TestOpenCommand(CommandTest, TUITest):
         monkeypatch: pytest.MonkeyPatch,
         capsys: pytest.CaptureFixture[str],
     ) -> None:
-        """Test the command-line access of the command."""
+        """Test the command-line access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            post_setup: an additional setup fixture.
+            monkeypatch: the built-in pytest fixture.
+            capsys: the built-in pytest fixture.
+        """
         self.run_module(monkeypatch, "main", ["cobib", "open", "knuthwebsite"])
 
         true_out = capsys.readouterr().out.split("\n")
@@ -226,7 +269,13 @@ class TestOpenCommand(CommandTest, TUITest):
         ],
     )
     def test_tui(self, setup: Any, select: bool, keys: str) -> None:
-        """Test the TUI access of the command."""
+        """Test the TUI access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            select: whether to use the TUI selection.
+            keys: the string of keys to pass to the TUI.
+        """
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             expected_log = [

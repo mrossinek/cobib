@@ -17,7 +17,11 @@ class TestISBNParser(ParserTest):
     """Tests for coBib's ISBNParser."""
 
     def test_from_isbn(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test parsing from ISBN."""
+        """Test parsing from ISBN.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         entries = parsers.ISBNParser().parse("978-1-449-35573-9")
 
         if any(
@@ -34,7 +38,11 @@ class TestISBNParser(ParserTest):
 
     # regression test for https://gitlab.com/mrossinek/cobib/-/issues/53
     def test_from_empty_isbn(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test parsing an empty ISBN."""
+        """Test parsing an empty ISBN.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         entries = parsers.ISBNParser().parse("3860704443")
 
         if any(
@@ -52,7 +60,12 @@ class TestISBNParser(ParserTest):
     def test_catching_api_error(
         self, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Test catching API error."""
+        """Test catching API error.
+
+        Args:
+            caplog: the built-in pytest fixture.
+            monkeypatch: the built-in pytest fixture.
+        """
 
         def raise_exception(*args, **kwargs):  # type: ignore
             """Mock function to raise an Exception."""
@@ -70,7 +83,12 @@ class TestISBNParser(ParserTest):
     def test_catching_decode_error(
         self, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Test catching json decode error."""
+        """Test catching json decode error.
+
+        Args:
+            caplog: the built-in pytest fixture.
+            monkeypatch: the built-in pytest fixture.
+        """
 
         def raise_exception(*args, **kwargs):  # type: ignore
             """Mock function to raise an Exception."""
@@ -90,7 +108,11 @@ class TestISBNParser(ParserTest):
             pytest.fail("No Error caught by ISBNParser")
 
     def test_dump(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test dumping."""
+        """Test dumping.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         entry = Entry("dummy", {"ID": "dummy", "ENTRYTYPE": "unpublished"})
         parsers.ISBNParser().dump(entry)
 

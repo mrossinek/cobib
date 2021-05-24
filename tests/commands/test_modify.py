@@ -21,7 +21,7 @@ class TestModifyCommand(CommandTest, TUITest):
     """Tests for coBib's ModifyCommand."""
 
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        """Get the command tested by this class."""
+        # noqa: D102
         return ModifyCommand
 
     @pytest.mark.parametrize(
@@ -43,7 +43,15 @@ class TestModifyCommand(CommandTest, TUITest):
     def test_command(
         self, setup: Any, modification: str, filters: List[str], selection: bool, add: bool
     ) -> None:
-        """Test the command itself."""
+        """Test the command itself.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            modification: the modification string to apply.
+            filters: the filter arguments for the command.
+            selection: whether the filters are of `selection` type.
+            add: whether to use append mode.
+        """
         git = setup.get("git", False)
 
         # modify some data
@@ -85,7 +93,13 @@ class TestModifyCommand(CommandTest, TUITest):
         ],
     )
     def test_add_mode(self, setup: Any, modification: str, expected: Any) -> None:
-        """Test more cases of the add mode."""
+        """Test more cases of the add mode.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            modification: the modification string to apply.
+            expected: the expected final `Entry` field.
+        """
         # modify some data
         args = ["-a", modification, "++ID", "einstein"]
 
@@ -96,7 +110,12 @@ class TestModifyCommand(CommandTest, TUITest):
         assert Database()["einstein"].data[field] == expected
 
     def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test warning for missing label."""
+        """Test warning for missing label.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
         # Note: when using a filter, no non-existent label can occur
         args = ["-s", "tags:test", "--", "dummy"]
         ModifyCommand().execute(args)
@@ -122,7 +141,13 @@ class TestModifyCommand(CommandTest, TUITest):
     )
     # other variants are already covered by test_command
     def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch, args: List[str]) -> None:
-        """Test the command-line access of the command."""
+        """Test the command-line access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            monkeypatch: the built-in pytest fixture.
+            args: additional arguments to pass to the command.
+        """
         self.run_module(monkeypatch, "main", ["cobib", "modify"] + args)
         assert Database()["einstein"].data["tags"] == ["test"]
 
@@ -134,7 +159,13 @@ class TestModifyCommand(CommandTest, TUITest):
         ],
     )
     def test_tui(self, setup: Any, select: bool, keys: str) -> None:
-        """Test the TUI access of the command."""
+        """Test the TUI access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            select: whether to use the TUI selection.
+            keys: the string of keys to pass to the TUI.
+        """
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             expected_screen = [

@@ -16,7 +16,11 @@ class TestDOIParser(ParserTest):
     """Tests for coBib's DOIParser."""
 
     def test_from_doi(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test parsing from doi."""
+        """Test parsing from DOI.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         reference = self.EXAMPLE_ENTRY_DICT.copy()
         # In this specific case the bib file provided by this DOI includes additional (yet
         # unnecessary) brackets in the escaped special characters of the author field. Thus, we
@@ -35,7 +39,11 @@ class TestDOIParser(ParserTest):
         assert entry.data == reference
 
     def test_invalid_doi(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test parsing an invalid DOI."""
+        """Test parsing an invalid DOI.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         entries = parsers.DOIParser().parse("1812.09976")
         assert not entries
         assert entries == {}
@@ -49,7 +57,12 @@ class TestDOIParser(ParserTest):
     def test_catching_api_error(
         self, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Test catching API error."""
+        """Test catching API error.
+
+        Args:
+            caplog: the built-in pytest fixture.
+            monkeypatch: the built-in pytest fixture.
+        """
 
         def raise_exception(*args, **kwargs):  # type: ignore
             """Mock function to raise an Exception."""
@@ -65,7 +78,11 @@ class TestDOIParser(ParserTest):
         ) in caplog.record_tuples
 
     def test_dump(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test dumping."""
+        """Test dumping.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         entry = Entry("dummy", {"ID": "dummy", "ENTRYTYPE": "unpublished"})
         parsers.DOIParser().dump(entry)
 

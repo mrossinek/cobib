@@ -38,7 +38,14 @@ dummy:
 
 @pytest.fixture(autouse=True)
 def setup() -> Generator[Any, None, None]:
-    """Setup."""
+    """Setup debugging configuration.
+
+    This method also clears the `Database` after each test run.
+    It is automatically enabled for all tests in this file.
+
+    Yields:
+        Access to the local fixture variables.
+    """
     config.load(get_resource("debug.py"))
     yield
     Database().clear()
@@ -52,7 +59,11 @@ def test_database_singleton() -> None:
 
 
 def test_database_missing_file(caplog: pytest.LogCaptureFixture) -> None:
-    """Test exit upon missing database file."""
+    """Test exit upon missing database file.
+
+    Args:
+        caplog: the built-in pytest fixture.
+    """
     config.database.file = TMPDIR / "cobib_test_missing_file.yaml"
     try:
         with pytest.raises(SystemExit):
@@ -70,7 +81,7 @@ def test_database_missing_file(caplog: pytest.LogCaptureFixture) -> None:
 
 
 def test_database_update() -> None:
-    """Test Database update method."""
+    """Test the `cobib.database.Database.update` method."""
     entries = {"dummy1": "test1", "dummy2": "test2", "dummy3": "test3"}
     bib = Database()
     bib.update(entries)  # type: ignore
@@ -81,7 +92,7 @@ def test_database_update() -> None:
 
 
 def test_database_pop() -> None:
-    """Test Database pop method."""
+    """Test the `cobib.database.Database.pop` method."""
     entries = {"dummy1": "test1", "dummy2": "test2", "dummy3": "test3"}
     bib = Database()
     bib.update(entries)  # type: ignore
@@ -95,7 +106,7 @@ def test_database_pop() -> None:
 
 
 def test_database_rename() -> None:
-    """Test Database rename method."""
+    """Test the `cobib.database.Database.rename` method."""
     bib = Database()
     # pylint: disable=protected-access
     Database._unsaved_entries = {}
@@ -106,7 +117,7 @@ def test_database_rename() -> None:
 
 
 def test_database_read() -> None:
-    """Test Database read method."""
+    """Test the `cobib.database.Database.read` method."""
     bib = Database()
     bib.read()
     # pylint: disable=protected-access
@@ -115,7 +126,7 @@ def test_database_read() -> None:
 
 
 def test_database_save_add() -> None:
-    """Test Database save method after addition."""
+    """Test the `cobib.database.Database.save` method after entry addition."""
     # prepare temporary database
     config.database.file = TMPDIR / "cobib_test_database_file.yaml"
     copyfile(EXAMPLE_LITERATURE, config.database.file)
@@ -147,7 +158,7 @@ def test_database_save_add() -> None:
 
 
 def test_database_save_modify() -> None:
-    """Test Database save method after modification."""
+    """Test the `cobib.database.Database.save` method after entry modification."""
     # prepare temporary database
     config.database.file = TMPDIR / "cobib_test_database_file.yaml"
     copyfile(EXAMPLE_LITERATURE, config.database.file)
@@ -182,7 +193,7 @@ def test_database_save_modify() -> None:
 
 
 def test_database_save_delete() -> None:
-    """Test Database save method after deletion."""
+    """Test the `cobib.database.Database.save` method after entry deletion."""
     # prepare temporary database
     config.database.file = TMPDIR / "cobib_test_database_file.yaml"
     copyfile(EXAMPLE_LITERATURE, config.database.file)

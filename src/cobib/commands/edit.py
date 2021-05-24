@@ -162,7 +162,7 @@ class EditCommand(Command):
         # populate buffer with entry data
         EditCommand().execute([label])
         # redraw total screen after closing external editor
-        LOGGER.debug("Manually redrawing TUI to clear out any editor artefacts.")
+        LOGGER.debug("Manually redrawing TUI to clear out any editor artifacts.")
         tui.resize_handler(None, None)
         # update database list
         tui.viewport.update_list()

@@ -23,7 +23,7 @@ class TestInitCommand(CommandTest):
     """Tests for coBib's InitCommand."""
 
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        """Get the command tested by this class."""
+        # noqa: D102
         return InitCommand
 
     @pytest.mark.parametrize(
@@ -37,7 +37,12 @@ class TestInitCommand(CommandTest):
     )
     @pytest.mark.parametrize(["safe"], [[False], [True]])
     def test_command(self, setup: Any, safe: bool) -> None:
-        """Test the command itself."""
+        """Test the command itself.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            safe: whether the safety of the `InitCommand` should be checked.
+        """
         if safe:
             # fill database file
             with open(config.database.file, "w") as file:
@@ -73,7 +78,12 @@ class TestInitCommand(CommandTest):
         indirect=["setup"],
     )
     def test_warn_insufficient_config(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test warning in case of insufficient config."""
+        """Test warning in case of insufficient config.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
         try:
             # store current time
             now = float(datetime.now().timestamp())
@@ -115,7 +125,12 @@ class TestInitCommand(CommandTest):
     )
     # other variants are already covered by test_command
     def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test the command-line access of the command."""
+        """Test the command-line access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            monkeypatch: the built-in pytest fixture.
+        """
         # store current time
         now = float(datetime.now().timestamp())
         # try calling init

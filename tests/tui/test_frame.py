@@ -20,7 +20,13 @@ class TestTextFrame:
 
     @pytest.fixture(autouse=True)
     def setup(self, monkeypatch: pytest.MonkeyPatch) -> Generator[Any, None, None]:
-        """Setup."""
+        """Setup.
+
+        This fixture is automatically enabled for all tests in this class.
+
+        Args:
+            monkeypatch: the built-in pytest fixture.
+        """
         # pylint: disable=attribute-defined-outside-init
         monkeypatch.setattr("curses.newpad", lambda *args: MockCursesPad())
         self.frame = Frame(MockTUI(), 10, 20)  # type: ignore
@@ -28,7 +34,7 @@ class TestTextFrame:
         STATE.reset()
 
     def test_clear(self) -> None:
-        """Test clear method."""
+        """Test `cobib.tui.frame.Frame.clear`."""
         self.frame.buffer.lines = ["test"]
         self.frame.clear()
         assert self.frame.buffer.lines == []
@@ -78,7 +84,14 @@ class TestTextFrame:
     def test_revert(
         self, caplog: pytest.LogCaptureFixture, lines: List[str], selection: Set[str], mode: str
     ) -> None:
-        """Test revert method."""
+        """Test `cobib.tui.frame.Frame.revert`.
+
+        Args:
+            caplog: the built-in pytest fixture.
+            lines: a list of strings to place into the frame's buffer.
+            selection: the set of selected labels.
+            mode: the `cobib.tui.state.Mode` value.
+        """
         buffer = TextBuffer()
         buffer.lines = lines
         buffer.height = len(lines)
@@ -109,7 +122,11 @@ class TestTextFrame:
         ] == expected_log
 
     def test_revert_empty_history(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test revert with empty history method."""
+        """Test revert with empty history method.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         self.frame.revert()
         expected_log = [("cobib.tui.frame", 10, "Empty frame history, nothing to revert")]
         assert [
@@ -117,7 +134,11 @@ class TestTextFrame:
         ] == expected_log
 
     def test_resize(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test resize method."""
+        """Test `cobib.tui.frame.Frame.resize`.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         self.frame.resize(10, 10)
         expected_log = [
             ("MockCursesPad", 10, "refresh: 0 0 1 0 10 9"),
@@ -127,7 +148,11 @@ class TestTextFrame:
         ] == expected_log
 
     def test_refresh(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test refresh method."""
+        """Test `cobib.tui.frame.Frame.refresh`.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         self.frame.height = 10
         self.frame.width = 10
         self.frame.refresh()
@@ -139,7 +164,11 @@ class TestTextFrame:
         ] == expected_log
 
     def test_view(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test view method."""
+        """Test `cobib.tui.frame.Frame.view`.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         self.frame.buffer.lines = [
             "Label0  Title0 by Author0",
             "Label1  Title1 by Author1",
@@ -166,7 +195,12 @@ class TestTextFrame:
     def test_view_with_ansi_map(
         self, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Test view method with ANSI color map."""
+        """Test view method with ANSI color map.
+
+        Args:
+            caplog: the built-in pytest fixture.
+            monkeypatch: the built-in pytest fixture.
+        """
         monkeypatch.setattr("curses.color_pair", lambda *args: args)
         # create ANSI color map for testing purposes
         config.defaults()
@@ -238,7 +272,19 @@ class TestTextFrame:
         msg: str,
         scrolloff: Optional[int],
     ) -> None:
-        """Test scroll_y method."""
+        """Test `cobib.tui.frame.Frame.scroll_y`.
+
+        Args:
+            caplog: the built-in pytest fixture.
+            initialize: the initial values for `cobib.tui.state.State.top_line` and
+                `cobib.tui.state.State.current_line`.
+            update: the argument to send to `cobib.tui.frame.Frame.scroll_y`.
+            repeat: the number of times to repeat the update.
+            top: the expected value for `cobib.tui.state.State.top_line`.
+            cur: the expected value for `cobib.tui.state.State.current_line`.
+            msg: the expected message to be logged.
+            scrolloff: the configuration value for `config.tui.scroll_offset`.
+        """
         config.defaults()
         if scrolloff:
             config.tui.scroll_offset = scrolloff
@@ -285,7 +331,16 @@ class TestTextFrame:
         left: int,
         msg: str,
     ) -> None:
-        """Test scroll_x method."""
+        """Test `cobib.tui.frame.Frame.scroll_x`.
+
+        Args:
+            caplog: the built-in pytest fixture.
+            initialize: the initial value for `cobib.tui.state.State.left_edge`.
+            update: the argument to send to `cobib.tui.frame.Frame.scroll_x`.
+            repeat: the number of times to repeat the update.
+            left: the expected value for `cobib.tui.state.State.left_edge`.
+            msg: the expected message to be logged.
+        """
         text = "A very long line. " * 5
         self.frame.buffer.lines = [text]
         self.frame.buffer.width = len(text)
@@ -299,7 +354,7 @@ class TestTextFrame:
         assert STATE.left_edge == left
 
     def test_wrap(self) -> None:
-        """Test wrap method."""
+        """Test `cobib.tui.frame.Frame.wrap`."""
         self.frame.buffer.lines = ["Long line with some text" for _ in range(10)]
         self.frame.wrap()
         assert STATE.left_edge == 0
@@ -336,7 +391,14 @@ class TestTextFrame:
         cur_y: int,
         mode: str,
     ) -> None:
-        """Test get_current_label method."""
+        """Test `cobib.tui.frame.Frame.get_current_label`.
+
+        Args:
+            caplog: the built-in pytest fixture.
+            lines: a list of strings to place into the frame's buffer.
+            cur_y: the value for `cobib.tui.state.State.current_line`.
+            mode: the `cobib.tui.state.Mode` value.
+        """
         self.frame.pad.lines = lines  # type: ignore
         self.frame.pad.current_pos[0] = cur_y  # type: ignore
         STATE.mode = mode
@@ -371,7 +433,17 @@ class TestTextFrame:
         cur_y: int,
         topstatus: str,
     ) -> None:
-        """Test get_current_label method in SHOW mode."""
+        """Test `cobib.tui.frame.Frame.get_current_label` for `cobib.tui.state.Mode.SHOW`.
+
+        This is separate from `test_get_current_label` because the assertions are fundamentally
+        different.
+
+        Args:
+            caplog: the built-in pytest fixture.
+            lines: a list of strings to place into the frame's buffer.
+            cur_y: the value for `cobib.tui.state.State.current_line`.
+            topstatus: the value for `cobib.tui.state.State.topstatus`.
+        """
         self.frame.pad.lines = lines  # type: ignore
         self.frame.pad.current_pos[0] = cur_y  # type: ignore
         STATE.topstatus = topstatus
@@ -407,7 +479,13 @@ class TestTextFrame:
     def test_update_list(
         self, caplog: pytest.LogCaptureFixture, selection: Set[str], mode: str
     ) -> None:
-        """Test update_list method."""
+        """Test `cobib.tui.frame.Frame.update_list`.
+
+        Args:
+            caplog: the built-in pytest fixture.
+            selection: the set of selected labels.
+            mode: the `cobib.tui.state.Mode` value.
+        """
         # load testing config
         config.load(get_resource("debug.py"))
         # trigger list update
@@ -470,7 +548,7 @@ class TestTextFrame:
         ] == expected_log
 
     def test_update_list_out_of_view(self) -> None:
-        """Test update_list method."""
+        """Test `cobib.tui.frame.Frame.update_list` when the current line is out of view."""
         # load testing config
         config.load(get_resource("debug.py"))
         # make current line be out-of-view

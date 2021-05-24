@@ -16,7 +16,11 @@ class TestArxivParser(ParserTest):
     """Tests for coBib's ArxivParser."""
 
     def test_from_arxiv(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test parsing from arxiv."""
+        """Test parsing from arXiv.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         entries = parsers.ArxivParser().parse("1812.09976")
 
         if (
@@ -66,7 +70,12 @@ class TestArxivParser(ParserTest):
     def test_catching_api_error(
         self, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Test catching API error."""
+        """Test catching API error.
+
+        Args:
+            caplog: the built-in pytest fixture.
+            monkeypatch: the built-in pytest fixture.
+        """
 
         def raise_exception(*args, **kwargs):  # type: ignore
             """Mock function to raise an Exception."""
@@ -82,7 +91,11 @@ class TestArxivParser(ParserTest):
         ) in caplog.record_tuples
 
     def test_dump(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test dumping."""
+        """Test dumping.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         entry = Entry("dummy", {"ID": "dummy", "ENTRYTYPE": "unpublished"})
         parsers.ArxivParser().dump(entry)
 

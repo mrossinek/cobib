@@ -16,7 +16,10 @@ class TestTextBuffer:
 
     @pytest.fixture(autouse=True)
     def setup(self) -> None:
-        """Setup."""
+        """Setup.
+
+        This fixture is automatically enabled for all tests in this class.
+        """
         # pylint: disable=attribute-defined-outside-init
         self.buffer = TextBuffer()
 
@@ -51,7 +54,12 @@ class TestTextBuffer:
         ],
     )
     def test_write(self, strings: List[str], expected: Dict[str, Any]) -> None:
-        """Test write method."""
+        """Test `cobib.tui.buffer.TextBuffer.write`.
+
+        Args:
+            strings: a list of strings to place into the buffer.
+            expected: a dictionary with the expected values for the buffer's internal state.
+        """
         for string in strings:
             self.buffer.write(string)
         for key, value in expected.items():
@@ -69,14 +77,21 @@ class TestTextBuffer:
     def test_replace(
         self, lines: Union[int, List[int]], old: str, new: str, expected: List[str]
     ) -> None:
-        """Test replace method."""
+        """Test `cobib.tui.buffer.TextBuffer.replace`.
+
+        Args:
+            lines: the line numbers on which to replace.
+            old: the string to be replaced.
+            new: the string to be inserted.
+            expected: the expected resulting list of strings in the buffer.
+        """
         for string in ["test" + str(num) for num in range(3)]:
             self.buffer.write(string)
         self.buffer.replace(lines, old, new)
         assert self.buffer.lines == expected
 
     def test_clear(self) -> None:
-        """Test clear method."""
+        """Test `cobib.tui.buffer.TextBuffer.clear`."""
         self.buffer.lines = ["test"]
         self.buffer.clear()
         assert self.buffer.lines == []
@@ -85,7 +100,7 @@ class TestTextBuffer:
         assert self.buffer.wrapped is False
 
     def test_split(self) -> None:
-        """Test split method."""
+        """Test `cobib.tui.buffer.TextBuffer.split`."""
         self.buffer.lines = ["test\ntest"]
         self.buffer.split()
         assert self.buffer.lines == ["test", "test"]
@@ -176,7 +191,13 @@ class TestTextBuffer:
         ],
     )
     def test_wrap(self, width: int, label_column: bool, expected: List[str]) -> None:
-        """Test wrap method."""
+        """Test `cobib.tui.buffer.TextBuffer.wrap`.
+
+        Args:
+            width: the number of columns at which to wrap the buffer.
+            label_column: whether to determine a label column width or not.
+            expected: the expected resulting list of strings in the buffer.
+        """
         self.buffer.lines = [
             "Label0  Title0 by Author0",
             "Label1  Title1 by Author1",
@@ -189,7 +210,7 @@ class TestTextBuffer:
             assert line.strip() == truth
 
     def test_unwrap(self) -> None:
-        """Test unwrapping."""
+        """Test `cobib.tui.buffer.TextBuffer.unwrap`."""
         self.buffer.wrapped = True
         self.buffer.lines = [
             "Label0  Title0 by",
@@ -213,7 +234,11 @@ class TestTextBuffer:
         ]
 
     def test_view(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test view method."""
+        """Test `cobib.tui.buffer.TextBuffer.view`.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         self.buffer.lines = [
             "Label0  Title0 by Author0",
             "Label1  Title1 by Author1",
@@ -239,7 +264,11 @@ class TestTextBuffer:
         ] == expected_log
 
     def test_view_with_box(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test view method with box."""
+        """Test `cobib.tui.buffer.TextBuffer.view` with a surrounding box.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         self.buffer.lines = [
             "Label0  Title0 by Author0",
             "Label1  Title1 by Author1",
@@ -268,7 +297,12 @@ class TestTextBuffer:
     def test_view_with_ansi_map(
         self, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Test view method with ANSI color map."""
+        """Test `cobib.tui.buffer.TextBuffer.view` with an ANSI color map.
+
+        Args:
+            caplog: the built-in pytest fixture.
+            monkeypatch: the built-in pytest fixture.
+        """
         monkeypatch.setattr("curses.color_pair", lambda *args: args)
         # create ANSI color map for testing purposes
         config.defaults()
@@ -310,7 +344,12 @@ class TestTextBuffer:
     def test_view_with_bkgd(
         self, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Test view method with background."""
+        """Test `cobib.tui.buffer.TextBuffer.view` with a background color.
+
+        Args:
+            caplog: the built-in pytest fixture.
+            monkeypatch: the built-in pytest fixture.
+        """
         monkeypatch.setattr("curses.color_pair", lambda *args: args)
         self.buffer.lines = [
             "Label0  Title0 by Author0",
@@ -340,7 +379,12 @@ class TestTextBuffer:
     def test_view_with_bkgd_and_box(
         self, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Test view method with background and box."""
+        """Test `cobib.tui.buffer.TextBuffer.view` with a background color and surrounding box.
+
+        Args:
+            caplog: the built-in pytest fixture.
+            monkeypatch: the built-in pytest fixture.
+        """
         monkeypatch.setattr("curses.color_pair", lambda *args: args)
         self.buffer.lines = [
             "Label0  Title0 by Author0",
@@ -381,7 +425,13 @@ class TestTextBuffer:
         monkeypatch: pytest.MonkeyPatch,
         background: Optional[int],
     ) -> None:
-        """Test popup method."""
+        """Test `cobib.tui.buffer.TextBuffer.popup`.
+
+        Args:
+            caplog: the built-in pytest fixture.
+            monkeypatch: the built-in pytest fixture.
+            background: the value of the background color.
+        """
         monkeypatch.setattr("curses.newpad", lambda *args: MockCursesPad())
         if background is not None:
             monkeypatch.setattr("curses.color_pair", lambda *args: args)
@@ -416,7 +466,14 @@ class TestTextBuffer:
 
 
 def test_input_buffer(caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Test the InptBuffer."""
+    """Test the `cobib.tui.buffer.InputBuffer`.
+
+    Since this buffer is a very minimal wrapper, this simple test suffices.
+
+    Args:
+        caplog: the built-in pytest fixture.
+        monkeypatch: the built-in pytest fixture.
+    """
     monkeypatch.setattr("curses.newpad", lambda *args: MockCursesPad())
     buffer = InputBuffer(TextBuffer(), MockTUI())  # type: ignore
     buffer.readline()

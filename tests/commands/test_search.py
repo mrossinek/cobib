@@ -24,11 +24,16 @@ class TestSearchCommand(CommandTest, TUITest):
     """Tests for coBib's SearchCommand."""
 
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        """Get the command tested by this class."""
+        # noqa: D102
         return SearchCommand
 
     def _assert(self, output: List[str], expected: List[str]) -> None:
-        """Common assertion utility method."""
+        """Common assertion utility method.
+
+        Args:
+            output: the list of lines printed to `sys.stdout`.
+            expected: the expected output.
+        """
         # we use zip_longest to ensure that we don't have more than we expect
         for line, exp in zip_longest(output, expected):
             line = line.replace("\x1b", "")
@@ -97,7 +102,14 @@ class TestSearchCommand(CommandTest, TUITest):
     def test_command(
         self, setup: Any, args: List[str], expected: List[str], config_overwrite: bool
     ) -> None:
-        """Test the command itself."""
+        """Test the command itself.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            args: the arguments to pass to the command.
+            expected: the expected output.
+            config_overwrite: what to overwrite `config.commands.search.ignore_case` with.
+        """
         config.commands.search.ignore_case = config_overwrite
         file = StringIO()
 
@@ -118,7 +130,14 @@ class TestSearchCommand(CommandTest, TUITest):
         capsys: pytest.CaptureFixture[str],
         expected: List[str],
     ) -> None:
-        """Test the command-line access of the command."""
+        """Test the command-line access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            monkeypatch: the built-in pytest fixture.
+            capsys: the built-in pytest fixture.
+            expected: the expected output.
+        """
         self.run_module(monkeypatch, "main", ["cobib", "search", "einstein"])
         self._assert(capsys.readouterr().out.strip().split("\n"), expected)
 
@@ -130,7 +149,13 @@ class TestSearchCommand(CommandTest, TUITest):
         ],
     )
     def test_tui(self, setup: Any, select: bool, keys: str) -> None:
-        """Test the TUI access of the command."""
+        """Test the TUI access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            select: whether to use the TUI selection.
+            keys: the string of keys to pass to the TUI.
+        """
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             expected_screen = [
@@ -177,7 +202,11 @@ class TestSearchCommand(CommandTest, TUITest):
         self.run_tui(keys, assertion, {"selection": select})
 
     def test_tui_no_hits(self, setup: Any) -> None:
-        """Test how the TUI handles no search results."""
+        """Test how the TUI handles no search results.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+        """
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             expected_screen = [

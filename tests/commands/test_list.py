@@ -27,7 +27,7 @@ class TestListCommand(CommandTest, TUITest):
     """Tests for coBib's ListCommand."""
 
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        """Get the command tested by this class."""
+        # noqa: D102
         return ListCommand
 
     @pytest.mark.parametrize(
@@ -44,7 +44,13 @@ class TestListCommand(CommandTest, TUITest):
         ],
     )
     def test_command(self, setup: Any, args: List[str], expected: List[str]) -> None:
-        """Test the command itself."""
+        """Test the command itself.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            args: the arguments to pass to the command.
+            expected: the expected list of labels.
+        """
         # redirect output of list to string
         file = StringIO()
         tags = ListCommand().execute(args, out=file)
@@ -61,6 +67,9 @@ class TestListCommand(CommandTest, TUITest):
 
         When a key is queried which is not present in all entries, the list command should return
         normally.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
         """
         # redirect output of list to string
         file = StringIO()
@@ -87,14 +96,25 @@ class TestListCommand(CommandTest, TUITest):
         capsys: pytest.CaptureFixture[str],
         expected: List[str],
     ) -> None:
-        """Test the command-line access of the command."""
+        """Test the command-line access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            monkeypatch: the built-in pytest fixture.
+            capsys: the built-in pytest fixture.
+            expected: the expected list of labels.
+        """
         self.run_module(monkeypatch, "main", ["cobib", "list"])
         for line, truth in zip_longest(capsys.readouterr().out.strip().split("\n"), expected):
             # we wrap the list into an iterator in order to handle an empty list, too
             assert next(iter(line.split()), None) == truth
 
     def test_tui(self, setup: Any) -> None:
-        """Test the TUI access of the command."""
+        """Test the TUI access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+        """
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             expected_screen = [
@@ -127,7 +147,12 @@ class TestListCommand(CommandTest, TUITest):
         ],
     )
     def test_tui_sort(self, setup: Any, keys: str) -> None:
-        """Test the TUI access of the command."""
+        """Test the TUI `sort` command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            keys: the string of keys to pass to the TUI.
+        """
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             expected_screen = [
@@ -182,7 +207,12 @@ class TestListCommand(CommandTest, TUITest):
         ],
     )
     def test_tui_filter(self, setup: Any, keys: str) -> None:
-        """Test the TUI access of the command."""
+        """Test the TUI `filter` command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            keys: the string of keys to pass to the TUI.
+        """
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             expected_screen = [
@@ -240,7 +270,13 @@ class TestListCommand(CommandTest, TUITest):
         ],
     )
     def test_tui_argument_unification(self, setup: Any, keys: str, messages: List[str]) -> None:
-        """Test that the TUI unifies keyword arguments."""
+        """Test that the TUI unifies keyword arguments.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            keys: the string of keys to pass to the TUI.
+            messages: the expected list of log messages.
+        """
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             true_log = [log for log in logs if log[0] == "cobib.commands.list"]
@@ -251,7 +287,11 @@ class TestListCommand(CommandTest, TUITest):
 
     # manually overwrite this test because we must populate the database with actual data
     def test_handle_argument_error(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test handling of ArgumentError."""
+        """Test handling of ArgumentError.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         # use temporary config
         config.database.file = self.COBIB_TEST_DIR / "database.yaml"
         config.database.git = True

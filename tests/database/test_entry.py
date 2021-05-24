@@ -32,7 +32,11 @@ EXAMPLE_ENTRY_DICT = {
 
 
 def test_init_logging(caplog: pytest.LogCaptureFixture) -> None:
-    """Test init logging for linting purposes."""
+    """Test init logging for linting purposes.
+
+    Args:
+        caplog: the built-in pytest fixture.
+    """
     entry = Entry("dummy", {"ID": "dummy", "number": "1"})
     assert entry.data["number"] == 1
     assert (
@@ -69,7 +73,11 @@ def test_entry_set_label() -> None:
 
 
 def test_entry_set_tags(caplog: pytest.LogCaptureFixture) -> None:
-    """Test tags setting."""
+    """Test tags setting.
+
+    Args:
+        caplog: the built-in pytest fixture.
+    """
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     assert entry.tags == []
     # NB: tags must be a list
@@ -97,7 +105,12 @@ def test_entry_set_tags(caplog: pytest.LogCaptureFixture) -> None:
     ],
 )
 def test_entry_set_file(files: List[str], caplog: pytest.LogCaptureFixture) -> None:
-    """Test file setting."""
+    """Test file setting.
+
+    Args:
+        files: a list of paths to files.
+        caplog: the built-in pytest fixture.
+    """
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     entry.file = files[0] if len(files) == 1 else files  # type: ignore
     expected = [str(RelPath(file)) for file in files]
@@ -115,7 +128,11 @@ def test_entry_set_file(files: List[str], caplog: pytest.LogCaptureFixture) -> N
 
 
 def test_entry_set_url(caplog: pytest.LogCaptureFixture) -> None:
-    """Test url setting."""
+    """Test url setting.
+
+    Args:
+        caplog: the built-in pytest fixture.
+    """
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     entry.url = "https://dummy.org/, https://dummy.com/"  # type: ignore
     assert entry.url == ["https://dummy.org/", "https://dummy.com/"]
@@ -147,7 +164,13 @@ def test_entry_set_url(caplog: pytest.LogCaptureFixture) -> None:
 def test_entry_set_month(
     month: Tuple[int, str], expected: str, caplog: pytest.LogCaptureFixture
 ) -> None:
-    """Test month setting."""
+    """Test month setting.
+
+    Args:
+        month: a pair containing the month index and full name.
+        expected: the expected three-letter code of the month.
+        caplog: the built-in pytest fixture.
+    """
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     assert entry.data["month"] == "aug"
     entry.month = month[0]  # type: ignore
@@ -178,7 +201,12 @@ def test_entry_set_month(
     ],
 )
 def test_entry_matches(filter_: Dict[Tuple[str, bool], Any], or_: bool) -> None:
-    """Test match filter."""
+    """Test match filter.
+
+    Args:
+        filter_: a filter as explained be `cobib.database.Entry.matches`.
+        or_: whether to use logical `OR` rather than `AND` for filter combination.
+    """
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     # author must match
     assert entry.matches(filter_, or_=or_)
@@ -187,8 +215,8 @@ def test_entry_matches(filter_: Dict[Tuple[str, bool], Any], or_: bool) -> None:
 def test_match_with_wrong_key() -> None:
     """Asserts issue #1 is fixed.
 
-    When matches() is called with a key in the filter which does not exist in the entry, the key
-    should be ignored and the function should return normally.
+    When `cobib.database.Entry.matches` is called with a key in the filter which does not exist in
+    the entry, the key should be ignored and the function should return normally.
     """
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     filter_ = {("tags", False): ["test"]}
@@ -282,7 +310,14 @@ def test_match_with_wrong_key() -> None:
     ],
 )
 def test_search(query: str, context: int, ignore_case: bool, expected: List[List[str]]) -> None:
-    """Test search method."""
+    """Test search method.
+
+    Args:
+        query: the string to search for.
+        context: the number of lines to provide as context for the search results.
+        ignore_case: whether to perform a case-insensitive search.
+        expected: the expected lines.
+    """
     entry = Entry(
         "search_dummy",
         {
@@ -303,7 +338,7 @@ def test_search(query: str, context: int, ignore_case: bool, expected: List[List
 
 
 def test_search_with_file() -> None:
-    """Test search method with associated file."""
+    """Test the `cobib.database.Entry.search` method with associated file."""
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     entry.file = EXAMPLE_YAML_FILE  # type: ignore
     results = entry.search("Chemical", context=0)
@@ -320,7 +355,7 @@ def test_search_with_file() -> None:
 def test_escape_special_chars() -> None:
     """Test escaping of special characters.
 
-    This also tests ensures that special characters in the label remain unchanged.
+    This also ensures that special characters in the label remain unchanged.
     """
     reference = {
         "ENTRYTYPE": "book",
@@ -334,7 +369,7 @@ def test_escape_special_chars() -> None:
 
 
 def test_save() -> None:
-    """Test save method."""
+    """Test the `cobib.database.Entry.save` method."""
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     entry_str = entry.save()
     with open(EXAMPLE_YAML_FILE, "r") as expected:
@@ -343,7 +378,7 @@ def test_save() -> None:
 
 
 def test_stringify() -> None:
-    """Test stringify method."""
+    """Test the `cobib.database.Entry.stringify` method."""
     entry = Entry(
         "dummy",
         {

@@ -23,11 +23,15 @@ class TestDeleteCommand(CommandTest, TUITest):
     """Tests for coBib's DeleteCommand."""
 
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        """Get the command tested by this class."""
+        # noqa: D102
         return DeleteCommand
 
     def _assert(self, labels: List[str]) -> None:
-        """Common assertion utility method."""
+        """Common assertion utility method.
+
+        Args:
+            labels: the list of labels to be deleted.
+        """
         bib = Database()
 
         for label in labels:
@@ -60,7 +64,13 @@ class TestDeleteCommand(CommandTest, TUITest):
         ],
     )
     def test_command(self, setup: Any, labels: List[str], skip_commit: bool) -> None:
-        """Test the command itself."""
+        """Test the command itself.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            labels: the list of labels to be deleted.
+            skip_commit: whether to skip asserting the git commit message.
+        """
         git = setup.get("git", False)
 
         # delete some data (for testing simplicity we delete the entries from the end)
@@ -80,7 +90,13 @@ class TestDeleteCommand(CommandTest, TUITest):
     )
     # other variants are already covered by test_command
     def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch, labels: List[str]) -> None:
-        """Test the command-line access of the command."""
+        """Test the command-line access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            monkeypatch: the built-in pytest fixture.
+            labels: the list of labels to be deleted.
+        """
         self.run_module(monkeypatch, "main", ["cobib", "delete"] + labels)
         self._assert(labels)
 
@@ -92,7 +108,14 @@ class TestDeleteCommand(CommandTest, TUITest):
         ],
     )
     def test_tui(self, setup: Any, select: bool, keys: str, labels: List[str]) -> None:
-        """Test the TUI access of the command."""
+        """Test the TUI access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            select: whether to use the TUI selection.
+            keys: the string of keys to pass to the TUI.
+            labels: the list of labels to be deleted.
+        """
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             labels = kwargs.get("labels", [])

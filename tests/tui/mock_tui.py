@@ -1,4 +1,5 @@
-"""Methods and classes to mock a coBib TUI."""
+"""Mocking utilities for the `cobib.tui.tui.TUI`."""
+# pylint: disable=missing-function-docstring,unused-argument
 
 import logging
 from typing import Dict, Set
@@ -7,11 +8,14 @@ from .mock_curses import MockCursesPad
 
 
 class MockTUI:
-    """Mock cobib.tui.TUI implementation."""
+    """This class mocks the `cobib.tui.tui.TUI`.
 
-    # pylint: disable=missing-function-docstring,unused-argument
+    When testing the `cobib.tui` modules, we need full control. Thus, this class removes all of the
+    non-essential aspects and logs all method calls.
+    """
 
     ANSI_MAP: Dict[str, int] = {}
+    """The `ANSI_MAP` exists as part of `cobib.tui.tui.TUI` and will be populated at runtime."""
 
     def __init__(self) -> None:
         # noqa: D107

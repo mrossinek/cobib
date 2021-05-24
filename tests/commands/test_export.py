@@ -28,18 +28,26 @@ class TestExportCommand(CommandTest, TUITest):
     """Tests for coBib's ExportCommand."""
 
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        """Get the command tested by this class."""
+        # noqa: D102
         return ExportCommand
 
     def _assert(self, args: List[str]) -> None:
-        """Common assertion utility method."""
+        """Common assertion utility method.
+
+        Args:
+            args: the arguments which were passed to the command.
+        """
         if "-b" in args:
             self._assert_bib(args)
         if "-z" in args:
             self._assert_zip(args)
 
     def _assert_bib(self, args: List[str]) -> None:
-        """Assertion utility method for bibtex output."""
+        """Assertion utility method for bibtex output.
+
+        Args:
+            args: the arguments which were passed to the command.
+        """
         try:
             with open(TMPDIR / "cobib_test_export.bib", "r") as file:
                 with open(get_resource("example_literature.bib"), "r") as expected:
@@ -57,7 +65,11 @@ class TestExportCommand(CommandTest, TUITest):
             os.remove(TMPDIR / "cobib_test_export.bib")
 
     def _assert_zip(self, args: List[str]) -> None:
-        """Assertion utility method for bibtex output."""
+        """Assertion utility method for zip output.
+
+        Args:
+            args: the arguments which were passed to the command.
+        """
         try:
             with ZipFile(TMPDIR / "cobib_test_export.zip", "r") as file:
                 # assert that the file does not contain a bad file
@@ -87,7 +99,12 @@ class TestExportCommand(CommandTest, TUITest):
         ],
     )
     def test_command(self, setup: Any, args: List[str]) -> None:
-        """Test the command itself."""
+        """Test the command itself.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            args: the arguments to pass to the command.
+        """
         if "-z" in args:
             # add a dummy file to the `einstein` entry
             entry = Database()["einstein"]
@@ -96,7 +113,12 @@ class TestExportCommand(CommandTest, TUITest):
         self._assert(args)
 
     def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test warning for missing label."""
+        """Test warning for missing label.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
         args = ["-b", str(TMPDIR / "cobib_test_export.bib"), "-s", "--", "dummy"]
         ExportCommand().execute(args)
         assert (
@@ -106,7 +128,12 @@ class TestExportCommand(CommandTest, TUITest):
         ) in caplog.record_tuples
 
     def test_warning_missing_output(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test warning for missing output format."""
+        """Test warning for missing output format.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
         args = ["-s", "--", "einstein"]
         ExportCommand().execute(args)
         assert ("cobib.commands.export", 40, "No output file specified!") in caplog.record_tuples
@@ -119,7 +146,13 @@ class TestExportCommand(CommandTest, TUITest):
     )
     # other variants are already covered by test_command
     def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch, args: List[str]) -> None:
-        """Test the command-line access of the command."""
+        """Test the command-line access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            monkeypatch: the built-in pytest fixture.
+            args: additional arguments to pass to the command.
+        """
         self.run_module(monkeypatch, "main", ["cobib", "export"] + args)
         self._assert(args)
 
@@ -131,7 +164,13 @@ class TestExportCommand(CommandTest, TUITest):
         ],
     )
     def test_tui(self, setup: Any, select: bool, keys: str) -> None:
-        """Test the TUI access of the command."""
+        """Test the TUI access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            select: whether to use the TUI selection.
+            keys: the string of keys to pass to the TUI.
+        """
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             dummy_args = ["-b"]

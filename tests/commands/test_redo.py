@@ -29,7 +29,7 @@ class TestRedoCommand(CommandTest, TUITest):
     """Tests for coBib's RedoCommand."""
 
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        """Get the command tested by this class."""
+        # noqa: D102
         return RedoCommand
 
     def _assert(self) -> None:
@@ -59,7 +59,13 @@ class TestRedoCommand(CommandTest, TUITest):
     def test_command(
         self, setup: Any, expected_exit: bool, caplog: pytest.LogCaptureFixture
     ) -> None:
-        """Test the command itself."""
+        """Test the command itself.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            expected_exit: whether to expect an early exit.
+            caplog: the built-in pytest fixture.
+        """
         git = setup.get("git", False)
 
         if not git:
@@ -104,7 +110,12 @@ class TestRedoCommand(CommandTest, TUITest):
         indirect=["setup"],
     )
     def test_skipping_redone_commits(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test skipping already redone commits."""
+        """Test skipping already redone commits.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
         AddCommand().execute(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB])
         AddCommand().execute(["-b", get_resource("example_entry.bib")])
         UndoCommand().execute([])
@@ -125,7 +136,12 @@ class TestRedoCommand(CommandTest, TUITest):
         indirect=["setup"],
     )
     def test_warn_insufficient_setup(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test warning in case of insufficient setup."""
+        """Test warning in case of insufficient setup.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
         rmtree(self.COBIB_TEST_DIR_GIT)
         RedoCommand().execute([])
         for (source, level, message) in caplog.record_tuples:
@@ -148,7 +164,13 @@ class TestRedoCommand(CommandTest, TUITest):
     def test_cmdline(
         self, setup: Any, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
     ) -> None:
-        """Test the command-line access of the command."""
+        """Test the command-line access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            monkeypatch: the built-in pytest fixture.
+            caplog: the built-in pytest fixture.
+        """
         AddCommand().execute(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB])
         UndoCommand().execute([])
 
@@ -161,7 +183,11 @@ class TestRedoCommand(CommandTest, TUITest):
 
     # manually overwrite this test because we must enable git integration
     def test_handle_argument_error(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test handling of ArgumentError."""
+        """Test handling of ArgumentError.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         # use temporary config
         config.database.file = self.COBIB_TEST_DIR / "database.yaml"
         config.database.git = True
@@ -187,7 +213,11 @@ class TestRedoCommand(CommandTest, TUITest):
         indirect=["setup"],
     )
     def test_tui(self, setup: Any) -> None:
-        """Test the TUI access of the command."""
+        """Test the TUI access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+        """
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             assert "example_multi_file_entry" in screen.display[1]

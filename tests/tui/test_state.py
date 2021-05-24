@@ -18,7 +18,7 @@ def setup() -> None:
 
 
 def test_state_reset() -> None:
-    """Test State reset."""
+    """Test `cobib.tui.state.State.reset`."""
     state = copy.deepcopy(STATE)
     state.top_line = 10
     assert state.top_line == 10
@@ -34,7 +34,11 @@ def test_state_reset() -> None:
     ],
 )
 def test_state_initialize(reverse_order: bool) -> None:
-    """Test config-dependent state-initialization."""
+    """Test config-dependent state-initialization.
+
+    Args:
+        reverse_order: whether to add the `--reverse` flag to the `default_list_args`.
+    """
     config.tui.reverse_order = reverse_order
     state = copy.deepcopy(STATE)
     state.initialize()
@@ -56,7 +60,7 @@ def test_state_initialize(reverse_order: bool) -> None:
 
 
 def test_state_update() -> None:
-    """Test State update."""
+    """Test `cobib.tui.state.State.update`."""
     state = copy.deepcopy(STATE)
     dummy_state = State()
     dummy_state.top_line = "dummy"  # type: ignore

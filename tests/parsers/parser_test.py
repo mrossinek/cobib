@@ -7,8 +7,10 @@ class ParserTest:
     """The base class for coBib's parser test classes."""
 
     EXAMPLE_BIBTEX_FILE = get_resource("example_entry.bib")
+    """Path to the example BibTeX file."""
 
     EXAMPLE_YAML_FILE = get_resource("example_entry.yaml")
+    """Path to the example YAML file (matching the BibTeX file)."""
 
     EXAMPLE_ENTRY_DICT = {
         "ENTRYTYPE": "article",
@@ -27,3 +29,4 @@ class ParserTest:
         "volume": 119,
         "year": 2019,
     }
+    """The matching dictionary to the example files also included here."""

@@ -31,11 +31,16 @@ class TestAddCommand(CommandTest, TUITest):
     """Tests for coBib's AddCommand."""
 
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        """Get the command tested by this class."""
+        # noqa: D102
         return AddCommand
 
     def _assert(self, extra_filename: str) -> None:
-        """Common assertion utility method."""
+        """Common assertion utility method.
+
+        Args:
+            extra_filename: path to an additional filename whose contents are to be added to the
+                expected lines.
+        """
         # compare with reference file
         with open(EXAMPLE_LITERATURE, "r") as expected:
             true_lines = expected.readlines()
@@ -47,7 +52,13 @@ class TestAddCommand(CommandTest, TUITest):
                 assert line == truth
 
     def _assert_entry(self, label: str, **kwargs) -> None:  # type: ignore
-        """An additional assertion utility to check specific entry fields."""
+        """An additional assertion utility to check specific entry fields.
+
+        Args:
+            label: the label of the entry.
+            kwargs: additional keyword arguments whose contents are checked against the Entry's
+                `data contents.
+        """
         entry = Database()[label]
         for key, value in kwargs.items():
             assert entry.data.get(key, None) == value
@@ -74,7 +85,13 @@ class TestAddCommand(CommandTest, TUITest):
         ],
     )
     def test_command(self, setup: Any, more_args: List[str], entry_kwargs: Dict[str, Any]) -> None:
-        """Test the command itself."""
+        """Test the command itself.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            more_args: additional arguments to be passed to the command.
+            entry_kwargs: the expected contents of the resulting `Entry`.
+        """
         git = setup.get("git", False)
 
         try:
@@ -99,7 +116,12 @@ class TestAddCommand(CommandTest, TUITest):
             self.assert_git_commit_message("add", None)
 
     def test_add_new_entry(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test adding a new plain entry."""
+        """Test adding a new plain entry.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
         AddCommand().execute(["-l", "dummy"])
         assert (
             "cobib.commands.add",
@@ -116,7 +138,12 @@ class TestAddCommand(CommandTest, TUITest):
             assert lines[dummy_start + 2] == "...\n"
 
     def test_skip_manual_add_if_exists(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test manual addition is skipped if the label exists already."""
+        """Test manual addition is skipped if the label exists already.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
         AddCommand().execute(["-l", "einstein"])
         assert (
             "cobib.commands.add",
@@ -126,7 +153,12 @@ class TestAddCommand(CommandTest, TUITest):
         ) in caplog.record_tuples
 
     def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test warning for missing label and any other input."""
+        """Test warning for missing label and any other input.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
         AddCommand().execute([""])
         assert (
             "cobib.commands.add",
@@ -146,6 +178,9 @@ class TestAddCommand(CommandTest, TUITest):
         """Test add command while specifying a label manually.
 
         Regression test against #4.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
         """
         git = setup.get("git", False)
         # add potentially duplicate entry
@@ -168,12 +203,21 @@ class TestAddCommand(CommandTest, TUITest):
     )
     # other variants are already covered by test_command
     def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test the command-line access of the command."""
+        """Test the command-line access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            monkeypatch: the built-in pytest fixture.
+        """
         self.run_module(monkeypatch, "main", ["cobib", "add", "-b", EXAMPLE_MULTI_FILE_ENTRY_BIB])
         self._assert(EXAMPLE_MULTI_FILE_ENTRY_YAML)
 
     def test_tui(self, setup: Any) -> None:
-        """Test the TUI access of the command."""
+        """Test the TUI access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+        """
 
         def assertion(screen, logs, **kwargs):  # type: ignore
             self._assert(EXAMPLE_MULTI_FILE_ENTRY_YAML)

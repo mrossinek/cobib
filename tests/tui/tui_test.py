@@ -28,13 +28,24 @@ TMP_LOGFILE = Path(tempfile.gettempdir()) / "cobib_tui_test.log"
 
 
 class TUITest:
-    """A TUI test runs coBib's TUI interface."""
+    """A TUI test runs coBib's TUI interface.
+
+    The main part of this class is the `run_tui` method. The other methods are mainly setup and tear
+    down utilities.
+    """
 
     LOGGER = logging.getLogger("TUITest")
+    """"We use a class-level LOGGER for more granular control."""
 
     @pytest.fixture
     def patch_curses(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Monkeypatch curses module methods."""
+        """Monkeypatch the `curses` module methods.
+
+        Applies required changes to the `curses` module including set up of the `MockCursesPad`s.
+
+        Args:
+            monkeypatch: the built-in pytest fixture.
+        """
         monkeypatch.setattr(
             "curses.curs_set", lambda *args: self.LOGGER.debug("curs_set: %s", args)
         )
@@ -60,7 +71,14 @@ class TUITest:
 
     @staticmethod
     def init_subprocess_coverage() -> Any:
-        """Initializes the coverage reporting in a forked subprocess."""
+        """Initializes the coverage reporting in a forked subprocess.
+
+        This is required because the TUI itself will run in a forked subprocess. As such, we need to
+        manually ensure that the coverage report gets updated accordingly.
+
+        Returns:
+            The coverage analyzer.
+        """
         try:
             # pylint: disable=import-outside-toplevel
             import coverage
@@ -76,7 +94,7 @@ class TUITest:
         """Ends the subprocess coverage collection.
 
         Args:
-            cov: the coverage process to stop and save.
+            cov: the coverage analyzer to stop and save.
         """
         if cov is not None:
             cov.stop()
@@ -94,6 +112,9 @@ class TUITest:
         allows passing characters to the TUI by writing to the forked processes file descriptor.
         Furthermore, it also takes care of gathering the log, stdout/stderr and coverage information
         produced by the subprocess.
+
+        For more information check out this
+        [blog post](https://mrossinek.gitlab.io/programming/testing-tui-applications-in-python/).
 
         Args:
             keys: a string of characters passed to the TUI process ad verbatim.

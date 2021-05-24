@@ -1,12 +1,15 @@
-"""Methods and classes to mock curses."""
+"""Mocking utilities for a `curses.window`."""
+# pylint: disable=missing-function-docstring
 
 import logging
 
 
 class MockCursesPad:
-    """Mock curses.window implementation."""
+    """This class mocks a `curses.window`.
 
-    # pylint: disable=missing-function-docstring
+    When testing the `cobib.tui` modules, we need full control over the `curses` objects. Thus,
+    this class removes all of the non-essential aspects and logs all method calls.
+    """
 
     def __init__(self, lines=None) -> None:  # type: ignore
         # noqa: D107

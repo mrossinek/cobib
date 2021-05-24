@@ -1,4 +1,4 @@
-"""coBib command-line test class."""
+"""coBib's command-line test class."""
 
 from __future__ import annotations
 
@@ -14,7 +14,13 @@ class CmdLineTest:
 
     @staticmethod
     def run_module(monkeypatch: pytest.MonkeyPatch, main: str, sys_argv: List[str]) -> None:
-        """Gets the coBib runtime module after monkeypatching sys.argv."""
+        """Gets the coBib runtime module after monkeypatching `sys.argv`.
+
+        Args:
+            monkeypatch: the built-in pytest fixture.
+            main: the name of the `main` executable of the module to run.
+            sys_argv: the list of values with which to monkeypatch `sys.argv`.
+        """
         monkeypatch.setattr("sys.argv", sys_argv)
         module = runpy.run_module("cobib")  # type: ignore
         module.get(main)()

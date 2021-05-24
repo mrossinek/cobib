@@ -12,7 +12,7 @@ import tempfile
 from abc import abstractmethod
 from pathlib import Path
 from shutil import copyfile, rmtree
-from typing import TYPE_CHECKING, Any, Dict, Optional, Type
+from typing import TYPE_CHECKING, Any, Dict, Generator, Optional, Type
 
 import pytest
 
@@ -26,6 +26,8 @@ from ..cmdline_test import CmdLineTest
 TMPDIR = Path(tempfile.gettempdir()).resolve()
 
 if TYPE_CHECKING:
+    import _pytest.fixtures
+
     import cobib.commands
 
 
@@ -33,19 +35,40 @@ class CommandTest(CmdLineTest):
     """The base class for coBib's command test classes."""
 
     COBIB_TEST_DIR = TMPDIR / "cobib_test"
+    """Path to the temporary coBib test directory."""
+
     COBIB_TEST_DIR_GIT = COBIB_TEST_DIR / ".git"
+    """Path to the temporary coBib test git directory."""
 
     @abstractmethod
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        """Get the command tested by this class."""
+        """Get the command tested by this class.
+
+        Returns:
+            The command to be tested by this class.
+        """
 
     @abstractmethod
     def test_command(self) -> None:
         """Test the command itself."""
 
     @pytest.fixture
-    def setup(self, request) -> None:  # type: ignore
-        """Setup."""
+    def setup(self, request: _pytest.fixtures.SubRequest) -> Generator[Dict[str, Any], None, None]:
+        """Setup testing environment.
+
+        This method takes care of setting up the testing configuration. This involves:
+            - using `cat` for `config.commands.edit.editor` and `config.commands.open.command`
+            - setting up a testing database based (if requested by `request.param["database"]`)
+            - initializing git tracking (if requested by `request.param["git"]`)
+
+        After yielding to the actual test, this setup also gets torn down.
+
+        Args:
+            request: a pytest sub-request providing access to nested parameters.
+
+        Yields:
+            The internally used parameters for potential later re-use during the actual test.
+        """
         log_to_stream(logging.DEBUG)
 
         if not hasattr(request, "param"):
@@ -94,7 +117,12 @@ class CommandTest(CmdLineTest):
     def assert_git_commit_message(
         self, command: str, args: Optional[Dict[str, Any]] = None
     ) -> None:
-        """Assert the last auto-generated git commit message."""
+        """Assert the last auto-generated git commit message.
+
+        Args:
+            command: the last command type which ran.
+            args: the arguments which were passed to the command.
+        """
         # get last commit message
         with subprocess.Popen(
             ["git", "-C", self.COBIB_TEST_DIR, "show", "--format=format:%B", "--no-patch", "HEAD"],
@@ -115,7 +143,11 @@ class CommandTest(CmdLineTest):
                     assert ref == truth
 
     def test_handle_argument_error(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test handling of ArgumentError."""
+        """Test handling of ArgumentError.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         command_cls = self.get_command()
         command_cls().execute(["--dummy"])
         name = command_cls.name
