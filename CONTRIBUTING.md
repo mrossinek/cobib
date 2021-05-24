@@ -37,7 +37,7 @@ Once you have opened a merge request on GitLab, you can also view an automatical
 
 ## Releasing [Repository admins only]
 To create a new release you should do the following steps:
-0. Update the version number in `cobib/__init__.py` and the man page
+0. Update the version number in `src/cobib/__init__.py` and the man page
 1. Update the [changelog](CHANGELOG.md) including the link to pypi
 2. Commit, tag and push to Gitlab
 3. Ensure you have the following packages installed: `pip install build twine`
