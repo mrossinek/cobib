@@ -121,6 +121,7 @@ textbuffer
 textiowrapper
 tmp
 topstatus
+tox
 tui
 undocommand
 unittest
