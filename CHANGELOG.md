@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [3.1.1] - 2021-05-25
+
+Pypi: https://pypi.org/project/cobib/3.1.1/
+
+### Fixed
+- Pypi package metadata
+
+
 ## [3.1.0] - 2021-05-24
 
 Pypi: https://pypi.org/project/cobib/3.1.0/
@@ -451,7 +459,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v3.1.0...master
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v3.1.1...master
+[3.1.1]: https://gitlab.com/mrossinek/cobib/-/compare/v3.1.1
 [3.1.0]: https://gitlab.com/mrossinek/cobib/-/compare/v3.1.0
 [3.0.0]: https://gitlab.com/mrossinek/cobib/-/compare/v3.0.0
 [2.6.1]: https://gitlab.com/mrossinek/cobib/-/compare/v2.6.1
