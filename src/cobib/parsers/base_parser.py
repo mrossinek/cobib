@@ -21,12 +21,13 @@ class Parser(ABC):
     """The parsers `name` is used to register itself as an input argument to the
     `cobib.commands.add.AddCommand`."""
 
-    def __init__(self) -> None:
-        """The initializer of any concrete implementation should *not* take any arguments!"""
-
     @abstractmethod
     def parse(self, string: str) -> Dict[str, cobib.database.Entry]:
         """Creates a new Entry from the given string.
+
+        This method can add a URL in the special field `_download` of the
+        `cobib.database.Entry.data` dictionary pointing to a file which will be downloaded and
+        stored as the associated file of the parsed entry.
 
         Args:
             string: the input of the concrete parser type. Depending on the concrete implementation,

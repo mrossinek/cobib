@@ -35,7 +35,7 @@ class Database(OrderedDict):  # type: ignore
     Otherwise it is set to the label of the changed entry (which may be different from the previous
     label, indicating a renaming of the entry)."""
 
-    def __new__(cls) -> "Database":
+    def __new__(cls) -> Database:
         """Singleton constructor.
 
         This method gets called when accessing `Database` and enforces the singleton pattern

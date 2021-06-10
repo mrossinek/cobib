@@ -82,6 +82,11 @@ class ArxivParser(Parser):
                 entry["author"] += "{} and ".format(name)
             elif key.name == "summary":
                 entry["abstract"] = re.sub(r"\s+", " ", key.contents[0].strip().replace("\n", " "))
+            elif key.name == "link":
+                if key.attrs.get("title", None) == "doi":
+                    entry["url"] = key.attrs["href"]
+                elif key.attrs.get("title", None) == "pdf":
+                    entry["_download"] = key.attrs.get("href", "")
             else:
                 LOGGER.warning("The key '%s' of this arXiv entry is not being processed!", key.name)
         if "doi" in entry.keys():

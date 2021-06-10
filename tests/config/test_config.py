@@ -224,6 +224,7 @@ def test_config_validation(setup: Any) -> None:
         [["tui", "key_bindings"], "wrap"],
         [["tui", "key_bindings"], "export"],
         [["tui", "key_bindings"], "show"],
+        [["utils", "file_downloader"], "default_location"],
     ],
 )
 def test_missing_config_fields(setup: Any, sections: List[str], field: str) -> None:
