@@ -3,8 +3,9 @@
 
 from __future__ import annotations
 
+import os
 from itertools import zip_longest
-from typing import TYPE_CHECKING, Any, Dict, List, Type
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type
 
 import pytest
 
@@ -136,6 +137,36 @@ class TestAddCommand(CommandTest, TUITest):
             assert lines[dummy_start - 1] == "---\n"
             assert lines[dummy_start + 1] == "  ENTRYTYPE: article\n"
             assert lines[dummy_start + 2] == "...\n"
+
+    @pytest.mark.parametrize("folder", [None, "."])
+    def test_add_with_download(
+        self, folder: Optional[str], setup: Any, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Test adding a new entry with an associated file automatically downloaded.
+
+        Args:
+            folder: the folder for the downloaded file.
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            capsys: the built-in pytest fixture.
+        """
+        path = RelPath(f"{'/tmp' if folder is None else folder}/Cao2018.pdf")
+        try:
+            args = ["-a", "1812.09976"]
+            if folder:
+                args += ["-p", folder]
+            AddCommand().execute(args)
+            entry = Database()["Cao2018"]
+            assert entry.label == "Cao2018"
+            assert entry.data["archivePrefix"] == "arXiv"
+            assert entry.data["arxivid"].startswith("1812.09976")
+            assert "_download" not in entry.data.keys()
+            assert f"Successfully downloaded {path}" in capsys.readouterr().out
+            assert os.path.exists(path.path)
+        finally:
+            try:
+                os.remove(path.path)
+            except FileNotFoundError:
+                pass
 
     def test_skip_manual_add_if_exists(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test manual addition is skipped if the label exists already.

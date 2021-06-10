@@ -129,6 +129,11 @@ class Config(Dict[str, Any]):
                 "show": "ENTER",
             },
         },
+        "utils": {
+            "file_downloader": {
+                "default_location": "~/.local/share/cobib",
+            },
+        },
     }
     """The default settings."""
 
@@ -500,6 +505,13 @@ class Config(Dict[str, Any]):
             self._assert(
                 isinstance(key, str), f"config.tui.key_bindings.{command} should be a string."
             )
+
+        # UTILS section
+        LOGGER.debug("Validating the UTILS configuration section.")
+        self._assert(
+            isinstance(self.utils.file_downloader.default_location, str),
+            "config.utils.file_downloader.default_location should be a string.",
+        )
 
     @staticmethod
     def _assert(expression: bool, error: str) -> None:

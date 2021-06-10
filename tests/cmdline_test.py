@@ -22,5 +22,5 @@ class CmdLineTest:
             sys_argv: the list of values with which to monkeypatch `sys.argv`.
         """
         monkeypatch.setattr("sys.argv", sys_argv)
-        module = runpy.run_module("cobib")  # type: ignore
-        module.get(main)()
+        module = runpy.run_module("cobib")
+        module.get(main)()  # type: ignore

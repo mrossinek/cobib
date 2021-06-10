@@ -57,6 +57,7 @@ from typing import IO, Any, Callable, Dict, List, Optional, Set, Tuple, Union, c
 
 from cobib import commands
 from cobib.config import config
+from cobib.utils.file_downloader import FileDownloader
 
 from .buffer import InputBuffer, TextBuffer
 from .frame import Frame
@@ -221,6 +222,9 @@ class TUI:
         # Initialize prompt line
         # The prompt is a pad to allow command/error prompts to exceed the terminal width.
         self.prompt = curses.newpad(1, self.width)
+
+        # set prompt line as output source of the global file downloader
+        FileDownloader().set_logger(self.prompt_print)
 
         # Initialize main viewport
         LOGGER.debug("Initializing viewport with Frame")

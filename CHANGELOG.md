@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- basic autodownloading of arXiv PDF files (#25,!35):
+    - the default download location can be configured via `config.utils.file_downloader.default_location`
+    - on a per addition basis, this default can be overwritten via the `--path` keyword option of the `AddCommand`
 
 ## [3.1.1] - 2021-05-25
 

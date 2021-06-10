@@ -166,3 +166,8 @@ config.tui.key_bindings.wrap = "w"
 # encounters this string it will automatically map to the ASCII codes 10 and 13 (corresponding to
 # the `line feed` and `carriage return`, respectively). Any other string is interpreted a single
 # character whose ASCII value is used as the trigger.
+
+# UTILS
+
+# You can specify the default download location for associated files.
+config.utils.file_downloader.default_location = "~/.local/share/cobib"

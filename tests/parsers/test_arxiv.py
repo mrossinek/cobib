@@ -45,6 +45,7 @@ class TestArxivParser(ParserTest):
         assert entry.data["doi"].startswith("10.1021/acs.chemrev.8b00803")
         assert entry.data["title"] == "Quantum Chemistry in the Age of Quantum Computing"
         assert entry.data["year"] == 2018
+        assert entry.data["_download"] == "http://arxiv.org/pdf/1812.09976v2"
 
     # regression test for https://gitlab.com/mrossinek/cobib/-/issues/57
     def test_invalid_arxiv_id(self) -> None:

@@ -91,6 +91,12 @@ Associate the newly added entry with the \fIfile\fR at the provided path.
 As of version 2.5 you can specify multiple files, too.
 .PP
 .in +8n
+.BR \-p ", " \-\-path " " \fI<path>\fR
+.in +4n
+Overwrites the location for the automatically downloaded file. If not specified, this setting
+defaults to \fIconfig.utils.file_downloader.default_location\fR.
+.PP
+.in +8n
 .BR \-l ", " \-\-label  " " \fI<label>\fR
 .in +4n
 Store the newly added entry under the specified \fIlabel\fR.
@@ -534,6 +540,11 @@ the ASCII codes 10 (\fIline feed\fR) and 13 (\fIcarriage return\fR).
 .IR config.tui.key_bindings.export = 'x'
 .TP
 .IR config.tui.key_bindings.show = 'ENTER'
+.PP
+.BR UTILS
+.TP
+.IR config.utils.file_downloader.default_location = '~/.local/share/cobib'
+This setting sets the default location for any downloaded associated files.
 .PP
 .SH ENVIRONMENT
 .TP

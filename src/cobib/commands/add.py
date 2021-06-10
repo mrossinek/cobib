@@ -52,6 +52,14 @@ You can also specify `cobib.database.Entry.tags` using *positional* arguments li
 cobib add --doi <some DOI> -- tag1 "multi-word tag2" ...
 ```
 
+Since v3.2.0 coBib attempts to download PDF files for newly added entries (if the corresponding
+parser supports this feature). The default location where this file will be stored can be configured
+via `config.utils.file_downloader.default_location`, but it can be changed at runtime using the
+`--path` argument like so:
+```
+cobib add --path <some custom path> --arxiv <some arXiv ID>
+```
+
 ### TUI
 
 You can also trigger this command from the `cobib.tui.tui.TUI`.
@@ -74,6 +82,7 @@ from typing import IO, TYPE_CHECKING, Any, Dict, List
 from cobib import parsers
 from cobib.config import config
 from cobib.database import Database, Entry
+from cobib.utils.file_downloader import FileDownloader
 
 from .base_command import ArgumentParser, Command
 from .edit import EditCommand
@@ -89,6 +98,7 @@ class AddCommand(Command):
 
     name = "add"
 
+    # pylint: disable=too-many-branches
     def execute(self, args: List[str], out: IO[Any] = sys.stdout) -> None:
         """Adds a new entry.
 
@@ -104,6 +114,8 @@ class AddCommand(Command):
                     * `-l`, `--label`: the ID to give to the new entry.
                     * `-f`, `--file`: one or multiple files to associate with this entry. This data
                       will be stored in the `cobib.database.Entry.file` property.
+                    * `-p`, `--path`: the path to store the downloaded associated file in. This can
+                      be used to overwrite the `config.utils.file_downloader.default_location`.
                     * in addition to the options above, a *mutually exclusive group* of keyword
                       arguments for all available `cobib.parsers` are registered at runtime. Please
                       check the output of `cobib add --help` for the exact list.
@@ -124,6 +136,7 @@ class AddCommand(Command):
             action=file_action,
             help="files associated with this entry",
         )
+        parser.add_argument("-p", "--path", type=str, help="the path for the associated file")
         group_add = parser.add_mutually_exclusive_group()
         avail_parsers = {
             cls.name: cls for _, cls in inspect.getmembers(parsers) if inspect.isclass(cls)
@@ -201,14 +214,23 @@ class AddCommand(Command):
                 value.tags = largs.tags
 
         bib = Database()
+        existing_labels = set(bib.keys())
 
-        if largs.label in bib.keys():
-            msg = (
-                f"You tried to add a new entry '{largs.label}' which already exists!"
-                f"\nPlease use `cobib edit {largs.label}` instead!"
-            )
-            LOGGER.warning(msg)
-            return
+        for lbl, entry in new_entries.items():
+            # check if label already exists
+            if lbl in existing_labels:
+                msg = (
+                    f"You tried to add a new entry '{lbl}' which already exists!"
+                    f"\nPlease use `cobib edit {lbl}` instead!"
+                )
+                LOGGER.warning(msg)
+                print(msg, file=sys.stderr)
+                return
+            # download associated file (if requested)
+            if "_download" in entry.data.keys():
+                path = FileDownloader().download(entry.data.pop("_download"), lbl, largs.path)
+                if path is not None:
+                    entry.data["file"] = str(path)
 
         bib.update(new_entries)
 
