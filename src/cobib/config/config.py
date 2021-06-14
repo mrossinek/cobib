@@ -133,6 +133,7 @@ class Config(Dict[str, Any]):
             "file_downloader": {
                 "default_location": "~/.local/share/cobib",
             },
+            "journal_abbreviations": [],
         },
     }
     """The default settings."""
@@ -512,6 +513,16 @@ class Config(Dict[str, Any]):
             isinstance(self.utils.file_downloader.default_location, str),
             "config.utils.file_downloader.default_location should be a string.",
         )
+
+        self._assert(
+            isinstance(self.utils.journal_abbreviations, list),
+            "config.utils.journal_abbreviations should be a list.",
+        )
+        for abbrev in self.utils.journal_abbreviations:
+            self._assert(
+                isinstance(abbrev, tuple),
+                "config.utils.journal_abbreviations should be a list of tuples.",
+            )
 
     @staticmethod
     def _assert(expression: bool, error: str) -> None:

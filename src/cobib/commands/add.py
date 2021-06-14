@@ -83,6 +83,7 @@ from cobib import parsers
 from cobib.config import config
 from cobib.database import Database, Entry
 from cobib.utils.file_downloader import FileDownloader
+from cobib.utils.journal_abbreviations import JournalAbbreviations
 
 from .base_command import ArgumentParser, Command
 from .edit import EditCommand
@@ -231,6 +232,9 @@ class AddCommand(Command):
                 path = FileDownloader().download(entry.data.pop("_download"), lbl, largs.path)
                 if path is not None:
                     entry.data["file"] = str(path)
+            # check journal abbreviation
+            if "journal" in entry.data.keys():
+                entry.data["journal"] = JournalAbbreviations.elongate(entry.data["journal"])
 
         bib.update(new_entries)
 
