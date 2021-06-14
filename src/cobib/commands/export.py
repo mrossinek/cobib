@@ -49,6 +49,7 @@ from zipfile import ZipFile
 
 from cobib.database import Database
 from cobib.parsers.bibtex import BibtexParser
+from cobib.utils.journal_abbreviations import JournalAbbreviations
 from cobib.utils.rel_path import RelPath
 
 from .base_command import ArgumentParser, Command
@@ -107,6 +108,12 @@ class ExportCommand(Command):
             "pseudo-argument '--' before the list of filters. See also `list --help` for more "
             "information.",
         )
+        parser.add_argument(
+            "-a", "--abbreviate", action="store_true", help="Abbreviate journal names"
+        )
+        parser.add_argument(
+            "--dotless", action="store_true", help="Remove punctuation from journal abbreviations"
+        )
 
         if not args:
             parser.print_usage(sys.stderr)
@@ -144,6 +151,10 @@ class ExportCommand(Command):
                 LOGGER.info('Exporting entry "%s".', label)
                 entry = bib[label]
                 if largs.bibtex is not None:
+                    if largs.abbreviate and "journal" in entry.data.keys():
+                        entry.data["journal"] = JournalAbbreviations.abbreviate(
+                            entry.data["journal"], dotless=largs.dotless
+                        )
                     entry_str = bibtex_parser.dump(entry)
                     largs.bibtex.write(entry_str)
                 if largs.zip is not None:

@@ -171,3 +171,8 @@ config.tui.key_bindings.wrap = "w"
 
 # You can specify the default download location for associated files.
 config.utils.file_downloader.default_location = "~/.local/share/cobib"
+
+# You can specify a list of journal abbreviations. This list should be formatted as tuples of the
+# form: `(full journal name, abbreviation)`. The abbreviation should include any necessary
+# punctuation which can be excluded upon export (see also `cobib export --help`).
+config.utils.journal_abbreviations = []

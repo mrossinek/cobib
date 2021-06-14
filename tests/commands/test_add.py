@@ -210,9 +210,12 @@ class TestAddCommand(CommandTest, TUITest):
 
         Regression test against #4.
 
+        The duplicate entry has been adapted to also assert the elongation of Journal names.
+
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
         """
+        config.utils.journal_abbreviations = [("Annalen der Physik", "Ann. Phys.")]
         git = setup.get("git", False)
         # add potentially duplicate entry
         AddCommand().execute(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB, "--label", "duplicate_resolver"])

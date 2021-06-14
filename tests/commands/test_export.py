@@ -12,6 +12,7 @@ from zipfile import ZipFile
 import pytest
 
 from cobib.commands import ExportCommand
+from cobib.config import config
 from cobib.database import Database
 
 from .. import get_resource
@@ -111,6 +112,38 @@ class TestExportCommand(CommandTest, TUITest):
             entry.file = get_resource("debug.py")
         ExportCommand().execute(args)
         self._assert(args)
+
+    @pytest.mark.parametrize("dotless", [False, True])
+    def test_journal_abbreviation(self, setup: Any, dotless: bool) -> None:
+        """Test journal abbreviation.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            dotless: whether to abbreviate with or without punctuation.
+        """
+        config.utils.journal_abbreviations = [("Annalen der Physik", "Ann. Phys.")]
+        args = ["-a", "-b", str(TMPDIR / "cobib_test_export.bib"), "-s", "--", "einstein"]
+        if dotless:
+            args.insert(1, "--dotless")
+        ExportCommand().execute(args)
+        self._assert_journal_abbreviation(dotless)
+
+    def _assert_journal_abbreviation(self, dotless: bool) -> None:
+        """Assertion utility method for bibtex output.
+
+        Args:
+            dotless: whether to abbreviate with or without punctuation.
+        """
+        try:
+            with open(TMPDIR / "cobib_test_export.bib", "r") as file:
+                for line in file:
+                    if "journal" not in line:
+                        continue
+                    expected = "Ann Phys" if dotless else "Ann. Phys."
+                    assert expected in line
+        finally:
+            # clean up file system
+            os.remove(TMPDIR / "cobib_test_export.bib")
 
     def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test warning for missing label.

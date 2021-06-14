@@ -241,6 +241,19 @@ a single \fIZIP\fR file at the specified path.
 This boolean flag enables the \fIselection\fR mode in which the positional args
 are interpreted as a list of labels which are to be exported. The name for this
 argument is a result of the TUI's selection interface.
+.PP
+.in +8n
+.BR \-a ", " \-\-abbreviate
+.in +4n
+Causes all Journal names to be abbreviated. For this option to take effect, a
+list of abbreviatons must be configured via
+\fIconfig.utils.journal_abbreviations\fR.
+.PP
+.in +8n
+.BR \-\-dotless
+.in +4n
+Works in conjunction with the \fIabbreviate\fR argument in order to remove
+punctuation from the journal abbreviations.
 .SH FILTERS
 In order to limit the output of the \fIlist\fR and \fIexport\fR commands you can
 apply additional filters via keyword arguments.
@@ -545,6 +558,11 @@ the ASCII codes 10 (\fIline feed\fR) and 13 (\fIcarriage return\fR).
 .TP
 .IR config.utils.file_downloader.default_location = '~/.local/share/cobib'
 This setting sets the default location for any downloaded associated files.
+.TP
+.IR config.utils.journal_abbreviations = []
+You can specify a list of journal abbreviations. This list should be formatted as tuples of the
+form: \fB(full journal name, abbreviation)\fR. The abbreviation should include any necessary
+punctuation which can be excluded upon export (see also \fIcobib export --help\fR).
 .PP
 .SH ENVIRONMENT
 .TP
