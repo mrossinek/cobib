@@ -29,6 +29,7 @@ configparser
 configpath
 cov
 dat
+de
 deepcopied
 defaultdict
 docstring
