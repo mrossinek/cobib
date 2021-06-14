@@ -4,12 +4,12 @@
 import argparse
 import inspect
 import logging
+import platform
 import sys
 
 from cobib import __version__, commands
 from cobib.config import config
 from cobib.database import Database
-from cobib.tui import tui
 from cobib.utils import shell_helper
 from cobib.utils.logging import log_to_file, log_to_stream
 
@@ -73,6 +73,13 @@ def main() -> None:
     Database()
 
     if not args.command:
+        if platform.system() not in ("Linux", "Darwin"):
+            LOGGER.error("Only Linux and Darwin systems are supported by coBib's TUI!")
+            return
+
+        # pylint: disable=import-outside-toplevel
+        from cobib.tui import tui
+
         if args.logfile is None:
             LOGGER.info('Switching to FileHandler logger in "%s"', config.logging.logfile)
             log_to_file("DEBUG" if args.verbose > 1 else "INFO")
@@ -82,6 +89,7 @@ def main() -> None:
                 args.logfile,
                 config.logging.logfile,
             )
+
         tui()
     else:
         subcmd = getattr(commands, args.command.title() + "Command")()

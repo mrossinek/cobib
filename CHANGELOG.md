@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - users can configure a list of journal abbreviations via `config.utils.journal_abbreviations`
     - if present, coBib will store the journal in its elongated form
     - a user can then automatically convert to abbreviated forms during exporting (see the new `--abbreviate` and `--dotless` arguments)
+- Tentative Windows support by disabling the TUI
 
 ## [3.1.1] - 2021-05-25
 

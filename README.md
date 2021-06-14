@@ -40,10 +40,11 @@ coBib is packaged in the AUR.
 * [cobib-git](https://aur.archlinux.org/packages/cobib-git/)
 
 ### Windows
-Windows is **NOT** supported!
+Windows is **only partially** supported!
 This is due to the fact that [Python under Windows does not ship with the `curses` module][1].
-However, if you are using Windows 10 you should be able to install and use coBib
-within the Linux subsystem.
+Thus, you cannot run coBib's _TUI_ on Windows.
+However, if you are using Windows 10 you should be able to install and use coBib's full
+functionality within the Linux subsystem.
 
 
 
