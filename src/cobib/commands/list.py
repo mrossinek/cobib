@@ -69,7 +69,6 @@ from __future__ import annotations
 
 import argparse
 import logging
-import sys
 import textwrap
 from collections import defaultdict
 from typing import IO, TYPE_CHECKING, Any, Dict, Generator, List, Optional, Set, Tuple
@@ -162,7 +161,6 @@ class ListCommand(Command):
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
             LOGGER.error(exc.message)
-            print(exc.message, file=sys.stderr)
             return None
 
         LOGGER.debug("Constructing filter.")

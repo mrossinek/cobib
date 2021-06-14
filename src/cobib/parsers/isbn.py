@@ -17,7 +17,6 @@ The following documentation is mostly inherited from the abstract interface
 import json
 import logging
 import re
-import sys
 from collections import OrderedDict
 from typing import Dict
 
@@ -69,7 +68,6 @@ class ISBNParser(Parser):
                 + "available in coBib."
             )
             LOGGER.warning(msg)
-            print(msg, file=sys.stderr)
             return OrderedDict()
         label = ""
         entry = {}

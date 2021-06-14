@@ -89,7 +89,6 @@ class EditCommand(Command):
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
             LOGGER.error(exc.message)
-            print(exc.message, file=sys.stderr)
             return
 
         yml = YAMLParser()
@@ -149,8 +148,8 @@ class EditCommand(Command):
         self.git(args=vars(largs))
 
         msg = f"'{largs.label}' was successfully edited."
+        print(msg, file=sys.stderr)  # TODO: de-duplicate print message
         LOGGER.info(msg)
-        print(msg, file=out)
 
     @staticmethod
     def tui(tui: cobib.tui.TUI) -> None:

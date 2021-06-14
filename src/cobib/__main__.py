@@ -11,7 +11,7 @@ from cobib import __version__, commands
 from cobib.config import config
 from cobib.database import Database
 from cobib.utils import shell_helper
-from cobib.utils.logging import log_to_file, log_to_stream
+from cobib.utils.logging import get_file_handler, get_stream_handler
 
 LOGGER = logging.getLogger(__name__)
 
@@ -21,13 +21,16 @@ def main() -> None:
 
     coBib's main function used to parse optional keyword arguments and subcommands.
     """
-    # initialize logging
-    log_to_stream()
-
     if len(sys.argv) > 1 and any(a[0] == "_" for a in sys.argv):
         # shell helper function called
         helper_main()
         sys.exit()
+
+    # initialize logging
+    root_logger = logging.getLogger()
+    root_logger.setLevel("DEBUG")
+    stream_handler = get_stream_handler()
+    root_logger.addHandler(stream_handler)
 
     subcommands = [cmd.split(":")[0] for cmd in shell_helper.list_commands()]
     parser = argparse.ArgumentParser(
@@ -49,14 +52,17 @@ def main() -> None:
 
     if args.logfile:
         LOGGER.info("Switching to FileHandler logger in %s", args.logfile.name)
-        log_to_file("DEBUG" if args.verbose > 1 else "INFO", logfile=args.logfile.name)
+        file_handler = get_file_handler(
+            "DEBUG" if args.verbose > 1 else "INFO", logfile=args.logfile.name
+        )
+        root_logger.addHandler(file_handler)
 
     # set logging verbosity level
     if args.verbose == 1:
-        logging.getLogger().setLevel(logging.INFO)
+        stream_handler.setLevel(logging.INFO)
         LOGGER.info("Logging level set to INFO.")
     elif args.verbose > 1:
-        logging.getLogger().setLevel(logging.DEBUG)
+        stream_handler.setLevel(logging.DEBUG)
         LOGGER.info("Logging level set to DEBUG.")
 
     # load configuration
@@ -82,13 +88,16 @@ def main() -> None:
 
         if args.logfile is None:
             LOGGER.info('Switching to FileHandler logger in "%s"', config.logging.logfile)
-            log_to_file("DEBUG" if args.verbose > 1 else "INFO")
+            file_handler = get_file_handler("DEBUG" if args.verbose > 1 else "INFO")
+            root_logger.addHandler(file_handler)
         else:
             LOGGER.info(
                 'Already logging to "%s". NOT switching to "%s"',
                 args.logfile,
                 config.logging.logfile,
             )
+
+        stream_handler.setLevel(logging.WARNING)
 
         tui()
     else:
@@ -101,6 +110,12 @@ def helper_main() -> None:
 
     This is an auxiliary main method which exposes some shell utility methods.
     """
+    # initialize logging
+    root_logger = logging.getLogger()
+    root_logger.setLevel("DEBUG")
+    stream_handler = get_stream_handler()
+    root_logger.addHandler(stream_handler)
+
     available_helpers = [
         "_" + m[0] for m in inspect.getmembers(shell_helper) if inspect.isfunction(m[1])
     ]
@@ -117,14 +132,17 @@ def helper_main() -> None:
 
     if args.logfile:
         LOGGER.info("Switching to FileHandler logger in %s", args.logfile.name)
-        log_to_file("DEBUG" if args.verbose > 1 else "INFO", logfile=args.logfile.name)
+        file_handler = get_file_handler(
+            "DEBUG" if args.verbose > 1 else "INFO", logfile=args.logfile.name
+        )
+        root_logger.addHandler(file_handler)
 
     # set logging verbosity level
     if args.verbose == 1:
-        logging.getLogger().setLevel(logging.INFO)
+        stream_handler.setLevel(logging.INFO)
         LOGGER.info("Logging level set to INFO.")
     elif args.verbose > 1:
-        logging.getLogger().setLevel(logging.DEBUG)
+        stream_handler.setLevel(logging.DEBUG)
         LOGGER.info("Logging level set to DEBUG.")
 
     # load configuration

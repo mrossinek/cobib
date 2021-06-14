@@ -18,7 +18,6 @@ import pytest
 
 from cobib.config import config
 from cobib.database import Database
-from cobib.utils.logging import log_to_stream
 
 from .. import get_resource
 from ..cmdline_test import CmdLineTest
@@ -69,8 +68,6 @@ class CommandTest(CmdLineTest):
         Yields:
             The internally used parameters for potential later re-use during the actual test.
         """
-        log_to_stream(logging.DEBUG)
-
         if not hasattr(request, "param"):
             # use default settings
             request.param = {"git": False, "database": True}

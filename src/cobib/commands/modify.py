@@ -135,7 +135,6 @@ class ModifyCommand(Command):
             largs = parser.parse_intermixed_args(args)
         except argparse.ArgumentError as exc:
             LOGGER.error(exc.message)
-            print(exc.message, file=sys.stderr)
             return
 
         if largs.selection:
@@ -194,11 +193,10 @@ class ModifyCommand(Command):
                 bib.update({label: entry})
 
                 msg = f"'{label}' was modified."
-                print(msg)
+                print(msg, file=sys.stderr)  # TODO: de-duplicate print message
                 LOGGER.info(msg)
             except KeyError:
                 msg = f"No entry with the label '{label}' could be found."
-                print(msg)
                 LOGGER.warning(msg)
 
         bib.save()

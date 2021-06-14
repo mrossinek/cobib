@@ -65,7 +65,6 @@ class InitCommand(Command):
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
             LOGGER.error(exc.message)
-            print(exc.message, file=sys.stderr)
             return
 
         file = RelPath(config.database.file).path
@@ -80,13 +79,11 @@ class InitCommand(Command):
                     "Database file already exists and is being tracked by git. There is nothing "
                     "else to do."
                 )
-                print(msg, file=sys.stderr)
                 LOGGER.info(msg)
                 return
 
             if not git_tracked and not largs.git:
                 msg = "Database file already exists! Use --git to start tracking it with git."
-                print(msg, file=sys.stderr)
                 LOGGER.warning(msg)
                 return
 
@@ -104,7 +101,6 @@ class InitCommand(Command):
                     "only have effect if you also enable the DATABASE/git setting in your "
                     "configuration file!"
                 )
-                print(msg, file=sys.stderr)
                 LOGGER.warning(msg)
             # First, check whether git is configured correctly.
             print("Checking `git config --get user.name`:", end=" ", flush=True)
@@ -118,7 +114,6 @@ class InitCommand(Command):
                     "In order to use git you must configure your name and email first! For more "
                     "information please consult `man gittutorial`."
                 )
-                print(msg, file=sys.stderr)
                 LOGGER.warning(msg)
                 sys.exit(1)
             LOGGER.debug('Initializing git repository in "%s"', root)

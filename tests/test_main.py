@@ -83,7 +83,8 @@ class TestMainExecutable(CmdLineTest):
         if verbosity_arg:
             args.insert(1, verbosity_arg)
         self.run_module(monkeypatch, main, args)
-        assert logging.getLogger().getEffectiveLevel() == level
+        assert logging.getLogger().getEffectiveLevel() == logging.DEBUG
+        assert logging.getLogger().handlers[-1].level == level
 
     @pytest.mark.parametrize(
         ["main", "args"],
@@ -107,8 +108,8 @@ class TestMainExecutable(CmdLineTest):
         # we choose the open command as an arbitrary choice which has minimal side effects
         self.run_module(monkeypatch, main, ["cobib", "-l", logfile] + args)
         try:
-            assert isinstance(logging.getLogger().handlers[0], logging.FileHandler)
-            assert logging.getLogger().handlers[0].baseFilename == logfile  # type: ignore
+            assert isinstance(logging.getLogger().handlers[-1], logging.FileHandler)
+            assert logging.getLogger().handlers[-1].baseFilename == logfile  # type: ignore
         finally:
             os.remove(logfile)
 

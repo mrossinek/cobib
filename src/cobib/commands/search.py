@@ -119,7 +119,6 @@ class SearchCommand(Command):
             largs = parser.parse_intermixed_args(args)
         except argparse.ArgumentError as exc:
             LOGGER.error(exc.message)
-            print(exc.message, file=sys.stderr)
             return None
 
         labels = ListCommand().execute(largs.filter, out=open(os.devnull, "w"))

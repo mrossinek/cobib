@@ -93,7 +93,6 @@ class OpenCommand(Command):
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
             LOGGER.error(exc.message)
-            print(exc.message, file=sys.stderr)
             return
 
         bib = Database()
@@ -116,14 +115,12 @@ class OpenCommand(Command):
             except KeyError:
                 msg = "No entry with the label '{}' could be found.".format(label)
                 LOGGER.warning(msg)
-                print(msg, file=sys.stderr)
                 continue
 
             # if there are none, skip current label
             if not things_to_open:
                 msg = "The entry '{}' has no actionable field associated with it.".format(label)
                 LOGGER.warning(msg)
-                print(msg, file=sys.stderr)
                 continue
 
             if count == 1:
@@ -153,7 +150,6 @@ class OpenCommand(Command):
                         # empty input
                         msg = "User aborted open command."
                         LOGGER.warning(msg)
-                        print(msg, file=sys.stderr)
                         break
                     if choice == "help":
                         LOGGER.debug("User requested help.")
@@ -195,7 +191,6 @@ class OpenCommand(Command):
                 )
         except FileNotFoundError as err:
             LOGGER.error(err)
-            print(err, file=sys.stderr)
 
     @staticmethod
     def tui(tui: cobib.tui.TUI) -> None:

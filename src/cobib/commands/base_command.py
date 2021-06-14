@@ -107,7 +107,6 @@ class Command(ABC):
                     "You have configured coBib to track your database with git."
                     "\nPlease run `cobib init --git`, to initialize this tracking."
                 )
-                print(msg, file=sys.stderr)
                 LOGGER.warning(msg)
                 return
 

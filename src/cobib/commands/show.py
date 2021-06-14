@@ -57,7 +57,6 @@ class ShowCommand(Command):
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
             LOGGER.error(exc.message)
-            print(exc.message, file=sys.stderr)
             return
 
         try:
@@ -67,7 +66,6 @@ class ShowCommand(Command):
         except KeyError:
             msg = f"No entry with the label '{largs.label}' could be found."
             LOGGER.error(msg)
-            print(msg, file=out)
 
     @staticmethod
     def tui(tui: cobib.tui.TUI) -> None:

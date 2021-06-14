@@ -106,7 +106,6 @@ class FileDownloader:
                 msg = f"An Exception occurred while downloading the file located at {url}"
                 LOGGER.warning(msg)
                 LOGGER.error(err)
-                print(msg, file=sys.stderr)
                 return None
             if total_length < 0:
                 file.write(response.content)
@@ -126,6 +125,6 @@ class FileDownloader:
                     )
                 FileDownloader._logger("\n")
             msg = f"Successfully downloaded {path}"
-            LOGGER.info(msg)
             print(msg)
+            LOGGER.info(msg)
             return path

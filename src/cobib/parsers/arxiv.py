@@ -12,7 +12,6 @@ The following documentation is mostly inherited from the abstract interface
 
 import logging
 import re
-import sys
 from collections import OrderedDict
 from typing import Any, Dict
 
@@ -50,7 +49,6 @@ class ArxivParser(Parser):
                 "The arXiv API returned the following error: " + xml.feed.entry.summary.contents[0]
             )
             LOGGER.warning(msg)
-            print(msg, file=sys.stderr)
             return OrderedDict()
         label = ""
         entry: Dict[str, Any] = {}

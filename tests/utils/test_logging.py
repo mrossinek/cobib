@@ -2,20 +2,18 @@
 
 import logging
 
-from cobib.utils.logging import log_to_file, log_to_stream
+from cobib.utils.logging import get_file_handler, get_stream_handler
 
 
-def test_log_to_stream() -> None:
+def test_get_stream_handler() -> None:
     """Test stream logging configuration."""
-    log_to_stream()
-    logger = logging.getLogger()
-    assert logger.level == 30
-    assert isinstance(logger.handlers[0], logging.StreamHandler)
+    handler = get_stream_handler()
+    assert handler.level == 30
+    assert isinstance(handler, logging.StreamHandler)
 
 
-def test_log_to_file() -> None:
+def test_get_file_handler() -> None:
     """Test file logging configuration."""
-    log_to_file()
-    logger = logging.getLogger()
-    assert logger.level == 20
-    assert isinstance(logger.handlers[0], logging.FileHandler)
+    handler = get_file_handler("INFO")
+    assert handler.level == 20
+    assert isinstance(handler, logging.FileHandler)

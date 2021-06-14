@@ -160,7 +160,6 @@ class AddCommand(Command):
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
             LOGGER.error(exc.message)
-            print(exc.message, file=sys.stderr)
             return
 
         new_entries: Dict[str, Entry] = OrderedDict()
@@ -185,7 +184,6 @@ class AddCommand(Command):
                 edit_entries = True
             else:
                 msg = "Neither an input to parse nor a label for manual creation specified!"
-                print(msg, file=sys.stderr)
                 LOGGER.error(msg)
                 return
 
@@ -225,7 +223,6 @@ class AddCommand(Command):
                     f"\nPlease use `cobib edit {lbl}` instead!"
                 )
                 LOGGER.warning(msg)
-                print(msg, file=sys.stderr)
                 return
             # download associated file (if requested)
             if "_download" in entry.data.keys():
@@ -247,7 +244,7 @@ class AddCommand(Command):
 
         for label in new_entries:
             msg = f"'{label}' was added to the database."
-            print(msg)
+            print(msg, file=sys.stderr)  # TODO: de-duplicate print message
             LOGGER.info(msg)
 
     @staticmethod

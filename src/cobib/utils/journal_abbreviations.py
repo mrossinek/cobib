@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import sys
 from typing import Callable, Dict, Optional
 
 from cobib.config import config
@@ -75,7 +74,6 @@ class JournalAbbreviations:
             " stored under config.utils.journal_abbreviations"
         )
         LOGGER.warning(msg)
-        print(msg, file=sys.stderr)
         return False
 
     @staticmethod

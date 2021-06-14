@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - a user can then automatically convert to abbreviated forms during exporting (see the new `--abbreviate` and `--dotless` arguments)
 - Tentative Windows support by disabling the TUI
 
+### Fixed
+- Removed (most) duplication of log messages
+
+
 ## [3.1.1] - 2021-05-25
 
 Pypi: https://pypi.org/project/cobib/3.1.1/

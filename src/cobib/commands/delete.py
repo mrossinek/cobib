@@ -54,7 +54,6 @@ class DeleteCommand(Command):
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
             LOGGER.error(exc.message)
-            print(exc.message, file=sys.stderr)
             return
 
         deleted_entries = set()
@@ -74,7 +73,6 @@ class DeleteCommand(Command):
 
         for label in deleted_entries:
             msg = f"'{label}' was removed from the database."
-            print(msg)
             LOGGER.info(msg)
 
     @staticmethod

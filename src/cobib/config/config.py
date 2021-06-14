@@ -262,7 +262,7 @@ class Config(Dict[str, Any]):
             print("\x1b[1;37;41m#############\x1b[0m", file=sys.stderr)
             print("\x1b[1;37;41m## WARNING ##\x1b[0m", file=sys.stderr)
             print("\x1b[1;37;41m#############\x1b[0m", file=sys.stderr)
-            print(msg, file=sys.stderr)
+            LOGGER.warning(msg)
 
         spec = importlib.util.spec_from_file_location("config", configpath)
         if spec is None:

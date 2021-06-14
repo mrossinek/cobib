@@ -61,7 +61,6 @@ class RedoCommand(Command):
                 "You must enable coBib's git-tracking in order to use the `Redo` command."
                 "\nPlease refer to the man-page for more information on how to do so."
             )
-            print(msg, file=sys.stderr)
             LOGGER.error(msg)
             return
 
@@ -72,7 +71,6 @@ class RedoCommand(Command):
                 "You have configured, but not initialized coBib's git-tracking."
                 "\nPlease consult `cobib init --help` for more information on how to do so."
             )
-            print(msg, file=sys.stderr)
             LOGGER.error(msg)
             return
 
@@ -84,7 +82,6 @@ class RedoCommand(Command):
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
             LOGGER.error(exc.message)
-            print(exc.message, file=sys.stderr)
             return
 
         LOGGER.debug("Obtaining git log.")
@@ -133,7 +130,6 @@ class RedoCommand(Command):
                 break
         else:
             msg = "Could not find a commit to redo. You must have undone something first!"
-            print(msg, file=sys.stderr)
             LOGGER.warning(msg)
             sys.exit(1)
 

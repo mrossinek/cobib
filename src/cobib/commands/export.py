@@ -123,12 +123,10 @@ class ExportCommand(Command):
             largs = parser.parse_intermixed_args(args)
         except argparse.ArgumentError as exc:
             LOGGER.error(exc.message)
-            print(exc.message, file=sys.stderr)
             return
 
         if largs.bibtex is None and largs.zip is None:
             msg = "No output file specified!"
-            print(msg, file=sys.stderr)
             LOGGER.error(msg)
             return
         if largs.zip is not None:
@@ -170,7 +168,6 @@ class ExportCommand(Command):
                             largs.zip.write(path, path.name)
             except KeyError:
                 msg = f"No entry with the label '{label}' could be found."
-                print(msg)
                 LOGGER.warning(msg)
 
         if largs.zip is not None:

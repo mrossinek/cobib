@@ -13,7 +13,6 @@ The following documentation is mostly inherited from the abstract interface
 
 import logging
 import re
-import sys
 from collections import OrderedDict
 from typing import Dict
 
@@ -47,7 +46,6 @@ class DOIParser(Parser):
         except AssertionError:
             msg = f"'{string}' is not a valid DOI."
             LOGGER.warning(msg)
-            print(msg, file=sys.stderr)
             return OrderedDict()
         LOGGER.info("Gathering BibTex data for DOI: %s.", string)
         try:

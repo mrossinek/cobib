@@ -20,7 +20,7 @@ import pytest
 
 from cobib.database import Database
 from cobib.tui import TUI
-from cobib.utils.logging import log_to_file
+from cobib.utils.logging import get_file_handler
 
 from .mock_curses import MockCursesPad
 
@@ -130,7 +130,8 @@ class TUITest:
             cov = TUITest.init_subprocess_coverage()
             signal.signal(signal.SIGTERM, partial(TUITest.end_subprocess_coverage, cov=cov))
             # redirect logging
-            log_to_file(logging.DEBUG, TMP_LOGFILE)
+            file_handler = get_file_handler(logging.DEBUG, TMP_LOGFILE)
+            logging.getLogger().addHandler(file_handler)
             # child process initializes curses and spawns the TUI
             try:
                 stdscr = curses.initscr()
