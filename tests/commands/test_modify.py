@@ -179,8 +179,6 @@ class TestModifyCommand(CommandTest, TUITest):
             for line, truth in zip(expected_screen, screen.display[1:]):
                 assert line == truth.strip()
 
-            assert screen.display[-1].strip() == "'knuthwebsite' was modified."
-
             expected_log = [
                 ("cobib.commands.modify", 10, "Modify command triggered from TUI."),
                 ("cobib.commands.modify", 10, "Starting Modify command."),

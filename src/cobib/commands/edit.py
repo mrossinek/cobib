@@ -148,7 +148,6 @@ class EditCommand(Command):
         self.git(args=vars(largs))
 
         msg = f"'{largs.label}' was successfully edited."
-        print(msg, file=sys.stderr)  # TODO: de-duplicate print message
         LOGGER.info(msg)
 
     @staticmethod

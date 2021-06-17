@@ -193,7 +193,6 @@ class ModifyCommand(Command):
                 bib.update({label: entry})
 
                 msg = f"'{label}' was modified."
-                print(msg, file=sys.stderr)  # TODO: de-duplicate print message
                 LOGGER.info(msg)
             except KeyError:
                 msg = f"No entry with the label '{label}' could be found."

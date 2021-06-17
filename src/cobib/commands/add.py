@@ -244,7 +244,6 @@ class AddCommand(Command):
 
         for label in new_entries:
             msg = f"'{label}' was added to the database."
-            print(msg, file=sys.stderr)  # TODO: de-duplicate print message
             LOGGER.info(msg)
 
     @staticmethod
