@@ -20,21 +20,44 @@ manual selection to specify the entries which to modify:
 cobib modify tags:first_author -- ++author Rossmannek
 ```
 
+As of v3.2.0 the `value` provided as part of the modification is interpreted as an "f"-string.[^1]
+This means you can even use placeholder variables and perform simple operations on them. The
+available variables depend on the entry which you are modifying as they are inferred from its stored
+data.
+Below are some examples:
+```
+# Rewrite the 'pages' field with a single-dash separator
+cobib modify "pages:{pages.replace('--', '-')}" -- ...
+
+# Rename an entry according to the first author's surname and year
+cobib modify "label:{author.split()[1]}{year}" -- ...
+```
+If you happen to use an undefined variable as part of your modification, coBib will handle this
+gracefully by falling back to a plain string and raising a warning:
+```
+cobib modify "note:{undefined}" -- ...
+> [WARNING] You tried use an undefined variable. Falling back to plain string.
+> [ERROR] name 'undefined' is not defined
+```
+
 You can also trigger this command from the `cobib.tui.tui.TUI`.
 By default, it is bound to the `m` key which will drop you into the prompt where you can type out a
 normal command-line command:
 ```
 :modify <arguments go here>
 ```
+
+[^1]: <https://docs.python.org/3/reference/lexical_analysis.html#formatted-string-literals>
 """
 
 from __future__ import annotations
 
 import argparse
+import ast
 import logging
 import os
 import sys
-from typing import IO, TYPE_CHECKING, Any, List, Tuple
+from typing import IO, TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, cast
 
 from cobib.database import Database
 
@@ -64,9 +87,12 @@ class ModifyCommand(Command):
             string: the argument string to check.
         """
         # try splitting the string into field and value, any errors will be handled by argparse
-        field, value = string.split(":")
-        return (field, value)
+        field, *value = string.split(":")
+        # NOTE: we split only the first field off in case the value contains f-string format
+        # specifications
+        return (field, ":".join(value))
 
+    # pylint: disable=too-many-branches
     def execute(self, args: List[str], out: IO[Any] = sys.stdout) -> None:
         """Modifies multiple entries in bulk.
 
@@ -82,7 +108,8 @@ class ModifyCommand(Command):
                     * `modification`: a string conforming to `<field>:<value>` indicating the
                       modification that should be applied to all matching entries. By default, the
                       modification will overwrite any existing data in the specified `field` with
-                      the new `value`.
+                      the new `value`. For more information about formatting options of `<value>`
+                      refer to the module documentation or the man-page.
                     * `-a`, `--add`: when specified, the modification's value will be added to the
                       entry's field rather than overwrite it. If the field in question is numeric,
                       the numbers will be added.
@@ -152,9 +179,14 @@ class ModifyCommand(Command):
         for label in labels:  # pylint: disable=too-many-nested-blocks
             try:
                 entry = bib[label]
+                local_value = self.evaluate_as_f_string(
+                    value, {"label": label, **entry.data.copy()}
+                )
 
                 if not largs.add:
-                    new_value = value
+                    new_value = local_value
+                    if local_value.isnumeric():
+                        new_value = int(local_value)  # type: ignore
                 else:
                     if hasattr(entry, field):
                         prev_value = getattr(entry, field, None)
@@ -163,14 +195,14 @@ class ModifyCommand(Command):
 
                     try:
                         if prev_value is None:
-                            new_value = value
+                            new_value = local_value
                         elif isinstance(prev_value, str):
-                            new_value = prev_value + value
+                            new_value = prev_value + local_value
                         elif isinstance(prev_value, list):
-                            new_value = prev_value + [value]
+                            new_value = prev_value + [local_value]  # type: ignore
                         elif isinstance(prev_value, int):
-                            if value.isnumeric():
-                                new_value = prev_value + int(value)
+                            if local_value.isnumeric():
+                                new_value = prev_value + int(local_value)  # type: ignore
                             else:
                                 raise TypeError
                         else:
@@ -181,16 +213,18 @@ class ModifyCommand(Command):
                             "'%s' of entry '%s' to a simple string: '%s'.",
                             field,
                             label,
-                            str(prev_value) + value,
+                            str(prev_value) + local_value,
                         )
-                        new_value = str(prev_value) + value
+                        new_value = str(prev_value) + local_value
 
                 if hasattr(entry, field):
                     setattr(entry, field, new_value)
                 else:
                     entry.data[field] = new_value
 
-                bib.update({label: entry})
+                bib.update({entry.label: entry})
+                if entry.label != label:
+                    bib.rename(label, entry.label)
 
                 msg = f"'{label}' was modified."
                 LOGGER.info(msg)
@@ -201,6 +235,76 @@ class ModifyCommand(Command):
         bib.save()
 
         self.git(args=vars(largs))
+
+    @staticmethod
+    def evaluate_ast_node(
+        node: ast.expr, locals_: Optional[Dict[str, Any]] = None
+    ) -> Optional[str]:
+        """Evaluates an AST node representing an f-string.
+
+        Args:
+            node: the AST expression extracted from an f-string.
+            locals_: the dictionary of local variables to be used as context for the expression
+                evaluation.
+
+        Returns:
+            The evaluated AST node expression.
+        """
+        try:
+            # pylint: disable=eval-used
+            return eval(  # type: ignore
+                compile(ast.Expression(node), filename="<string>", mode="eval"), locals_
+            )
+        except NameError as err:
+            LOGGER.warning("You tried use an undefined variable. Falling back to plain string.")
+            LOGGER.error(err)
+            return None
+
+    def evaluate_as_f_string(self, value: str, locals_: Optional[Dict[str, Any]] = None) -> str:
+        """Evaluates a string as if it were a literal f-string.
+
+        Args:
+            value: the string to be evaluated.
+            locals_: the dictionary of local variables to be used as context for the expression
+                evaluation.
+
+        Returns:
+            The evaluated f-string.
+
+        Raises:
+            ValueError: if an unexpected AST component type is encountered.
+
+        References:
+            <https://stackoverflow.com/a/61190684>
+        """
+        result: List[str] = []
+        for part in ast.parse(f"f'''{value}'''").body[0].value.values:  # type: ignore
+            typ = type(part)
+
+            if typ is ast.Constant:
+                result.append(part.value)
+
+            elif typ is ast.Str:
+                # TODO: remove once support for Python 3.7 will be dropped
+                result.append(part.s)
+
+            elif typ is ast.FormattedValue:
+                value = self.evaluate_ast_node(part.value, locals_) or value
+
+                if part.conversion >= 0:
+                    conversions: Dict[str, Callable[[Any], str]] = {"a": ascii, "r": repr, "s": str}
+                    value = conversions[chr(part.conversion)](value)
+
+                if part.format_spec:
+                    value = format(value, cast(str, self.evaluate_ast_node(part.format_spec)))
+
+                result.append(str(value))
+
+            else:
+                LOGGER.warning("Unexpected AST node expression type '%s' for an f-string.", typ)
+                raise ValueError
+
+        return "".join(result)
 
     @staticmethod
     def tui(tui: cobib.tui.TUI) -> None:
