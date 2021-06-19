@@ -109,6 +109,39 @@ class TestModifyCommand(CommandTest, TUITest):
 
         assert Database()["einstein"].data[field] == expected
 
+    @pytest.mark.parametrize(
+        ["modification", "expected"],
+        [
+            ["pages:{pages.replace('--', '-')}", "891-921"],
+            ["year:{year+10}", 1915],
+            ["label:{author.split()[1]}{year}", "Einstein1905"],
+            ["string:{'à' !a}", "'\\xe0'"],
+            ["number:{1.2345:.2}", "1.2"],
+            ["dummy:{dummy}", "{dummy}"],
+        ],
+    )
+    def test_f_string_interpretation(self, setup: Any, modification: str, expected: Any) -> None:
+        """Test f-string interpretation.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            modification: the modification string to apply.
+            expected: the expected final `Entry` field.
+        """
+        # modify some data
+        args = [modification, "++ID", "einstein"]
+
+        field, *_ = modification.split(":")
+
+        ModifyCommand().execute(args)
+
+        if field != "label":
+            assert Database()["einstein"].data[field] == expected
+        else:
+            assert "eistein" not in Database().keys()
+            assert expected in Database().keys()
+            assert Database()[expected].label == expected
+
     def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test warning for missing label.
 

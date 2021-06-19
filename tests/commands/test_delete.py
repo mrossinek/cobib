@@ -74,12 +74,35 @@ class TestDeleteCommand(CommandTest, TUITest):
         git = setup.get("git", False)
 
         # delete some data (for testing simplicity we delete the entries from the end)
-        DeleteCommand().execute(labels, git)
+        DeleteCommand().execute(labels)
         self._assert(labels)
 
         if git and not skip_commit:
             # assert the git commit message
             self.assert_git_commit_message("delete", {"labels": labels})
+
+    @pytest.mark.parametrize(["setup"], [[{"git": False}]], indirect=["setup"])
+    def test_base_cmd_insufficient_git(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
+        """Test warning is raised by BaseCommand during insufficient git-configuration.
+
+        While this is technically not related to the DeleteCommand, this is one of the faster
+        commands to test this on.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
+        config.database.git = True
+
+        DeleteCommand().execute(["knuthwebsite"])
+        self._assert(["knuthwebsite"])
+
+        assert (
+            "cobib.commands.base_command",
+            30,
+            "You have configured coBib to track your database with git."
+            "\nPlease run `cobib init --git`, to initialize this tracking.",
+        ) in caplog.record_tuples
 
     @pytest.mark.parametrize(
         ["labels"],

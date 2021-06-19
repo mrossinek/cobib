@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - a user can then automatically convert to abbreviated forms during exporting (see the new `--abbreviate` and `--dotless` arguments)
 - Tentative Windows support by disabling the TUI
 
+### Changed
+- the `modifications` of a `ModifyCommand` get interpreted as f-strings (#77,!37):
+    - available variables are the entry's label and data fields
+
 ### Fixed
 - Removed (most) duplication of log messages
 

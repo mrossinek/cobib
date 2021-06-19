@@ -93,8 +93,8 @@ As of version 2.5 you can specify multiple files, too.
 .in +8n
 .BR \-p ", " \-\-path " " \fI<path>\fR
 .in +4n
-Overwrites the location for the automatically downloaded file. If not specified, this setting
-defaults to \fIconfig.utils.file_downloader.default_location\fR.
+Overwrites the location for the automatically downloaded file. If not specified,
+this setting defaults to \fIconfig.utils.file_downloader.default_location\fR.
 .PP
 .in +8n
 .BR \-l ", " \-\-label  " " \fI<label>\fR
@@ -128,6 +128,11 @@ The \fI<args>\fR may be any of the following:
 .in +4n
 The modification must be provided in the format \fI<field>:<value>\fR and will
 set the field of all selected entries to the given value.
+As of v3.2.0 the \fI<value>\fR is interpreted as an "f"-string. This means you
+can even use placeholder variables and perform simple operations on them. The
+available variables depend on the entry which you are modifying as they are
+inferred from its stored data. For more information on "f"-strings refer to
+section 2.4.3 of https://docs.python.org/3/reference/lexical_analysis.html
 .PP
 .in +8n
 .BR \-a ", " \-\-add
@@ -165,8 +170,8 @@ reapply the last undone changes (see above). See also \fIDATABASE/git\fR in the
 .TP
 .B cobib open \fI<label>\fR
 Opens any associated \fIfile\fR of the entry with the given \fIlabel\fR.
-If multiple files are associated with the entry, the user can choose which file(s) to open through
-an interactive menu.
+If multiple files are associated with the entry, the user can choose which
+file(s) to open through an interactive menu.
 .TP
 .B cobib show \fI<label>\fR
 Prints the entry with the given \fIlabel\fR in \fIBibLaTex\fR format to stdout.
@@ -356,7 +361,8 @@ outside of the TUI. If a \fIselection\fR is present, the \fI-s\fR argument will
 be set automatically.
 .TP
 .BR : " " prompt
-Opens a command prompt allowing the user to execute an arbitrary coBib CLI command.
+Opens a command prompt allowing the user to execute an arbitrary coBib CLI
+command.
 .SH CONFIGURATION
 Since version 3.0, coBib can be configured directly via \fIPython\fR. To do so,
 you must place the configuration file at \fI$HOME/.config/cobib/config.py\fR.
@@ -433,9 +439,10 @@ Also be sure to at least set a \fIname\fR and \fIemail\fR in the git config!
 This boolean field indicates whether latex warnings will be ignored during the
 escaping of special characters.
 .TP
-Some fields are internally stored as lists. Upon conversion to the BibTeX format, these need to be
-converted to a basic string. In this process the entries of the list will be joined using the
-separators configured by the following settings.
+Some fields are internally stored as lists. Upon conversion to the BibTeX
+format, these need to be converted to a basic string. In this process the
+entries of the list will be joined using the separators configured by the
+following settings.
 .TP
 .IR config.database.stringify.list_separator.file = ',\ '
 .TP
@@ -560,9 +567,10 @@ the ASCII codes 10 (\fIline feed\fR) and 13 (\fIcarriage return\fR).
 This setting sets the default location for any downloaded associated files.
 .TP
 .IR config.utils.journal_abbreviations = []
-You can specify a list of journal abbreviations. This list should be formatted as tuples of the
-form: \fB(full journal name, abbreviation)\fR. The abbreviation should include any necessary
-punctuation which can be excluded upon export (see also \fIcobib export --help\fR).
+You can specify a list of journal abbreviations. This list should be formatted
+as tuples of the form: \fB(full journal name, abbreviation)\fR. The abbreviation
+should include any necessary punctuation which can be excluded upon export (see
+also \fIcobib export --help\fR).
 .PP
 .SH ENVIRONMENT
 .TP
@@ -579,3 +587,4 @@ The default location of the database file.
 The internal help documentation via the \fI\-\-help\fR arguments.
 .PP
 The source code and issue tracker at https://gitlab.com/mrossinek/cobib
+.\" vim: tw=80
