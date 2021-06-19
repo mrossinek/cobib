@@ -1,6 +1,9 @@
 """Tests for coBib's file downloader utility."""
 
 import tempfile
+from shutil import rmtree
+
+import pytest
 
 from cobib.utils.file_downloader import FileDownloader
 
@@ -31,6 +34,36 @@ def test_download() -> None:
             "dummy",
             tmpdirname,
         )
-        with open(get_resource("__init__.py", "utils"), "r") as expected:
-            with open(tmpdirname + "/dummy.pdf", "r") as truth:
-                assert expected.read() == truth.read()
+        try:
+            with open(get_resource("__init__.py", "utils"), "r") as expected:
+                with open(tmpdirname + "/dummy.pdf", "r") as truth:
+                    assert expected.read() == truth.read()
+        finally:
+            rmtree(tmpdirname)
+
+
+def test_skip_download_if_exists(caplog: pytest.LogCaptureFixture) -> None:
+    """Test that download is skipped when file already exists.
+
+    Args:
+        caplog: the built-in pytest fixture.
+    """
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        open(tmpdirname + "/dummy.pdf", "w").close()
+        FileDownloader().download(
+            "https://gitlab.com/mrossinek/cobib/-/raw/master/tests/utils/__init__.py",
+            "dummy",
+            tmpdirname,
+        )
+        try:
+            for mod, lvl, msg in caplog.record_tuples:
+                if (
+                    mod == "cobib.utils.file_downloader"
+                    and lvl == 30
+                    and "already exists! Using that rather than downloading." in msg
+                ):
+                    break
+            else:
+                assert False, "Download not aborted."
+        finally:
+            rmtree(tmpdirname)

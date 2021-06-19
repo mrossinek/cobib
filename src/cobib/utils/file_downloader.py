@@ -97,6 +97,11 @@ class FileDownloader:
         if folder is None:
             folder = config.utils.file_downloader.default_location
         path = RelPath(f"{folder}/{label}.pdf")
+        if path.path.exists():
+            LOGGER.warning(
+                "A file at '%s' already exists! Using that rather than downloading.", path
+            )
+            return path
         with open(path.path, "wb") as file:
             LOGGER.info("Downloading %s", path)
             try:
