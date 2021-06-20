@@ -1,6 +1,7 @@
 """Tests for coBib's file downloader utility."""
 
 import tempfile
+from os import remove
 from shutil import rmtree
 
 import pytest
@@ -29,6 +30,11 @@ def test_set_logger() -> None:
 def test_download() -> None:
     """Test the FileDownloader.download method."""
     with tempfile.TemporaryDirectory() as tmpdirname:
+        try:
+            # ensure file does not exist yet
+            remove(tmpdirname + "/dummy.pdf")
+        except FileNotFoundError:
+            pass
         FileDownloader().download(
             "https://gitlab.com/mrossinek/cobib/-/raw/master/tests/utils/__init__.py",
             "dummy",
