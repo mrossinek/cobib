@@ -177,6 +177,10 @@ class TUI:
         LOGGER.info("Initializing TUI.")
         self.stdscr = stdscr
 
+        # redirect stdout and stderr
+        self.stdout = sys.stdout = TextBuffer()  # type: ignore
+        self.stderr = sys.stderr = TextBuffer()  # type: ignore
+
         # register resize handler
         signal.signal(signal.SIGWINCH, self.resize_handler)
 
@@ -239,6 +243,8 @@ class TUI:
             LOGGER.debug("Starting key event loop.")
             self.loop()
             LOGGER.info("Exiting TUI.")  # pragma: no cover
+            sys.stdout = sys.__stdout__
+            sys.stderr = sys.__stderr__
 
     def resize_handler(self, signum: Optional[int], frame) -> None:  # type: ignore
         # pylint: disable=unused-argument
@@ -467,6 +473,27 @@ class TUI:
                     # otherwise, we remove the stored attributes in order to not reset them later
                     current_attributes[-1] = None
 
+            if self.stderr.lines:
+                self.stderr.split()
+                LOGGER.info("sys.stderr contains:\n%s", "\n".join(self.stderr.lines))
+                # wrap before checking the height:
+                self.stderr.wrap(self.width)
+                if self.stderr.height > 1:
+                    self.stderr.popup(self, background=TUI.COLOR_NAMES.index("popup_stderr"))
+                else:
+                    self.prompt_print(self.stderr.lines)
+                self.stderr.clear()
+            elif self.stdout.lines:
+                self.stdout.split()
+                LOGGER.info("sys.stdout contains:\n%s", "\n".join(self.stdout.lines))
+                # wrap before checking the height:
+                self.stdout.wrap(self.width)
+                if self.stdout.height > 1:
+                    self.stdout.popup(self, background=TUI.COLOR_NAMES.index("popup_stdout"))
+                else:
+                    self.prompt_print(self.stdout.lines)
+                self.stdout.clear()
+
             # Refresh the screen
             self.viewport.refresh()
 
@@ -638,7 +665,11 @@ class TUI:
         if not skip_prompt:
             command = self.prompt_handler(cast(str, command))
             # split command into separate arguments for cobib
-            command = shlex.split(command)
+            try:
+                command = shlex.split(command)
+            except ValueError:
+                LOGGER.error("Invalid command: %s", command)
+                return ([""], None)
 
         command = cast(List[str], command)
 
@@ -646,14 +677,8 @@ class TUI:
         result = None
         if command and command[0]:
             LOGGER.debug("Processing the command: %s", " ".join(command))
-            # temporarily disable prints to stdout, stderr and stdin
-            original_stdin = sys.stdin
-            original_stdout = sys.stdout
-            original_stderr = sys.stderr
-            stdout = sys.stdout = TextBuffer()  # type: ignore
-            stderr = sys.stderr = TextBuffer()  # type: ignore
-            sys.stdin = InputBuffer(buffer=stdout, tui=self)  # type: ignore
             # run command
+            sys.stdin = InputBuffer(buffer=self.stdout, tui=self)  # type: ignore
             subcmd = getattr(commands, command[0].title() + "Command")()
             try:
                 if pass_selection:
@@ -662,32 +687,6 @@ class TUI:
                 result = subcmd.execute(command[1:], out=out)
             except SystemExit:  # pragma: no cover
                 pass  # pragma: no cover
-            # if error occurred print info to prompt
-            if stderr.lines:
-                LOGGER.warning('The command "%s" resulted in an error.', " ".join(command))
-                stderr.split()
-                LOGGER.info("sys.stderr contains:\n%s", "\n".join(stderr.lines))
-                # wrap before checking the height:
-                stderr.wrap(self.width)
-                if stderr.height > 1:
-                    stderr.popup(self, background=TUI.COLOR_NAMES.index("popup_stderr"))
-                else:
-                    self.prompt_print(stderr.lines)
-                # command exited with an error
-                self.viewport.update_list()
-            elif stdout.lines:
-                LOGGER.info('A message to stdout from "%s" was intercepted.', " ".join(command))
-                stdout.split()
-                LOGGER.info("sys.stdout contains:\n%s", "\n".join(stdout.lines))
-                # wrap before checking the height:
-                stdout.wrap(self.width)
-                if stdout.height > 1:
-                    stdout.popup(self, background=TUI.COLOR_NAMES.index("popup_stdout"))
-                else:
-                    self.prompt_print(stdout.lines)
-            # restore stdout, stderr and stdin
-            sys.stdout = original_stdout
-            sys.stderr = original_stderr
-            sys.stdin = original_stdin
+            sys.stdin = sys.__stdin__
         # return command to enable additional handling by function caller
         return (command, result)

@@ -5,18 +5,33 @@ This module provides utility methods to set up logging to different handlers.
 
 import logging
 import logging.handlers
+import sys
 from pathlib import Path
-from sys import stderr
 from typing import Optional, Union
 
 from .rel_path import RelPath
+
+
+class _StderrHandler(logging.StreamHandler):
+    """A logging handler hard-coded to `sys.stderr`.
+
+    The reason for explicitly deriving this class, is that Python's `logging.StreamHandler` does not
+    respect stream redirection. However, for coBib's TUI this is an important requirement which can
+    be achieved by a runtime check of the stream during the `emit` method.
+    """
+
+    def emit(self, record: logging.LogRecord) -> None:
+        # pdoc will inherit the docstring from the base class
+        # noqa: D102
+        self.stream = sys.stderr
+        super().emit(record)
 
 
 def get_stream_handler() -> logging.StreamHandler:
     """Returns a basic StreamHandler logging to `sys.stderr`."""
     formatter = logging.Formatter(fmt="[%(levelname)s] %(message)s")
 
-    handler = logging.StreamHandler(stream=stderr)
+    handler = _StderrHandler()
     handler.setLevel("WARNING")
     handler.setFormatter(formatter)
 
