@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - the `modifications` of a `ModifyCommand` get interpreted as f-strings (#77,!37):
     - available variables are the entry's label and data fields
 - any `ListCommand` filter gets interpreted as a regex pattern (#76)
+- unless `--preserve-files` is passed to `DeleteCommand`, associated file will also be deleted
 
 ### Deprecated
 - the `ID` filter argument was fully replaced by `label`, unifying the CLI API. Support will be dropped in v3.3.0

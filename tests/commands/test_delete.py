@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import tempfile
 from typing import TYPE_CHECKING, Any, List, Type
 
 import pytest
@@ -10,6 +11,7 @@ import pytest
 from cobib.commands import DeleteCommand
 from cobib.config import config
 from cobib.database import Database
+from cobib.utils.rel_path import RelPath
 
 from .. import get_resource
 from ..tui.tui_test import TUITest
@@ -79,7 +81,28 @@ class TestDeleteCommand(CommandTest, TUITest):
 
         if git and not skip_commit:
             # assert the git commit message
-            self.assert_git_commit_message("delete", {"labels": labels})
+            self.assert_git_commit_message("delete", {"labels": labels, "preserve_files": False})
+
+    @pytest.mark.parametrize("preserve_files", [True, False])
+    def test_remove_associated_file(self, setup: Any, preserve_files: bool) -> None:
+        """Test removing associated files.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            preserve_files: argument to `DeleteCommand`.
+        """
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            path = RelPath(tmpdirname + "/dummy.pdf")
+            open(path.path, "w").close()
+
+            Database()["knuthwebsite"].file = str(path)
+
+            args = ["knuthwebsite"]
+            if preserve_files:
+                args += ["--preserve-files"]
+            DeleteCommand().execute(args)
+
+            assert path.path.exists() is preserve_files
 
     @pytest.mark.parametrize(["setup"], [[{"git": False}]], indirect=["setup"])
     def test_base_cmd_insufficient_git(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:

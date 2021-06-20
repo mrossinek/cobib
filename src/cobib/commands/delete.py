@@ -13,10 +13,12 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import sys
 from typing import IO, TYPE_CHECKING, Any, List
 
 from cobib.database import Database
+from cobib.utils.rel_path import RelPath
 
 from .base_command import ArgumentParser, Command
 
@@ -45,6 +47,9 @@ class DeleteCommand(Command):
         LOGGER.debug("Starting Delete command.")
         parser = ArgumentParser(prog="delete", description="Delete subcommand parser.")
         parser.add_argument("labels", type=str, nargs="+", help="labels of the entries")
+        parser.add_argument(
+            "--preserve-files", action="store_true", help="do not delete associated files"
+        )
 
         if not args:
             parser.print_usage(sys.stderr)
@@ -62,7 +67,16 @@ class DeleteCommand(Command):
         for label in largs.labels:
             try:
                 LOGGER.debug("Attempting to delete entry '%s'.", label)
-                bib.pop(label)
+                entry = bib.pop(label)
+                if not largs.preserve_files:
+                    for file in entry.file:
+                        path = RelPath(file)
+                        try:
+                            LOGGER.debug("Attempting to remove associated file '%s'.", str(path))
+                            os.remove(path.path)
+                        except FileNotFoundError:
+                            pass
+
                 deleted_entries.add(label)
             except KeyError:
                 pass
