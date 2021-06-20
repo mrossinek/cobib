@@ -67,6 +67,7 @@ import sys
 from typing import IO, TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, cast
 
 from cobib.database import Database
+from cobib.utils.rel_path import RelPath
 
 from .base_command import ArgumentParser, Command
 from .list import ListCommand
@@ -160,6 +161,9 @@ class ModifyCommand(Command):
             "pseudo-argument '--' before the list of filters. See also `list --help` for more "
             "information.",
         )
+        parser.add_argument(
+            "--preserve-files", action="store_true", help="do not delete associated files"
+        )
 
         if not args:
             parser.print_usage(sys.stderr)
@@ -232,6 +236,23 @@ class ModifyCommand(Command):
                 bib.update({entry.label: entry})
                 if entry.label != label:
                     bib.rename(label, entry.label)
+                    if not largs.preserve_files:
+                        new_files = []
+                        for file in entry.file:
+                            path = RelPath(file)
+                            if path.path.stem == label:
+                                LOGGER.info("Also renaming associated file '%s'.", str(path))
+                                target = RelPath(path.path.parent / f"{entry.label}.pdf")
+                                if target.path.exists():
+                                    LOGGER.warning(
+                                        "Found conflicting file, not renaming '%s'.", str(path)
+                                    )
+                                else:
+                                    path.path.rename(target.path)
+                                    new_files.append(str(target))
+                                    continue
+                            new_files.append(file)
+                        entry.file = new_files
 
                 msg = f"'{label}' was modified."
                 LOGGER.info(msg)

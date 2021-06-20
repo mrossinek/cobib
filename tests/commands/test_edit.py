@@ -103,7 +103,9 @@ class TestEditCommand(CommandTest, TUITest):
 
         if git and changes:
             # assert the git commit message
-            self.assert_git_commit_message("edit", {"label": args[-1], "add": "-a" in args})
+            self.assert_git_commit_message(
+                "edit", {"label": args[-1], "add": "-a" in args, "preserve_files": False}
+            )
 
     def test_ignore_add_if_label_exists(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test that the `add` argument is ignored if the label already exists.
@@ -118,6 +120,14 @@ class TestEditCommand(CommandTest, TUITest):
             30,
             "Entry 'einstein' already exists! Ignoring the `--add` argument.",
         ) in caplog.record_tuples
+
+    def test_rename_associated_file(self) -> None:
+        """Test removing associated files.
+
+        This is difficult to test. I am relying on the tests for the similar code of the
+        `ModifyCommand` to catch any possible problems.
+        """
+        pytest.skip("Rely on similar test for ModifyCommand.")
 
     def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test warning for missing label.

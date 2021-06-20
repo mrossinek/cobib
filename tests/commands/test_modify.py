@@ -3,12 +3,14 @@
 
 from __future__ import annotations
 
+import tempfile
 from typing import TYPE_CHECKING, Any, List, Type
 
 import pytest
 
 from cobib.commands import ModifyCommand
 from cobib.database import Database
+from cobib.utils.rel_path import RelPath
 
 from ..tui.tui_test import TUITest
 from .command_test import CommandTest
@@ -78,6 +80,7 @@ class TestModifyCommand(CommandTest, TUITest):
                 {
                     "add": add,
                     "selection": selection,
+                    "preserve_files": False,
                     "modification": modification.split(":"),
                     "filter": filters,
                 },
@@ -141,6 +144,32 @@ class TestModifyCommand(CommandTest, TUITest):
             assert "eistein" not in Database().keys()
             assert expected in Database().keys()
             assert Database()[expected].label == expected
+
+    @pytest.mark.parametrize("preserve_files", [True, False])
+    def test_rename_associated_file(self, setup: Any, preserve_files: bool) -> None:
+        """Test removing associated files.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            preserve_files: argument to `DeleteCommand`.
+        """
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            path = RelPath(tmpdirname + "/knuthwebsite.pdf")
+            open(path.path, "w").close()
+
+            Database()["knuthwebsite"].file = str(path)
+
+            args = ["label:dummy", "-s", "--", "knuthwebsite"]
+            if preserve_files:
+                args.insert(2, "--preserve-files")
+            ModifyCommand().execute(args)
+            assert "dummy" in Database().keys()
+
+            target = RelPath(tmpdirname + "/dummy.pdf")
+            if preserve_files:
+                assert path.path.exists()
+            else:
+                assert target.path.exists()
 
     def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test warning for missing label.

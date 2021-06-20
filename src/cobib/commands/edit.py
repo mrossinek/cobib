@@ -40,6 +40,7 @@ from typing import IO, TYPE_CHECKING, Any, List
 from cobib.config import config
 from cobib.database import Database, Entry
 from cobib.parsers.yaml import YAMLParser
+from cobib.utils.rel_path import RelPath
 
 from .base_command import ArgumentParser, Command
 
@@ -79,6 +80,9 @@ class EditCommand(Command):
             "--add",
             action="store_true",
             help="if specified, will add a new entry for unknown labels",
+        )
+        parser.add_argument(
+            "--preserve-files", action="store_true", help="do not delete associated files"
         )
 
         if not args:
@@ -143,6 +147,21 @@ class EditCommand(Command):
         bib.update({new_entry.label: new_entry})
         if new_entry.label != largs.label:
             bib.rename(largs.label, new_entry.label)
+            if not largs.preserve_files:
+                new_files = []
+                for file in new_entry.file:
+                    path = RelPath(file)
+                    if path.path.stem == largs.label:
+                        LOGGER.info("Also renaming associated file '%s'.", str(path))
+                        target = RelPath(path.path.parent / f"{new_entry.label}.pdf")
+                        if target.path.exists():
+                            LOGGER.warning("Found conflicting file, not renaming '%s'.", str(path))
+                        else:
+                            path.path.rename(target.path)
+                            new_files.append(str(target))
+                            continue
+                    new_files.append(file)
+                new_entry.file = new_files
         bib.save()
 
         self.git(args=vars(largs))

@@ -120,6 +120,12 @@ configured.
 .BR \-a ", " \-\-add " " \fI<path>\fR
 .in +4n
 Allows editing a non-existing label to manually add it to the database.
+.PP
+.in +8n
+.BR \-\-preserve\-files
+.in +4n
+Only if this is set, associated files will be preserved and \fInot\fR renamed if
+the edit happens to rename the entry.
 .TP
 .B cobib modify \fI<modification>\fR \fI<args>\fR ...
 Applies a modification to multiple entries at once.
@@ -155,6 +161,12 @@ new value.
 This boolean flag enables the \fIselection\fR mode in which the positional args
 are interpreted as a list of labels which are to be exported. The name for this
 argument is a result of the TUI's selection interface.
+.PP
+.in +8n
+.BR \-\-preserve\-files
+.in +4n
+Only if this is set, associated files will be preserved and \fInot\fR renamed if
+the modification happens to rename the entry.
 .TP
 .B cobib undo \fI<args>\fR
 If you enabled the git-integration of coBib (available since v2.6.0) you can
