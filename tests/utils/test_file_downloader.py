@@ -2,7 +2,6 @@
 
 import tempfile
 from os import remove
-from shutil import rmtree
 
 import pytest
 
