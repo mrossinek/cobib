@@ -40,12 +40,9 @@ def test_download() -> None:
             "dummy",
             tmpdirname,
         )
-        try:
-            with open(get_resource("__init__.py", "utils"), "r") as expected:
-                with open(tmpdirname + "/dummy.pdf", "r") as truth:
-                    assert expected.read() == truth.read()
-        finally:
-            rmtree(tmpdirname, ignore_errors=True)
+        with open(get_resource("__init__.py", "utils"), "r") as expected:
+            with open(tmpdirname + "/dummy.pdf", "r") as truth:
+                assert expected.read() == truth.read()
 
 
 def test_skip_download_if_exists(caplog: pytest.LogCaptureFixture) -> None:
@@ -61,15 +58,12 @@ def test_skip_download_if_exists(caplog: pytest.LogCaptureFixture) -> None:
             "dummy",
             tmpdirname,
         )
-        try:
-            for mod, lvl, msg in caplog.record_tuples:
-                if (
-                    mod == "cobib.utils.file_downloader"
-                    and lvl == 30
-                    and "already exists! Using that rather than downloading." in msg
-                ):
-                    break
-            else:
-                assert False, "Download not aborted."
-        finally:
-            rmtree(tmpdirname, ignore_errors=True)
+        for mod, lvl, msg in caplog.record_tuples:
+            if (
+                mod == "cobib.utils.file_downloader"
+                and lvl == 30
+                and "already exists! Using that rather than downloading." in msg
+            ):
+                break
+        else:
+            assert False, "Download not aborted."
