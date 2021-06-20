@@ -151,6 +151,11 @@ class TestAddCommand(CommandTest, TUITest):
         """
         path = RelPath(f"{'/tmp' if folder is None else folder}/Cao2018.pdf")
         try:
+            # ensure file does not exist yet
+            os.remove(path.path)
+        except FileNotFoundError:
+            pass
+        try:
             args = ["-a", "1812.09976"]
             if folder:
                 args += ["-p", folder]
