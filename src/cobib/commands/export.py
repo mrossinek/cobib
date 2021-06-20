@@ -24,7 +24,7 @@ cobib export --bibtex my_private_database.bib -- ++tags private
 ```
 2. through a custom selection (using `--selection`)
 ```
-cobib export --selection --bibtex some_other_database.bib -- DummyID1 DummyID2
+cobib export --selection --bibtex some_other_database.bib -- Label1 Label2
 ```
 While this latter case is usable via the command-line interface it is more a side-effect of the TUI
 integration which provides a visual selection (defaults to the `v` key).

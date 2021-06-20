@@ -1,4 +1,4 @@
-"""coBib's List command.
+r"""coBib's List command.
 
 This command simply lists the entries in the database:
 ```
@@ -63,6 +63,13 @@ There are some aspects to take note of here:
 1. By default, multiple filters are combined with logical `AND`s. You can specify `--or` to
    overwrite this to logical `OR`s. This will also apply to all filters of the specified command.
 2. All entries are treated as `str`. Thus, `++year 20` will match anything *containing* `20`.
+
+As of version v3.2.0, the filter arguments are evaluated as regex patterns allowing you to do things
+like the following:
+```
+cobib list ++label "\D+_\d+"
+```
+This will list all entries whose labels are formatted as `"<non-digit characters>_<digits>"`.
 """
 
 from __future__ import annotations
@@ -88,6 +95,7 @@ class ListCommand(Command):
 
     name = "list"
 
+    # pylint: disable=too-many-branches
     def execute(self, args: List[str], out: Optional[IO[Any]] = None) -> Optional[List[str]]:
         """Lists the entries in the database.
 
@@ -145,7 +153,7 @@ class ListCommand(Command):
             action="store_true",
             help="concatenate filters with OR instead of AND",
         )
-        unique_keys: Set[str] = {"ID"}
+        unique_keys: Set[str] = {"label"}
         LOGGER.debug("Gathering possible filter arguments.")
         for entry in Database().values():
             unique_keys.update(entry.data.keys())
@@ -157,11 +165,35 @@ class ListCommand(Command):
                 "--" + key, type=str, action="append", help="exclude elements with matching " + key
             )
 
+        # TODO: remove for the v3.3.0 release
+        parser.add_argument(
+            "++ID", type=str, action="append", help="include elements with matching ID"
+        )
+        parser.add_argument(
+            "--ID", type=str, action="append", help="exclude elements with matching ID"
+        )
+
         try:
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
             LOGGER.error(exc.message)
             return None
+
+        # TODO: remove for the v3.3.0 release
+        if largs.ID is not None:
+            LOGGER.warning(
+                "The `ID` filter argument is deprecated as of v3.2.0 and will be removed in v3.3.0."
+                " Please use the `label` argument as a direct replacement instead!"
+            )
+            if largs.label is not None:
+                LOGGER.warning(
+                    "The `label` filter argment is the direct replacement of the `ID` argument. "
+                    "Using both simulateously is not supported. Thus, your `ID` argument will be "
+                    "ignored."
+                )
+            else:
+                largs.label = largs.ID
+            largs.ID = None
 
         LOGGER.debug("Constructing filter.")
         _filter: Dict[Tuple[str, bool], List[Any]] = defaultdict(list)
@@ -180,7 +212,7 @@ class ListCommand(Command):
         if largs.OR:
             LOGGER.debug("Filters are combined with logical ORs!")
 
-        columns = ["ID", "title"]
+        columns = ["label", "title"]
         if largs.sort and largs.sort not in columns:
             # insert columns which are sorted by at front of list view
             LOGGER.debug('Sorting by "%s".', largs.sort)

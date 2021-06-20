@@ -2,7 +2,7 @@
 
 This command simply shows/prints the specified entry as a BibLaTex-formmatted string.
 ```
-cobib show <label ID>
+cobib show <label>
 ```
 
 You can also trigger this command from the `cobib.tui.tui.TUI`.
@@ -42,7 +42,7 @@ class ShowCommand(Command):
         Args:
             args: a sequence of additional arguments used for the execution. The following values
                 are allowed for this command:
-                    * `label`: the label ID of the entry to be shown.
+                    * `label`: the label label of the entry to be shown.
             out: the output IO stream. This defaults to `sys.stdout`.
         """
         LOGGER.debug("Starting Show command.")

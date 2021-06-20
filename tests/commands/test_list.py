@@ -57,7 +57,7 @@ class TestListCommand(CommandTest, TUITest):
         assert tags == expected
         # TODO: actually do more assertion on the table output (awaiting ListCommand refactoring)
         for line in file.getvalue().split("\n"):
-            if line.startswith("ID") or all(c in "- " for c in line):
+            if line.startswith("label") or all(c in "- " for c in line):
                 # skip table header
                 continue
             assert line.split()[0] in expected
@@ -77,7 +77,7 @@ class TestListCommand(CommandTest, TUITest):
         expected = ["einstein"]
         assert tags == expected
         for line in file.getvalue().split("\n"):
-            if line.startswith("ID") or all(c in "- " for c in line):
+            if line.startswith("label") or all(c in "- " for c in line):
                 # skip table header
                 continue
             assert line.split()[0] in expected
@@ -202,8 +202,8 @@ class TestListCommand(CommandTest, TUITest):
     @pytest.mark.parametrize(
         ["keys"],
         [
-            ["f++ID einstein\n"],
-            ["f++ID knuthwebsite\nf\b\b\b\b\b\b\b\b\b\b\b\b\beinstein\n"],
+            ["f++label einstein\n"],
+            ["f++label knuthwebsite\nf\b\b\b\b\b\b\b\b\b\b\b\b\beinstein\n"],
         ],
     )
     def test_tui_filter(self, setup: Any, keys: str) -> None:
@@ -229,7 +229,7 @@ class TestListCommand(CommandTest, TUITest):
                 (
                     "cobib.commands.list",
                     10,
-                    "Final filter configuration: {('ID', True): ['einstein']}",
+                    "Final filter configuration: {('label', True): ['einstein']}",
                 ),
                 ("cobib.commands.list", 10, 'Entry "einstein" matches the filter.'),
                 ("cobib.commands.list", 10, "Column widths determined to be: [8, 38]"),
@@ -239,7 +239,7 @@ class TestListCommand(CommandTest, TUITest):
                     10,
                     "Post-process ListCommand arguments for consistent prompt.",
                 ),
-                ("cobib.commands.list", 10, 'Adding filter to prompt: "++ID einstein"'),
+                ("cobib.commands.list", 10, 'Adding filter to prompt: "++label einstein"'),
                 ("cobib.commands.list", 10, "Populating buffer with ListCommand results."),
             ]
             true_log = [log for log in logs if log[0] == "cobib.commands.list"]
@@ -250,11 +250,11 @@ class TestListCommand(CommandTest, TUITest):
                 # in the second parametrized test we simply check that the previous filters were
                 # removed correctly
                 for msg in [
-                    "Final filter configuration: {('ID', True): ['knuthwebsite']}",
-                    'Adding filter to prompt: "++ID knuthwebsite"',
-                    'Removing filter from prompt: "++ID knuthwebsite"',
-                    "Final filter configuration: {('ID', True): ['einstein']}",
-                    'Adding filter to prompt: "++ID einstein"',
+                    "Final filter configuration: {('label', True): ['knuthwebsite']}",
+                    'Adding filter to prompt: "++label knuthwebsite"',
+                    'Removing filter from prompt: "++label knuthwebsite"',
+                    "Final filter configuration: {('label', True): ['einstein']}",
+                    'Adding filter to prompt: "++label einstein"',
                 ]:
                     assert ("cobib.commands.list", 10, msg) in true_log
 
@@ -265,7 +265,7 @@ class TestListCommand(CommandTest, TUITest):
         [
             ["s\b\b\b\b\b\b\n", ['Removing "reverse" list argument.']],
             ["s\b\b\b\b\b\b\ns\b\b\b-r\n", ['Adding "reverse" list argument.']],
-            ["f++ID einstein -x\n", ['Adding "OR" list argument.']],
+            ["f++label einstein -x\n", ['Adding "OR" list argument.']],
             ["f-x\nf\b\b\b\b\b\b\b\n", ['Removing "OR" list argument.']],
         ],
     )
@@ -310,3 +310,39 @@ class TestListCommand(CommandTest, TUITest):
             Database().clear()
             # clean up config
             config.defaults()
+
+    def test_deprecation_warning(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
+        """Test logged warning for deprecated argument.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
+        file = StringIO()
+        tags = ListCommand().execute(["++ID", "einstein"], out=file)
+        expected = ["einstein"]
+        assert tags == expected
+        for source, level, message in caplog.record_tuples:
+            if (
+                source == "cobib.commands.list"
+                and level == 30
+                and "The `ID` filter argument is deprecated" in message
+            ):
+                break
+        else:
+            assert False, "Missing deprecation warning!"
+
+        # label argument takes precedence
+        file = StringIO()
+        tags = ListCommand().execute(["++ID", "einstein", "++label", "knuthwebsite"], out=file)
+        expected = ["knuthwebsite"]
+        assert tags == expected
+        for source, level, message in caplog.record_tuples:
+            if (
+                source == "cobib.commands.list"
+                and level == 30
+                and "your `ID` argument will be ignored" in message
+            ):
+                break
+        else:
+            assert False, "Missing deprecation warning!"

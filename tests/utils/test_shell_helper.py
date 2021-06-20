@@ -123,7 +123,7 @@ class TestListFilters(ShellHelperTest):
         "publisher",
         "ENTRYTYPE",
         "address",
-        "ID",
+        "label",
         "journal",
         "doi",
         "year",

@@ -61,6 +61,7 @@ class BibtexParser(Parser):
         # noqa: D102
         database = bibtexparser.bibdatabase.BibDatabase()
         stringified_entry = entry.stringify()
+        stringified_entry["ID"] = stringified_entry.pop("label")
         if "month" in stringified_entry.keys():
             # convert month to bibtexexpression
             stringified_entry["month"] = bibtexparser.bibtexexpression.BibDataStringExpression(

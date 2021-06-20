@@ -46,6 +46,10 @@ config.commands.open.command = "xdg-open" if sys.platform.lower() == "linux" els
 # associated files. The default tool (`grep`) will not provide results for attached PDFs but other
 # tools such as [ripgrep-all](https://github.com/phiresky/ripgrep-all) will.
 config.commands.search.grep = "grep"
+# If you want to specify additional arguments for your grep command, you can specify them as a list
+# of strings in the following setting. Note, that GNU's grep understands extended regex patterns
+# even without specifying `-E`.
+config.commands.search.grep_args = []
 
 # You can specify whether searches should be performed case-insensitive.
 config.commands.search.ignore_case = False

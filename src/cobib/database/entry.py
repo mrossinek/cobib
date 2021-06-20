@@ -40,7 +40,7 @@ class Entry:
         """Initializes a new Entry.
 
         Args:
-            label: the ID associated with this entry in the `Database`.
+            label: the label associated with this entry in the `Database`.
             data: the actual bibliographic data stored as a dictionary mapping free-form field names
                 (`str`) to any other data. Some fields are exposed as properties of this class for
                 convenience.
@@ -85,19 +85,15 @@ class Entry:
 
     @property
     def label(self) -> str:
-        """The `Database` ID of this entry.
-
-        The setter of this property also ensures that the `Entry.label` and `Entry.data["ID"]`
-        fields are consistent.
-        """
+        """The `Database` label of this entry."""
         return self._label
 
     @label.setter
     def label(self, label: str) -> None:
-        """Sets the `Database` ID of this entry.
+        """Sets the `Database` label of this entry.
 
         Args:
-            label: the ID of this entry.
+            label: the label of this entry.
         """
         LOGGER.debug("Changing the label '%s' to '%s'.", self.label, label)
         self._label = str(label)
@@ -238,7 +234,7 @@ class Entry:
             An `Entry` with purely string fields.
         """
         data = {}
-        data["ID"] = self.label
+        data["label"] = self.label
         for field, value in self.data.items():
             if (
                 isinstance(value, list)
@@ -306,10 +302,10 @@ class Entry:
         coBib provides an extensive filtering implementation. The filter is specified in the form
         of a dictionary whose keys consist of pairs of `(str, bool)` entries where the string
         indicates the field to match against and the boolean whether a positive (`true`) or negative
-        (`false`) match is required. The values of the dictionary must be a `List[str]`. Although
-        this means that field types cannot be leveraged for more detailed comparisons other than
-        sub-string containment, this is a limitation resulting from the targeted command-line
-        interface.
+        (`false`) match is required. The values of the dictionary must be a `List[str]`. This means
+        that field types are always compared on a string-basis (this is a limitation of the targeted
+        command-line interface). However, as of v3.2.0 these strings are interpreted as regex
+        patterns providing the most powerful within this framework.
 
         Some examples:
 
@@ -337,10 +333,10 @@ class Entry:
                 match_list.append(not key[1])
                 continue
             for val in values:
-                if val not in stringified_data[key[0]]:
-                    match_list.append(not key[1])
-                else:
+                if re.search(rf"{val}", stringified_data[key[0]]):
                     match_list.append(key[1])
+                else:
+                    match_list.append(not key[1])
         if or_:
             return any(m for m in match_list)
         return all(m for m in match_list)
@@ -371,21 +367,22 @@ class Entry:
 
         bibtex = BibtexParser().dump(self).split("\n")
         re_flags = re.IGNORECASE if ignore_case else 0
+        re_compiled = re.compile(rf"{query}", flags=re_flags)
         for idx, line in enumerate(bibtex):
-            if re.search(rf"{query}", line, flags=re_flags):
+            if re_compiled.search(line):
                 # add new match
                 matches.append([])
                 # upper context; (we iterate in reverse in order to ensure that we abort on the
                 # first previous occurrence of the query pattern)
                 for string in reversed(bibtex[max(idx - context, 0) : min(idx, len(bibtex))]):
-                    if re.search(rf"{query}", string, flags=re_flags):
+                    if re_compiled.search(string):
                         break
                     matches[-1].insert(0, string)
                 # matching line itself
                 matches[-1].append(line)
                 # lower context
                 for string in bibtex[max(idx + 1, 0) : min(idx + context + 1, len(bibtex))]:
-                    if re.search(rf"{query}", string, flags=re_flags):
+                    if re_compiled.search(string):
                         break
                     matches[-1].append(string)
 
@@ -393,7 +390,14 @@ class Entry:
             grep_prog = config.commands.search.grep
             LOGGER.debug("Searching associated file %s with %s", file_, grep_prog)
             with subprocess.Popen(
-                [grep_prog, f"-C{context}", query, file_], stdout=subprocess.PIPE
+                [
+                    grep_prog,
+                    *config.commands.search.grep_args,
+                    f"-C{context}",
+                    query,
+                    RelPath(file_).path,
+                ],
+                stdout=subprocess.PIPE,
             ) as grep:
                 if grep.stdout is None:
                     continue
