@@ -243,8 +243,6 @@ class TUI:
             LOGGER.debug("Starting key event loop.")
             self.loop()
             LOGGER.info("Exiting TUI.")  # pragma: no cover
-            sys.stdout = sys.__stdout__
-            sys.stderr = sys.__stderr__
 
     def resize_handler(self, signum: Optional[int], frame) -> None:  # type: ignore
         # pylint: disable=unused-argument
@@ -427,10 +425,13 @@ class TUI:
         # open help popup
         help_text.popup(self, background=TUI.COLOR_NAMES.index("popup_help"))
 
-    def loop(self) -> None:
+    def loop(self, debug: bool = False) -> None:
         """The key-handling event loop.
 
         This method takes care of reading the user's key strokes and triggering associated commands.
+
+        Args:
+            debug: if True, the key-event loop is not automatically started.
         """
         key = 0
         # key is the last character pressed
@@ -449,6 +450,8 @@ class TUI:
             except StopIteration:
                 LOGGER.debug("Stopping key event loop.")
                 # raised by quit command
+                sys.stdout = sys.__stdout__
+                sys.stderr = sys.__stderr__
                 break
 
             # highlight current line
@@ -473,22 +476,24 @@ class TUI:
                     # otherwise, we remove the stored attributes in order to not reset them later
                     current_attributes[-1] = None
 
+            self.stdout.flush()
+            self.stderr.flush()
             if self.stderr.lines:
                 self.stderr.split()
                 LOGGER.info("sys.stderr contains:\n%s", "\n".join(self.stderr.lines))
                 # wrap before checking the height:
                 self.stderr.wrap(self.width)
-                if self.stderr.height > 1:
+                if self.stderr.height > 1 and not debug:
                     self.stderr.popup(self, background=TUI.COLOR_NAMES.index("popup_stderr"))
                 else:
                     self.prompt_print(self.stderr.lines)
                 self.stderr.clear()
-            elif self.stdout.lines:
+            if self.stdout.lines:
                 self.stdout.split()
                 LOGGER.info("sys.stdout contains:\n%s", "\n".join(self.stdout.lines))
                 # wrap before checking the height:
                 self.stdout.wrap(self.width)
-                if self.stdout.height > 1:
+                if self.stdout.height > 1 and not debug:
                     self.stdout.popup(self, background=TUI.COLOR_NAMES.index("popup_stdout"))
                 else:
                     self.prompt_print(self.stdout.lines)

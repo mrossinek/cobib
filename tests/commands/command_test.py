@@ -102,6 +102,8 @@ class CommandTest(CmdLineTest):
             os.remove(config.database.file)
             if request.param.get("git", False):
                 rmtree(self.COBIB_TEST_DIR_GIT)
+            # remove all handlers from root logger as to not accumulate them during the test suite
+            logging.getLogger().handlers = []
         except FileNotFoundError:
             pass
 

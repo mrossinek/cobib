@@ -772,7 +772,7 @@ class TestTUI(CmdLineTest, TUITest):
     # that the method itself works roughly as intended.
     @pytest.mark.parametrize(
         ["keys"],
-        [[[ord("q")]], [[ord("q"), 410]], [[ord("q"), ord("q"), ord("\n")]]],  # curses.KEY_RESIZE
+        [[[ord("q")]], [[ord("q"), 410]]],  # curses.KEY_RESIZE
     )
     def test_loop(
         self,
@@ -793,7 +793,7 @@ class TestTUI(CmdLineTest, TUITest):
         config.tui.prompt_before_quit = False
         tui = TUI(stdscr, debug=True)
         # we expect normal execution
-        tui.loop()
+        tui.loop(debug=True)
         # minimal assertions
         for key in keys:
             assert ("cobib.tui.tui", 10, f"Key press registered: {key}") in caplog.record_tuples
@@ -816,7 +816,7 @@ class TestTUI(CmdLineTest, TUITest):
         tui = TUI(stdscr, debug=True)
         tui.STATE.inactive_commands = ["Show"]
         # we expect normal execution
-        tui.loop()
+        tui.loop(debug=True)
         # minimal assertions
         assert (
             "cobib.commands.show",
