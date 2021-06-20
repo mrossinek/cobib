@@ -45,7 +45,10 @@ def test_download() -> None:
                 with open(tmpdirname + "/dummy.pdf", "r") as truth:
                     assert expected.read() == truth.read()
         finally:
-            rmtree(tmpdirname)
+            try:
+                rmtree(tmpdirname)
+            except FileNotFoundError:
+                pass
 
 
 def test_skip_download_if_exists(caplog: pytest.LogCaptureFixture) -> None:
