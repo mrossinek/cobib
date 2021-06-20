@@ -92,10 +92,10 @@ class TestExportCommand(CommandTest, TUITest):
         ["args"],
         [
             [["-b", str(TMPDIR / "cobib_test_export.bib")]],
-            [["-b", str(TMPDIR / "cobib_test_export.bib"), "--", "++ID", "einstein"]],
+            [["-b", str(TMPDIR / "cobib_test_export.bib"), "--", "++label", "einstein"]],
             [["-b", str(TMPDIR / "cobib_test_export.bib"), "-s", "--", "einstein"]],
             [["-z", str(TMPDIR / "cobib_test_export.zip")]],
-            [["-z", str(TMPDIR / "cobib_test_export.zip"), "--", "++ID", "einstein"]],
+            [["-z", str(TMPDIR / "cobib_test_export.zip"), "--", "++label", "einstein"]],
             [["-z", str(TMPDIR / "cobib_test_export.zip"), "-s", "--", "einstein"]],
         ],
     )
@@ -192,7 +192,7 @@ class TestExportCommand(CommandTest, TUITest):
     @pytest.mark.parametrize(
         ["select", "keys"],
         [
-            [False, "x-b" + str(TMPDIR / "cobib_test_export.bib") + " -- ++ID einstein\n"],
+            [False, "x-b" + str(TMPDIR / "cobib_test_export.bib") + " -- ++label einstein\n"],
             [True, "Gvx-b" + str(TMPDIR / "cobib_test_export.bib") + "\n"],
         ],
     )

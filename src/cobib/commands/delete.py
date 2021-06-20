@@ -2,7 +2,7 @@
 
 This command can be used to deleted entries from the database.
 ```
-cobib delete <label ID 1> [<label ID 2> ...]
+cobib delete <label 1> [<label 2> ...]
 ```
 
 You can also trigger this command from the `cobib.tui.tui.TUI`.
@@ -39,7 +39,7 @@ class DeleteCommand(Command):
         Args:
             args: a sequence of additional arguments used for the execution. The following values
                 are allowed for this command:
-                    * `labels`: one (or multiple) IDs of the entries to be deleted.
+                    * `labels`: one (or multiple) labels of the entries to be deleted.
             out: the output IO stream. This defaults to `sys.stdout`.
         """
         LOGGER.debug("Starting Delete command.")

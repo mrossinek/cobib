@@ -1,4 +1,4 @@
-"""coBib's Modify command.
+r"""coBib's Modify command.
 
 This command allows you to perform bulk modification to multiple entries.
 Thus, it provides faster means to apply simple edits to many entries at once, without having to open
@@ -6,7 +6,7 @@ each entry for editing one-by-one or having to edit the database file manually.
 
 A simple example is the following:
 ```
-cobib modify tags:private --selection -- DummyID1 DummyID2 ...
+cobib modify tags:private --selection -- Label1 Label2 ...
 ```
 which will set the tags of all listed entries to `private`.
 
@@ -32,6 +32,13 @@ cobib modify "pages:{pages.replace('--', '-')}" -- ...
 # Rename an entry according to the first author's surname and year
 cobib modify "label:{author.split()[1]}{year}" -- ...
 ```
+
+In combination with the regex-support for filters added during the same release, you can even unify
+your database's label convention:
+```
+cobib modify "label:{label.replace('_', '')}" -- ++label "\D+_\d+"
+```
+
 If you happen to use an undefined variable as part of your modification, coBib will handle this
 gracefully by falling back to a plain string and raising a warning:
 ```

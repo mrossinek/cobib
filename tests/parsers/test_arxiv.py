@@ -97,7 +97,7 @@ class TestArxivParser(ParserTest):
         Args:
             caplog: the built-in pytest fixture.
         """
-        entry = Entry("dummy", {"ID": "dummy", "ENTRYTYPE": "unpublished"})
+        entry = Entry("dummy", {"ENTRYTYPE": "unpublished"})
         parsers.ArxivParser().dump(entry)
 
         assert (

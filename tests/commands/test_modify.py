@@ -36,7 +36,7 @@ class TestModifyCommand(CommandTest, TUITest):
         ["modification", "filters", "selection"],
         [
             ["tags:test", ["einstein"], True],
-            ["tags:test", ["++ID", "einstein"], False],
+            ["tags:test", ["++label", "einstein"], False],
         ],
     )
     @pytest.mark.parametrize("add", [False, True])
@@ -63,7 +63,7 @@ class TestModifyCommand(CommandTest, TUITest):
 
         if add:
             # first insert something to add to
-            ModifyCommand().execute(["tags:dummy", "++ID", "einstein"])
+            ModifyCommand().execute(["tags:dummy", "++label", "einstein"])
             args = ["-a"] + args
             expected = ["dummy"] + expected
 
@@ -101,7 +101,7 @@ class TestModifyCommand(CommandTest, TUITest):
             expected: the expected final `Entry` field.
         """
         # modify some data
-        args = ["-a", modification, "++ID", "einstein"]
+        args = ["-a", modification, "++label", "einstein"]
 
         field, _ = modification.split(":")
 
@@ -129,7 +129,7 @@ class TestModifyCommand(CommandTest, TUITest):
             expected: the expected final `Entry` field.
         """
         # modify some data
-        args = [modification, "++ID", "einstein"]
+        args = [modification, "++label", "einstein"]
 
         field, *_ = modification.split(":")
 
@@ -169,7 +169,7 @@ class TestModifyCommand(CommandTest, TUITest):
         ["args"],
         [
             [["-s", "tags:test", "--", "einstein"]],
-            [["tags:test", "--", "++ID", "einstein"]],
+            [["tags:test", "--", "++label", "einstein"]],
         ],
     )
     # other variants are already covered by test_command
@@ -187,7 +187,7 @@ class TestModifyCommand(CommandTest, TUITest):
     @pytest.mark.parametrize(
         ["select", "keys"],
         [
-            [False, "mtags:test -- ++ID knuthwebsite\n\n"],
+            [False, "mtags:test -- ++label knuthwebsite\n\n"],
             [True, "vmtags:test\n\n"],
         ],
     )

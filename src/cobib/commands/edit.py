@@ -3,7 +3,7 @@
 This command can be used to manually edit database entries in their easily-readable YAML format.
 To get started, simply type:
 ```
-cobib edit <label ID>
+cobib edit <label>
 ```
 which will open the YAML-formatted version of the specified Entry for editing.
 
@@ -13,7 +13,7 @@ default to using your `$EDITOR` environment setting (and fall back to `vim` if t
 You can even add entirely new entries to the database by specifying an unused entry label *and*
 adding the `--add` command-line argument:
 ```
-cobib edit --add <new label ID>
+cobib edit --add <new label>
 ```
 This entry will be entirely empty except for the one field which is always present:
 * `ENTRYTYPE`: set to the default value configured via `config.commands.edit.default_entry_type`.
@@ -23,7 +23,7 @@ By default, it is bound to the `e` key.
 If you want to add a new entry manually, you will have to enter the prompt (defaults to `:`) and
 then type out the command mentioned above:
 ```
-:edit --add <new label ID>
+:edit --add <new label>
 ```
 """
 
@@ -65,9 +65,9 @@ class EditCommand(Command):
         Args:
             args: a sequence of additional arguments used for the execution. The following values
                 are allowed for this command:
-                    * `label`: the ID of the entry to edit.
+                    * `label`: the label of the entry to edit.
                     * `-a`, `--add`: if specified, allows adding new entries for non-existent
-                      IDs. The default entry type of this new entry can be configured via
+                      labels. The default entry type of this new entry can be configured via
                       `config.commands.edit.default_entry_type`.
             out: the output IO stream. This defaults to `sys.stdout`.
         """

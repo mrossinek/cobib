@@ -2,7 +2,7 @@
 
 This command can be used to open associated files of an entry.
 ```
-cobib open <label ID 1> [<label ID 2> ...]
+cobib open <label 1> [<label 2> ...]
 ```
 
 The `file` and `url` fields of `cobib.database.Entry.data` are queried for Path or URL strings.
@@ -78,7 +78,7 @@ class OpenCommand(Command):
         Args:
             args: a sequence of additional arguments used for the execution. The following values
                 are allowed for this command:
-                    * `labels`: one (or multiple) IDs of the entries to be opened.
+                    * `labels`: one (or multiple) labels of the entries to be opened.
             out: the output IO stream. This defaults to `sys.stdout`.
         """
         LOGGER.debug("Starting Open command.")

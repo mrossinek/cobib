@@ -63,7 +63,11 @@ class Config(Dict[str, Any]):
             "open": {
                 "command": "xdg-open" if sys.platform.lower() == "linux" else "open",
             },
-            "search": {"grep": "grep", "ignore_case": False},
+            "search": {
+                "grep": "grep",
+                "grep_args": [],
+                "ignore_case": False,
+            },
         },
         "database": {
             "file": "~/.local/share/cobib/literature.yaml",
@@ -412,6 +416,10 @@ class Config(Dict[str, Any]):
         self._assert(
             isinstance(self.commands.search.grep, str),
             "config.commands.search.grep should be a string.",
+        )
+        self._assert(
+            isinstance(self.commands.search.grep_args, list),
+            "config.commands.search.grep_args should be a list.",
         )
         self._assert(
             isinstance(self.commands.search.ignore_case, bool),

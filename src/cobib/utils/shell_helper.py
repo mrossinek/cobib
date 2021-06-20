@@ -33,7 +33,7 @@ def list_filters() -> Set[str]:
     # pylint: disable=import-outside-toplevel
     from cobib.database import Database
 
-    filters: Set[str] = {"ID"}
+    filters: Set[str] = {"label"}
     for entry in Database().values():
         filters.update(entry.data.keys())
     return filters

@@ -31,9 +31,9 @@ cobib add --doi <some DOI> --label "MyLabel"
 ### 2. Manual entry addition
 
 If you want to add a new entry manually, you *must* omit any of the parser keyword arguments and
-instead specify a new label ID like so:
+instead specify a new label like so:
 ```
-cobib add --label <some new label ID>
+cobib add --label <some new label>
 ```
 This will trigger the `cobib.commands.edit.EditCommand` for a manual addition.
 However, the benefit of using this through the `AddCommand` is the availability of the following
@@ -106,13 +106,13 @@ class AddCommand(Command):
         Depending on the `args`, if a keyword for one of the available `cobib.parsers` was used
         together with a matching input, that parser will be used to create the new entry.
         Otherwise, the command is only valid if the `--label` option was used to specify a new entry
-        ID, in which case this command will trigger the `cobib.commands.edit.EditCommand` for a
+        label, in which case this command will trigger the `cobib.commands.edit.EditCommand` for a
         manual entry addition.
 
         Args:
             args: a sequence of additional arguments used for the execution. The following values
                 are allowed for this command:
-                    * `-l`, `--label`: the ID to give to the new entry.
+                    * `-l`, `--label`: the label to give to the new entry.
                     * `-f`, `--file`: one or multiple files to associate with this entry. This data
                       will be stored in the `cobib.database.Entry.file` property.
                     * `-p`, `--path`: the path to store the downloaded associated file in. This can

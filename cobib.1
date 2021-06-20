@@ -260,8 +260,8 @@ list of abbreviatons must be configured via
 Works in conjunction with the \fIabbreviate\fR argument in order to remove
 punctuation from the journal abbreviations.
 .SH FILTERS
-In order to limit the output of the \fIlist\fR and \fIexport\fR commands you can
-apply additional filters via keyword arguments.
+In order to limit the output of the \fIlist\fR, \fImodify\fR, \fIsearch\fR, and
+\fIexport\fR commands you can apply additional filters via keyword arguments.
 Their availability depends on your database since they are added to the argument
 parser at runtime.
 However, you can find a full list for your specific case with \fIcobib list
@@ -277,7 +277,9 @@ When the keyword argument is started with \fB++\fR the entry must positively
 The \fB<field>\fR may be any available field in your database.
 It should be noted, that this string is matched exactly which means no plurals
 are allowed.
-The \fI<value>\fR finally specifies what is matched against.
+The \fI<value>\fR finally specifies what is matched against. As of version
+v3.2.0 this value gets interpreted as a regex pattern, enabling powerful filter
+matching.
 .PP
 In general, multiple filters provided to the \fIlist\fR and \fIexport\fR
 commands are combined with logical \fIAND\fR.
@@ -417,6 +419,9 @@ Specifies the program used to open associated files.
 .TP
 .IR config.commands.search.grep = 'grep'
 Specifies the program used to search in associated files.
+.TP
+.IR config.commands.search.grep_args = []
+Allows the specification of additional arguments for the \fIgrep\fR command.
 .TP
 .IR config.commands.search.ignore_case = False
 This boolean setting indicates whether search defaults to be case-insensitive.

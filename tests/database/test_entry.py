@@ -198,6 +198,7 @@ def test_entry_set_month(
         [{("author", True): ["Cao"], ("year", True): ["2020"]}, True],
         [{("author", True): ["wrong_author"], ("year", True): ["2019"]}, True],
         [{("author", False): ["wrong_author"], ("year", True): ["2019"]}, False],
+        [{("label", True): [r"\D+_\d+"]}, True],
     ],
 )
 def test_entry_matches(filter_: Dict[Tuple[str, bool], Any], or_: bool) -> None:
@@ -239,6 +240,17 @@ def test_match_with_wrong_key() -> None:
             "search_query",
             1,
             True,
+            [
+                ["@article{search_dummy,", " abstract = {search_query", "something else"],
+                ["something else", "Search_Query", "something else"],
+                ["something else", "search_query", "something else"],
+                ["something else", "Search_Query", "something else}"],
+            ],
+        ],
+        [
+            "[sS]earch_[qQ]uery",
+            1,
+            False,
             [
                 ["@article{search_dummy,", " abstract = {search_query", "something else"],
                 ["something else", "Search_Query", "something else"],
@@ -388,7 +400,7 @@ def test_stringify() -> None:
         },
     )
     expected = {
-        "ID": "dummy",
+        "label": "dummy",
         "file": "/tmp/a.txt, /tmp/b.txt",
         "month": "aug",
         "tags": "tag1, tag2",
