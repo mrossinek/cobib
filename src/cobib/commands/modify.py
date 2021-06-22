@@ -162,7 +162,7 @@ class ModifyCommand(Command):
             "information.",
         )
         parser.add_argument(
-            "--preserve-files", action="store_true", help="do not delete associated files"
+            "--preserve-files", action="store_true", help="do not rename associated files"
         )
 
         if not args:

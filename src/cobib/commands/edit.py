@@ -82,7 +82,7 @@ class EditCommand(Command):
             help="if specified, will add a new entry for unknown labels",
         )
         parser.add_argument(
-            "--preserve-files", action="store_true", help="do not delete associated files"
+            "--preserve-files", action="store_true", help="do not rename associated files"
         )
 
         if not args:
