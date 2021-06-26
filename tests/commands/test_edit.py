@@ -3,12 +3,15 @@
 
 from __future__ import annotations
 
+import tempfile
 from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Type
 
 import pytest
 
 from cobib.commands import EditCommand
 from cobib.config import config
+from cobib.database import Database
+from cobib.utils.rel_path import RelPath
 
 from ..tui.tui_test import TUITest
 from .command_test import CommandTest
@@ -121,13 +124,36 @@ class TestEditCommand(CommandTest, TUITest):
             "Entry 'einstein' already exists! Ignoring the `--add` argument.",
         ) in caplog.record_tuples
 
-    def test_rename_associated_file(self) -> None:
+    @pytest.mark.parametrize("preserve_files", [True, False])
+    def test_rename_associated_file(self, setup: Any, preserve_files: bool) -> None:
         """Test removing associated files.
 
-        This is difficult to test. I am relying on the tests for the similar code of the
-        `ModifyCommand` to catch any possible problems.
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            preserve_files: argument to `DeleteCommand`.
         """
-        pytest.skip("Rely on similar test for ModifyCommand.")
+        try:
+            config.commands.edit.editor = "sed -i 's/einstein:/dummy:/'"
+
+            with tempfile.TemporaryDirectory() as tmpdirname:
+                path = RelPath(tmpdirname + "/einstein.pdf")
+                open(path.path, "w").close()
+
+                Database()["einstein"].file = str(path)
+
+                args = ["einstein"]
+                if preserve_files:
+                    args.insert(2, "--preserve-files")
+                EditCommand().execute(args)
+                assert "dummy" in Database().keys()
+
+                target = RelPath(tmpdirname + "/dummy.pdf")
+                if preserve_files:
+                    assert path.path.exists()
+                else:
+                    assert target.path.exists()
+        finally:
+            config.defaults()
 
     def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test warning for missing label.
