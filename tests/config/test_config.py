@@ -226,6 +226,7 @@ def test_config_validation(setup: Any) -> None:
         [["tui", "key_bindings"], "export"],
         [["tui", "key_bindings"], "show"],
         [["utils", "file_downloader"], "default_location"],
+        [["utils", "file_downloader"], "url_map"],
         [["utils"], "journal_abbreviations"],
     ],
 )

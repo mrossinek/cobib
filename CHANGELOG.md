@@ -7,10 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- basic autodownloading of arXiv PDF files (#25,!35):
+- basic auto-downloading of PDF files for arXiv IDs and configured DOIs (#25,!35,!39):
     - the default download location can be configured via `config.utils.file_downloader.default_location`
     - on a per addition basis, this default can be overwritten via the `--path` keyword option of the `AddCommand`
     - if a file already exists in this location of the file system, the download will be skipped
+    - download for DOI entries must configure URL patterns in `config.utils.file_downloader.url_map`
+    - on a per addition basis, the entire automatic download can be skipped with `--skip-download`
 - automatic journal abbreviations (#62,!36):
     - users can configure a list of journal abbreviations via `config.utils.journal_abbreviations`
     - if present, coBib will store the journal in its elongated form
@@ -378,7 +380,7 @@ Pypi: https://pypi.org/project/cobib/2.0.0b0/
 
 ### Changed
 - _internal_: refactored the config into a class
-- centralized the database hanlding to improve performance (#12,!9)
+- centralized the database handling to improve performance (#12,!9)
 
 ### Fixed
 - the `Show` command does not break after scrolling the viewport (#13)

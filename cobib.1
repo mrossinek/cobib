@@ -85,6 +85,11 @@ Adds an entry specified by the \fIDOI\fR.
 Adds an entry specified by the \fIISBN\fR.
 .PP
 .in +8n
+.BR \-l ", " \-\-label  " " \fI<label>\fR
+.in +4n
+Store the newly added entry under the specified \fIlabel\fR.
+.PP
+.in +8n
 .BR \-f ", " \-\-file " " \fI<path>\fR
 .in +4n
 Associate the newly added entry with the \fIfile\fR at the provided path.
@@ -97,9 +102,9 @@ Overwrites the location for the automatically downloaded file. If not specified,
 this setting defaults to \fIconfig.utils.file_downloader.default_location\fR.
 .PP
 .in +8n
-.BR \-l ", " \-\-label  " " \fI<label>\fR
+.BR \-s ", " \-\-skip\-download
 .in +4n
-Store the newly added entry under the specified \fIlabel\fR.
+Skips attempting to automatically download an associated file for the entry.
 .TP
 .B cobib delete \fI<label>\fR
 Deletes the entry with the given \fIlabel\fR.
@@ -268,7 +273,7 @@ argument is a result of the TUI's selection interface.
 .BR \-a ", " \-\-abbreviate
 .in +4n
 Causes all Journal names to be abbreviated. For this option to take effect, a
-list of abbreviatons must be configured via
+list of abbreviations must be configured via
 \fIconfig.utils.journal_abbreviations\fR.
 .PP
 .in +8n
@@ -587,6 +592,22 @@ the ASCII codes 10 (\fIline feed\fR) and 13 (\fIcarriage return\fR).
 .TP
 .IR config.utils.file_downloader.default_location = '~/.local/share/cobib'
 This setting sets the default location for any downloaded associated files.
+.TP
+.IR config.utils.file_downloader.url_map = {}
+You can provide rules to map from a journal's landing page URL to its PDF URL.
+To do so, you must insert an entry into the following dictionary, with a
+regex-pattern matching the journal's landing page URL and a value being the PDF
+URL. E.g.:
+
+    config.utils.file_downloader.url_map[
+        r"(.+)://aip.scitation.org/doi/([^/]+)"
+    ] = r"\1://aip.scitation.org/doi/pdf/\2"
+
+    config.utils.file_downloader.url_map[
+        r"(.+)://quantum-journal.org/papers/([^/]+)"
+    ] = r"\1://quantum-journal.org/papers/\2/pdf/"
+
+Make sure to use raw Python strings to ensure proper backslash-escaping.
 .TP
 .IR config.utils.journal_abbreviations = []
 You can specify a list of journal abbreviations. This list should be formatted

@@ -176,6 +176,21 @@ config.tui.key_bindings.wrap = "w"
 # You can specify the default download location for associated files.
 config.utils.file_downloader.default_location = "~/.local/share/cobib"
 
+# You can provide rules to map from a journal's landing page URL to its PDF URL. To do so, you must
+# insert an entry into the following dictionary, with a regex-pattern matching the journal's landing
+# page URL and a value being the PDF URL. E.g.:
+#
+#     config.utils.file_downloader.url_map[
+#         r"(.+)://aip.scitation.org/doi/([^/]+)"
+#     ] = r"\1://aip.scitation.org/doi/pdf/\2"
+#
+#     config.utils.file_downloader.url_map[
+#         r"(.+)://quantum-journal.org/papers/([^/]+)"
+#     ] = r"\1://quantum-journal.org/papers/\2/pdf/"
+#
+# Make sure to use raw Python strings to ensure proper backslash-escaping.
+config.utils.file_downloader.url_map = {}
+
 # You can specify a list of journal abbreviations. This list should be formatted as tuples of the
 # form: `(full journal name, abbreviation)`. The abbreviation should include any necessary
 # punctuation which can be excluded upon export (see also `cobib export --help`).

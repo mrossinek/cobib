@@ -26,6 +26,7 @@ class TestDOIParser(ParserTest):
         # unnecessary) brackets in the escaped special characters of the author field. Thus, we
         # correct for this inconsistency manually before asserting the equality.
         reference["author"] = str(reference["author"]).replace("'a", "'{a}")
+        reference["_download"] = "https://pubs.acs.org/doi/10.1021/acs.chemrev.8b00803"
         entries = parsers.DOIParser().parse("10.1021/acs.chemrev.8b00803")
 
         if (

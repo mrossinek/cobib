@@ -173,6 +173,28 @@ class TestAddCommand(CommandTest, TUITest):
             except FileNotFoundError:
                 pass
 
+    def test_add_skip_download(self, setup: Any) -> None:
+        """Test adding a new entry and skipping the automatic download.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+        """
+        path = RelPath("/tmp/Cao2018.pdf")
+        try:
+            args = ["-a", "1812.09976", "--skip-download"]
+            AddCommand().execute(args)
+            entry = Database()["Cao2018"]
+            assert entry.label == "Cao2018"
+            assert entry.data["archivePrefix"] == "arXiv"
+            assert entry.data["arxivid"].startswith("1812.09976")
+            assert "_download" not in entry.data.keys()
+            assert not os.path.exists(path.path)
+        finally:
+            try:
+                os.remove(path.path)
+            except FileNotFoundError:
+                pass
+
     def test_skip_manual_add_if_exists(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test manual addition is skipped if the label exists already.
 

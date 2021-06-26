@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import sys
 from typing import Callable, Optional
 
@@ -79,6 +80,38 @@ class FileDownloader:
         amount = int(bytes_ / factor)
         return str(amount) + suffix
 
+    _PDF_MARKER = bytes("%PDF", "utf-8")
+    """A marker which the downloaded file's beginning is checked against, to determine that it is
+    indeed a PDF file."""
+
+    @staticmethod
+    def _assert_pdf(content: bytes) -> bool:
+        """Asserts that the `content` starts with the `_PDF_MARKER`.
+
+        Args:
+            content: the string of bytes to check.
+
+        Returns:
+            Whether the`content` matches.
+        """
+        if not content.startswith(FileDownloader._PDF_MARKER):
+            LOGGER.warning("The URL did not provide a PDF file. Aborting download!")
+            return False
+        return True
+
+    @staticmethod
+    def _unlink(path: RelPath) -> None:
+        """Remove a file and ignore any error.
+
+        Args:
+            path: the file to remove.
+        """
+        try:
+            # TODO: once Python 3.7 is dropped, leverage `missing_ok` argument
+            path.path.unlink()
+        except FileNotFoundError:
+            pass
+
     def download(self, url: str, label: str, folder: Optional[str] = None) -> Optional[RelPath]:
         """Downloads a file.
 
@@ -102,8 +135,20 @@ class FileDownloader:
                 "A file at '%s' already exists! Using that rather than downloading.", path
             )
             return path
+
+        for pattern_url, repl_url in config.utils.file_downloader.url_map.items():
+            if re.match(pattern_url, url):
+                new_url = re.sub(pattern_url, repl_url, url)
+                LOGGER.info(
+                    "Matched the file's URL to your pattern URL %s and replaced it to become %s",
+                    pattern_url,
+                    new_url,
+                )
+                url = new_url
+                break
+
         with open(path.path, "wb") as file:
-            LOGGER.info("Downloading %s", path)
+            LOGGER.info("Downloading %s to %s", url, path)
             try:
                 response = requests.get(url, timeout=10, stream=True)
                 total_length = int(response.headers.get("content-length", -1))
@@ -111,13 +156,20 @@ class FileDownloader:
                 msg = f"An Exception occurred while downloading the file located at {url}"
                 LOGGER.warning(msg)
                 LOGGER.error(err)
+                FileDownloader._unlink(path)
                 return None
             if total_length < 0:
+                if not FileDownloader._assert_pdf(response.content):
+                    FileDownloader._unlink(path)
+                    return None
                 file.write(response.content)
             else:
                 accumulated_length = 0
                 total_size = self._size(total_length)
                 for data in response.iter_content(chunk_size=4096):
+                    if accumulated_length == 0 and not FileDownloader._assert_pdf(data):
+                        FileDownloader._unlink(path)
+                        return None
                     accumulated_length += len(data)
                     file.write(data)
                     percentage = accumulated_length / total_length

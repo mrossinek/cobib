@@ -136,6 +136,7 @@ class Config(Dict[str, Any]):
         "utils": {
             "file_downloader": {
                 "default_location": "~/.local/share/cobib",
+                "url_map": {},
             },
             "journal_abbreviations": [],
         },
@@ -187,6 +188,10 @@ class Config(Dict[str, Any]):
     MARKER = object()
     """A helper object for detecting the nested recursion-threshold."""
 
+    EXCEPTIONAL_KEYS = {"url_map"}
+    """A set of exceptional keys which do not cause automatic item creation. This is required in
+    order to support `dict`-like configuration options properly."""
+
     def __getitem__(self, key: str) -> Any:
         """Gets a key from the configuration object's dictionary.
 
@@ -200,7 +205,7 @@ class Config(Dict[str, Any]):
             The value of the queried attribute.
         """
         found = self.get(key, Config.MARKER)
-        if found is Config.MARKER:
+        if found is Config.MARKER and key not in Config.EXCEPTIONAL_KEYS:
             found = Config()
             super().__setitem__(key, found)
         return found
@@ -521,6 +526,15 @@ class Config(Dict[str, Any]):
             isinstance(self.utils.file_downloader.default_location, str),
             "config.utils.file_downloader.default_location should be a string.",
         )
+        self._assert(
+            isinstance(self.utils.file_downloader.url_map, dict),
+            "config.utils.file_downloader.url_map should be a dict.",
+        )
+        for pattern, repl in self.utils.file_downloader.url_map.items():
+            self._assert(
+                isinstance(pattern, str) and isinstance(repl, str),
+                "config.utils.file_downloader.url_map should be a dict[str, str].",
+            )
 
         self._assert(
             isinstance(self.utils.journal_abbreviations, list),
