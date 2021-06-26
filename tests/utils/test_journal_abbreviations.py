@@ -69,8 +69,10 @@ def test_abbreviate(dotless: bool) -> None:
     Args:
         dotless: whether to abbreviate with or without punctuation.
     """
-    config.utils.journal_abbreviations = [("Test Journal", "Test J.")]
     old_journal = "Test Journal"
+    new_journal = JournalAbbreviations.abbreviate(old_journal, dotless=dotless)
+    assert new_journal == old_journal
+    config.utils.journal_abbreviations = [("Test Journal", "Test J.")]
     new_journal = JournalAbbreviations.abbreviate(old_journal, dotless=dotless)
     expected = "Test J" if dotless else "Test J."
     assert new_journal == expected
@@ -78,8 +80,10 @@ def test_abbreviate(dotless: bool) -> None:
 
 def test_elongate() -> None:
     """Test the JournalAbbreviations.elongate method."""
-    config.utils.journal_abbreviations = [("Test Journal", "Test J.")]
     old_journal = "Test J."
+    new_journal = JournalAbbreviations.elongate(old_journal)
+    assert new_journal == old_journal
+    config.utils.journal_abbreviations = [("Test Journal", "Test J.")]
     new_journal = JournalAbbreviations.elongate(old_journal)
     assert new_journal == "Test Journal"
     old_journal = "Test Journal"
