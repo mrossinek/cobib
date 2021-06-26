@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [3.2.0] - 2021-06-26
+
+Pypi: https://pypi.org/project/cobib/3.2.0/
+
 ### Added
 - basic auto-downloading of PDF files for arXiv IDs and configured DOIs (#25,!35,!39):
     - the default download location can be configured via `config.utils.file_downloader.default_location`
@@ -487,7 +492,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v3.1.1...master
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v3.2.0...master
+[3.2.0]: https://gitlab.com/mrossinek/cobib/-/compare/v3.2.0
 [3.1.1]: https://gitlab.com/mrossinek/cobib/-/compare/v3.1.1
 [3.1.0]: https://gitlab.com/mrossinek/cobib/-/compare/v3.1.0
 [3.0.0]: https://gitlab.com/mrossinek/cobib/-/compare/v3.0.0
