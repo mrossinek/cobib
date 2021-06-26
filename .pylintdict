@@ -1,5 +1,6 @@
 abstractmethod
 addcommand
+aip
 ansi
 archlinux
 argparse
@@ -96,6 +97,7 @@ rossmannek
 rrggbb
 ruamel
 runtime
+scitation
 scrolloff
 searchcommand
 sha
@@ -131,6 +133,7 @@ unittest
 unittests
 url
 viewport
+vpn
 xdg
 yaml
 yamlparser

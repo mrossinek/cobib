@@ -59,6 +59,10 @@ via `config.utils.file_downloader.default_location`, but it can be changed at ru
 ```
 cobib add --path <some custom path> --arxiv <some arXiv ID>
 ```
+If you want to manually suppress the automatic download, specify the `--skip-download` argument:
+```
+cobib add --skip-download --arxiv <some arXiv ID>
+```
 
 ### TUI
 
@@ -117,6 +121,7 @@ class AddCommand(Command):
                       will be stored in the `cobib.database.Entry.file` property.
                     * `-p`, `--path`: the path to store the downloaded associated file in. This can
                       be used to overwrite the `config.utils.file_downloader.default_location`.
+                    * `-s`, `--skip-download`: skips the automatic download of an associated file.
                     * in addition to the options above, a *mutually exclusive group* of keyword
                       arguments for all available `cobib.parsers` are registered at runtime. Please
                       check the output of `cobib add --help` for the exact list.
@@ -138,6 +143,12 @@ class AddCommand(Command):
             help="files associated with this entry",
         )
         parser.add_argument("-p", "--path", type=str, help="the path for the associated file")
+        parser.add_argument(
+            "-s",
+            "--skip-download",
+            action="store_true",
+            help="skip the automatic download of an associated file",
+        )
         group_add = parser.add_mutually_exclusive_group()
         avail_parsers = {
             cls.name: cls for _, cls in inspect.getmembers(parsers) if inspect.isclass(cls)
@@ -226,9 +237,12 @@ class AddCommand(Command):
                 return
             # download associated file (if requested)
             if "_download" in entry.data.keys():
-                path = FileDownloader().download(entry.data.pop("_download"), lbl, largs.path)
-                if path is not None:
-                    entry.data["file"] = str(path)
+                if largs.skip_download:
+                    entry.data.pop("_download")
+                else:
+                    path = FileDownloader().download(entry.data.pop("_download"), lbl, largs.path)
+                    if path is not None:
+                        entry.data["file"] = str(path)
             # check journal abbreviation
             if "journal" in entry.data.keys():
                 entry.data["journal"] = JournalAbbreviations.elongate(entry.data["journal"])

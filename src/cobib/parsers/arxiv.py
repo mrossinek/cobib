@@ -3,6 +3,9 @@
 This parser is capable of generating `cobib.database.Entry` instances from a given arXiv ID.
 It gathers the BibTex-encoded data from the arXiv API and parses the raw XML data.
 
+Since v3.2.0 coBib will also automatically download the PDF version of the new entry. You can
+configure the default download location via `config.utils.file_downloader.default_location`.
+
 The parser is registered under the `-a` and `--arxiv` command-line arguments of the
 `cobib.commands.add.AddCommand`.
 
