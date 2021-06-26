@@ -476,28 +476,18 @@ class TUI:
                     # otherwise, we remove the stored attributes in order to not reset them later
                     current_attributes[-1] = None
 
-            self.stdout.flush()
-            self.stderr.flush()
-            if self.stderr.lines:
-                self.stderr.split()
-                LOGGER.info("sys.stderr contains:\n%s", "\n".join(self.stderr.lines))
-                # wrap before checking the height:
-                self.stderr.wrap(self.width)
-                if self.stderr.height > 1 and not debug:
-                    self.stderr.popup(self, background=TUI.COLOR_NAMES.index("popup_stderr"))
-                else:
-                    self.prompt_print(self.stderr.lines)
-                self.stderr.clear()
-            if self.stdout.lines:
-                self.stdout.split()
-                LOGGER.info("sys.stdout contains:\n%s", "\n".join(self.stdout.lines))
-                # wrap before checking the height:
-                self.stdout.wrap(self.width)
-                if self.stdout.height > 1 and not debug:
-                    self.stdout.popup(self, background=TUI.COLOR_NAMES.index("popup_stdout"))
-                else:
-                    self.prompt_print(self.stdout.lines)
-                self.stdout.clear()
+            for stream, name in zip((self.stderr, self.stdout), ("stderr", "stdout")):
+                stream.flush()
+                if stream.lines:
+                    stream.split()
+                    LOGGER.info("sys.%s contains:\n%s", name, "\n".join(stream.lines))
+                    # wrap before checking the height:
+                    stream.wrap(self.width)
+                    if stream.height > 1 and not debug:
+                        stream.popup(self, background=TUI.COLOR_NAMES.index(f"popup_{name}"))
+                    else:
+                        self.prompt_print(stream.lines)
+                    stream.clear()
 
             # Refresh the screen
             self.viewport.refresh()
