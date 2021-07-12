@@ -121,7 +121,8 @@ class SearchCommand(Command):
             LOGGER.error(exc.message)
             return None
 
-        labels = ListCommand().execute(largs.filter, out=open(os.devnull, "w"))
+        with open(os.devnull, "w") as devnull:
+            labels = ListCommand().execute(largs.filter, out=devnull)
         if labels is None:
             return None  # pragma: no cover
         LOGGER.debug("Available entries to search: %s", labels)

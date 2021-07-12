@@ -155,7 +155,7 @@ class TestModifyCommand(CommandTest, TUITest):
         """
         with tempfile.TemporaryDirectory() as tmpdirname:
             path = RelPath(tmpdirname + "/knuthwebsite.pdf")
-            open(path.path, "w").close()
+            open(path.path, "w").close()  # pylint: disable=consider-using-with
 
             Database()["knuthwebsite"].file = str(path)
 

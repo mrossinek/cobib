@@ -137,7 +137,7 @@ class TestEditCommand(CommandTest, TUITest):
 
             with tempfile.TemporaryDirectory() as tmpdirname:
                 path = RelPath(tmpdirname + "/einstein.pdf")
-                open(path.path, "w").close()
+                open(path.path, "w").close()  # pylint: disable=consider-using-with
 
                 Database()["einstein"].file = str(path)
 

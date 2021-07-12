@@ -181,7 +181,7 @@ class TestUndoCommand(CommandTest, TUITest):
 
         # initialize git-tracking
         self.COBIB_TEST_DIR.mkdir(parents=True, exist_ok=True)
-        open(config.database.file, "w").close()
+        open(config.database.file, "w").close()  # pylint: disable=consider-using-with
         os.system("git init " + str(self.COBIB_TEST_DIR))
 
         try:

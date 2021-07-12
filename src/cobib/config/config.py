@@ -562,7 +562,7 @@ class Config(Dict[str, Any]):
 
     def defaults(self) -> None:
         """Resets the configuration to the default settings."""
-        for section in self.DEFAULTS.keys():
+        for section in self.DEFAULTS.keys():  # pylint: disable=consider-using-dict-items
             self[section].update(**self.DEFAULTS[section])
 
     def get_ansi_color(self, name: str) -> str:

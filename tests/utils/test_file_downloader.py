@@ -108,7 +108,7 @@ def test_skip_download_if_exists(caplog: pytest.LogCaptureFixture) -> None:
         caplog: the built-in pytest fixture.
     """
     with tempfile.TemporaryDirectory() as tmpdirname:
-        open(tmpdirname + "/dummy.pdf", "w").close()
+        open(tmpdirname + "/dummy.pdf", "w").close()  # pylint: disable=consider-using-with
         FileDownloader().download(
             "https://gitlab.com/mrossinek/cobib/-/raw/master/tests/utils/__init__.py",
             "dummy",
