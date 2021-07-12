@@ -30,6 +30,14 @@ While this latter case is usable via the command-line interface it is more a sid
 integration which provides a visual selection (defaults to the `v` key).
 The proper and arguably more useful case is the first case using filters.
 
+Since v3.2.0, coBib supports automatic Journal abbreviations. After configuring them as explained in
+`config.utils.journal_abbreviations` you can leverage them during exporting like so:
+```
+cobib export --abbreviate --bibtex my_database.bib
+# or
+cobib export --abbreviate --dotless --bibtex my_database.bib
+```
+
 You can also trigger this command from the `cobib.tui.tui.TUI`.
 By default, it is bound to the `x` key which will drop you into the prompt where you can type out a
 normal command-line command:
@@ -79,6 +87,9 @@ class ExportCommand(Command):
                 are allowed for this command:
                     * `-b`, `--bibtex`: specifies a BibLaTex filename into which to export.
                     * `-z`, `--zip`: specifies a Zip-filename into which to export associated files.
+                    * `-a`, `--abbreviate`: abbreviate the Journal names before exporting. See also
+                      `config.utils.journal_abbreviations`.
+                    * `--dotless`: remove punctuation from the Journal abbreviations.
                     * `-s`, `--selection`: when specified, the positional arguments will *not* be
                       interpreted as filters but rather as a direct list of entry labels. This can
                       be used on the command-line but is mainly meant for the TUIs visual selection
