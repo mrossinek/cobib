@@ -54,6 +54,7 @@ class Config(Dict[str, Any]):
     DEFAULTS: Dict[str, Any] = {
         "logging": {
             "logfile": "~/.cache/cobib/cobib.log",
+            "version": "~/.cache/cobib/version",
         },
         "commands": {
             "edit": {
@@ -396,6 +397,10 @@ class Config(Dict[str, Any]):
         LOGGER.debug("Validating the LOGGING configuration section.")
         self._assert(
             isinstance(self.logging.logfile, str), "config.logging.logfile should be a string."
+        )
+        self._assert(
+            self.logging.version is None or isinstance(self.logging.version, str),
+            "config.logging.version should be a string or `None`.",
         )
 
         # COMMANDS section

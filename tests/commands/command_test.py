@@ -78,6 +78,7 @@ class CommandTest(CmdLineTest):
         config.database.file = str(self.COBIB_TEST_DIR / "database.yaml")
         config.database.git = request.param.get("git", False)
         config.utils.file_downloader.default_location = "/tmp"
+        config.logging.version = None
 
         # load database
         if request.param.get("database", True):

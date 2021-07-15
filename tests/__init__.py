@@ -17,7 +17,7 @@ Check out `pytest --help` for more options.
 """
 
 from pathlib import Path, PurePath
-from typing import Optional
+from typing import List, Optional
 
 from .cmdline_test import CmdLineTest
 
@@ -35,3 +35,19 @@ def get_resource(filename: str, path: Optional[str] = None) -> str:
     root = Path(__file__).parent
     full_path = root if path is None else root / Path(path)
     return str(full_path / filename)
+
+
+class MockStdin:
+    """A mock object to replace `sys.stdin`."""
+
+    # pylint: disable=missing-function-docstring
+
+    def __init__(self, string: Optional[List[str]] = None) -> None:
+        # noqa: D107
+        if string is None:
+            string = []
+        self.string = string + ["\n"]
+
+    def readline(self) -> str:
+        # noqa: D102
+        return self.string.pop(0)

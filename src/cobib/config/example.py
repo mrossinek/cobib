@@ -27,6 +27,9 @@ from cobib.config import config
 # LOGGING
 # You can specify the default logfile location.
 config.logging.logfile = "~/.cache/cobib/cobib.log"
+# You can also set the location for the cached version number based on which coBib shows you the
+# latest changes. You can set this to `None` to disable this functionality entirely.
+config.logging.version = "~/.cache/cobib/version"
 
 # COMMANDS
 # These settings affect some command specific behavior.

@@ -11,7 +11,7 @@ from cobib import __version__, commands
 from cobib.config import config
 from cobib.database import Database
 from cobib.utils import shell_helper
-from cobib.utils.logging import get_file_handler, get_stream_handler
+from cobib.utils.logging import get_file_handler, get_stream_handler, print_changelog
 
 LOGGER = logging.getLogger(__name__)
 
@@ -67,6 +67,9 @@ def main() -> None:
 
     # load configuration
     config.load(args.config)
+
+    # print latest changelog
+    print_changelog(__version__, config.logging.version)
 
     if args.command == "init":
         # the database file may not exist yet, thus we ensure to execute the command before trying

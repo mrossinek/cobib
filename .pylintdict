@@ -23,6 +23,7 @@ bool
 boolean
 caplog
 capsys
+changelog
 cli
 cobib
 config
