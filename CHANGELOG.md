@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [3.2.1] - 2021-07-15
+
+Pypi: https://pypi.org/project/cobib/3.2.1/
+
 ### Fixed
 - when adding multiple entries at once, continue adding after encountering a single duplicate (#83)
 
@@ -495,7 +500,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v3.2.0...master
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v3.2.1...master
+[3.2.1]: https://gitlab.com/mrossinek/cobib/-/compare/v3.2.1
 [3.2.0]: https://gitlab.com/mrossinek/cobib/-/compare/v3.2.0
 [3.1.1]: https://gitlab.com/mrossinek/cobib/-/compare/v3.1.1
 [3.1.0]: https://gitlab.com/mrossinek/cobib/-/compare/v3.1.0
