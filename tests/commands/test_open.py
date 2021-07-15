@@ -11,7 +11,7 @@ from cobib.commands import OpenCommand
 from cobib.config import config
 from cobib.database import Database
 
-from .. import MockStdin, get_resource
+from .. import get_resource
 from ..tui.tui_test import TUITest
 from .command_test import CommandTest
 
@@ -19,6 +19,22 @@ if TYPE_CHECKING:
     import _pytest.fixtures
 
     import cobib.commands
+
+
+class MockStdin:
+    """A mock object to replace `sys.stdin`."""
+
+    # pylint: disable=missing-function-docstring
+
+    def __init__(self, string: Optional[List[str]] = None) -> None:
+        # noqa: D107
+        if string is None:
+            string = []
+        self.string = string + ["\n"]
+
+    def readline(self) -> str:
+        # noqa: D102
+        return self.string.pop(0)
 
 
 class TestOpenCommand(CommandTest, TUITest):

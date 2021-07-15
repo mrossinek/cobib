@@ -4,8 +4,6 @@ from pathlib import Path
 
 from cobib.config import config
 
-config.logging.version = None
-
 root = Path(__file__).parent
 config.database.file = str((root / "example_literature.yaml").resolve())
 

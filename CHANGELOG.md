@@ -6,9 +6,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- print Changelog since the last run version (cached in `config.logging.version`) (#82)
-
 
 ## [3.2.1] - 2021-07-15
 
