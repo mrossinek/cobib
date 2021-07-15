@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- when adding multiple entries at once, continue adding after encountering a single duplicate (#83)
+
 
 ## [3.2.0] - 2021-06-26
 

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import os
+import tempfile
 from itertools import zip_longest
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type
 
@@ -208,6 +209,33 @@ class TestAddCommand(CommandTest, TUITest):
             30,
             "You tried to add a new entry 'einstein' which already exists!\n"
             "Please use `cobib edit einstein` instead!",
+        ) in caplog.record_tuples
+
+    def test_continue_after_skip_exists(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
+        """Test entry addition continues after skipping over existing entry.
+
+        Regression test against #83
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
+        with tempfile.NamedTemporaryFile("w") as file:
+            with open(EXAMPLE_DUPLICATE_ENTRY_BIB, "r") as existing:
+                file.writelines(existing.readlines())
+            file.writelines(["@article{dummy,\nauthor = {Dummy},\n}"])
+            file.flush()
+            AddCommand().execute(["-b", file.name])
+        assert (
+            "cobib.commands.add",
+            30,
+            "You tried to add a new entry 'einstein' which already exists!\n"
+            "Please use `cobib edit einstein` instead!",
+        ) in caplog.record_tuples
+        assert (
+            "cobib.database.database",
+            10,
+            "Updating entry dummy",
         ) in caplog.record_tuples
 
     def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:

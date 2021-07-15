@@ -226,7 +226,7 @@ class AddCommand(Command):
         bib = Database()
         existing_labels = set(bib.keys())
 
-        for lbl, entry in new_entries.items():
+        for lbl, entry in new_entries.copy().items():
             # check if label already exists
             if lbl in existing_labels:
                 msg = (
@@ -234,7 +234,8 @@ class AddCommand(Command):
                     f"\nPlease use `cobib edit {lbl}` instead!"
                 )
                 LOGGER.warning(msg)
-                return
+                new_entries.pop(lbl)
+                continue
             # download associated file (if requested)
             if "_download" in entry.data.keys():
                 if largs.skip_download:
