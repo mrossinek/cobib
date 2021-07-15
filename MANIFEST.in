@@ -3,4 +3,5 @@ include CHANGELOG.md
 include LICENSE.txt
 include cobib.1
 include _cobib
+include py.typed
 include requirements.txt
