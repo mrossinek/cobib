@@ -9,6 +9,8 @@ import sys
 from pathlib import Path
 from typing import Optional, Union
 
+from pkg_resources import get_distribution
+
 from .rel_path import RelPath
 
 
@@ -69,3 +71,66 @@ def get_file_handler(
     handler.setFormatter(formatter)
 
     return handler
+
+
+def print_changelog(version: str, cached_version_path: Optional[str]) -> None:
+    """Prints the latest section of the CHANGELOG to stdout.
+
+    This function prints the contents of the CHANGELOG (extracted from the PKG-INFO metadata)
+    between the current version (`version`) and the latest cached version (extracted from the
+    provided file path).
+
+    Args:
+        version: the currently running version of coBib.
+        cached_version_path: the path to the file which caches the previously executed version of
+            coBib. If `None`, this method exits early (thereby silencing this feature).
+    """
+    if cached_version_path is None:
+        return
+
+    try:
+        current_version = version[: version.index("+")]
+    except ValueError:
+        current_version = version
+
+    cached_version = None
+    try:
+        with open(RelPath(cached_version_path).path, "r") as version_file:
+            cached_version = version_file.read().strip()
+    except FileNotFoundError:
+        pass
+
+    if current_version == cached_version:
+        return
+
+    with open(RelPath(cached_version_path).path, "w") as version_file:
+        version_file.write(current_version)
+
+    metadata = get_distribution("cobib").get_metadata("PKG-INFO")
+    lines = ["\x1b[1mHi there! It looks like you have updated coBib; here is what's new:\x1b[22m\n"]
+    num_printed_lines = -1
+    for line in metadata.splitlines():
+        line = line.strip()
+        if line.startswith(f"## [{current_version}]"):
+            num_printed_lines = 0
+        elif line.startswith(f"## [{cached_version}]"):
+            num_printed_lines = -1
+        elif num_printed_lines >= 20:
+            num_printed_lines = -1
+            lines.extend(
+                [
+                    "\n...\n\x1b[31m",
+                    "This output is shortened for the sake of brevity! For more information visit:",
+                    "https://gitlab.com/mrossinek/cobib/-/blob/master/CHANGELOG.md",
+                ]
+            )
+
+        if num_printed_lines >= 0:
+            lines.append(line)
+            num_printed_lines += 1
+
+    print("\x1b[33m", end="")
+    print("\n".join(lines).strip())
+    print("\x1b[0m", end="", flush=True)
+
+    input("\nPress Enter to continue...")

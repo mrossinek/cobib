@@ -173,6 +173,7 @@ def test_config_validation(setup: Any) -> None:
     ["sections", "field"],
     [
         [["logging"], "logfile"],
+        [["logging"], "version"],
         [["commands", "edit"], "default_entry_type"],
         [["commands", "edit"], "editor"],
         [["commands", "open"], "command"],
