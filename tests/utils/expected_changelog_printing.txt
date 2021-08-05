@@ -1,0 +1,29 @@
+Hi there! It looks like you have updated coBib; here is what's new:
+
+## [0.2] - 2019-09-02
+
+Note: this release was not marked MAJOR because this is still a WIP and early
+alpha release.
+
+### Added
+- complete rewrite to use a plain-text `yaml` database instead of `sqlite3` !1
+
+### Removed
+- `sqlite3` database
+
+
+## [0.1] - 2019-04-29
+
+### Added
+- initial version with a basic `sqlite3`-based database
+
+
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v3.2.1...master
+[3.2.1]: https://gitlab.com/mrossinek/cobib/-/compare/v3.2.1
+
+...
+
+This output is shortened for the sake of brevity! For more information visit:
+https://gitlab.com/mrossinek/cobib/-/blob/master/CHANGELOG.md
+
+Press Enter to continue...
