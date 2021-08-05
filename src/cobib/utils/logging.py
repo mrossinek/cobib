@@ -106,8 +106,21 @@ def print_changelog(version: str, cached_version_path: Optional[str]) -> None:
     with open(RelPath(cached_version_path).path, "w") as version_file:
         version_file.write(current_version)
 
-    metadata = get_distribution("cobib").get_metadata("PKG-INFO")
     lines = ["\x1b[1mHi there! It looks like you have updated coBib; here is what's new:\x1b[22m\n"]
+
+    metadata = ""
+    try:
+        metadata = get_distribution("cobib").get_metadata("METADATA")
+    except FileNotFoundError:
+        try:
+            metadata = get_distribution("cobib").get_metadata("PKG-INFO")
+        except FileNotFoundError:
+            lines += [
+                "I wanted to show you the new changes here but was unable to query ",
+                "them from your installation. You can look them up yourself, here: ",
+                "https://gitlab.com/mrossinek/cobib/-/blob/master/CHANGELOG.md",
+            ]
+
     num_printed_lines = -1
     for line in metadata.splitlines():
         line = line.strip()
