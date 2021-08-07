@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import re
 import sys
+import tempfile
 from typing import Callable, Optional
 
 import requests
@@ -112,7 +113,9 @@ class FileDownloader:
         except FileNotFoundError:
             pass
 
-    def download(self, url: str, label: str, folder: Optional[str] = None) -> Optional[RelPath]:
+    def download(
+        self, url: str, label: str, folder: Optional[str] = None, overwrite: bool = False
+    ) -> Optional[RelPath]:
         """Downloads a file.
 
         The path of the downloaded file is `folder/label.pdf`. The path can be configured via
@@ -122,6 +125,7 @@ class FileDownloader:
             url: the link to the file to be downloaded.
             label: the name of the entry.
             folder: an optional folder where the downloaded file will be stored.
+            overwrite: whether or not to overwrite an existing file.
 
         Returns:
             The `RelPath` to the downloaded file. If downloading was not successful, `None` is
@@ -130,11 +134,17 @@ class FileDownloader:
         if folder is None:
             folder = config.utils.file_downloader.default_location
         path = RelPath(f"{folder}/{label}.pdf")
+        backup = None
         if path.path.exists():
-            LOGGER.warning(
-                "A file at '%s' already exists! Using that rather than downloading.", path
-            )
-            return path
+            if not overwrite:
+                LOGGER.warning(
+                    "A file at '%s' already exists! Using that rather than downloading.", path
+                )
+                return path
+            # we make a copy of the existing file in case downloading a new one fails
+            backup = tempfile.NamedTemporaryFile()  # pylint: disable=consider-using-with
+            backup.write(path.path.read_bytes())
+            backup.seek(0)
 
         for pattern_url, repl_url in config.utils.file_downloader.url_map.items():
             if re.match(pattern_url, url):
@@ -157,10 +167,16 @@ class FileDownloader:
                 LOGGER.warning(msg)
                 LOGGER.error(err)
                 FileDownloader._unlink(path)
+                if backup is not None:
+                    path.path.write_bytes(backup.read())
+                    backup.close()
                 return None
             if total_length < 0:
                 if not FileDownloader._assert_pdf(response.content):
                     FileDownloader._unlink(path)
+                    if backup is not None:
+                        path.path.write_bytes(backup.read())
+                        backup.close()
                     return None
                 file.write(response.content)
             else:
@@ -169,6 +185,9 @@ class FileDownloader:
                 for data in response.iter_content(chunk_size=4096):
                     if accumulated_length == 0 and not FileDownloader._assert_pdf(data):
                         FileDownloader._unlink(path)
+                        if backup is not None:
+                            path.path.write_bytes(backup.read())
+                            backup.close()
                         return None
                     accumulated_length += len(data)
                     file.write(data)

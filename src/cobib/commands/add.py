@@ -64,6 +64,16 @@ If you want to manually suppress the automatic download, specify the `--skip-dow
 cobib add --skip-download --arxiv <some arXiv ID>
 ```
 
+Since v3.3.0 you can also update existing entries by using the `--update` argument:
+```
+cobib add --doi <some DOI> --update --label <some existing label>
+```
+This will take the existing entry and combine it with all new information found in the freshly added
+entry. Existing fields will be overwritten. If you have an automatically downloaded file associated
+with this entry, that will also be overwritten.
+This feature is especially useful if you want to update an entry which you previously added from the
+arXiv with its newly published version.
+
 ### TUI
 
 You can also trigger this command from the `cobib.tui.tui.TUI`.
@@ -133,6 +143,12 @@ class AddCommand(Command):
         LOGGER.debug("Starting Add command.")
         parser = ArgumentParser(prog="add", description="Add subcommand parser.")
         parser.add_argument("-l", "--label", type=str, help="the label for the new database entry")
+        parser.add_argument(
+            "-u",
+            "--update",
+            action="store_true",
+            help="update an entry if the label exists already",
+        )
         file_action = "extend" if sys.version_info[1] >= 8 else "append"
         parser.add_argument(
             "-f",
@@ -229,19 +245,26 @@ class AddCommand(Command):
         for lbl, entry in new_entries.copy().items():
             # check if label already exists
             if lbl in existing_labels:
-                msg = (
-                    f"You tried to add a new entry '{lbl}' which already exists!"
-                    f"\nPlease use `cobib edit {lbl}` instead!"
-                )
-                LOGGER.warning(msg)
-                new_entries.pop(lbl)
-                continue
+                if not largs.update:
+                    msg = (
+                        f"You tried to add a new entry '{lbl}' which already exists!"
+                        f"\nPlease use `cobib edit {lbl}` instead!"
+                    )
+                    LOGGER.warning(msg)
+                    new_entries.pop(lbl)
+                    continue
+                # label exists but the user asked to update an existing entry
+                existing_data = bib[lbl].data.copy()
+                existing_data.update(entry.data)
+                entry.data = existing_data.copy()
             # download associated file (if requested)
             if "_download" in entry.data.keys():
                 if largs.skip_download:
                     entry.data.pop("_download")
                 else:
-                    path = FileDownloader().download(entry.data.pop("_download"), lbl, largs.path)
+                    path = FileDownloader().download(
+                        entry.data.pop("_download"), lbl, folder=largs.path, overwrite=largs.update
+                    )
                     if path is not None:
                         entry.data["file"] = str(path)
             # check journal abbreviation

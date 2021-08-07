@@ -101,18 +101,21 @@ def test_skip_download_if_no_pdf(setup_remove_content_length: Any) -> None:
         )
 
 
-def test_skip_download_if_exists(caplog: pytest.LogCaptureFixture) -> None:
+@pytest.mark.parametrize("overwrite", [False, True])
+def test_skip_download_if_exists(caplog: pytest.LogCaptureFixture, overwrite: bool) -> None:
     """Test that download is skipped when file already exists.
 
     Args:
         caplog: the built-in pytest fixture.
+        overwrite: whether or not to overwrite the existing file.
     """
     with tempfile.TemporaryDirectory() as tmpdirname:
         open(tmpdirname + "/dummy.pdf", "w").close()  # pylint: disable=consider-using-with
         FileDownloader().download(
             "https://gitlab.com/mrossinek/cobib/-/raw/master/tests/utils/__init__.py",
             "dummy",
-            tmpdirname,
+            folder=tmpdirname,
+            overwrite=overwrite,
         )
         for mod, lvl, msg in caplog.record_tuples:
             if (
@@ -122,7 +125,9 @@ def test_skip_download_if_exists(caplog: pytest.LogCaptureFixture) -> None:
             ):
                 break
         else:
-            assert False, "Download not aborted."
+            assert overwrite, "This statement should only be reached when overwrite is enabled!"
+            return
+        assert not overwrite, "This statement should only be reached when overwrite is disabled!"
 
 
 @pytest.mark.parametrize(

@@ -196,6 +196,67 @@ class TestAddCommand(CommandTest, TUITest):
             except FileNotFoundError:
                 pass
 
+    @pytest.mark.parametrize(
+        ["setup"],
+        [
+            [{"git": False}],
+            [{"git": True}],
+        ],
+        indirect=["setup"],
+    )
+    def test_add_with_update(self, setup: Any) -> None:
+        """Test update option of AddCommand.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+        """
+        git = setup.get("git", False)
+        AddCommand().execute(["-a", "1812.09976", "--skip-download"])
+
+        # assert initial state
+        entry = Database()["Cao2018"]
+
+        assert entry.data["author"].startswith("Yudong Cao")
+        assert entry.data["title"].startswith("Quantum Chemistry in the Age of Quantum Computing")
+        assert entry.data["arxivid"].startswith("1812.09976")
+        assert entry.data["doi"] == "10.1021/acs.chemrev.8b00803"
+        assert entry.data["primaryClass"] == "quant-ph"
+        assert entry.data["archivePrefix"] == "arXiv"
+        assert entry.data["abstract"] != ""
+        assert entry.data["year"] == 2018
+
+        assert "journal" not in entry.data.keys()
+        assert "month" not in entry.data.keys()
+        assert "number" not in entry.data.keys()
+        assert "pages" not in entry.data.keys()
+        assert "volume" not in entry.data.keys()
+
+        args = ["-d", "10.1021/acs.chemrev.8b00803", "-l", "Cao2018", "--skip-download", "--update"]
+        AddCommand().execute(args)
+
+        # assert final state
+        entry = Database()["Cao2018"]
+
+        assert entry.data["author"].startswith("Yudong Cao")
+        assert entry.data["title"].startswith("Quantum Chemistry in the Age of Quantum Computing")
+        assert entry.data["arxivid"].startswith("1812.09976")
+        assert entry.data["primaryClass"] == "quant-ph"
+        assert entry.data["archivePrefix"] == "arXiv"
+        assert entry.data["abstract"] != ""
+
+        assert entry.data["journal"] == "Chemical Reviews"
+        assert entry.data["doi"] == "10.1021/acs.chemrev.8b00803"
+        assert entry.data["month"] == "aug"
+        assert entry.data["number"] == 19
+        assert entry.data["pages"] == "10856--10915"
+        assert entry.data["volume"] == 119
+        assert entry.data["year"] == 2019
+
+        if git:
+            # assert the git commit message
+            # Note: we do not assert the arguments, because they depend on the available parsers
+            self.assert_git_commit_message("add", None)
+
     def test_skip_manual_add_if_exists(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test manual addition is skipped if the label exists already.
 
