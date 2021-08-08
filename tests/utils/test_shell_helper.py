@@ -1,7 +1,12 @@
 """Tests for coBib's shell helper functions."""
 
 import logging
+import os
+import subprocess
+import tempfile
 from itertools import zip_longest
+from pathlib import Path
+from shutil import copyfile, rmtree
 from typing import Generator, List, Optional, Set, Union
 
 import pytest
@@ -50,7 +55,8 @@ class ShellHelperTest(CmdLineTest):
 
     def test_method(self) -> None:
         """Test the shell_helper method itself."""
-        cmds = getattr(shell_helper, str(self.COMMAND))()
+        args: List[str] = []
+        cmds = getattr(shell_helper, str(self.COMMAND))(args)
         self._assert("\n".join(cmds))
 
     def test_cmdline(
@@ -188,9 +194,87 @@ class TestLintDatabase(ShellHelperTest):
     def test_no_lint_warnings(self) -> None:
         """Test the case of no raised lint warnings."""
         config.load(get_resource("debug.py"))
-        lint_messages = shell_helper.lint_database()
+        args: List[str] = []
+        lint_messages = shell_helper.lint_database(args)
         for msg, exp in zip_longest(
             lint_messages, ["Congratulations! Your database triggers no lint messages."]
         ):
             if msg.strip() and exp:
                 assert msg == exp
+
+    @pytest.mark.parametrize("git", [False, True])
+    def test_lint_auto_format(self, git: bool) -> None:
+        """Test automatic lint formatter.
+
+        Args:
+            git: whether or not git-tracking should be enabled.
+        """
+        tmp_dir = Path(tempfile.gettempdir()).resolve()
+        cobib_test_dir = tmp_dir / "cobib_lint_test"
+        cobib_test_dir.mkdir(parents=True, exist_ok=True)
+        cobib_test_dir_git = cobib_test_dir / ".git"
+
+        database_file = RelPath(cobib_test_dir / "database.yaml")
+
+        copyfile(TestLintDatabase.REL_PATH.path, database_file.path)
+        config.database.file = str(database_file)
+        config.database.git = git
+
+        if git:
+            commands = [
+                f"cd {cobib_test_dir}",
+                "git init",
+                "git add -- database.yaml",
+                "git commit --no-gpg-sign --quiet --message 'Initial commit'",
+            ]
+            os.system("; ".join(commands))
+
+        try:
+            # apply linting with formatting and check for the expected lint messages
+            args: List[str] = ["--format"]
+            pre_lint_messages = shell_helper.lint_database(args)
+            expected_messages = [
+                "The following lint messages have successfully been resolved:"
+            ] + self.EXPECTED
+            for msg, truth in zip_longest(pre_lint_messages, expected_messages):
+                if msg.strip() and truth:
+                    assert msg == truth.replace(str(TestLintDatabase.REL_PATH), str(database_file))
+
+            # assert auto-formatted database
+            with open(database_file.path, "r") as file:
+                with open(get_resource("fixed_database.yaml", "utils"), "r") as expected:
+                    for line, truth in zip_longest(file.readlines(), expected.readlines()):
+                        assert line == truth
+
+            # assert git message
+            if git:
+                with subprocess.Popen(
+                    [
+                        "git",
+                        "-C",
+                        cobib_test_dir_git,
+                        "show",
+                        "--format=format:%B",
+                        "--no-patch",
+                        "HEAD",
+                    ],
+                    stdout=subprocess.PIPE,
+                ) as proc:
+                    message, _ = proc.communicate()
+                    # decode it
+                    split_msg = message.decode("utf-8").split("\n")
+                    if split_msg is None:
+                        return
+                    # assert subject line
+                    assert "Auto-commit: LintCommand" in split_msg[0]
+
+            # recheck linting and assert no lint messages
+            post_lint_messages = shell_helper.lint_database([])
+            for msg, exp in zip_longest(
+                post_lint_messages, ["Congratulations! Your database triggers no lint messages."]
+            ):
+                if msg.strip() and exp:
+                    assert msg == exp
+
+        finally:
+            rmtree(cobib_test_dir)

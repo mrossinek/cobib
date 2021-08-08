@@ -6,7 +6,7 @@ import logging
 import re
 import sys
 from collections import OrderedDict
-from typing import TYPE_CHECKING, Dict, List, Optional, Union, cast
+from typing import TYPE_CHECKING, Dict, List, Optional, cast
 
 from cobib.config import config
 from cobib.utils.rel_path import RelPath
@@ -29,7 +29,7 @@ class Database(OrderedDict):  # type: ignore
     _instance: Optional[Database] = None
     """The singleton instance of this class."""
 
-    _unsaved_entries: Dict[Union[str], Union[None, str]] = {}
+    _unsaved_entries: Dict[str, Optional[str]] = {}
     """A dictionary of changed entries which have not been written to the database file, yet.
     The keys are the entry labels. If it the entry was removed, the value of this key is `None`.
     Otherwise it is set to the label of the changed entry (which may be different from the previous
