@@ -18,6 +18,9 @@ investigate and manage the database.
 For easy of use it also comes with a curses-based \fBTUI\fR which is
 automatically started when no other subcommand is found (more information is
 provided in that section).
+.PP
+coBib also provides some "meta"-commands. These are expained in the \fBSHELL
+UTILITIES\fR section.
 .SH OPTIONS
 .TP
 .BR \-\-version
@@ -625,6 +628,35 @@ You can specify a list of journal abbreviations. This list should be formatted
 as tuples of the form: \fB(full journal name, abbreviation)\fR. The abbreviation
 should include any necessary punctuation which can be excluded upon export (see
 also \fIcobib export --help\fR).
+.PP
+.SH SHELL UTILITIES
+In addition to the \fISUBCOMMANDS\fR coBib also provides some "meta"-commands
+for varying purposes.
+.TP
+.B cobib _example_config
+Prints the example configuration. You can do the following to get started with a
+custom configuration:
+.in +4n
+    \fIcobib _example_config > ~/.config/cobib/config.py\fR
+.in -4n
+.TP
+.B cobib _lint_database
+Lints the database file for potential points of formatting improvements.
+.PP
+.in +8n
+.BR \-f ", " \-\-format
+.in +4n
+If you provide this option, coBib will automatically format your database to
+resolve all found lint messages.
+.TP
+.B cobib _list_commands
+Lists all available \fISUBCOMMANDS\fR.
+.TP
+.B cobib _list_labels
+Lists all labels in your database.
+.TP
+.B cobib _list_filters
+Lists all available filters.
 .PP
 .SH ENVIRONMENT
 .TP

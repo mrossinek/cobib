@@ -2,7 +2,9 @@
 
 This module provides a variety of shell helper utilities.
 """
+# pylint: disable=unused-argument
 
+import argparse
 import inspect
 import logging
 from io import StringIO
@@ -11,16 +13,30 @@ from typing import List, Set
 from .rel_path import RelPath
 
 
-def list_commands() -> List[str]:
-    """Lists all available subcommands."""
+def list_commands(args: List[str]) -> List[str]:
+    """Lists all available subcommands.
+
+    Args:
+        args: a sequence of additional arguments used for the execution. None are supported yet.
+
+    Returns:
+        The list of available commands.
+    """
     # pylint: disable=import-outside-toplevel
     from cobib import commands
 
     return [cls.name for _, cls in inspect.getmembers(commands) if inspect.isclass(cls)]
 
 
-def list_labels() -> List[str]:
-    """List all available labels in the database."""
+def list_labels(args: List[str]) -> List[str]:
+    """List all available labels in the database.
+
+    Args:
+        args: a sequence of additional arguments used for the execution. None are supported yet.
+
+    Returns:
+        The list of all labels.
+    """
     # pylint: disable=import-outside-toplevel
     from cobib.database import Database
 
@@ -28,8 +44,15 @@ def list_labels() -> List[str]:
     return labels
 
 
-def list_filters() -> Set[str]:
-    """Lists all field names available for filtering."""
+def list_filters(args: List[str]) -> Set[str]:
+    """Lists all field names available for filtering.
+
+    Args:
+        args: a sequence of additional arguments used for the execution. None are supported yet.
+
+    Returns:
+        The list of all available filters.
+    """
     # pylint: disable=import-outside-toplevel
     from cobib.database import Database
 
@@ -39,8 +62,15 @@ def list_filters() -> Set[str]:
     return filters
 
 
-def example_config() -> List[str]:
-    """Shows the (well-commented) example configuration."""
+def example_config(args: List[str]) -> List[str]:
+    """Shows the (well-commented) example configuration.
+
+    Args:
+        args: a sequence of additional arguments used for the execution. None are supported yet.
+
+    Returns:
+        The lines of the example config file.
+    """
     root = RelPath(__file__).parent.parent
     with open(root / "config/example.py", "r") as file:
         return [line.strip() for line in file.readlines()]
@@ -52,6 +82,8 @@ class LintFormatter(logging.Formatter):
     def __init__(self, *args, **kwargs) -> None:  # type: ignore
         # noqa: D107
         super().__init__(*args, **kwargs)
+
+        self.dirty_entries: Set[str] = set()
 
         # pylint: disable=import-outside-toplevel
         from cobib.config import config
@@ -77,6 +109,7 @@ class LintFormatter(logging.Formatter):
         try:
             entry = record.entry  # type: ignore[attr-defined]
             field = record.field  # type: ignore[attr-defined]
+            self.dirty_entries.add(entry)
             raw_db = enumerate(self._raw_database)
             _, line = next(raw_db)
             while not line.startswith(entry):
@@ -88,8 +121,27 @@ class LintFormatter(logging.Formatter):
             return ""
 
 
-def lint_database() -> List[str]:
-    """Lints the users database."""
+def lint_database(args: List[str]) -> List[str]:
+    """Lints the users database.
+
+    Args:
+        args: a sequence of additional arguments used for the execution. Currently, only a single
+            optional value is allowed:
+                * `-f`, `--format`: if specified, the database will be formatted to automatically
+                    resolve all lint messages.
+
+    Returns:
+        The list of INFO log messages raised upon Entry initialization.
+    """
+    parser = argparse.ArgumentParser(prog="lint_database", description="A database format linter.")
+    parser.add_argument(
+        "-f",
+        "--format",
+        action="store_true",
+        help="Automatically format database to conform with linter.",
+    )
+    largs = parser.parse_args(args)
+
     # pylint: disable=import-outside-toplevel
     from cobib.database import Database
 
@@ -98,7 +150,9 @@ def lint_database() -> List[str]:
     handler = logging.StreamHandler(output)
     handler.setLevel(logging.INFO)
     handler.addFilter(logging.Filter("cobib.database.entry"))
-    handler.setFormatter(LintFormatter())
+
+    formatter = LintFormatter()
+    handler.setFormatter(formatter)
 
     root_logger = logging.getLogger()
     if root_logger.getEffectiveLevel() > logging.INFO:
@@ -118,4 +172,32 @@ def lint_database() -> List[str]:
 
     if all(not msg for msg in lint_messages):
         return ["Congratulations! Your database triggers no lint messages."]
+
+    if largs.format:
+        for label in formatter.dirty_entries:
+            # we exploit the rename method to register all dirty entries for re-writing
+            Database().rename(label, label)
+
+        Database.save()
+
+        # pylint: disable=import-outside-toplevel
+        from cobib.commands.base_command import Command
+
+        # generate automatic git commit
+        class LintCommand(Command):
+            """The linting command."""
+
+            name = "lint"
+
+            def execute(self, args, out=None):  # type: ignore
+                pass
+
+            @staticmethod
+            def tui(tui):  # type: ignore
+                pass
+
+        LintCommand().git(args=vars(largs))
+
+        return ["The following lint messages have successfully been resolved:"] + lint_messages
+
     return lint_messages

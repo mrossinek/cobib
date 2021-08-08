@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - print Changelog since the last run version (cached in `config.logging.version`) (#82)
 - the `AddCommand` now has a new `--update` option (#79,!41)
+- the `_lint_database` utility now takes the `--format` argument, which automatically resolves all lint messages (#81,!42)
 
 
 ## [3.2.1] - 2021-07-15

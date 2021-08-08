@@ -32,7 +32,7 @@ def main() -> None:
     stream_handler = get_stream_handler()
     root_logger.addHandler(stream_handler)
 
-    subcommands = [cmd.split(":")[0] for cmd in shell_helper.list_commands()]
+    subcommands = [cmd.split(":")[0] for cmd in shell_helper.list_commands([])]
     parser = argparse.ArgumentParser(
         prog="coBib",
         description=(
@@ -153,7 +153,7 @@ def helper_main() -> None:
 
     helper = getattr(shell_helper, args.helper.strip("_"))
     # any shell helper function will return a list of the requested items
-    for item in helper():
+    for item in helper(args.args):
         print(item)
 
 
