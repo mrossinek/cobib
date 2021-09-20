@@ -184,7 +184,7 @@ class TUITest:
             # read the child process log file
             logs: List[Tuple[str, int, str]] = []
             print("### Captured logs from child process ###")
-            with open(TMP_LOGFILE, "r") as logfile:
+            with open(TMP_LOGFILE, "r", encoding="utf-8") as logfile:
                 for line in logfile.readlines():
                     print(line.strip("\n"))
                     if not line.startswith(str(date.today())):

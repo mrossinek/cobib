@@ -149,7 +149,7 @@ class TestPrintExampleConfig(ShellHelperTest):
     EXPECTED = get_resource("example.py", "../src/cobib/config")
 
     def _assert(self, out: str) -> None:
-        with open(self.EXPECTED, "r") as expected:
+        with open(self.EXPECTED, "r", encoding="utf-8") as expected:
             for line, truth in zip_longest(out.split("\n"), expected):
                 try:
                     assert line == truth.strip()
@@ -241,8 +241,10 @@ class TestLintDatabase(ShellHelperTest):
                     assert msg == truth.replace(str(TestLintDatabase.REL_PATH), str(database_file))
 
             # assert auto-formatted database
-            with open(database_file.path, "r") as file:
-                with open(get_resource("fixed_database.yaml", "utils"), "r") as expected:
+            with open(database_file.path, "r", encoding="utf-8") as file:
+                with open(
+                    get_resource("fixed_database.yaml", "utils"), "r", encoding="utf-8"
+                ) as expected:
                     for line, truth in zip_longest(file.readlines(), expected.readlines()):
                         assert line == truth
 

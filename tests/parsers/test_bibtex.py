@@ -18,7 +18,7 @@ class TestBibtexParser(ParserTest):
     def test_from_bibtex_str(self) -> None:
         """Test parsing a bibtex string."""
         reference = self.EXAMPLE_ENTRY_DICT.copy()
-        with open(self.EXAMPLE_BIBTEX_FILE, "r") as file:
+        with open(self.EXAMPLE_BIBTEX_FILE, "r", encoding="utf-8") as file:
             bibtex_str = file.read()
         entries = parsers.BibtexParser().parse(bibtex_str)
         entry = list(entries.values())[0]

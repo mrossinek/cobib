@@ -494,8 +494,7 @@ class Config(Dict[str, Any]):
 
         # TUI.COLORS section
         LOGGER.debug("Validating the TUI.COLORS configuration section.")
-        # pylint: disable=consider-iterating-dictionary
-        for name in self.DEFAULTS["tui"]["colors"].keys():
+        for name in self.DEFAULTS["tui"]["colors"]:
             self._assert(
                 name in self.tui.colors.keys(), f"Missing config.tui.colors.{name} specification!"
             )
@@ -516,8 +515,7 @@ class Config(Dict[str, Any]):
 
         # TUI.KEY_BINDINGS section
         LOGGER.debug("Validating the TUI.KEY_BINDINGS configuration section.")
-        # pylint: disable=consider-iterating-dictionary
-        for command in self.DEFAULTS["tui"]["key_bindings"].keys():
+        for command in self.DEFAULTS["tui"]["key_bindings"]:
             self._assert(
                 command in self.tui.key_bindings.keys(),
                 f"Missing config.tui.key_bindings.{command} key binding!",
@@ -569,8 +567,8 @@ class Config(Dict[str, Any]):
 
     def defaults(self) -> None:
         """Resets the configuration to the default settings."""
-        # pylint: disable=consider-using-dict-items,consider-iterating-dictionary
-        for section in self.DEFAULTS.keys():
+        # pylint: disable=consider-using-dict-items
+        for section in self.DEFAULTS:
             self[section].update(**self.DEFAULTS[section])
 
     def get_ansi_color(self, name: str) -> str:

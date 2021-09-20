@@ -44,11 +44,11 @@ class TestAddCommand(CommandTest, TUITest):
                 expected lines.
         """
         # compare with reference file
-        with open(EXAMPLE_LITERATURE, "r") as expected:
+        with open(EXAMPLE_LITERATURE, "r", encoding="utf-8") as expected:
             true_lines = expected.readlines()
-        with open(extra_filename, "r") as extra:
+        with open(extra_filename, "r", encoding="utf-8") as extra:
             true_lines += extra.readlines()
-        with open(config.database.file, "r") as file:
+        with open(config.database.file, "r", encoding="utf-8") as file:
             # we use zip_longest to ensure that we don't have more than we expect
             for line, truth in zip_longest(file, true_lines):
                 assert line == truth
@@ -131,7 +131,7 @@ class TestAddCommand(CommandTest, TUITest):
             "No input to parse. Creating new entry 'dummy' manually.",
         ) in caplog.record_tuples
 
-        with open(config.database.file, "r") as file:
+        with open(config.database.file, "r", encoding="utf-8") as file:
             lines = file.readlines()
             dummy_start = lines.index("dummy:\n")
             assert dummy_start > 0
@@ -282,7 +282,7 @@ class TestAddCommand(CommandTest, TUITest):
             caplog: the built-in pytest fixture.
         """
         with tempfile.NamedTemporaryFile("w") as file:
-            with open(EXAMPLE_DUPLICATE_ENTRY_BIB, "r") as existing:
+            with open(EXAMPLE_DUPLICATE_ENTRY_BIB, "r", encoding="utf-8") as existing:
                 file.writelines(existing.readlines())
             file.writelines(["@article{dummy,\nauthor = {Dummy},\n}"])
             file.flush()

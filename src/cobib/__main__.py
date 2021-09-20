@@ -39,7 +39,7 @@ def main() -> None:
             "Cobib input arguments.\nIf no arguments are given, the TUI will start as a default."
         ),
     )
-    parser.add_argument("--version", action="version", version="%(prog)s v{}".format(__version__))
+    parser.add_argument("--version", action="version", version=f"%(prog)s v{__version__}")
     parser.add_argument("-v", "--verbose", action="count", default=0)
     parser.add_argument("-l", "--logfile", type=argparse.FileType("w"), help="Alternative log file")
     parser.add_argument(

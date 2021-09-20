@@ -32,7 +32,7 @@ class TestShowCommand(CommandTest, TUITest):
         Args:
             output: the actual output of the command.
         """
-        with open(get_resource("example_literature.bib"), "r") as expected:
+        with open(get_resource("example_literature.bib"), "r", encoding="utf-8") as expected:
             # we use zip_longest to ensure that we don't have more than we expect
             for line, truth in zip_longest(output, expected):
                 if not line:

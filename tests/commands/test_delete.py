@@ -39,8 +39,8 @@ class TestDeleteCommand(CommandTest, TUITest):
         for label in labels:
             assert bib.get(label, None) is None
 
-        with open(config.database.file, "r") as file:
-            with open(get_resource("example_literature.yaml"), "r") as expected:
+        with open(config.database.file, "r", encoding="utf-8") as file:
+            with open(get_resource("example_literature.yaml"), "r", encoding="utf-8") as expected:
                 # NOTE: do NOT use zip_longest to omit last entries (for testing simplicity)
                 for line, truth in zip(file, expected):
                     assert line == truth
@@ -93,7 +93,7 @@ class TestDeleteCommand(CommandTest, TUITest):
         """
         with tempfile.TemporaryDirectory() as tmpdirname:
             path = RelPath(tmpdirname + "/dummy.pdf")
-            open(path.path, "w").close()  # pylint: disable=consider-using-with
+            open(path.path, "w", encoding="utf-8").close()  # pylint: disable=consider-using-with
 
             Database()["knuthwebsite"].file = str(path)
 

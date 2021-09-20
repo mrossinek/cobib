@@ -45,7 +45,7 @@ class TestInitCommand(CommandTest):
         """
         if safe:
             # fill database file
-            with open(config.database.file, "w") as file:
+            with open(config.database.file, "w", encoding="utf-8") as file:
                 file.write("test")
         # store current time
         now = float(datetime.now().timestamp())
@@ -53,7 +53,7 @@ class TestInitCommand(CommandTest):
         InitCommand().execute(["--git"] if setup["git"] else [])
         if safe:
             # check database file still contains 'test'
-            with open(config.database.file, "r") as file:
+            with open(config.database.file, "r", encoding="utf-8") as file:
                 assert file.read() == "test"
         else:
             # check creation time of temporary database file

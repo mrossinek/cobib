@@ -62,9 +62,9 @@ class JournalAbbreviations:
         if not JournalAbbreviations._abbreviations:
             JournalAbbreviations.load_abbreviations()
 
-        if journal in JournalAbbreviations._abbreviations.keys():
+        if journal in JournalAbbreviations._abbreviations:
             return True
-        if journal in JournalAbbreviations._fullwords.keys():
+        if journal in JournalAbbreviations._fullwords:
             return True
 
         msg = (
@@ -96,7 +96,7 @@ class JournalAbbreviations:
             lambda journal: journal.replace(".", "") if dotless else journal
         )
 
-        if journal in JournalAbbreviations._fullwords.keys():
+        if journal in JournalAbbreviations._fullwords:
             LOGGER.debug("'%s' is already abbreviated.", journal)
             return remove_punctuation(journal)
 
@@ -118,7 +118,7 @@ class JournalAbbreviations:
         if not JournalAbbreviations.check_existence(journal):
             return journal
 
-        if journal in JournalAbbreviations._abbreviations.keys():
+        if journal in JournalAbbreviations._abbreviations:
             LOGGER.info("'%s' is already elongated.", journal)
             return journal
 

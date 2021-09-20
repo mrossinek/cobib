@@ -331,7 +331,7 @@ class TUI:
         color_cfg = config.tui.colors
         colors: Dict[str, Dict[str, str]] = {col: {} for col in TUI.COLOR_NAMES}
         for attr, col in color_cfg.items():
-            if attr in TUI.COLOR_VALUES.keys():
+            if attr in TUI.COLOR_VALUES:
                 if not curses.can_change_color():
                     # cannot change curses default colors
                     LOGGER.warning("Curses cannot change the default colors. Skipping color setup.")
@@ -395,10 +395,11 @@ class TUI:
         for cmd in TUI.HELP_DICT:
             # get associated key for this command
             key = config.tui.key_bindings[cmd.lower()]
-            infoline += " {}:{}".format(key, cmd)
+            infoline += f" {key}:{cmd}"
         return infoline.strip()
 
     def help(self) -> None:
+        # pylint: disable=consider-using-f-string
         """The Help Command.
 
         Opens a popup with more detailed information on the configured key bindings and short
@@ -438,7 +439,7 @@ class TUI:
         while True:
             # handle possible keys
             try:
-                if key in TUI.KEYDICT.keys():
+                if key in TUI.KEYDICT:
                     cmd = TUI.KEYDICT[key]
                     if cmd not in STATE.inactive_commands:
                         if isinstance(cmd, tuple):

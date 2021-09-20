@@ -59,7 +59,7 @@ class YAMLParser(Parser):
             stream: IO = io.StringIO(Path(string))  # type: ignore
         except TypeError:
             try:
-                stream = open(string, "r")  # pylint: disable=consider-using-with
+                stream = open(string, "r", encoding="utf-8")  # pylint: disable=consider-using-with
             except FileNotFoundError as exc:
                 raise exc
         yml = yaml.YAML(typ="safe", pure=True)  # type: ignore

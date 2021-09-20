@@ -384,7 +384,7 @@ def test_save() -> None:
     """Test the `cobib.database.Entry.save` method."""
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     entry_str = entry.save()
-    with open(EXAMPLE_YAML_FILE, "r") as expected:
+    with open(EXAMPLE_YAML_FILE, "r", encoding="utf-8") as expected:
         for line, truth in zip(entry_str.split("\n"), expected):
             assert line == truth.strip("\n")
 

@@ -138,7 +138,7 @@ def test_database_save_add() -> None:
     bib.save()
 
     expected = []
-    with open(EXAMPLE_LITERATURE, "r") as file:
+    with open(EXAMPLE_LITERATURE, "r", encoding="utf-8") as file:
         expected.extend(file.readlines())
     expected.extend(DUMMY_ENTRY_YAML.split("\n"))
 
@@ -146,7 +146,7 @@ def test_database_save_add() -> None:
         # pylint: disable=protected-access
         assert Database._unsaved_entries == {}
 
-        with open(config.database.file, "r") as file:
+        with open(config.database.file, "r", encoding="utf-8") as file:
             # NOTE: do NOT use zip_longest to omit last entries (for testing simplicity)
             for line, truth in zip(file, expected):
                 assert line.strip() == truth.strip()
@@ -175,8 +175,8 @@ def test_database_save_modify() -> None:
         # pylint: disable=protected-access
         assert Database._unsaved_entries == {}
 
-        with open(config.database.file, "r") as file:
-            with open(EXAMPLE_LITERATURE, "r") as expected:
+        with open(config.database.file, "r", encoding="utf-8") as file:
+            with open(EXAMPLE_LITERATURE, "r", encoding="utf-8") as expected:
                 # NOTE: do NOT use zip_longest to omit last entries (for testing simplicity)
                 for line, truth in zip(file, expected):
                     if "tags" in line:
@@ -208,8 +208,8 @@ def test_database_save_delete() -> None:
         # pylint: disable=protected-access
         assert Database._unsaved_entries == {}
 
-        with open(config.database.file, "r") as file:
-            with open(EXAMPLE_LITERATURE, "r") as expected:
+        with open(config.database.file, "r", encoding="utf-8") as file:
+            with open(EXAMPLE_LITERATURE, "r", encoding="utf-8") as expected:
                 # NOTE: do NOT use zip_longest to omit last entries (for testing simplicity)
                 for line, truth in zip(file, expected):
                     assert line == truth

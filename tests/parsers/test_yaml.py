@@ -16,7 +16,7 @@ class TestYAMLParser(ParserTest):
         """Test to yaml conversion."""
         entry = Entry("Cao_2019", self.EXAMPLE_ENTRY_DICT)
         yaml_str = parsers.YAMLParser().dump(entry)
-        with open(self.EXAMPLE_YAML_FILE, "r") as file:
+        with open(self.EXAMPLE_YAML_FILE, "r", encoding="utf-8") as file:
             assert yaml_str == file.read()
 
     def test_from_yaml_file(self) -> None:

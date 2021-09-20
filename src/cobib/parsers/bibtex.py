@@ -41,7 +41,7 @@ class BibtexParser(Parser):
         bparser.interpolate_strings = False
         try:
             LOGGER.debug("Loading BibTex data from file: %s.", string)
-            with open(string, "r") as file:
+            with open(string, "r", encoding="utf-8") as file:
                 database = bibtexparser.load(file, parser=bparser)
         except (OSError, FileNotFoundError):
             LOGGER.debug("Loading BibTex string: %s.", string)

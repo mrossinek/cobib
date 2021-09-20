@@ -161,7 +161,7 @@ class Database(OrderedDict):  # type: ignore
         yml = YAMLParser()
 
         file = RelPath(config.database.file).path
-        with open(file, "r") as bib:
+        with open(file, "r", encoding="utf-8") as bib:
             lines = bib.readlines()
 
         label_regex = re.compile(r"^([^:]+):$")
@@ -175,7 +175,7 @@ class Database(OrderedDict):  # type: ignore
                 if matches is None:
                     raise AttributeError
                 new_label = matches.groups()[0]
-                if new_label in cls._unsaved_entries.keys():
+                if new_label in cls._unsaved_entries:
                     LOGGER.debug('Entry "%s" found. Starting to replace lines.', new_label)
                     overwrite = True
                     cur_label = new_label
@@ -212,6 +212,6 @@ class Database(OrderedDict):  # type: ignore
                 buffer.append(entry_str)
                 cls._unsaved_entries.pop(label)
 
-        with open(file, "w") as bib:
+        with open(file, "w", encoding="utf-8") as bib:
             for line in buffer:
                 bib.write(line)
