@@ -395,10 +395,11 @@ class TUI:
         for cmd in TUI.HELP_DICT:
             # get associated key for this command
             key = config.tui.key_bindings[cmd.lower()]
-            infoline += " {}:{}".format(key, cmd)
+            infoline += f" {key}:{cmd}"
         return infoline.strip()
 
     def help(self) -> None:
+        # pylint: disable=consider-using-f-string
         """The Help Command.
 
         Opens a popup with more detailed information on the configured key bindings and short

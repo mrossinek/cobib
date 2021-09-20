@@ -472,6 +472,7 @@ class TestTUI(CmdLineTest, TUITest):
         self.run_tui([SIGWINCH], assertion, {})
 
     def test_help(self, patch_curses: Any, caplog: pytest.LogCaptureFixture) -> None:
+        # pylint: disable=consider-using-f-string
         """Test `cobib.tui.tui.TUI.help`.
 
         Args:
@@ -529,6 +530,7 @@ class TestTUI(CmdLineTest, TUITest):
         """Test `cobib.tui.tui.TUI.help` while the TUI is actually running."""
 
         def assertion(screen, logs, **kwargs):  # type: ignore
+            # pylint: disable=consider-using-f-string
             header_check = ["coBib TUI Help" in line for line in screen.display]
             assert any(header_check)
             offset = header_check.index(True)

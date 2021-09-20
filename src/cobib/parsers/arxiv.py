@@ -80,7 +80,7 @@ class ArxivParser(Parser):
                 if first:
                     label = name.split()[-1] + label
                     first = False
-                entry["author"] += "{} and ".format(name)
+                entry["author"] += f"{name} and "
             elif key.name == "summary":
                 entry["abstract"] = re.sub(r"\s+", " ", key.contents[0].strip().replace("\n", " "))
             elif key.name == "link":

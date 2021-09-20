@@ -113,13 +113,13 @@ class OpenCommand(Command):
                             things_to_open[field] += [urlparse(val)]
                             count += 1
             except KeyError:
-                msg = "No entry with the label '{}' could be found.".format(label)
+                msg = f"No entry with the label '{label}' could be found."
                 LOGGER.warning(msg)
                 continue
 
             # if there are none, skip current label
             if not things_to_open:
-                msg = "The entry '{}' has no actionable field associated with it.".format(label)
+                msg = f"The entry '{label}' has no actionable field associated with it."
                 LOGGER.warning(msg)
                 continue
 

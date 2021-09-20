@@ -254,7 +254,7 @@ class Frame:
         # display buffer in viewport
         self.view(ansi_map=self.tui.ANSI_MAP)
         # update top statusbar
-        STATE.topstatus = "coBib v{} - {} Entries".format(__version__, len(labels))
+        STATE.topstatus = f"coBib v{__version__} - {len(labels)} Entries"
         self.tui.statusbar(self.tui.topbar, STATE.topstatus)
         # if cursor position is out-of-view (due to e.g. top-line reset in Show command), reset the
         # top-line such that the current line becomes height again
