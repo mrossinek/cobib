@@ -70,8 +70,8 @@ def test_download(monkeypatch: pytest.MonkeyPatch) -> None:
         )
         if path is None:
             pytest.skip("Likely, a requests error occured.")
-        with open(get_resource("__init__.py", "utils"), "r") as expected:
-            with open(tmpdirname + "/dummy.pdf", "r") as truth:
+        with open(get_resource("__init__.py", "utils"), "r", encoding="utf-8") as expected:
+            with open(tmpdirname + "/dummy.pdf", "r", encoding="utf-8") as truth:
                 assert expected.read() == truth.read()
 
 
@@ -110,7 +110,9 @@ def test_skip_download_if_exists(caplog: pytest.LogCaptureFixture, overwrite: bo
         overwrite: whether or not to overwrite the existing file.
     """
     with tempfile.TemporaryDirectory() as tmpdirname:
-        open(tmpdirname + "/dummy.pdf", "w").close()  # pylint: disable=consider-using-with
+        open(  # pylint: disable=consider-using-with
+            tmpdirname + "/dummy.pdf", "w", encoding="utf-8"
+        ).close()
         FileDownloader().download(
             "https://gitlab.com/mrossinek/cobib/-/raw/master/tests/utils/__init__.py",
             "dummy",

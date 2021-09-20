@@ -72,7 +72,7 @@ def example_config(args: List[str]) -> List[str]:
         The lines of the example config file.
     """
     root = RelPath(__file__).parent.parent
-    with open(root / "config/example.py", "r") as file:
+    with open(root / "config/example.py", "r", encoding="utf-8") as file:
         return [line.strip() for line in file.readlines()]
 
 
@@ -90,7 +90,7 @@ class LintFormatter(logging.Formatter):
 
         self._database_path = RelPath(config.database.file)
 
-        with open(self._database_path.path, "r") as database:
+        with open(self._database_path.path, "r", encoding="utf-8") as database:
             self._raw_database = database.readlines()
 
     def format(self, record: logging.LogRecord) -> str:

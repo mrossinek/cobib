@@ -50,8 +50,10 @@ class TestExportCommand(CommandTest, TUITest):
             args: the arguments which were passed to the command.
         """
         try:
-            with open(TMPDIR / "cobib_test_export.bib", "r") as file:
-                with open(get_resource("example_literature.bib"), "r") as expected:
+            with open(TMPDIR / "cobib_test_export.bib", "r", encoding="utf-8") as file:
+                with open(
+                    get_resource("example_literature.bib"), "r", encoding="utf-8"
+                ) as expected:
                     # NOTE: do NOT use zip_longest to omit later entries
                     for line, truth in zip(file, expected):
                         if truth[0] == "%":
@@ -77,8 +79,8 @@ class TestExportCommand(CommandTest, TUITest):
                 assert file.testzip() is None
                 assert file.namelist() == ["debug.py"]
                 file.extract("debug.py", path=TMPDIR)
-                with open(TMPDIR / "debug.py", "r") as extracted:
-                    with open(get_resource("debug.py"), "r") as truth:
+                with open(TMPDIR / "debug.py", "r", encoding="utf-8") as extracted:
+                    with open(get_resource("debug.py"), "r", encoding="utf-8") as truth:
                         assert extracted.read() == truth.read()
         finally:
             try:
@@ -135,7 +137,7 @@ class TestExportCommand(CommandTest, TUITest):
             dotless: whether to abbreviate with or without punctuation.
         """
         try:
-            with open(TMPDIR / "cobib_test_export.bib", "r") as file:
+            with open(TMPDIR / "cobib_test_export.bib", "r", encoding="utf-8") as file:
                 for line in file:
                     if "journal" not in line:
                         continue

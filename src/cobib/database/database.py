@@ -161,7 +161,7 @@ class Database(OrderedDict):  # type: ignore
         yml = YAMLParser()
 
         file = RelPath(config.database.file).path
-        with open(file, "r") as bib:
+        with open(file, "r", encoding="utf-8") as bib:
             lines = bib.readlines()
 
         label_regex = re.compile(r"^([^:]+):$")
@@ -212,6 +212,6 @@ class Database(OrderedDict):  # type: ignore
                 buffer.append(entry_str)
                 cls._unsaved_entries.pop(label)
 
-        with open(file, "w") as bib:
+        with open(file, "w", encoding="utf-8") as bib:
             for line in buffer:
                 bib.write(line)

@@ -185,7 +185,7 @@ class OpenCommand(Command):
         try:
             url_str: str = url.geturl() if url.scheme else str(RelPath(url.geturl()).path)
             LOGGER.debug('Opening "%s" with %s.', url_str, opener)
-            with open(os.devnull, "w") as devnull:
+            with open(os.devnull, "w", encoding="utf-8") as devnull:
                 subprocess.Popen(  # pylint: disable=consider-using-with
                     [opener, url_str], stdout=devnull, stderr=devnull, stdin=devnull, close_fds=True
                 )

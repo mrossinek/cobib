@@ -180,7 +180,7 @@ class ModifyCommand(Command):
             labels = largs.filter
         else:
             LOGGER.debug("Gathering filtered list of entries to be modified.")
-            with open(os.devnull, "w") as devnull:
+            with open(os.devnull, "w", encoding="utf-8") as devnull:
                 labels = ListCommand().execute(largs.filter, out=devnull)
 
         field, value = largs.modification

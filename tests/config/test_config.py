@@ -68,7 +68,7 @@ def test_config_load() -> None:
 
 def test_config_load_from_open_file() -> None:
     """Test loading another config from an open file."""
-    with open(get_resource("debug.py")) as file:
+    with open(get_resource("debug.py"), "r", encoding="utf-8") as file:
         config.load(file)
     assert config.database.file == str(EXAMPLE_LITERATURE)
 

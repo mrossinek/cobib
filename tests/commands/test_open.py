@@ -52,9 +52,9 @@ class TestOpenCommand(CommandTest, TUITest):
 
         if request.param.get("multi_file", True):
             with open(
-                get_resource("example_multi_file_entry.yaml", "commands"), "r"
+                get_resource("example_multi_file_entry.yaml", "commands"), "r", encoding="utf-8"
             ) as multi_file_entry:
-                with open(config.database.file, "a") as database:
+                with open(config.database.file, "a", encoding="utf-8") as database:
                     database.write(multi_file_entry.read())
             Database().read()
 

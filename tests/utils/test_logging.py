@@ -55,7 +55,9 @@ def test_print_changelog(
         captured = ansi_regex.sub("", capsys.readouterr().out).splitlines()
         if cached_version == "0.2":
             assert captured == []
-        with open(get_resource("expected_changelog_printing.txt", "utils"), "r") as expected:
+        with open(
+            get_resource("expected_changelog_printing.txt", "utils"), "r", encoding="utf-8"
+        ) as expected:
             expected_lines = expected.read().splitlines()
             for true, exp in zip(captured[:-2], expected_lines):
                 assert true == exp

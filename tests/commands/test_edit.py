@@ -50,7 +50,7 @@ class TestEditCommand(CommandTest, TUITest):
             if logs is not None:
                 assert ("cobib.commands.edit", 20, f"'{label}' was successfully edited.") in logs
 
-            with open(config.database.file, "r") as file:
+            with open(config.database.file, "r", encoding="utf-8") as file:
                 lines = file.readlines()
                 dummy_start = lines.index("dummy:\n")
                 assert dummy_start > 0
@@ -137,7 +137,9 @@ class TestEditCommand(CommandTest, TUITest):
 
             with tempfile.TemporaryDirectory() as tmpdirname:
                 path = RelPath(tmpdirname + "/einstein.pdf")
-                open(path.path, "w").close()  # pylint: disable=consider-using-with
+                open(  # pylint: disable=consider-using-with
+                    path.path, "w", encoding="utf-8"
+                ).close()
 
                 Database()["einstein"].file = str(path)
 

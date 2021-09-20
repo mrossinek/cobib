@@ -121,7 +121,7 @@ class SearchCommand(Command):
             LOGGER.error(exc.message)
             return None
 
-        with open(os.devnull, "w") as devnull:
+        with open(os.devnull, "w", encoding="utf-8") as devnull:
             labels = ListCommand().execute(largs.filter, out=devnull)
         if labels is None:
             return None  # pragma: no cover
