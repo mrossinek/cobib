@@ -90,7 +90,7 @@ class ArxivParser(Parser):
                     entry["_download"] = key.attrs.get("href", "")
             else:
                 LOGGER.warning("The key '%s' of this arXiv entry is not being processed!", key.name)
-        if "doi" in entry.keys():
+        if "doi" in entry:
             entry["ENTRYTYPE"] = "article"
         else:
             entry["ENTRYTYPE"] = "unpublished"

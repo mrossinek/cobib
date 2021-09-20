@@ -175,7 +175,7 @@ class Database(OrderedDict):  # type: ignore
                 if matches is None:
                     raise AttributeError
                 new_label = matches.groups()[0]
-                if new_label in cls._unsaved_entries.keys():
+                if new_label in cls._unsaved_entries:
                     LOGGER.debug('Entry "%s" found. Starting to replace lines.', new_label)
                     overwrite = True
                     cur_label = new_label

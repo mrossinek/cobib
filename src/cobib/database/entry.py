@@ -67,7 +67,7 @@ class Entry:
             else:
                 self.data[key] = value
 
-        if "ID" in self.data.keys():
+        if "ID" in self.data:
             self.data.pop("ID")
             LOGGER.info(
                 "The field '%s' of entry '%s' is no longer required. It will be inferred from the "
