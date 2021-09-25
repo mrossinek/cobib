@@ -6,6 +6,8 @@ It gathers the BibTex-encoded data from the arXiv API and parses the raw XML dat
 Since v3.2.0 coBib will also automatically download the PDF version of the new entry. You can
 configure the default download location via `config.utils.file_downloader.default_location`.
 
+Since v3.3.0 this parser even supports URLs from which an arXiv ID can be extracted directly.
+
 The parser is registered under the `-a` and `--arxiv` command-line arguments of the
 `cobib.commands.add.AddCommand`.
 
@@ -27,23 +29,34 @@ from .base_parser import Parser
 
 LOGGER = logging.getLogger(__name__)
 
+ARXIV_URL = "https://export.arxiv.org/api/query?id_list="
+"""arXiv exporting URL taken from [here](https://arxiv.org/help/oa)."""
+ARXIV_REGEX = r"(\d{4}.\d{4,5}|[a-z\-]+(\.[A-Z]{2})?\/\d{7})(v\d+)?"
+"""A regex pattern used to match valid DOIs."""
+
 
 class ArxivParser(Parser):
     """The arXiv Parser."""
 
     name = "arxiv"
 
-    ARXIV_URL = "https://export.arxiv.org/api/query?id_list="
-    """arXiv exporting URL taken from [here](https://arxiv.org/help/oa)."""
-
     def parse(self, string: str) -> Dict[str, Entry]:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
-        LOGGER.info("Gathering BibTex data for arXiv ID: %s.", string)
         try:
-            page = requests.get(self.ARXIV_URL + string, timeout=10)
+            match = re.search(ARXIV_REGEX, string)
+            if match is None:
+                raise AssertionError
+        except AssertionError:
+            msg = f"'{string}' is not a valid arXiv ID."
+            LOGGER.warning(msg)
+            return OrderedDict()
+        arxiv_id = match.group(1)
+        LOGGER.info("Gathering BibTex data for arXiv ID: %s.", arxiv_id)
+        try:
+            page = requests.get(ARXIV_URL + arxiv_id, timeout=10)
         except requests.exceptions.RequestException as err:
-            LOGGER.error("An Exception occurred while trying to query the arXiv ID: %s.", string)
+            LOGGER.error("An Exception occurred while trying to query the arXiv ID: %s.", arxiv_id)
             LOGGER.error(err)
             return OrderedDict()
         xml = BeautifulSoup(page.text, features="html.parser")

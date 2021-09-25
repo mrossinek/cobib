@@ -12,22 +12,35 @@ from cobib.database import Entry
 from .parser_test import ParserTest
 
 
+def assert_default_test_entry(entry: Entry) -> None:
+    """Asserts that the passed entry is the default testing entry.
+
+    Args:
+        entry: the entry to assert.
+    """
+    reference = ParserTest.EXAMPLE_ENTRY_DICT.copy()
+    # In this specific case the bib file provided by this DOI includes additional (yet
+    # unnecessary) brackets in the escaped special characters of the author field. Thus, we
+    # correct for this inconsistency manually before asserting the equality.
+    reference["author"] = str(reference["author"]).replace("'a", "'{a}")
+    reference["_download"] = "https://pubs.acs.org/doi/10.1021/acs.chemrev.8b00803"
+    assert entry.data == reference
+
+
 class TestDOIParser(ParserTest):
     """Tests for coBib's DOIParser."""
 
-    def test_from_doi(self, caplog: pytest.LogCaptureFixture) -> None:
+    @pytest.mark.parametrize(
+        "query", ["10.1021/acs.chemrev.8b00803", "https://doi.org/10.1021/acs.chemrev.8b00803"]
+    )
+    def test_from_doi(self, query: str, caplog: pytest.LogCaptureFixture) -> None:
         """Test parsing from DOI.
 
         Args:
+            query: the arXiv ID or URL which to query.
             caplog: the built-in pytest fixture.
         """
-        reference = self.EXAMPLE_ENTRY_DICT.copy()
-        # In this specific case the bib file provided by this DOI includes additional (yet
-        # unnecessary) brackets in the escaped special characters of the author field. Thus, we
-        # correct for this inconsistency manually before asserting the equality.
-        reference["author"] = str(reference["author"]).replace("'a", "'{a}")
-        reference["_download"] = "https://pubs.acs.org/doi/10.1021/acs.chemrev.8b00803"
-        entries = parsers.DOIParser().parse("10.1021/acs.chemrev.8b00803")
+        entries = parsers.DOIParser().parse(query)
 
         if (
             "cobib.parsers.doi",
@@ -37,7 +50,7 @@ class TestDOIParser(ParserTest):
             pytest.skip("The requests API encountered an error. Skipping test.")
 
         entry = list(entries.values())[0]
-        assert entry.data == reference
+        assert_default_test_entry(entry)
 
     def test_invalid_doi(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test parsing an invalid DOI.

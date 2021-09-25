@@ -9,4 +9,5 @@ from .arxiv import ArxivParser as ArxivParser
 from .bibtex import BibtexParser as BibtexParser
 from .doi import DOIParser as DOIParser
 from .isbn import ISBNParser as ISBNParser
+from .url import URLParser as URLParser
 from .yaml import YAMLParser as YAMLParser
