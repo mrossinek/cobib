@@ -15,6 +15,7 @@ cobib add --bibtex some_biblatex_file.bib
 cobib add --arxiv <some arXiv ID>
 cobib add --doi <some DOI>
 cobib add --isbn <some ISBN>
+cobib add --url <some URL>
 cobib add --yaml some_cobib_style_yaml_file.yaml
 ```
 
@@ -127,6 +128,7 @@ class AddCommand(Command):
             args: a sequence of additional arguments used for the execution. The following values
                 are allowed for this command:
                     * `-l`, `--label`: the label to give to the new entry.
+                    * `-u`, `--update`: updates an existing database entry if it already exists.
                     * `-f`, `--file`: one or multiple files to associate with this entry. This data
                       will be stored in the `cobib.database.Entry.file` property.
                     * `-p`, `--path`: the path to store the downloaded associated file in. This can
@@ -170,9 +172,15 @@ class AddCommand(Command):
             cls.name: cls for _, cls in inspect.getmembers(parsers) if inspect.isclass(cls)
         }
         for name in avail_parsers.keys():
-            group_add.add_argument(
-                f"-{name[0]}", f"--{name}", type=str, help=f"{name} object identfier"
-            )
+            try:
+                group_add.add_argument(
+                    f"-{name[0]}", f"--{name}", type=str, help=f"{name} object identfier"
+                )
+            except argparse.ArgumentError:
+                try:
+                    group_add.add_argument(f"--{name}", type=str, help=f"{name} object identfier")
+                except argparse.ArgumentError:
+                    continue
         parser.add_argument(
             "tags",
             nargs=argparse.REMAINDER,

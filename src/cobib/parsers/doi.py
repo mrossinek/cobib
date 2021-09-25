@@ -13,6 +13,8 @@ Furthermore, you should look into the `config.utils.file_downloader.url_map` set
 you tell coBib how to map from journal landing page URLs to the corresponding PDF URLs. For more
 information check out `cobib.config.example` and the man-page.
 
+Since v3.3.0 this parser even supports URLs from which a DOI can be extracted directly.
+
 The parser is registered under the `-d` and `--doi` command-line arguments of the
 `cobib.commands.add.AddCommand`.
 
@@ -34,35 +36,38 @@ from .bibtex import BibtexParser
 
 LOGGER = logging.getLogger(__name__)
 
+DOI_URL = "https://doi.org/"
+"""The DOI 'API' URL."""
+DOI_HEADER = {"Accept": "application/x-bibtex"}
+"""The DOI 'API' header taken from [here](https://crosscite.org/docs.html)."""
+DOI_REGEX = r'(10\.[0-9a-zA-Z]+\/(?:(?!["&\'])\S)+)\b'
+"""A regex pattern used to match valid DOIs."""
+
 
 class DOIParser(Parser):
     """The DOI Parser."""
 
     name = "doi"
 
-    DOI_URL = "https://doi.org/"
-    """The DOI 'API' URL."""
-    DOI_HEADER = {"Accept": "application/x-bibtex"}
-    """The DOI 'API' header taken from [here](https://crosscite.org/docs.html)."""
-    DOI_REGEX = r'(10\.[0-9a-zA-Z]+\/(?:(?!["&\'])\S)+)\b'
-    """A regex pattern used to match valid DOIs."""
-
     def parse(self, string: str) -> Dict[str, Entry]:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
         try:
-            assert re.match(self.DOI_REGEX, string)
+            match = re.search(DOI_REGEX, string)
+            if match is None:
+                raise AssertionError
         except AssertionError:
             msg = f"'{string}' is not a valid DOI."
             LOGGER.warning(msg)
             return OrderedDict()
-        LOGGER.info("Gathering BibTex data for DOI: %s.", string)
+        doi = match.group(1)
+        LOGGER.info("Gathering BibTex data for DOI: %s.", doi)
         try:
-            page = requests.get(self.DOI_URL + string, headers=self.DOI_HEADER, timeout=10)
+            page = requests.get(DOI_URL + doi, headers=DOI_HEADER, timeout=10)
             # this assumes that the doi.org page redirects to the correct journal's landing page
-            redirected_url = requests.head(self.DOI_URL + string, timeout=1).headers["Location"]
+            redirected_url = requests.head(DOI_URL + doi, timeout=1).headers["Location"]
         except requests.exceptions.RequestException as err:
-            LOGGER.error("An Exception occurred while trying to query the DOI: %s.", string)
+            LOGGER.error("An Exception occurred while trying to query the DOI: %s.", doi)
             LOGGER.error(err)
             return OrderedDict()
         bib = BibtexParser().parse(page.text)

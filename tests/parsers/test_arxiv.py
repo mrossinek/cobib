@@ -12,16 +12,41 @@ from cobib.database import Entry
 from .parser_test import ParserTest
 
 
+def assert_default_test_entry(entry: Entry) -> None:
+    """Asserts that the passed entry is the default testing entry.
+
+    Args:
+        entry: the entry to assert.
+    """
+    entry.escape_special_chars()
+    assert entry.label == "Cao2018"
+    assert entry.data["archivePrefix"] == "arXiv"
+    assert entry.data["arxivid"].startswith("1812.09976")
+    assert (
+        entry.data["author"]
+        == "Yudong Cao and Jonathan Romero and Jonathan P. Olson and Matthias Degroote and "
+        + "Peter D. Johnson and M{\\'a}ria Kieferov{\\'a} and Ian D. Kivlichan and Tim Menke "
+        + "and Borja Peropadre and Nicolas P. D. Sawaya and Sukin Sim and Libor Veis and "
+        + "Al{\\'a}n Aspuru-Guzik"
+    )
+    assert entry.data["doi"].startswith("10.1021/acs.chemrev.8b00803")
+    assert entry.data["title"] == "Quantum Chemistry in the Age of Quantum Computing"
+    assert entry.data["year"] == 2018
+    assert entry.data["_download"] == "http://arxiv.org/pdf/1812.09976v2"
+
+
 class TestArxivParser(ParserTest):
     """Tests for coBib's ArxivParser."""
 
-    def test_from_arxiv(self, caplog: pytest.LogCaptureFixture) -> None:
+    @pytest.mark.parametrize("query", ["1812.09976", "https://arxiv.org/abs/1812.09976"])
+    def test_from_arxiv(self, query: str, caplog: pytest.LogCaptureFixture) -> None:
         """Test parsing from arXiv.
 
         Args:
+            query: the arXiv ID or URL which to query.
             caplog: the built-in pytest fixture.
         """
-        entries = parsers.ArxivParser().parse("1812.09976")
+        entries = parsers.ArxivParser().parse(query)
 
         if (
             "cobib.parsers.arxiv",
@@ -31,21 +56,7 @@ class TestArxivParser(ParserTest):
             pytest.skip("The requests API encountered an error. Skipping test.")
 
         entry = list(entries.values())[0]
-        entry.escape_special_chars()
-        assert entry.label == "Cao2018"
-        assert entry.data["archivePrefix"] == "arXiv"
-        assert entry.data["arxivid"].startswith("1812.09976")
-        assert (
-            entry.data["author"]
-            == "Yudong Cao and Jonathan Romero and Jonathan P. Olson and Matthias Degroote and "
-            + "Peter D. Johnson and M{\\'a}ria Kieferov{\\'a} and Ian D. Kivlichan and Tim Menke "
-            + "and Borja Peropadre and Nicolas P. D. Sawaya and Sukin Sim and Libor Veis and "
-            + "Al{\\'a}n Aspuru-Guzik"
-        )
-        assert entry.data["doi"].startswith("10.1021/acs.chemrev.8b00803")
-        assert entry.data["title"] == "Quantum Chemistry in the Age of Quantum Computing"
-        assert entry.data["year"] == 2018
-        assert entry.data["_download"] == "http://arxiv.org/pdf/1812.09976v2"
+        assert_default_test_entry(entry)
 
     # regression test for https://gitlab.com/mrossinek/cobib/-/issues/57
     def test_invalid_arxiv_id(self) -> None:
@@ -83,12 +94,12 @@ class TestArxivParser(ParserTest):
             raise requests.exceptions.RequestException()
 
         monkeypatch.setattr(requests, "get", raise_exception)
-        parsers.ArxivParser().parse("dummy")
+        parsers.ArxivParser().parse("1812.0997")
 
         assert (
             "cobib.parsers.arxiv",
             logging.ERROR,
-            "An Exception occurred while trying to query the arXiv ID: dummy.",
+            "An Exception occurred while trying to query the arXiv ID: 1812.0997.",
         ) in caplog.record_tuples
 
     def test_dump(self, caplog: pytest.LogCaptureFixture) -> None:

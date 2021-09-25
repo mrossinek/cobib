@@ -7,6 +7,8 @@ Note, that the openlibrary API does not contain all ISBNs and potential server e
 by the parser.
 In the future, I hope to make the API backend configurable.
 
+Since v3.3.0 this parser also supports URLs from which an ISBN can be extracted directly.
+
 The parser is registered under the `-i` and `--isbn` command-line arguments of the
 `cobib.commands.add.AddCommand`.
 
@@ -28,30 +30,38 @@ from .base_parser import Parser
 
 LOGGER = logging.getLogger(__name__)
 
+ISBN_URL = "https://openlibrary.org/api/books?bibkeys=ISBN:"
+"""ISBN API URL taken from [here](https://openlibrary.org/dev/docs/api/books)."""
+ISBN_REGEX = re.compile(
+    r"(97[89]{1}(?:-?\d){10}|\d{9}[0-9X]{1}|[-0-9X]{10,16})", re.I | re.M | re.S
+)
+"""A regex pattern used to match valid ISBNs. Adapted from
+[here](https://github.com/xlcnd/isbnlib)."""
+
 
 class ISBNParser(Parser):
     """The ISBN Parser."""
 
     name = "isbn"
 
-    ISBN_URL = "https://openlibrary.org/api/books?bibkeys=ISBN:"
-    """ISBN API URL taken from [here](https://openlibrary.org/dev/docs/api/books)."""
-    ISBN_REGEX = re.compile(
-        r"97[89]{1}(?:-?\d){10}|\d{9}[0-9X]{1}|" r"[-0-9X]{10,16}", re.I | re.M | re.S
-    )
-    """A regex pattern used to match valid ISBNs. Adapted from
-    [here](https://github.com/xlcnd/isbnlib)."""
-
     def parse(self, string: str) -> Dict[str, Entry]:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
-        assert re.match(self.ISBN_REGEX, string)
-        LOGGER.info("Gathering BibTex data for ISBN: %s.", string)
-        isbn_plain = "".join([i for i in string if i.isdigit()])
         try:
-            page = requests.get(self.ISBN_URL + isbn_plain + "&jscmd=data&format=json", timeout=10)
+            match = re.search(ISBN_REGEX, string)
+            if match is None:
+                raise AssertionError
+        except AssertionError:
+            msg = f"'{string}' is not a valid ISBN."
+            LOGGER.warning(msg)
+            return OrderedDict()
+        isbn = match.group(1)
+        LOGGER.info("Gathering BibTex data for ISBN: %s.", isbn)
+        isbn_plain = "".join([i for i in isbn if i.isdigit()])
+        try:
+            page = requests.get(ISBN_URL + isbn_plain + "&jscmd=data&format=json", timeout=10)
         except requests.exceptions.RequestException as err:
-            LOGGER.error("An Exception occurred while trying to query the ISBN: %s.", string)
+            LOGGER.error("An Exception occurred while trying to query the ISBN: %s.", isbn)
             LOGGER.error(err)
             return OrderedDict()
         try:
@@ -62,7 +72,7 @@ class ISBNParser(Parser):
             return OrderedDict()
         if not contents:
             msg = (
-                f'No data was found for ISBN "{string}". If you think this is an error and '
+                f'No data was found for ISBN "{isbn}". If you think this is an error and '
                 + "the openlibrary API should provide an entry, please file a bug report. "
                 + "Otherwise please try adding this entry manually until more APIs are "
                 + "available in coBib."
