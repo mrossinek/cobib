@@ -6,11 +6,11 @@ import os
 import tempfile
 from pathlib import Path
 from shutil import copyfile
-from typing import Any, Generator
+from typing import Any, Callable, Generator, Tuple
 
 import pytest
 
-from cobib.config import config
+from cobib.config import LabelSuffix, config
 from cobib.database import Database, Entry
 
 from .. import get_resource
@@ -49,6 +49,7 @@ def setup() -> Generator[Any, None, None]:
     config.load(get_resource("debug.py"))
     yield
     Database().clear()
+    config.defaults()
 
 
 def test_database_singleton() -> None:
@@ -114,6 +115,32 @@ def test_database_rename() -> None:
     bib.rename("einstein", "dummy")
     # pylint: disable=protected-access
     assert Database._unsaved_entries == {"einstein": "dummy"}
+
+
+@pytest.mark.parametrize(
+    ["label_suffix", "expected"],
+    [
+        [("_", LabelSuffix.ALPHA), "dummy_a"],
+        [("_", LabelSuffix.CAPTIAL), "dummy_A"],
+        [("_", LabelSuffix.NUMERIC), "dummy_1"],
+        [(".", LabelSuffix.ALPHA), "dummy.a"],
+        [(".", LabelSuffix.CAPTIAL), "dummy.A"],
+        [(".", LabelSuffix.NUMERIC), "dummy.1"],
+    ],
+)
+def test_database_disambiguate_label(
+    label_suffix: Tuple[str, Callable[[str], str]], expected: str
+) -> None:
+    # pylint: disable=invalid-name
+    """Test the `cobib.database.Database.disambiguate_label` method."""
+    config.database.format.label_suffix = label_suffix
+
+    entries = {"dummy": "test"}
+    bib = Database()
+    bib.update(entries)  # type: ignore
+
+    new_label = Database().disambiguate_label("dummy")
+    assert new_label == expected
 
 
 def test_database_read() -> None:

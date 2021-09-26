@@ -5,6 +5,7 @@ This module provides a variety of shell helper utilities.
 # pylint: disable=unused-argument
 
 import argparse
+import contextlib
 import inspect
 import logging
 from io import StringIO
@@ -201,3 +202,46 @@ def lint_database(args: List[str]) -> List[str]:
         return ["The following lint messages have successfully been resolved:"] + lint_messages
 
     return lint_messages
+
+
+def unify_labels(args: List[str]) -> List[str]:
+    """Unifies all labels of the database according to `config.database.format.label_default`.
+
+    Without the `--apply` argument this will only print the modification which would be performed!
+
+    Args:
+        args: a sequence of additional arguments used for the execution. Currently, only a single
+            optional value is allowed:
+                * `-a`, `--apply`: if specified, the label unification will actually be applied. The
+                    default is to run in "dry"-mode which only prints the modifications.
+
+    Returns:
+        The list of INFO log messages raised upon label unification.
+    """
+    parser = argparse.ArgumentParser(prog="unify_labels", description="Label unification")
+    parser.add_argument(
+        "-a",
+        "--apply",
+        action="store_true",
+        help="Actually apply the modifications rather than run in 'dry'-mode",
+    )
+    largs = parser.parse_args(args)
+
+    # pylint: disable=import-outside-toplevel
+    from cobib.commands import ModifyCommand
+    from cobib.config import config
+
+    modify_args = [
+        "--dry",
+        f"label:{config.database.format.label_default}",
+        "--",
+        "--label",
+        "some_non_existend_label",  # this ensures that the command gets run on the entire database
+    ]
+    if largs.apply:
+        modify_args = modify_args[1:]
+
+    with contextlib.redirect_stderr(StringIO()) as out:
+        ModifyCommand().execute(modify_args)
+
+    return out.getvalue().strip().split("\n")

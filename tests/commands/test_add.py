@@ -268,7 +268,11 @@ class TestAddCommand(CommandTest, TUITest):
         assert (
             "cobib.commands.add",
             30,
-            "You tried to add a new entry 'einstein' which already exists!\n"
+            "You tried to add a new entry 'einstein' which already exists!",
+        ) in caplog.record_tuples
+        assert (
+            "cobib.commands.add",
+            30,
             "Please use `cobib edit einstein` instead!",
         ) in caplog.record_tuples
 
@@ -286,11 +290,15 @@ class TestAddCommand(CommandTest, TUITest):
                 file.writelines(existing.readlines())
             file.writelines(["@article{dummy,\nauthor = {Dummy},\n}"])
             file.flush()
-            AddCommand().execute(["-b", file.name])
+            AddCommand().execute(["--skip-existing", "-b", file.name])
         assert (
             "cobib.commands.add",
             30,
-            "You tried to add a new entry 'einstein' which already exists!\n"
+            "You tried to add a new entry 'einstein' which already exists!",
+        ) in caplog.record_tuples
+        assert (
+            "cobib.commands.add",
+            30,
             "Please use `cobib edit einstein` instead!",
         ) in caplog.record_tuples
         assert (
@@ -339,6 +347,68 @@ class TestAddCommand(CommandTest, TUITest):
         assert Database()["duplicate_resolver"]
 
         self._assert(EXAMPLE_DUPLICATE_ENTRY_YAML)
+
+        if git:
+            # assert the git commit message
+            self.assert_git_commit_message("add", None)
+
+    @pytest.mark.parametrize(
+        ["setup"],
+        [
+            [{"git": False}],
+            [{"git": True}],
+        ],
+        indirect=["setup"],
+    )
+    def test_configured_label_default(self, setup: Any) -> None:
+        """Test add command when a `label_default` is pre-configured.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+        """
+        config.database.format.label_default = "{author.split()[1]}{year}"
+        git = setup.get("git", False)
+
+        AddCommand().execute(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB])
+
+        assert Database()["Einstein1905"]
+
+        if git:
+            # assert the git commit message
+            self.assert_git_commit_message("add", None)
+
+    @pytest.mark.parametrize(
+        ["setup"],
+        [
+            [{"git": False}],
+            [{"git": True}],
+        ],
+        indirect=["setup"],
+    )
+    def test_disambiguate_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
+        """Test label disambiguation if the provided one already exists.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
+        git = setup.get("git", False)
+
+        AddCommand().execute(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB])
+
+        assert (
+            "cobib.commands.add",
+            30,
+            "You tried to add a new entry 'einstein' which already exists!",
+        ) in caplog.record_tuples
+        assert (
+            "cobib.commands.add",
+            30,
+            "The label will be disambiguated based on the configuration option: "
+            "config.database.format.label_suffix",
+        ) in caplog.record_tuples
+
+        assert Database()["einstein_a"]
 
         if git:
             # assert the git commit message

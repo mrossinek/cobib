@@ -13,6 +13,7 @@ import io
 import logging
 import os
 import sys
+from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Optional, TextIO, Union
 
@@ -30,6 +31,14 @@ ANSI_COLORS = [
     "cyan",
     "white",
 ]
+
+
+class LabelSuffix(Enum):
+    """Suffixes to disambiguate Entry labels."""
+
+    ALPHA = lambda count: chr(96 + count)
+    CAPTIAL = lambda count: chr(64 + count)
+    NUMERIC = lambda count: str(count)  # pylint: disable=unnecessary-lambda
 
 
 class Config(Dict[str, Any]):
@@ -73,6 +82,8 @@ class Config(Dict[str, Any]):
         "database": {
             "file": "~/.local/share/cobib/literature.yaml",
             "format": {
+                "label_default": "{label}",
+                "label_suffix": ("_", LabelSuffix.ALPHA),
                 "suppress_latex_warnings": True,
             },
             "git": False,
@@ -451,6 +462,23 @@ class Config(Dict[str, Any]):
                 "format for which most citation styles include macros. See also "
                 "https://www.bibtex.com/f/month-field/"
             )
+        self._assert(
+            isinstance(self.database.format.label_default, str),
+            "config.database.format.label_default should be a string.",
+        )
+        self._assert(
+            isinstance(self.database.format.label_suffix, tuple)
+            and len(self.database.format.label_suffix) == 2,
+            "config.database.format.label_suffix should be a tuple of length 2.",
+        )
+        self._assert(
+            isinstance(self.database.format.label_suffix[0], str),
+            "The first entry of config.database.format.label_suffix should be a string.",
+        )
+        self._assert(
+            callable(self.database.format.label_suffix[1]),
+            "The first entry of config.database.format.label_suffix should be a function.",
+        )
         self._assert(
             isinstance(self.database.format.suppress_latex_warnings, bool),
             "config.database.format.suppress_latex_warnings should be a boolean.",

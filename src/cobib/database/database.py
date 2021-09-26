@@ -43,7 +43,6 @@ class Database(OrderedDict):  # type: ignore
         """
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-            # store all unsaved entries in a list in order to preserve their order
             cls._unsaved_entries = {}
         if not cls._instance and not cls._unsaved_entries:
             cls.read()
@@ -53,9 +52,8 @@ class Database(OrderedDict):  # type: ignore
         """Updates the database with the given dictionary of entries.
 
         This function wraps `OrderedDict.update` and adds the labels of the changed entries to the
-        list of unsaved entries (`Database._unsaved_entries`). This will minimize IO access by only
-        actually writing the unsaved entries in batches.
-        If an entry was already part of the unsaved entries it will be moved to the end of the list.
+        dictionary of unsaved entries (`Database._unsaved_entries`). This will minimize IO access by
+        only actually writing the unsaved entries in batches.
 
         Args:
             new_entries: the dictionary of labels mapping to entries which are to be written to the
@@ -72,8 +70,6 @@ class Database(OrderedDict):  # type: ignore
         This function wraps `OrderedDict.pop` and adds the removed labels to the unsaved entries
         (`Database._unsaved_entries`). This will minimize IO access by only actually writing the
         unsaved entries in batches.
-        If the removed entry was already part of the unsaved entries it will be moved to the end of
-        the list.
 
         Args:
             label: the label of the entry to be removed.
@@ -99,6 +95,31 @@ class Database(OrderedDict):  # type: ignore
         LOGGER.debug("Renaming entry '%s' to '%s'.", old_label, new_label)
         Database._unsaved_entries[old_label] = new_label
 
+    def disambiguate_label(self, label: str) -> str:
+        """Disambiguate a given label to ensure it becomes unique.
+
+        This function ensures that a label is unique by appending a configurable suffix to a label
+        if it is already present in the database at runtime.
+
+        Args:
+            label: the label which to disambiguate.
+
+        Returns:
+            A unique label.
+        """
+        if label not in self.keys():
+            return label
+
+        LOGGER.warning("Label '%s' already exists in database. Running disambiguation.", label)
+        separator, enumerator = config.database.format.label_suffix
+        offset = 0
+        while True:
+            offset += 1
+            new_label: str = label + separator + enumerator(offset)
+            if new_label not in self.keys():
+                LOGGER.info("Found new unique label: %s", new_label)
+                return new_label
+
     @classmethod
     def read(cls) -> None:
         """Reads the database file.
@@ -106,9 +127,9 @@ class Database(OrderedDict):  # type: ignore
         The YAML database file pointed to by the configuration file is read in and parsed.
         This uses `cobib.parsers.YAMLParser` to parse the data.
         This function clears the contents of the singleton `Database` instance and resets
-        `Database._unsaved_entries` to an empty list. Thus, a call to this function *irreversibly*
-        synchronizes the state of the runtime `Database` instance to the actually written contents
-        of the database file on disc.
+        `Database._unsaved_entries` to an empty dictionary. Thus, a call to this function
+        *irreversibly* synchronizes the state of the runtime `Database` instance to the actually
+        written contents of the database file on disc.
         """
         if cls._instance is None:
             cls()

@@ -42,8 +42,15 @@ class TestModifyCommand(CommandTest, TUITest):
         ],
     )
     @pytest.mark.parametrize("add", [False, True])
+    @pytest.mark.parametrize("dry", [False, True])
     def test_command(
-        self, setup: Any, modification: str, filters: List[str], selection: bool, add: bool
+        self,
+        setup: Any,
+        modification: str,
+        filters: List[str],
+        selection: bool,
+        add: bool,
+        dry: bool,
     ) -> None:
         """Test the command itself.
 
@@ -53,6 +60,7 @@ class TestModifyCommand(CommandTest, TUITest):
             filters: the filter arguments for the command.
             selection: whether the filters are of `selection` type.
             add: whether to use append mode.
+            dry: whether to run in dry mode.
         """
         git = setup.get("git", False)
 
@@ -69,22 +77,35 @@ class TestModifyCommand(CommandTest, TUITest):
             args = ["-a"] + args
             expected = ["dummy"] + expected
 
+        if dry:
+            args.insert(0, "--dry")
+
         ModifyCommand().execute(args)
 
-        assert Database()["einstein"].data["tags"] == expected
+        if dry:
+            if add:
+                assert Database()["einstein"].data["tags"] == ["dummy"]
+            else:
+                assert "tags" not in Database()["einstein"].data.keys()
+        else:
+            assert Database()["einstein"].data["tags"] == expected
 
         if git:
-            # assert the git commit message
-            self.assert_git_commit_message(
-                "modify",
-                {
-                    "add": add,
-                    "selection": selection,
-                    "preserve_files": False,
-                    "modification": modification.split(":"),
-                    "filter": filters,
-                },
-            )
+            try:
+                # assert the git commit message
+                self.assert_git_commit_message(
+                    "modify",
+                    {
+                        "dry": False,
+                        "add": add,
+                        "selection": selection,
+                        "preserve_files": False,
+                        "modification": modification.split(":"),
+                        "filter": filters,
+                    },
+                )
+            except AssertionError:
+                assert dry
 
     @pytest.mark.parametrize(
         ["modification", "expected"],
@@ -120,7 +141,7 @@ class TestModifyCommand(CommandTest, TUITest):
             ["label:{author.split()[1]}{year}", "Einstein1905"],
             ["string:{'à' !a}", "'\\xe0'"],
             ["number:{1.2345:.2}", "1.2"],
-            ["dummy:{dummy}", "{dummy}"],
+            ["dummy:{dummy}", ""],
         ],
     )
     def test_f_string_interpretation(self, setup: Any, modification: str, expected: Any) -> None:

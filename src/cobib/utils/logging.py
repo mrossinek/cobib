@@ -29,12 +29,16 @@ class _StderrHandler(logging.StreamHandler):
         super().emit(record)
 
 
-def get_stream_handler() -> logging.StreamHandler:
-    """Returns a basic StreamHandler logging to `sys.stderr`."""
+def get_stream_handler(level: int = logging.WARNING) -> logging.StreamHandler:
+    """Returns a basic StreamHandler logging to `sys.stderr`.
+
+    Args:
+        level: the logging level of this handler.
+    """
     formatter = logging.Formatter(fmt="[%(levelname)s] %(message)s")
 
     handler = _StderrHandler()
-    handler.setLevel("WARNING")
+    handler.setLevel(level)
     handler.setFormatter(formatter)
 
     return handler

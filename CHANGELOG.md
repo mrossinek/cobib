@@ -13,6 +13,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - the new `URLParser` (available via `cobib add --url <URL>` (#84,!44)
     - it attempts importing from a plain URL
     - simultaneously the arXiv, DOI, and ISBN parsers now also support URL containing a matching identifier directly
+- the `--dry` argument of the `ModifyCommand` to prevent errors during large bulk modifications
+* the `config.database.format.label_default` and `config.database.format.label_suffix` options (#85,!45)
+    - labels will automatically be formatted according to the default option
+    - if labels conflict with existing ones, the suffix option will be used for disambiguation
+    - the `AddCommand` has a new `--skip-existing` option which disables automatic label disambiguation
+    - use `cobib _unify_labels --apply` to unify all labels in your database
+
+### Changed
+- when an unknown variable is encountered in the modification of the `modify` command it falls back to an empty string rather than the name of the attempted variable
+
+### Removed
+- the `-s` option of the `AddCommand` is no longer available. You need to write out `--skip-download`
 
 
 ## [3.2.1] - 2021-07-15
