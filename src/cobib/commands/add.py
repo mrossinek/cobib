@@ -75,6 +75,11 @@ with this entry, that will also be overwritten.
 This feature is especially useful if you want to update an entry which you previously added from the
 arXiv with its newly published version.
 
+If you don't specify `--update` and run into a situation where the label which you are trying to add
+already exists, coBib will disambiguate it based on the `config.database.format.label_suffix`
+setting. It defaults to appending `_a`, `_b`, etc.
+You can disable this disambiguation by passing `--skip-existing` to the add command.
+
 ### TUI
 
 You can also trigger this command from the `cobib.tui.tui.TUI`.
@@ -102,6 +107,7 @@ from cobib.utils.journal_abbreviations import JournalAbbreviations
 
 from .base_command import ArgumentParser, Command
 from .edit import EditCommand
+from .modify import evaluate_as_f_string
 
 LOGGER = logging.getLogger(__name__)
 
@@ -133,7 +139,9 @@ class AddCommand(Command):
                       will be stored in the `cobib.database.Entry.file` property.
                     * `-p`, `--path`: the path to store the downloaded associated file in. This can
                       be used to overwrite the `config.utils.file_downloader.default_location`.
-                    * `-s`, `--skip-download`: skips the automatic download of an associated file.
+                    * `--skip-download`: skips the automatic download of an associated file.
+                    * `--skip-existing`: skips entry if label exists instead of running label
+                      disambiguation.
                     * in addition to the options above, a *mutually exclusive group* of keyword
                       arguments for all available `cobib.parsers` are registered at runtime. Please
                       check the output of `cobib add --help` for the exact list.
@@ -162,10 +170,14 @@ class AddCommand(Command):
         )
         parser.add_argument("-p", "--path", type=str, help="the path for the associated file")
         parser.add_argument(
-            "-s",
             "--skip-download",
             action="store_true",
             help="skip the automatic download of an associated file",
+        )
+        parser.add_argument(
+            "--skip-existing",
+            action="store_true",
+            help="skips entry addition if existent instead of using label disambiguation",
         )
         group_add = parser.add_mutually_exclusive_group()
         avail_parsers = {
@@ -228,6 +240,15 @@ class AddCommand(Command):
                 # logging done by cobib/database/entry.py
                 value.label = largs.label
             new_entries = OrderedDict((largs.label, value) for value in new_entries.values())
+        else:
+            formatted_entries = OrderedDict()
+            for label, value in new_entries.items():
+                formatted_label = evaluate_as_f_string(
+                    config.database.format.label_default, {"label": label, **value.data.copy()}
+                )
+                value.label = formatted_label
+                formatted_entries[formatted_label] = value
+            new_entries = formatted_entries
 
         if largs.file is not None:
             if file_action == "append":
@@ -254,17 +275,26 @@ class AddCommand(Command):
             # check if label already exists
             if lbl in existing_labels:
                 if not largs.update:
+                    msg = f"You tried to add a new entry '{lbl}' which already exists!"
+                    LOGGER.warning(msg)
+                    if edit_entries or largs.skip_existing:
+                        msg = f"Please use `cobib edit {lbl}` instead!"
+                        LOGGER.warning(msg)
+                        continue
                     msg = (
-                        f"You tried to add a new entry '{lbl}' which already exists!"
-                        f"\nPlease use `cobib edit {lbl}` instead!"
+                        "The label will be disambiguated based on the configuration option: "
+                        "config.database.format.label_suffix"
                     )
                     LOGGER.warning(msg)
+                    new_label = bib.disambiguate_label(lbl)
+                    entry.label = new_label
+                    new_entries[new_label] = entry
                     new_entries.pop(lbl)
-                    continue
-                # label exists but the user asked to update an existing entry
-                existing_data = bib[lbl].data.copy()
-                existing_data.update(entry.data)
-                entry.data = existing_data.copy()
+                else:
+                    # label exists but the user asked to update an existing entry
+                    existing_data = bib[lbl].data.copy()
+                    existing_data.update(entry.data)
+                    entry.data = existing_data.copy()
             # download associated file (if requested)
             if "_download" in entry.data.keys():
                 if largs.skip_download:

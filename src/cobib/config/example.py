@@ -19,7 +19,7 @@ import os
 import sys
 
 # To get started you must import coBib's configuration.
-from cobib.config import config
+from cobib.config import LabelSuffix, config
 
 # Now, you are all set to apply your own settings.
 
@@ -74,6 +74,23 @@ config.database.git = False
 
 # DATABASE.FORMAT
 # You can also specify some aspects about the format of the database.
+
+# You can specify a default label format which will be used for the database entry keys. The format
+# of this option follows the f-string like formatting of modifications (see also the documentation
+# of the [ModifyCommand](https://mrossinek.gitlab.io/cobib/cobib/commands/modify.html)). The default
+# configuration value leaves the label unchanged compared to the metadata provided by the source
+# from which the entry gets added. A more useful example is `"{author.split()[1]}{year}"` which
+# takes the surname of the first author and immediately appends the publication year.
+config.database.format.label_default = "{label}"
+
+# You can specify the suffix format which is used to disambiguate labels if a conflict would occur.
+# This option takes a tuple of length 2, where the first entry is the string separating the proposed
+# label from the enumerator and the second one is one of the enumerators provided in the
+# `config.LabelSuffix` object. The available enumerators are:
+#   - ALPHA: a, b, ...
+#   - CAPTIAL: A, B, ...
+#   - NUMERIC: 1, 2, ...
+config.database.format.label_suffix = ("_", LabelSuffix.ALPHA)
 
 # You can specify whether latex warnings should not be ignored during the escaping of special
 # characters. This is a simple option which gets passed on to the internally used `pylatexenc`

@@ -116,9 +116,15 @@ Overwrites the location for the automatically downloaded file. If not specified,
 this setting defaults to \fIconfig.utils.file_downloader.default_location\fR.
 .PP
 .in +8n
-.BR \-s ", " \-\-skip\-download
+.BR \-\-skip\-download
 .in +4n
 Skips attempting to automatically download an associated file for the entry.
+.PP
+.in +8n
+.BR \-\-skip\-existing
+.in +4n
+Skips entry addition if the label already exists instead of using label
+disambiguation to find a new label.
 .TP
 .B cobib delete \fI<label>\fR
 Deletes the entry with the given \fIlabel\fR.
@@ -163,6 +169,14 @@ can even use placeholder variables and perform simple operations on them. The
 available variables depend on the entry which you are modifying as they are
 inferred from its stored data. For more information on "f"-strings refer to
 section 2.4.3 of https://docs.python.org/3/reference/lexical_analysis.html
+.PP
+.in +8n
+.BR \-\-dry
+.in +4n
+When this flag is given, the modify command runs in \fIdry\fR mode. This means,
+the applied modifications are printed to stdout rather than applied directly.
+This allows easy prototyping of modifications to prevent errors during large
+bulk modifications.
 .PP
 .in +8n
 .BR \-a ", " \-\-add
@@ -480,6 +494,18 @@ Note, that you must initialize the git-tracking with \fIcobib init --git\fR. If
 you already have an existing database file, it will be preserved. Nonetheless,
 it is a good idea to make a backup before doing so, just in case.
 Also be sure to at least set a \fIname\fR and \fIemail\fR in the git config!
+.TP
+.IR config.database.format.label_default = '{label}'
+This field specifies the default label format in an f-string modification style
+as interpreted by the \fImodify\fR command. The default setting leaves the label
+unchanged from the import resource proposal. A simple example which uses the
+first authors surname and year is \fI'{author.split()[1]}{year}'\fR.
+.TP
+.IR config.database.format.label_suffix = ('_',\ LabelSuffix.ALPHA)
+This field specifies the default label disambiguator. The option takes a tuple
+of length 2, where the first entry is the string separating the proposed label
+from the disambiguator and the second one is one of the enumerators provided by
+\ficonfig.LabelSuffix\fR.
 .TP
 .IR config.database.format.suppress_latex_warnings = True
 This boolean field indicates whether latex warnings will be ignored during the

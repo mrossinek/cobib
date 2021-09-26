@@ -40,12 +40,20 @@ cobib modify "label:{label.replace('_', '')}" -- ++label "\D+_\d+"
 ```
 
 If you happen to use an undefined variable as part of your modification, coBib will handle this
-gracefully by falling back to a plain string and raising a warning:
+gracefully by falling back to an empty string and raising a warning:
 ```
 cobib modify "note:{undefined}" -- ...
-> [WARNING] You tried use an undefined variable. Falling back to plain string.
+> [WARNING] You tried use an undefined variable. Falling back to an empty string.
 > [ERROR] name 'undefined' is not defined
 ```
+
+Since v3.3.0 this command also provides a "dry" mode which previews the modifications without
+actually applying them.
+```
+cobib modify --dry <modification> -- ...
+```
+This is useful if you want to test large bulk modifications before running them in order to prevent
+mistakes.
 
 You can also trigger this command from the `cobib.tui.tui.TUI`.
 By default, it is bound to the `m` key which will drop you into the prompt where you can type out a
@@ -64,9 +72,10 @@ import ast
 import logging
 import os
 import sys
-from typing import IO, TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, cast
+from typing import IO, TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from cobib.database import Database
+from cobib.utils.logging import get_stream_handler
 from cobib.utils.rel_path import RelPath
 
 from .base_command import ArgumentParser, Command
@@ -76,6 +85,75 @@ LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     import cobib.tui
+
+
+def evaluate_ast_node(node: ast.expr, locals_: Optional[Dict[str, Any]] = None) -> str:
+    """Evaluates an AST node representing an f-string.
+
+    Args:
+        node: the AST expression extracted from an f-string.
+        locals_: the dictionary of local variables to be used as context for the expression
+            evaluation.
+
+    Returns:
+        The evaluated AST node expression.
+    """
+    try:
+        # pylint: disable=eval-used
+        return eval(  # type: ignore
+            compile(ast.Expression(node), filename="<string>", mode="eval"), locals_
+        )
+    except NameError as err:
+        LOGGER.warning("You tried use an undefined variable. Falling back to an empty string.")
+        LOGGER.error(err)
+        return ""
+
+
+def evaluate_as_f_string(value: str, locals_: Optional[Dict[str, Any]] = None) -> str:
+    """Evaluates a string as if it were a literal f-string.
+
+    Args:
+        value: the string to be evaluated.
+        locals_: the dictionary of local variables to be used as context for the expression
+            evaluation.
+
+    Returns:
+        The evaluated f-string.
+
+    Raises:
+        ValueError: if an unexpected AST component type is encountered.
+
+    References:
+        <https://stackoverflow.com/a/61190684>
+    """
+    result: List[str] = []
+    for part in ast.parse(f"f'''{value}'''").body[0].value.values:  # type: ignore
+        typ = type(part)
+
+        if typ is ast.Constant:
+            result.append(part.value)
+
+        elif typ is ast.Str:
+            # TODO: remove once support for Python 3.7 will be dropped
+            result.append(part.s)
+
+        elif typ is ast.FormattedValue:
+            value = evaluate_ast_node(part.value, locals_)
+
+            if part.conversion >= 0:
+                conversions: Dict[str, Callable[[Any], str]] = {"a": ascii, "r": repr, "s": str}
+                value = conversions[chr(part.conversion)](value)
+
+            if part.format_spec:
+                value = format(value, evaluate_ast_node(part.format_spec))
+
+            result.append(str(value))
+
+        else:
+            LOGGER.warning("Unexpected AST node expression type '%s' for an f-string.", typ)
+            raise ValueError
+
+    return "".join(result)
 
 
 class ModifyCommand(Command):
@@ -100,7 +178,7 @@ class ModifyCommand(Command):
         # specifications
         return (field, ":".join(value))
 
-    # pylint: disable=too-many-branches
+    # pylint: disable=too-many-branches,too-many-statements
     def execute(self, args: List[str], out: IO[Any] = sys.stdout) -> None:
         """Modifies multiple entries in bulk.
 
@@ -118,6 +196,7 @@ class ModifyCommand(Command):
                       modification will overwrite any existing data in the specified `field` with
                       the new `value`. For more information about formatting options of `<value>`
                       refer to the module documentation or the man-page.
+                    * `--dry`: run in "dry"-mode which lists modifications without applying them.
                     * `-a`, `--add`: when specified, the modification's value will be added to the
                       entry's field rather than overwrite it. If the field in question is numeric,
                       the numbers will be added.
@@ -139,6 +218,11 @@ class ModifyCommand(Command):
             "field of the entries and value can be any string which should be placed in that "
             "field. Be sure to escape this field-value pair properly, especially if the value "
             "contains spaces.",
+        )
+        parser.add_argument(
+            "--dry",
+            action="store_true",
+            help="Run in 'dry'-mode, listing modifications without actually applying them.",
         )
         parser.add_argument(
             "-a",
@@ -175,6 +259,19 @@ class ModifyCommand(Command):
             LOGGER.error(exc.message)
             return
 
+        info_handler: logging.Handler
+        if largs.dry:
+            info_handler = get_stream_handler(logging.INFO)
+
+            class ModifyInfoFilter(logging.Filter):
+                """A logging filter to only print ModifyCommand INFO messages."""
+
+                def filter(self, record: logging.LogRecord) -> bool:
+                    return record.name == "cobib.commands.modify" and record.levelname == "INFO"
+
+            info_handler.addFilter(ModifyInfoFilter())
+            LOGGER.addHandler(info_handler)
+
         if largs.selection:
             LOGGER.info("Selection given. Interpreting `filter` as a list of labels")
             labels = largs.filter
@@ -190,20 +287,18 @@ class ModifyCommand(Command):
         for label in labels:  # pylint: disable=too-many-nested-blocks
             try:
                 entry = bib[label]
-                local_value = self.evaluate_as_f_string(
-                    value, {"label": label, **entry.data.copy()}
-                )
+                local_value = evaluate_as_f_string(value, {"label": label, **entry.data.copy()})
+
+                if hasattr(entry, field):
+                    prev_value = getattr(entry, field, None)
+                else:
+                    prev_value = entry.data.get(field, None)
 
                 if not largs.add:
                     new_value = local_value
                     if local_value.isnumeric():
                         new_value = int(local_value)  # type: ignore
                 else:
-                    if hasattr(entry, field):
-                        prev_value = getattr(entry, field, None)
-                    else:
-                        prev_value = entry.data.get(field, None)
-
                     try:
                         if prev_value is None:
                             new_value = local_value
@@ -228,12 +323,38 @@ class ModifyCommand(Command):
                         )
                         new_value = str(prev_value) + local_value
 
+                # guard against overwriting existing data if label gets changed
+                if field == "label":
+                    new_value = bib.disambiguate_label(new_value)
+
+                if new_value == prev_value:
+                    LOGGER.info(
+                        "New and previous values match. Skipping modification of entry '%s'.", label
+                    )
+                    continue
+
                 if hasattr(entry, field):
+                    if largs.dry:
+                        LOGGER.info(
+                            "%s: changing field '%s' from %s to %s",
+                            entry.label,
+                            field,
+                            getattr(entry, field),
+                            new_value,
+                        )
                     setattr(entry, field, new_value)
                 else:
+                    if largs.dry:
+                        LOGGER.info(
+                            "%s: adding field '%s' = %s",
+                            entry.label,
+                            field,
+                            new_value,
+                        )
                     entry.data[field] = new_value
 
                 bib.update({entry.label: entry})
+
                 if entry.label != label:
                     bib.rename(label, entry.label)
                     if not largs.preserve_files:
@@ -248,91 +369,36 @@ class ModifyCommand(Command):
                                         "Found conflicting file, not renaming '%s'.", str(path)
                                     )
                                 else:
-                                    path.path.rename(target.path)
-                                    new_files.append(str(target))
+                                    if largs.dry:
+                                        LOGGER.info(
+                                            "%s: renaming associated file '%s' to '%s'",
+                                            entry.label,
+                                            path.path,
+                                            target.path,
+                                        )
+                                    else:
+                                        path.path.rename(target.path)
+                                        new_files.append(str(target))
                                     continue
-                            new_files.append(file)
-                        entry.file = new_files
+                            if not largs.dry:
+                                new_files.append(file)
+                        if not largs.dry:
+                            entry.file = new_files
 
-                msg = f"'{label}' was modified."
-                LOGGER.info(msg)
+                if not largs.dry:
+                    msg = f"'{label}' was modified."
+                    LOGGER.info(msg)
             except KeyError:
                 msg = f"No entry with the label '{label}' could be found."
                 LOGGER.warning(msg)
 
-        bib.save()
-
-        self.git(args=vars(largs))
-
-    @staticmethod
-    def evaluate_ast_node(
-        node: ast.expr, locals_: Optional[Dict[str, Any]] = None
-    ) -> Optional[str]:
-        """Evaluates an AST node representing an f-string.
-
-        Args:
-            node: the AST expression extracted from an f-string.
-            locals_: the dictionary of local variables to be used as context for the expression
-                evaluation.
-
-        Returns:
-            The evaluated AST node expression.
-        """
-        try:
-            # pylint: disable=eval-used
-            return eval(  # type: ignore
-                compile(ast.Expression(node), filename="<string>", mode="eval"), locals_
-            )
-        except NameError as err:
-            LOGGER.warning("You tried use an undefined variable. Falling back to plain string.")
-            LOGGER.error(err)
-            return None
-
-    def evaluate_as_f_string(self, value: str, locals_: Optional[Dict[str, Any]] = None) -> str:
-        """Evaluates a string as if it were a literal f-string.
-
-        Args:
-            value: the string to be evaluated.
-            locals_: the dictionary of local variables to be used as context for the expression
-                evaluation.
-
-        Returns:
-            The evaluated f-string.
-
-        Raises:
-            ValueError: if an unexpected AST component type is encountered.
-
-        References:
-            <https://stackoverflow.com/a/61190684>
-        """
-        result: List[str] = []
-        for part in ast.parse(f"f'''{value}'''").body[0].value.values:  # type: ignore
-            typ = type(part)
-
-            if typ is ast.Constant:
-                result.append(part.value)
-
-            elif typ is ast.Str:
-                # TODO: remove once support for Python 3.7 will be dropped
-                result.append(part.s)
-
-            elif typ is ast.FormattedValue:
-                value = self.evaluate_ast_node(part.value, locals_) or value
-
-                if part.conversion >= 0:
-                    conversions: Dict[str, Callable[[Any], str]] = {"a": ascii, "r": repr, "s": str}
-                    value = conversions[chr(part.conversion)](value)
-
-                if part.format_spec:
-                    value = format(value, cast(str, self.evaluate_ast_node(part.format_spec)))
-
-                result.append(str(value))
-
-            else:
-                LOGGER.warning("Unexpected AST node expression type '%s' for an f-string.", typ)
-                raise ValueError
-
-        return "".join(result)
+        if largs.dry:
+            LOGGER.removeHandler(info_handler)
+            # read also functions as a restoring method
+            bib.read()
+        else:
+            bib.save()
+            self.git(args=vars(largs))
 
     @staticmethod
     def tui(tui: cobib.tui.TUI) -> None:

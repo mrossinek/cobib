@@ -1,0 +1,76 @@
+---
+einstein:
+  ENTRYTYPE: article
+  author: Albert Einstein
+  doi: http://dx.doi.org/10.1002/andp.19053221004
+  journal: Annalen der Physik
+  number: 10
+  pages: 891--921
+  title: Zur Elektrodynamik bewegter K{\"o}rper
+  volume: 322
+  year: 1905
+...
+---
+latexcompanion:
+  ENTRYTYPE: book
+  address: Reading, Massachusetts
+  author: Michel Goossens and Frank Mittelbach and Alexander Samarin
+  publisher: Addison-Wesley
+  title: The \LaTeX\ Companion
+  year: 1993
+...
+---
+knuthwebsite:
+  ENTRYTYPE: misc
+  author: Donald Knuth
+  title: 'Knuth: Computers and Typesetting'
+  url:
+  - http://www-cs-faculty.stanford.edu/\~{}uno/abcde.html
+...
+---
+Einstein_1905:
+  ENTRYTYPE: article
+  author: A. Einstein
+  doi: 10.1002/andp.19053220806
+  journal: Annalen der Physik
+  number: 8
+  pages: 549--560
+  publisher: Wiley
+  title: '{\"U}ber die von der molekularkinetischen Theorie der W{\"a}rme geforderte
+    Bewegung von in ruhenden Fl{\"u}ssigkeiten suspendierten Teilchen'
+  url:
+  - https://doi.org/10.1002%2Fandp.19053220806
+  volume: 322
+  year: 1905
+...
+---
+Einstein1905:
+  ENTRYTYPE: article
+  author: A. Einstein
+  doi: 10.1002/andp.19053220607
+  journal: Annalen der Physik
+  number: 6
+  pages: 132--148
+  publisher: Wiley
+  title: '{\"U}ber einen die Erzeugung und Verwandlung des Lichtes betreffenden heuristischen
+    Gesichtspunkt'
+  url:
+  - https://doi.org/10.1002%2Fandp.19053220607
+  volume: 322
+  year: 1905
+...
+---
+einstein_2:
+  ENTRYTYPE: article
+  author: A. Einstein
+  doi: 10.1002/andp.19053231314
+  journal: Annalen der Physik
+  number: 13
+  pages: 639--641
+  publisher: Wiley
+  title: Ist die Tr{\"a}gheit eines K{\"o}rpers von seinem Energieinhalt abh{\"a}ngig?
+  url:
+  - https://doi.org/10.1002%2Fandp.19053231314
+  volume: 323
+  year: 1905
+...

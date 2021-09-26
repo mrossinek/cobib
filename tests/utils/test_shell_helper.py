@@ -12,6 +12,7 @@ from typing import Generator, List, Optional, Set, Union
 import pytest
 
 from cobib.config import config
+from cobib.database import Database
 from cobib.utils import shell_helper
 from cobib.utils.rel_path import RelPath
 
@@ -280,3 +281,103 @@ class TestLintDatabase(ShellHelperTest):
 
         finally:
             rmtree(cobib_test_dir)
+            Database().clear()
+
+
+class TestUnifyLabels(ShellHelperTest):
+    """Tests for the shell helper which unifies all database labels."""
+
+    COMMAND = "unify_labels"
+    REL_PATH = RelPath(get_resource("unifying_database.yaml", "utils"))
+    EXPECTED: List[str] = [
+        "[INFO] einstein: changing field 'label' from einstein to Einstein1905_a",
+        "[INFO] latexcompanion: changing field 'label' from latexcompanion to Goossens1993",
+        "[INFO] knuthwebsite: changing field 'label' from knuthwebsite to Knuth",
+        "[INFO] Einstein_1905: changing field 'label' from Einstein_1905 to Einstein1905_b",
+        "[INFO] Einstein1905: changing field 'label' from Einstein1905 to Einstein1905_c",
+        "[INFO] einstein_2: changing field 'label' from einstein_2 to Einstein1905_d",
+    ]
+
+    @staticmethod
+    @pytest.fixture(autouse=True)
+    def setup() -> None:
+        """Set linting database path.
+
+        This fixture is automatically enabled for all tests in this class.
+        """
+        config.database.format.label_default = "{author.split()[1]}{year}"
+        config.database.file = str(TestUnifyLabels.REL_PATH)
+
+    def _assert(self, out: str) -> None:
+        filtered = [line for line in out.split("\n") if line.startswith("[INFO]")]
+        for msg, truth in zip_longest(filtered, self.EXPECTED):
+            if msg.strip() and truth:
+                assert msg == truth
+
+    @pytest.mark.parametrize("git", [False, True])
+    def test_unify_labels(self, git: bool) -> None:
+        # pylint: disable=no-self-use
+        """Test actual changes of label unification.
+
+        Args:
+            git: whether or not git-tracking should be enabled.
+        """
+        tmp_dir = Path(tempfile.gettempdir()).resolve()
+        cobib_test_dir = tmp_dir / "cobib_unify_label_test"
+        cobib_test_dir.mkdir(parents=True, exist_ok=True)
+        cobib_test_dir_git = cobib_test_dir / ".git"
+
+        database_file = RelPath(cobib_test_dir / "database.yaml")
+
+        copyfile(TestUnifyLabels.REL_PATH.path, database_file.path)
+        config.database.file = str(database_file)
+        config.database.git = git
+
+        if git:
+            commands = [
+                f"cd {cobib_test_dir}",
+                "git init",
+                "git add -- database.yaml",
+                "git commit --no-gpg-sign --quiet --message 'Initial commit'",
+            ]
+            os.system("; ".join(commands))
+
+        try:
+            # apply label unification
+            shell_helper.unify_labels(["--apply"])
+
+            # assert unified database
+            with open(database_file.path, "r", encoding="utf-8") as file:
+                with open(
+                    RelPath(get_resource("unified_database.yaml", "utils")).path,
+                    "r",
+                    encoding="utf-8",
+                ) as expected:
+                    for line, truth in zip_longest(file.readlines(), expected.readlines()):
+                        assert line == truth
+
+            # assert git message
+            if git:
+                with subprocess.Popen(
+                    [
+                        "git",
+                        "-C",
+                        cobib_test_dir_git,
+                        "show",
+                        "--format=format:%B",
+                        "--no-patch",
+                        "HEAD",
+                    ],
+                    stdout=subprocess.PIPE,
+                ) as proc:
+                    message, _ = proc.communicate()
+                    # decode it
+                    split_msg = message.decode("utf-8").split("\n")
+                    if split_msg is None:
+                        return
+                    # assert subject line
+                    assert "Auto-commit: ModifyCommand" in split_msg[0]
+
+        finally:
+            rmtree(cobib_test_dir)
+            Database().clear()

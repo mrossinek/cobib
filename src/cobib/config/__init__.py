@@ -21,4 +21,5 @@ from cobib.config import config
 For more information take a look at the example configuration, `cobib.config.example`.
 """
 
+from .config import LabelSuffix as LabelSuffix
 from .config import config as config

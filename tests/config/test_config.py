@@ -182,6 +182,8 @@ def test_config_validation(setup: Any) -> None:
         [["commands", "search"], "ignore_case"],
         [["database"], "file"],
         [["database"], "git"],
+        [["database", "format"], "label_default"],
+        [["database", "format"], "label_suffix"],
         [["database", "format"], "suppress_latex_warnings"],
         [["database", "stringify", "list_separator"], "file"],
         [["database", "stringify", "list_separator"], "tags"],
