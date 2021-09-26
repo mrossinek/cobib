@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - print Changelog since the last run version (cached in `config.logging.version`) (#82)
 - the `AddCommand` now has a new `--update` option (#79,!41)
 - the `_lint_database` utility now takes the `--format` argument, which automatically resolves all lint messages (#81,!42)
+- the new `URLParser` (available via `cobib add --url <URL>` (#84,!44)
+    - it attempts importing from a plain URL
+    - simultaneously the arXiv, DOI, and ISBN parsers now also support URL containing a matching identifier directly
 
 
 ## [3.2.1] - 2021-07-15
