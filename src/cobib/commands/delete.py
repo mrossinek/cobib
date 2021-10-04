@@ -17,6 +17,7 @@ import os
 import sys
 from typing import IO, TYPE_CHECKING, Any, List
 
+from cobib.config import Event
 from cobib.database import Database
 from cobib.utils.rel_path import RelPath
 
@@ -61,6 +62,8 @@ class DeleteCommand(Command):
             LOGGER.error(exc.message)
             return
 
+        Event.PreDeleteCommand.fire(largs)
+
         deleted_entries = set()
 
         bib = Database()
@@ -81,6 +84,7 @@ class DeleteCommand(Command):
             except KeyError:
                 pass
 
+        Event.PostDeleteCommand.fire(deleted_entries)
         bib.save()
 
         self.git(args=vars(largs))

@@ -100,7 +100,7 @@ from collections import OrderedDict
 from typing import IO, TYPE_CHECKING, Any, Dict, List
 
 from cobib import parsers
-from cobib.config import config
+from cobib.config import Event, config
 from cobib.database import Database, Entry
 from cobib.utils.file_downloader import FileDownloader
 from cobib.utils.journal_abbreviations import JournalAbbreviations
@@ -120,7 +120,7 @@ class AddCommand(Command):
 
     name = "add"
 
-    # pylint: disable=too-many-branches
+    # pylint: disable=too-many-branches,too-many-statements
     def execute(self, args: List[str], out: IO[Any] = sys.stdout) -> None:
         """Adds a new entry.
 
@@ -208,6 +208,8 @@ class AddCommand(Command):
         except argparse.ArgumentError as exc:
             LOGGER.error(exc.message)
             return
+
+        Event.PreAddCommand.fire(largs)
 
         new_entries: Dict[str, Entry] = OrderedDict()
 
@@ -309,8 +311,9 @@ class AddCommand(Command):
             if "journal" in entry.data.keys():
                 entry.data["journal"] = JournalAbbreviations.elongate(entry.data["journal"])
 
-        bib.update(new_entries)
+        Event.PostAddCommand.fire(new_entries)
 
+        bib.update(new_entries)
         if edit_entries:
             EditCommand().execute([largs.label])
 

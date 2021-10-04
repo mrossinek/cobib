@@ -95,6 +95,7 @@ class Config(Dict[str, Any]):
                 },
             },
         },
+        "events": {},
         "parsers": {
             "bibtex": {
                 "ignore_non_standard_types": False,
@@ -200,7 +201,7 @@ class Config(Dict[str, Any]):
     MARKER = object()
     """A helper object for detecting the nested recursion-threshold."""
 
-    EXCEPTIONAL_KEYS = {"url_map"}
+    EXCEPTIONAL_KEYS = {"events", "url_map"}
     """A set of exceptional keys which do not cause automatic item creation. This is required in
     order to support `dict`-like configuration options properly."""
 
@@ -496,6 +497,14 @@ class Config(Dict[str, Any]):
             "config.database.stringify.list_separator.url should be a string.",
         )
 
+        # EVENTS section
+        self._assert(isinstance(self.events, dict), "config.events should be a dict.")
+        for event in self.events:
+            self._assert(
+                event.validate(),
+                f"config.events.{event} did not pass its validation check.",
+            )
+
         # PARSER section
         self._assert(
             isinstance(self.parsers.bibtex.ignore_non_standard_types, bool),
@@ -597,6 +606,10 @@ class Config(Dict[str, Any]):
         """Resets the configuration to the default settings."""
         # pylint: disable=consider-using-dict-items
         for section in self.DEFAULTS:
+            if section == "events":
+                # manually reset events
+                self["events"] = {}
+                continue
             self[section].update(**self.DEFAULTS[section])
 
     def get_ansi_color(self, name: str) -> str:

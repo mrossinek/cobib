@@ -3,13 +3,16 @@
 
 from __future__ import annotations
 
+import contextlib
 import tempfile
+from argparse import Namespace
+from io import StringIO
 from typing import TYPE_CHECKING, Any, List, Type
 
 import pytest
 
 from cobib.commands import DeleteCommand
-from cobib.config import config
+from cobib.config import Event, config
 from cobib.database import Database
 from cobib.utils.rel_path import RelPath
 
@@ -201,3 +204,32 @@ class TestDeleteCommand(CommandTest, TUITest):
             )
 
         self.run_tui(keys, assertion, {"labels": labels})
+
+    def test_event_pre_delete_command(self, setup: Any) -> None:
+        """Tests the PreDeleteCommand event."""
+
+        @Event.PreDeleteCommand.subscribe
+        def hook(largs: Namespace) -> None:
+            largs.labels = ["einstein"]
+
+        assert Event.PreDeleteCommand.validate()
+
+        DeleteCommand().execute(["knuthwebsite"])
+
+        assert "einstein" not in Database().keys()
+        assert "knuthwebsite" in Database().keys()
+
+    def test_event_post_delete_command(self, setup: Any) -> None:
+        """Tests the PostDeleteCommand event."""
+
+        @Event.PostDeleteCommand.subscribe
+        def hook(deleted_entries: List[str]) -> None:
+            for label in deleted_entries:
+                print(f"WARNING: deleted entry '{label}'")
+
+        with contextlib.redirect_stdout(StringIO()) as out:
+            DeleteCommand().execute(["knuthwebsite"])
+
+        assert Event.PostDeleteCommand.validate()
+
+        assert out.getvalue().strip() == "WARNING: deleted entry 'knuthwebsite'"

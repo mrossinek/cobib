@@ -2,12 +2,14 @@
 # pylint: disable=no-self-use,unused-argument
 
 import logging
+from typing import Dict, Optional
 
 import pytest
 import requests
 
-from cobib import parsers
+from cobib.config import Event
 from cobib.database import Entry
+from cobib.parsers import DOIParser
 
 from .parser_test import ParserTest
 
@@ -37,10 +39,10 @@ class TestDOIParser(ParserTest):
         """Test parsing from DOI.
 
         Args:
-            query: the arXiv ID or URL which to query.
+            query: the DOI or URL which to query.
             caplog: the built-in pytest fixture.
         """
-        entries = parsers.DOIParser().parse(query)
+        entries = DOIParser().parse(query)
 
         if (
             "cobib.parsers.doi",
@@ -58,7 +60,7 @@ class TestDOIParser(ParserTest):
         Args:
             caplog: the built-in pytest fixture.
         """
-        entries = parsers.DOIParser().parse("1812.09976")
+        entries = DOIParser().parse("1812.09976")
         assert not entries
         assert entries == {}
 
@@ -83,7 +85,7 @@ class TestDOIParser(ParserTest):
             raise requests.exceptions.RequestException()
 
         monkeypatch.setattr(requests, "get", raise_exception)
-        parsers.DOIParser().parse("10.1021/acs.chemrev.8b00803")
+        DOIParser().parse("10.1021/acs.chemrev.8b00803")
 
         assert (
             "cobib.parsers.doi",
@@ -98,10 +100,50 @@ class TestDOIParser(ParserTest):
             caplog: the built-in pytest fixture.
         """
         entry = Entry("dummy", {"ENTRYTYPE": "unpublished"})
-        parsers.DOIParser().dump(entry)
+        DOIParser().dump(entry)
 
         assert (
             "cobib.parsers.doi",
             logging.ERROR,
             "Cannot dump an entry as a DOI.",
         ) in caplog.record_tuples
+
+    def test_event_pre_doi_parse(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Tests the PreDOIParse event."""
+
+        @Event.PreDOIParse.subscribe
+        def hook(string: str) -> Optional[str]:
+            return "10.1021/acs.chemrev.8b00803"
+
+        assert Event.PreDOIParse.validate()
+
+        entries = DOIParser().parse("Hello world!")
+        if (
+            "cobib.parsers.doi",
+            logging.ERROR,
+            "An Exception occurred while trying to query the DOI: 10.1021/acs.chemrev.8b00803.",
+        ) in caplog.record_tuples:
+            pytest.skip("The requests API encountered an error. Skipping test.")
+
+        entry = list(entries.values())[0]
+        assert_default_test_entry(entry)
+
+    def test_event_post_doi_parse(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Tests the PostDOIParse event."""
+
+        @Event.PostDOIParse.subscribe
+        def hook(bib: Dict[str, Entry]) -> None:
+            bib["Cao_2019"].data["test"] = "dummy"
+
+        assert Event.PostDOIParse.validate()
+
+        entries = DOIParser().parse("10.1021/acs.chemrev.8b00803")
+        if (
+            "cobib.parsers.doi",
+            logging.ERROR,
+            "An Exception occurred while trying to query the DOI: 10.1021/acs.chemrev.8b00803.",
+        ) in caplog.record_tuples:
+            pytest.skip("The requests API encountered an error. Skipping test.")
+
+        entry = list(entries.values())[0]
+        assert entry.data["test"] == "dummy"

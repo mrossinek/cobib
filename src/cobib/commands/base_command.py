@@ -11,7 +11,7 @@ import sys
 from abc import ABC, abstractmethod
 from typing import IO, TYPE_CHECKING, Any, Dict, Generator, List, NoReturn, Optional
 
-from cobib.config import config
+from cobib.config import Event, config
 from cobib.utils.rel_path import RelPath
 
 LOGGER = logging.getLogger(__name__)
@@ -115,6 +115,8 @@ class Command(ABC):
             msg += "\n\n"
             msg += json.dumps(args, indent=2, default=str)
 
+        msg = Event.PreGitCommit.fire(msg, args) or msg
+
         commands = [
             f"cd {root}",
             f"git add -- {file}",
@@ -122,6 +124,8 @@ class Command(ABC):
         ]
         LOGGER.debug("Auto-commit to git from %s command.", self.name)
         os.system("; ".join(commands))
+
+        Event.PostGitCommit.fire(root, file)
 
 
 class ArgumentParser(argparse.ArgumentParser):

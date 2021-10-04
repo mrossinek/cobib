@@ -96,6 +96,7 @@ class TestListCommands(ShellHelperTest):
 
         This fixture is automatically enabled for all tests in this class.
         """
+        config.defaults()
         config.load(get_resource("debug.py"))
 
     COMMAND = "list_commands"
@@ -184,6 +185,7 @@ class TestLintDatabase(ShellHelperTest):
 
         This fixture is automatically enabled for all tests in this class.
         """
+        config.defaults()
         config.database.file = str(TestLintDatabase.REL_PATH)
 
     def _assert(self, out: str) -> None:
@@ -305,6 +307,7 @@ class TestUnifyLabels(ShellHelperTest):
 
         This fixture is automatically enabled for all tests in this class.
         """
+        config.defaults()
         config.database.format.label_default = "{author.split()[1]}{year}"
         config.database.file = str(TestUnifyLabels.REL_PATH)
 

@@ -28,7 +28,7 @@ import os
 import sys
 from typing import IO, TYPE_CHECKING, Any, List
 
-from cobib.config import config
+from cobib.config import Event, config
 from cobib.utils.rel_path import RelPath
 
 from .base_command import ArgumentParser, Command
@@ -66,6 +66,8 @@ class InitCommand(Command):
         except argparse.ArgumentError as exc:
             LOGGER.error(exc.message)
             return
+
+        Event.PreInitCommand.fire(largs)
 
         file = RelPath(config.database.file).path
         root = file.parent
@@ -119,6 +121,8 @@ class InitCommand(Command):
             LOGGER.debug('Initializing git repository in "%s"', root)
             os.system(f"git init {root}")
             self.git(args=vars(largs), force=True)
+
+        Event.PostInitCommand.fire(root, file)
 
     @staticmethod
     def tui(tui: cobib.tui.TUI) -> None:

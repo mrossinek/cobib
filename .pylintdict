@@ -3,6 +3,7 @@ addcommand
 aip
 ansi
 archlinux
+arg
 argparse
 args
 argumenterror
@@ -70,9 +71,11 @@ monkeypatch
 monkeypatching
 mrossinek
 msg
+mypy
 noqa
 openlibrary
 ordereddict
+os
 parametrized
 parsers
 pathlib
@@ -81,6 +84,11 @@ pdoc
 phiresky
 pmincol
 pminrow
+postarxivparse
+postdoiparse
+postgitcommit
+postinitcommand
+postisbnparse
 pragma
 pre
 purepath
@@ -122,6 +130,7 @@ subcommands
 submodule
 submodules
 subprocess
+subscribable
 sys
 textbuffer
 textiowrapper

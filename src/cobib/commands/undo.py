@@ -26,7 +26,7 @@ import subprocess
 import sys
 from typing import IO, TYPE_CHECKING, Any, List
 
-from cobib.config import config
+from cobib.config import Event, config
 from cobib.database import Database
 from cobib.utils.rel_path import RelPath
 
@@ -91,6 +91,8 @@ class UndoCommand(Command):
             LOGGER.error(exc.message)
             return
 
+        Event.PreUndoCommand.fire(largs)
+
         LOGGER.debug("Obtaining git log.")
         lines = subprocess.check_output(
             [
@@ -142,6 +144,8 @@ class UndoCommand(Command):
             msg = "Could not find a commit to undo. Please commit something first!"
             LOGGER.warning(msg)
             sys.exit(1)
+
+        Event.PostUndoCommand.fire(root, sha)
 
     @staticmethod
     def tui(tui: cobib.tui.TUI) -> None:

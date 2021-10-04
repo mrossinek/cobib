@@ -3,12 +3,16 @@
 
 from __future__ import annotations
 
+import contextlib
 import tempfile
+from argparse import Namespace
+from io import StringIO
 from typing import TYPE_CHECKING, Any, List, Type
 
 import pytest
 
 from cobib.commands import ModifyCommand
+from cobib.config import Event
 from cobib.database import Database
 from cobib.utils.rel_path import RelPath
 
@@ -288,3 +292,30 @@ class TestModifyCommand(CommandTest, TUITest):
             assert [log for log in logs if log[0] == "cobib.commands.modify"] == expected_log
 
         self.run_tui(keys, assertion, {"selection": select})
+
+    def test_event_pre_modify_command(self, setup: Any) -> None:
+        """Tests the PreModifyCommand event."""
+
+        @Event.PreModifyCommand.subscribe
+        def hook(largs: Namespace) -> None:
+            largs.modification = ("number", "2")
+
+        assert Event.PreModifyCommand.validate()
+
+        ModifyCommand().execute(["-a", "number:3", "++label", "einstein"])
+
+        assert Database()["einstein"].data["number"] == 12
+
+    def test_event_post_modify_command(self, setup: Any) -> None:
+        """Tests the PostModifyCommand event."""
+
+        @Event.PostModifyCommand.subscribe
+        def hook(labels: List[str], dry: bool) -> None:
+            print(labels)
+
+        assert Event.PostModifyCommand.validate()
+
+        with contextlib.redirect_stdout(StringIO()) as out:
+            ModifyCommand().execute(["-a", "number:3", "++label", "einstein"])
+
+            assert out.getvalue() == "['einstein']\n"

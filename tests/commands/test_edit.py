@@ -4,13 +4,14 @@
 from __future__ import annotations
 
 import tempfile
+from argparse import Namespace
 from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Type
 
 import pytest
 
 from cobib.commands import EditCommand
-from cobib.config import config
-from cobib.database import Database
+from cobib.config import Event, config
+from cobib.database import Database, Entry
 from cobib.utils.rel_path import RelPath
 
 from ..tui.tui_test import TUITest
@@ -201,3 +202,30 @@ class TestEditCommand(CommandTest, TUITest):
             self._assert(changes=False, logs=true_log)
 
         self.run_tui("e", assertion, {})
+
+    def test_event_pre_edit_command(self, setup: Any) -> None:
+        """Tests the PreEditCommand event."""
+
+        @Event.PreEditCommand.subscribe
+        def hook(largs: Namespace) -> None:
+            largs.add = True
+            largs.label = "dummy"
+
+        assert Event.PreEditCommand.validate()
+
+        EditCommand().execute(["einstein"])
+
+        self._assert(changes=True)
+
+    def test_event_post_edit_command(self, setup: Any) -> None:
+        """Tests the PostEditCommand event."""
+
+        @Event.PostEditCommand.subscribe
+        def hook(new_entry: Entry) -> None:
+            new_entry.data["tags"] = "test"
+
+        assert Event.PostEditCommand.validate()
+
+        EditCommand().execute(["-a", "dummy"])
+
+        assert Database()["dummy"].data["tags"] == "test"

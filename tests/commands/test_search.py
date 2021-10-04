@@ -3,7 +3,9 @@
 
 from __future__ import annotations
 
+import contextlib
 import re
+from argparse import Namespace
 from io import StringIO
 from itertools import zip_longest
 from typing import TYPE_CHECKING, Any, List, Type
@@ -11,7 +13,7 @@ from typing import TYPE_CHECKING, Any, List, Type
 import pytest
 
 from cobib.commands import SearchCommand
-from cobib.config import config
+from cobib.config import Event, config
 
 from ..tui.tui_test import TUITest
 from .command_test import CommandTest
@@ -233,3 +235,33 @@ class TestSearchCommand(CommandTest, TUITest):
             assert [log for log in logs if log[0] == "cobib.commands.search"] == expected_log
 
         self.run_tui("/dummy\n", assertion, {})
+
+    def test_event_pre_search_command(self, setup: Any) -> None:
+        """Tests the PreSearchCommand event."""
+
+        @Event.PreSearchCommand.subscribe
+        def hook(largs: Namespace) -> None:
+            largs.query = "einstein"
+
+        assert Event.PreSearchCommand.validate()
+
+        expected = ["einstein - 1 match", "@article{einstein,", "author = {Albert Einstein},"]
+
+        file = StringIO()
+        SearchCommand().execute(["knuthwebsite"], out=file)
+        self._assert(file.getvalue().split("\n"), expected)
+
+    def test_event_post_search_command(self, setup: Any) -> None:
+        """Tests the PostSearchCommand event."""
+
+        @Event.PostSearchCommand.subscribe
+        def hook(hits: int, labels: List[str]) -> None:
+            print(labels)
+
+        assert Event.PostSearchCommand.validate()
+
+        with contextlib.redirect_stdout(StringIO()) as file:
+            SearchCommand().execute(["einstein"])
+            out = file.getvalue().split("\n")
+            self._assert(out[:-2], [])
+            assert out[-2] == "['einstein']"

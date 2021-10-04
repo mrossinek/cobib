@@ -24,7 +24,7 @@ import subprocess
 import sys
 from typing import IO, TYPE_CHECKING, Any, List
 
-from cobib.config import config
+from cobib.config import Event, config
 from cobib.database import Database
 from cobib.utils.rel_path import RelPath
 
@@ -84,6 +84,8 @@ class RedoCommand(Command):
             LOGGER.error(exc.message)
             return
 
+        Event.PreRedoCommand.fire(largs)
+
         LOGGER.debug("Obtaining git log.")
         lines = subprocess.check_output(
             [
@@ -132,6 +134,8 @@ class RedoCommand(Command):
             msg = "Could not find a commit to redo. You must have undone something first!"
             LOGGER.warning(msg)
             sys.exit(1)
+
+        Event.PostRedoCommand.fire(root, sha)
 
     @staticmethod
     def tui(tui: cobib.tui.TUI) -> None:

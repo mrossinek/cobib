@@ -29,6 +29,7 @@ from typing import Dict
 
 import requests
 
+from cobib.config import Event
 from cobib.database import Entry
 
 from .base_parser import Parser
@@ -52,6 +53,9 @@ class DOIParser(Parser):
     def parse(self, string: str) -> Dict[str, Entry]:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
+
+        string = Event.PreDOIParse.fire(string) or string
+
         try:
             match = re.search(DOI_REGEX, string)
             if match is None:
@@ -73,6 +77,9 @@ class DOIParser(Parser):
         bib = BibtexParser().parse(page.text)
         for entry in bib.values():
             entry.data["_download"] = redirected_url
+
+        Event.PostDOIParse.fire(bib)
+
         return bib
 
     def dump(self, entry: Entry) -> None:

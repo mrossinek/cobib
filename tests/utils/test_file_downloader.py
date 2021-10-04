@@ -2,13 +2,14 @@
 
 import tempfile
 from os import remove
-from typing import Any
+from typing import Any, Optional, Tuple
 
 import pytest
 import requests
 
-from cobib.config import config
+from cobib.config import Event, config
 from cobib.utils.file_downloader import FileDownloader
+from cobib.utils.rel_path import RelPath
 
 from .. import get_resource
 
@@ -194,3 +195,72 @@ def test_gracefully_fail_download(monkeypatch: pytest.MonkeyPatch) -> None:
             )
             is None
         )
+
+
+def test_event_pre_download(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test the PreFileDownload event.
+
+    Args:
+        monkeypatch: the built-in pytest fixture.
+    """
+
+    @Event.PreFileDownload.subscribe
+    def hook(
+        url: str, label: str, folder: Optional[str]
+    ) -> Optional[Tuple[str, str, Optional[str]]]:
+        label = "test"
+        return (url, label, folder)
+
+    assert Event.PreFileDownload.validate()
+
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        try:
+            # ensure file does not exist yet
+            remove(tmpdirname + "/test.pdf")
+        except FileNotFoundError:
+            pass
+        # disable the PDF assertion method
+        monkeypatch.setattr(FileDownloader, "_assert_pdf", lambda _: True)
+        path = FileDownloader().download(
+            "https://gitlab.com/mrossinek/cobib/-/raw/master/tests/utils/__init__.py",
+            "dummy",
+            tmpdirname,
+        )
+        if path is None:
+            pytest.skip("Likely, a requests error occured.")
+        with open(get_resource("__init__.py", "utils"), "r", encoding="utf-8") as expected:
+            with open(tmpdirname + "/test.pdf", "r", encoding="utf-8") as truth:
+                assert expected.read() == truth.read()
+
+
+def test_event_post_download(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test the PostFileDownload event.
+
+    Args:
+        monkeypatch: the built-in pytest fixture.
+    """
+
+    @Event.PostFileDownload.subscribe
+    def hook(path: RelPath) -> Optional[RelPath]:  # type: ignore[return]
+        path.path.rename(path.path.parent / "test.pdf")
+
+    assert Event.PostFileDownload.validate()
+
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        try:
+            # ensure file does not exist yet
+            remove(tmpdirname + "/test.pdf")
+        except FileNotFoundError:
+            pass
+        # disable the PDF assertion method
+        monkeypatch.setattr(FileDownloader, "_assert_pdf", lambda _: True)
+        path = FileDownloader().download(
+            "https://gitlab.com/mrossinek/cobib/-/raw/master/tests/utils/__init__.py",
+            "dummy",
+            tmpdirname,
+        )
+        if path is None:
+            pytest.skip("Likely, a requests error occured.")
+        with open(get_resource("__init__.py", "utils"), "r", encoding="utf-8") as expected:
+            with open(tmpdirname + "/test.pdf", "r", encoding="utf-8") as truth:
+                assert expected.read() == truth.read()

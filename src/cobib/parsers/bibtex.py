@@ -19,7 +19,7 @@ from typing import Dict
 
 import bibtexparser
 
-from cobib.config import config
+from cobib.config import Event, config
 from cobib.database import Entry
 
 from .base_parser import Parser
@@ -35,6 +35,9 @@ class BibtexParser(Parser):
     def parse(self, string: str) -> Dict[str, Entry]:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
+
+        string = Event.PreBibtexParse.fire(string) or string
+
         bparser = bibtexparser.bparser.BibTexParser()
         bparser.ignore_nonstandard_types = config.parsers.bibtex.ignore_non_standard_types
         bparser.common_strings = True
@@ -54,11 +57,17 @@ class BibtexParser(Parser):
                 entry["month"] = entry["month"].expr[0].name
             label = entry.pop("ID")
             bib[label] = Entry(label, entry)
+
+        Event.PostBibtexParse.fire(bib)
+
         return bib
 
     def dump(self, entry: Entry) -> str:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
+
+        Event.PreBibtexDump.fire(entry)
+
         database = bibtexparser.bibdatabase.BibDatabase()
         stringified_entry = entry.stringify()
         stringified_entry["ID"] = stringified_entry.pop("label")
@@ -72,4 +81,7 @@ class BibtexParser(Parser):
         writer = bibtexparser.bwriter.BibTexWriter()
         writer.common_strings = True
         string: str = writer.write(database)
+
+        string = Event.PostBibtexDump.fire(string) or string
+
         return string

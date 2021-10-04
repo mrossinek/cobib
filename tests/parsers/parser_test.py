@@ -1,5 +1,9 @@
 """coBib parser test class."""
 
+import pytest
+
+from cobib.config import config
+
 from .. import get_resource
 
 
@@ -30,3 +34,9 @@ class ParserTest:
         "year": 2019,
     }
     """The matching dictionary to the example files also included here."""
+
+    @pytest.fixture(autouse=True)
+    def setup(self) -> None:
+        # pylint: disable=no-self-use
+        """Setup."""
+        config.defaults()
