@@ -233,4 +233,4 @@ config.events = {}
 #
 # Note, that the typing is required for the config validation to pass!
 # For more information refer to the
-# [online documentation](https://mrossinek.gitlab.io/cobib/cobib/config/config.html).
+# [online documentation](https://mrossinek.gitlab.io/cobib/cobib/config/event.html).
