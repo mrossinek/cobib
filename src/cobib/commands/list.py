@@ -166,14 +166,6 @@ class ListCommand(Command):
                 "--" + key, type=str, action="append", help="exclude elements with matching " + key
             )
 
-        # TODO: remove for the v3.3.0 release
-        parser.add_argument(
-            "++ID", type=str, action="append", help="include elements with matching ID"
-        )
-        parser.add_argument(
-            "--ID", type=str, action="append", help="exclude elements with matching ID"
-        )
-
         try:
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
@@ -181,22 +173,6 @@ class ListCommand(Command):
             return None
 
         Event.PreListCommand.fire(largs)
-
-        # TODO: remove for the v3.3.0 release
-        if largs.ID is not None:
-            LOGGER.warning(
-                "The `ID` filter argument is deprecated as of v3.2.0 and will be removed in v3.3.0."
-                " Please use the `label` argument as a direct replacement instead!"
-            )
-            if largs.label is not None:
-                LOGGER.warning(
-                    "The `label` filter argment is the direct replacement of the `ID` argument. "
-                    "Using both simulateously is not supported. Thus, your `ID` argument will be "
-                    "ignored."
-                )
-            else:
-                largs.label = largs.ID
-            largs.ID = None
 
         LOGGER.debug("Constructing filter.")
         _filter: Dict[Tuple[str, bool], List[Any]] = defaultdict(list)

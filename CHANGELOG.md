@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - the `-s` option of the `AddCommand` is no longer available. You need to write out `--skip-download`
+- the `ID` filter argument on the `list` command (deprecated in v3.2.0 in favor of the `label` filter)
 
 
 ## [3.2.1] - 2021-07-15
