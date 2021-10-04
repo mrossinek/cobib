@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [3.3.0] - 2021-10-04
+
+Pypi: https://pypi.org/project/cobib/3.3.0/
+
 ### Added
 - print Changelog since the last run version (cached in `config.logging.version`) (#82)
 - the `AddCommand` now has a new `--update` option (#79,!41)
@@ -524,7 +529,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v3.2.1...master
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v3.3.0...master
+[3.3.0]: https://gitlab.com/mrossinek/cobib/-/compare/v3.3.0
 [3.2.1]: https://gitlab.com/mrossinek/cobib/-/compare/v3.2.1
 [3.2.0]: https://gitlab.com/mrossinek/cobib/-/compare/v3.2.0
 [3.1.1]: https://gitlab.com/mrossinek/cobib/-/compare/v3.1.1
