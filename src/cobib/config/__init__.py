@@ -23,3 +23,4 @@ For more information take a look at the example configuration, `cobib.config.exa
 
 from .config import LabelSuffix as LabelSuffix
 from .config import config as config
+from .event import Event as Event

@@ -116,13 +116,15 @@ class CommandTest(CmdLineTest):
         config.defaults()
 
     def assert_git_commit_message(
-        self, command: str, args: Optional[Dict[str, Any]] = None
+        self, command: str, args: Optional[Dict[str, Any]] = None, msg: Optional[str] = None
     ) -> None:
         """Assert the last auto-generated git commit message.
 
         Args:
             command: the last command type which ran.
             args: the arguments which were passed to the command.
+            msg: an optional commit message which overrules the auto-generated message from the
+                 previous arguments.
         """
         # get last commit message
         with subprocess.Popen(
@@ -134,6 +136,11 @@ class CommandTest(CmdLineTest):
             split_msg = message.decode("utf-8").split("\n")
             if split_msg is None:
                 return
+
+            if msg is not None:
+                assert msg == "\n".join(split_msg)
+                return
+
             # assert subject line
             assert f"Auto-commit: {command.title()}Command" in split_msg[0]
 

@@ -3,13 +3,15 @@
 
 from __future__ import annotations
 
+from argparse import Namespace
 from io import StringIO
 from itertools import zip_longest
-from typing import TYPE_CHECKING, Any, List, Type
+from typing import TYPE_CHECKING, Any, List, Optional, Type
 
 import pytest
 
 from cobib.commands import ShowCommand
+from cobib.config import Event
 
 from .. import get_resource
 from ..tui.tui_test import TUITest
@@ -129,3 +131,29 @@ class TestShowCommand(CommandTest, TUITest):
             assert [c.bg for c in screen.buffer[1].values()][18:] == ["cyan"] * 62
 
         self.run_tui(keys, assertion, {"select": select})
+
+    def test_event_pre_show_command(self, setup: Any) -> None:
+        """Tests the PreShowCommand event."""
+
+        @Event.PreShowCommand.subscribe
+        def hook(largs: Namespace) -> None:
+            largs.label = "einstein"
+
+        assert Event.PreShowCommand.validate()
+
+        file = StringIO()
+        ShowCommand().execute(["knuthwebsite"], out=file)
+        self._assert(file.getvalue().split("\n"))
+
+    def test_event_post_show_command(self, setup: Any) -> None:
+        """Tests the PostShowCommand event."""
+
+        @Event.PostShowCommand.subscribe
+        def hook(entry_str: str) -> Optional[str]:
+            return "Hello world!"
+
+        assert Event.PostShowCommand.validate()
+
+        file = StringIO()
+        ShowCommand().execute(["knuthwebsite"], out=file)
+        assert file.getvalue() == "Hello world!\n"

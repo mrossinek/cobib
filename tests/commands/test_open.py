@@ -3,12 +3,14 @@
 
 from __future__ import annotations
 
+import sys
+from argparse import Namespace
 from typing import TYPE_CHECKING, Any, Dict, Generator, List, Optional, Tuple, Type
 
 import pytest
 
 from cobib.commands import OpenCommand
-from cobib.config import config
+from cobib.config import Event, config
 from cobib.database import Database
 
 from .. import MockStdin, get_resource
@@ -145,8 +147,7 @@ class TestOpenCommand(CommandTest, TUITest):
                 ]
 
             if extra_logs is not None:
-                for log in extra_logs:
-                    expected_log.append(log)
+                expected_log.extend(extra_logs)
 
             for line, truth in zip(output, expected_out):
                 assert line == truth
@@ -299,3 +300,50 @@ class TestOpenCommand(CommandTest, TUITest):
             assert [log for log in logs if log[0] == "cobib.commands.open"] == expected_log
 
         self.run_tui(keys, assertion, {"selection": select})
+
+    def test_event_pre_open_command(
+        self,
+        setup: Any,
+        post_setup: Any,
+        caplog: pytest.LogCaptureFixture,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        """Tests the PreOpenCommand event."""
+
+        @Event.PreOpenCommand.subscribe
+        def hook(largs: Namespace) -> None:
+            largs.labels = ["knuthwebsite"]
+
+        assert Event.PreOpenCommand.validate()
+
+        OpenCommand().execute(["einstein"])
+
+        true_log = [rec for rec in caplog.record_tuples if rec[0] == "cobib.commands.open"]
+        true_out = capsys.readouterr().out.split("\n")
+
+        self._assert(true_out, true_log, multi_file=False)
+
+    def test_event_post_open_command(
+        self,
+        setup: Any,
+        post_setup: Any,
+        caplog: pytest.LogCaptureFixture,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        """Tests the PostOpenCommand event."""
+
+        @Event.PostOpenCommand.subscribe
+        def hook(labels: List[str]) -> None:
+            print(labels, file=sys.stderr)
+
+        assert Event.PostOpenCommand.validate()
+
+        OpenCommand().execute(["knuthwebsite"])
+
+        true_log = [rec for rec in caplog.record_tuples if rec[0] == "cobib.commands.open"]
+        outerr = capsys.readouterr()
+        true_out = outerr.out.split("\n")
+
+        self._assert(true_out, true_log, multi_file=False)
+
+        assert outerr.err == "['knuthwebsite']\n"

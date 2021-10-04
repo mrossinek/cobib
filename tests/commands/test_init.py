@@ -4,14 +4,16 @@
 from __future__ import annotations
 
 import os
+from argparse import Namespace
 from datetime import datetime
+from pathlib import Path
 from shutil import rmtree
 from typing import TYPE_CHECKING, Any, Type
 
 import pytest
 
 from cobib.commands import InitCommand
-from cobib.config import config
+from cobib.config import Event, config
 
 from .command_test import CommandTest
 
@@ -140,3 +142,29 @@ class TestInitCommand(CommandTest):
         ctime = os.stat(config.database.file).st_ctime
         # assert these times are close
         assert ctime - now < 0.1 or now - ctime < 0.1
+
+    def test_event_pre_init_command(self, setup: Any) -> None:
+        """Tests the PreInitCommand event."""
+
+        @Event.PreInitCommand.subscribe
+        def hook(largs: Namespace) -> None:
+            largs.git = True
+
+        assert Event.PreInitCommand.validate()
+
+        InitCommand().execute([])
+
+        self.assert_git_commit_message("init", {"git": True})
+
+    def test_event_post_init_command(self, setup: Any) -> None:
+        """Tests the PostInitCommand event."""
+
+        @Event.PostInitCommand.subscribe
+        def hook(root: Path, file: Path) -> None:
+            os.remove(file)
+
+        assert Event.PostInitCommand.validate()
+
+        InitCommand().execute([])
+
+        assert not os.path.exists(self.COBIB_TEST_DIR_GIT / "literature.yaml")

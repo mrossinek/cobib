@@ -23,6 +23,7 @@ from typing import Any, Dict
 import requests
 from bs4 import BeautifulSoup
 
+from cobib.config import Event
 from cobib.database import Entry
 
 from .base_parser import Parser
@@ -43,6 +44,9 @@ class ArxivParser(Parser):
     def parse(self, string: str) -> Dict[str, Entry]:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
+
+        string = Event.PreArxivParse.fire(string) or string
+
         try:
             match = re.search(ARXIV_REGEX, string)
             if match is None:
@@ -111,6 +115,9 @@ class ArxivParser(Parser):
         entry["author"] = entry["author"][:-5]
         bib = OrderedDict()
         bib[label] = Entry(label, entry)
+
+        Event.PostArxivParse.fire(bib)
+
         return bib
 
     def dump(self, entry: Entry) -> None:

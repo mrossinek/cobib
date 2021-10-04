@@ -43,7 +43,7 @@ import sys
 from typing import IO, TYPE_CHECKING, Any, List, Optional, Tuple
 
 from cobib import __version__
-from cobib.config import config
+from cobib.config import Event, config
 from cobib.database import Database
 
 from .base_command import ArgumentParser, Command
@@ -121,6 +121,8 @@ class SearchCommand(Command):
             LOGGER.error(exc.message)
             return None
 
+        Event.PreSearchCommand.fire(largs)
+
         with open(os.devnull, "w", encoding="utf-8") as devnull:
             labels = ListCommand().execute(largs.filter, out=devnull)
         if labels is None:
@@ -159,6 +161,9 @@ class SearchCommand(Command):
                     output.append(f"[{idx+1}]\t".expandtabs(8) + line)
 
         print("\n".join(output), file=out)
+
+        Event.PostSearchCommand.fire(hits, labels)
+
         return (hits, labels)
 
     @staticmethod

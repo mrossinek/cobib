@@ -80,6 +80,7 @@ import textwrap
 from collections import defaultdict
 from typing import IO, TYPE_CHECKING, Any, Dict, Generator, List, Optional, Set, Tuple
 
+from cobib.config import Event
 from cobib.database import Database
 
 from .base_command import ArgumentParser, Command
@@ -179,6 +180,8 @@ class ListCommand(Command):
             LOGGER.error(exc.message)
             return None
 
+        Event.PreListCommand.fire(largs)
+
         # TODO: remove for the v3.3.0 release
         if largs.ID is not None:
             LOGGER.warning(
@@ -248,6 +251,9 @@ class ListCommand(Command):
             labels, table = labels[::-1], table[::-1]
         for row in table:
             print("  ".join([f"{col: <{wid}}" for col, wid in zip(row, widths)]), file=out)
+
+        Event.PostListCommand.fire(labels)
+
         return list(labels)
 
     @staticmethod

@@ -10,7 +10,7 @@ from typing import Callable, Optional
 
 import requests
 
-from cobib.config import config
+from cobib.config import Event, config
 
 from .rel_path import RelPath
 
@@ -133,7 +133,13 @@ class FileDownloader:
         """
         if folder is None:
             folder = config.utils.file_downloader.default_location
+
+        hook_result = Event.PreFileDownload.fire(url, label, folder)
+        if hook_result is not None:
+            url, label, folder = hook_result
+
         path = RelPath(f"{folder}/{label}.pdf")
+
         backup = None
         if path.path.exists():
             if not overwrite:
@@ -203,4 +209,7 @@ class FileDownloader:
             msg = f"Successfully downloaded {path}"
             print(msg)
             LOGGER.info(msg)
+
+            path = Event.PostFileDownload.fire(path) or path
+
             return path

@@ -3,7 +3,9 @@
 
 from __future__ import annotations
 
+import contextlib
 import os
+from argparse import Namespace
 from io import StringIO
 from itertools import zip_longest
 from shutil import copyfile
@@ -12,7 +14,7 @@ from typing import TYPE_CHECKING, Any, List, Type
 import pytest
 
 from cobib.commands import ListCommand
-from cobib.config import config
+from cobib.config import Event, config
 from cobib.database import Database
 
 from .. import get_resource
@@ -346,3 +348,40 @@ class TestListCommand(CommandTest, TUITest):
                 break
         else:
             assert False, "Missing deprecation warning!"
+
+    def test_event_pre_list_command(self, setup: Any) -> None:
+        """Tests the PreListCommand event."""
+
+        @Event.PreListCommand.subscribe
+        def hook(largs: Namespace) -> None:
+            largs.author = None
+
+        assert Event.PreListCommand.validate()
+
+        expected = [
+            'einstein        Zur Elektrodynamik bewegter K{\\"o}rper',
+            "latexcompanion  The \\LaTeX\\ Companion",
+            "knuthwebsite    Knuth: Computers and Typesetting",
+        ]
+
+        with contextlib.redirect_stdout(StringIO()) as out:
+            ListCommand().execute(["++author", "Einstein"])
+
+            for truth, exp in zip(out.getvalue().split("\n"), expected):
+                assert truth.strip() == exp
+
+    def test_event_post_list_command(self, setup: Any) -> None:
+        """Tests the PostListCommand event."""
+
+        @Event.PostListCommand.subscribe
+        def hook(labels: List[str]) -> None:
+            print(labels)
+
+        assert Event.PostListCommand.validate()
+
+        with contextlib.redirect_stdout(StringIO()) as out:
+            ListCommand().execute([])
+
+            assert (
+                out.getvalue().split("\n")[-2] == "['einstein', 'latexcompanion', 'knuthwebsite']"
+            )

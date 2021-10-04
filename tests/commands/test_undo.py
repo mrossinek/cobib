@@ -3,16 +3,20 @@
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import os
 import subprocess
+from argparse import Namespace
+from io import StringIO
+from pathlib import Path
 from shutil import rmtree
 from typing import TYPE_CHECKING, Any, Type
 
 import pytest
 
 from cobib.commands import AddCommand, UndoCommand
-from cobib.config import config
+from cobib.config import Event, config
 from cobib.database import Database
 
 from .. import get_resource
@@ -117,8 +121,8 @@ class TestUndoCommand(CommandTest, TUITest):
 
         UndoCommand().execute([])
         self._assert()
-        assert "Storing undone commit" in caplog.record_tuples[3][2]
-        assert "Skipping" in caplog.record_tuples[5][2]
+        assert "Storing undone commit" in caplog.record_tuples[4][2]
+        assert "Skipping" in caplog.record_tuples[6][2]
 
     @pytest.mark.parametrize(
         ["setup"],
@@ -229,3 +233,37 @@ class TestUndoCommand(CommandTest, TUITest):
 
         AddCommand().execute(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB])
         self.run_tui("u", assertion, {})
+
+    @pytest.mark.parametrize("setup", [{"git": True}], indirect=["setup"])
+    def test_event_pre_undo_command(self, setup: Any) -> None:
+        """Tests the PreUndoCommand event."""
+
+        @Event.PreUndoCommand.subscribe
+        def hook(largs: Namespace) -> None:
+            print("Hello world!")
+
+        assert Event.PreUndoCommand.validate()
+
+        with contextlib.redirect_stdout(StringIO()) as out:
+            with pytest.raises(SystemExit):
+                UndoCommand().execute([])
+
+            assert out.getvalue() == "Hello world!\n"
+
+    @pytest.mark.parametrize("setup", [{"git": True}], indirect=["setup"])
+    def test_event_post_undo_command(self, setup: Any) -> None:
+        """Tests the PostUndoCommand event."""
+
+        @Event.PostUndoCommand.subscribe
+        def hook(root: Path, sha: str) -> None:
+            print(root)
+
+        assert Event.PostUndoCommand.validate()
+
+        with contextlib.redirect_stdout(StringIO()) as out:
+            AddCommand().execute(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB])
+            UndoCommand().execute([])
+
+            self._assert()
+
+            assert out.getvalue() == f"{self.COBIB_TEST_DIR}\n"

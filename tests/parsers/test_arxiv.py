@@ -2,12 +2,14 @@
 # pylint: disable=no-self-use,unused-argument
 
 import logging
+from typing import Dict, Optional
 
 import pytest
 import requests
 
-from cobib import parsers
+from cobib.config import Event
 from cobib.database import Entry
+from cobib.parsers import ArxivParser
 
 from .parser_test import ParserTest
 
@@ -46,7 +48,7 @@ class TestArxivParser(ParserTest):
             query: the arXiv ID or URL which to query.
             caplog: the built-in pytest fixture.
         """
-        entries = parsers.ArxivParser().parse(query)
+        entries = ArxivParser().parse(query)
 
         if (
             "cobib.parsers.arxiv",
@@ -61,13 +63,13 @@ class TestArxivParser(ParserTest):
     # regression test for https://gitlab.com/mrossinek/cobib/-/issues/57
     def test_invalid_arxiv_id(self) -> None:
         """Test parsing an invalid arXiv ID."""
-        entries = parsers.ArxivParser().parse("10.1021/acs.chemrev.8b00803")
+        entries = ArxivParser().parse("10.1021/acs.chemrev.8b00803")
         assert not entries
         assert entries == {}
 
     def test_arxiv_without_doi(self) -> None:
         """Test parsing an arXiv ID without an associated DOI."""
-        entries = parsers.ArxivParser().parse("1701.08213")
+        entries = ArxivParser().parse("1701.08213")
         entry = list(entries.values())[0]
         assert entry.label == "Bravyi2017"
         assert entry.data["archivePrefix"] == "arXiv"
@@ -94,7 +96,7 @@ class TestArxivParser(ParserTest):
             raise requests.exceptions.RequestException()
 
         monkeypatch.setattr(requests, "get", raise_exception)
-        parsers.ArxivParser().parse("1812.0997")
+        ArxivParser().parse("1812.0997")
 
         assert (
             "cobib.parsers.arxiv",
@@ -109,10 +111,51 @@ class TestArxivParser(ParserTest):
             caplog: the built-in pytest fixture.
         """
         entry = Entry("dummy", {"ENTRYTYPE": "unpublished"})
-        parsers.ArxivParser().dump(entry)
+        ArxivParser().dump(entry)
 
         assert (
             "cobib.parsers.arxiv",
             logging.ERROR,
             "Cannot dump an entry as an arXiv ID.",
         ) in caplog.record_tuples
+
+    def test_event_pre_arxiv_parse(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Tests the PreArxivParse event."""
+
+        @Event.PreArxivParse.subscribe
+        def hook(string: str) -> Optional[str]:
+            return "1812.09976"
+
+        assert Event.PreArxivParse.validate()
+
+        entries = ArxivParser().parse("Hello world!")
+        if (
+            "cobib.parsers.arxiv",
+            logging.ERROR,
+            "An Exception occurred while trying to query the arXiv ID: 1812.09976.",
+        ) in caplog.record_tuples:
+            pytest.skip("The requests API encountered an error. Skipping test.")
+
+        entry = list(entries.values())[0]
+        assert_default_test_entry(entry)
+
+    def test_event_post_arxiv_parse(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Tests the PostArxivParse event."""
+
+        @Event.PostArxivParse.subscribe
+        def hook(bib: Dict[str, Entry]) -> None:
+            bib["Cao2018"].data["test"] = "dummy"
+
+        assert Event.PostArxivParse.validate()
+
+        entries = ArxivParser().parse("1812.09976")
+        if (
+            "cobib.parsers.arxiv",
+            logging.ERROR,
+            "An Exception occurred while trying to query the arXiv ID: 1812.09976.",
+        ) in caplog.record_tuples:
+            pytest.skip("The requests API encountered an error. Skipping test.")
+
+        entry = list(entries.values())[0]
+        assert_default_test_entry(entry)
+        assert entry.data["test"] == "dummy"

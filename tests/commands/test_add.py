@@ -5,14 +5,15 @@ from __future__ import annotations
 
 import os
 import tempfile
+from argparse import Namespace
 from itertools import zip_longest
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type
 
 import pytest
 
 from cobib.commands import AddCommand
-from cobib.config import config
-from cobib.database import Database
+from cobib.config import Event, config
+from cobib.database import Database, Entry
 from cobib.utils.rel_path import RelPath
 
 from .. import get_resource
@@ -459,3 +460,29 @@ class TestAddCommand(CommandTest, TUITest):
 
         keys = "a-b " + EXAMPLE_MULTI_FILE_ENTRY_BIB + "\n"
         self.run_tui(keys, assertion, {})
+
+    def test_event_pre_add_command(self, setup: Any) -> None:
+        """Tests the PreAddCommand event."""
+
+        @Event.PreAddCommand.subscribe
+        def hook(largs: Namespace) -> None:
+            largs.label = "dummy"
+
+        assert Event.PreAddCommand.validate()
+
+        AddCommand().execute(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB])
+
+        assert "dummy" in Database().keys()
+
+    def test_event_post_add_command(self, setup: Any) -> None:
+        """Tests the PostAddCommand event."""
+
+        @Event.PostAddCommand.subscribe
+        def hook(new_entries: Dict[str, Entry]) -> None:
+            new_entries["dummy"] = new_entries.pop("einstein_a")
+
+        assert Event.PostAddCommand.validate()
+
+        AddCommand().execute(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB])
+
+        assert "dummy" in Database().keys()

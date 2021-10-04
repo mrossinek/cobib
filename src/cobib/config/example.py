@@ -215,3 +215,22 @@ config.utils.file_downloader.url_map = {}
 # form: `(full journal name, abbreviation)`. The abbreviation should include any necessary
 # punctuation which can be excluded upon export (see also `cobib export --help`).
 config.utils.journal_abbreviations = []
+
+# EVENTS
+# coBib allows you to register hooks on various events to further customize its behavior to your
+# liking. Although these functions will be registered in the following dictionary, we recommend you
+# to use the function-decorators as explained below.
+config.events = {}
+# To subscribe to a certain event do something similar to the following:
+#
+#     from os import system
+#     from pathlib import Path
+#     from cobib.config import Event
+#
+#     @Event.PostInitCommand.subscribe
+#     def add_remote(root: Path, file: Path) -> None:
+#         system(f"git -C {root} remote add origin https://github.com/user/repo")
+#
+# Note, that the typing is required for the config validation to pass!
+# For more information refer to the
+# [online documentation](https://mrossinek.gitlab.io/cobib/cobib/config/config.html).

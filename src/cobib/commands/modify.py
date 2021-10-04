@@ -74,6 +74,7 @@ import os
 import sys
 from typing import IO, TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
+from cobib.config import Event
 from cobib.database import Database
 from cobib.utils.logging import get_stream_handler
 from cobib.utils.rel_path import RelPath
@@ -259,6 +260,8 @@ class ModifyCommand(Command):
             LOGGER.error(exc.message)
             return
 
+        Event.PreModifyCommand.fire(largs)
+
         info_handler: logging.Handler
         if largs.dry:
             info_handler = get_stream_handler(logging.INFO)
@@ -391,6 +394,8 @@ class ModifyCommand(Command):
             except KeyError:
                 msg = f"No entry with the label '{label}' could be found."
                 LOGGER.warning(msg)
+
+        Event.PostModifyCommand.fire(labels, largs.dry)
 
         if largs.dry:
             LOGGER.removeHandler(info_handler)

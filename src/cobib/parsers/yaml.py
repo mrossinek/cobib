@@ -19,6 +19,7 @@ from typing import IO, Dict, Optional, Union, cast
 
 from ruamel import yaml
 
+from cobib.config import Event
 from cobib.database import Entry
 
 from .base_parser import Parser
@@ -53,6 +54,9 @@ class YAMLParser(Parser):
     def parse(self, string: Union[str, Path]) -> Dict[str, Entry]:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
+
+        string = Event.PreYAMLParse.fire(string) or string
+
         bib = OrderedDict()
         LOGGER.debug("Loading YAML data from file: %s.", string)
         try:
@@ -67,13 +71,23 @@ class YAMLParser(Parser):
             for label, data in entry.items():
                 bib[label] = Entry(label, data)
         stream.close()
+
+        Event.PostYAMLParse.fire(bib)
+
         return bib
 
     def dump(self, entry: Entry) -> Optional[str]:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
+
+        Event.PreYAMLDump.fire(entry)
+
         yml = self.YamlDumper()
         yml.explicit_start = True
         yml.explicit_end = True
         LOGGER.debug("Converting entry %s to YAML format.", entry.label)
-        return yml.dump({entry.label: dict(sorted(entry.data.items()))})
+        string = yml.dump({entry.label: dict(sorted(entry.data.items()))})
+
+        string = Event.PostYAMLDump.fire(string) or string
+
+        return string

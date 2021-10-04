@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - if labels conflict with existing ones, the suffix option will be used for disambiguation
     - the `AddCommand` has a new `--skip-existing` option which disables automatic label disambiguation
     - use `cobib _unify_labels --apply` to unify all labels in your database
+- subscribable events (#71,!46)
+    - allows registering of hooks to be executed in certain situation
+    - more information is provided at the [online documentation](https://mrossinek.gitlab.io/cobib/cobib/config/config.html)
 
 ### Changed
 - when an unknown variable is encountered in the modification of the `modify` command it falls back to an empty string rather than the name of the attempted variable

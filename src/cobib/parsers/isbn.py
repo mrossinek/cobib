@@ -24,6 +24,7 @@ from typing import Dict
 
 import requests
 
+from cobib.config import Event
 from cobib.database import Entry
 
 from .base_parser import Parser
@@ -47,6 +48,9 @@ class ISBNParser(Parser):
     def parse(self, string: str) -> Dict[str, Entry]:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
+
+        string = Event.PreISBNParse.fire(string) or string
+
         try:
             match = re.search(ISBN_REGEX, string)
             if match is None:
@@ -107,6 +111,9 @@ class ISBNParser(Parser):
         entry["ENTRYTYPE"] = "book"
         bib = OrderedDict()
         bib[label] = Entry(label, entry)
+
+        Event.PostISBNParse.fire(bib)
+
         return bib
 
     def dump(self, entry: Entry) -> None:

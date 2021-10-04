@@ -17,7 +17,7 @@ import sys
 from typing import IO, TYPE_CHECKING, Any, List
 
 from cobib import __version__
-from cobib.config import config
+from cobib.config import Event, config
 from cobib.database import Database
 from cobib.parsers.bibtex import BibtexParser
 
@@ -59,9 +59,14 @@ class ShowCommand(Command):
             LOGGER.error(exc.message)
             return
 
+        Event.PreShowCommand.fire(largs)
+
         try:
             entry = Database()[largs.label]
             entry_str = BibtexParser().dump(entry)
+
+            entry_str = Event.PostShowCommand.fire(entry_str) or entry_str
+
             print(entry_str, file=out)
         except KeyError:
             msg = f"No entry with the label '{largs.label}' could be found."

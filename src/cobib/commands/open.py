@@ -47,7 +47,7 @@ from collections import defaultdict
 from typing import IO, TYPE_CHECKING, Any, Dict, List
 from urllib.parse import ParseResult, urlparse
 
-from cobib.config import config
+from cobib.config import Event, config
 from cobib.database import Database
 from cobib.utils.rel_path import RelPath
 
@@ -94,6 +94,8 @@ class OpenCommand(Command):
         except argparse.ArgumentError as exc:
             LOGGER.error(exc.message)
             return
+
+        Event.PreOpenCommand.fire(largs)
 
         bib = Database()
 
@@ -177,6 +179,8 @@ class OpenCommand(Command):
                         LOGGER.debug("User selected url %s", choice)
                         self._open_url(url_list[int(choice) - 1])
                         break
+
+        Event.PostOpenCommand.fire(largs.labels)
 
     @staticmethod
     def _open_url(url: ParseResult) -> None:

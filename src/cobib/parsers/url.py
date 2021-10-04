@@ -20,6 +20,7 @@ from typing import Dict
 
 import requests
 
+from cobib.config import Event
 from cobib.database import Entry
 
 from .arxiv import ARXIV_REGEX, ArxivParser
@@ -39,6 +40,8 @@ class URLParser(Parser):
     def parse(self, string: str) -> Dict[str, Entry]:
         # pdoc will inherit the docstring from the base class
         # noqa: D102
+
+        string = Event.PreURLParse.fire(string) or string
 
         if re.search(ARXIV_REGEX, string):
             LOGGER.debug("URL contains an arXiv ID")
@@ -79,6 +82,9 @@ class URLParser(Parser):
             entries = DOIParser().parse(most_common_doi[0])
 
         if entries:
+
+            Event.PostURLParse.fire(entries)
+
             LOGGER.debug("Successfully extracted metadata from most common DOI")
             return entries
 

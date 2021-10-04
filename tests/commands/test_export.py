@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import os
 import tempfile
+from argparse import Namespace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, List, Type
 from zipfile import ZipFile
@@ -12,7 +13,7 @@ from zipfile import ZipFile
 import pytest
 
 from cobib.commands import ExportCommand
-from cobib.config import config
+from cobib.config import Event, config
 from cobib.database import Database
 
 from .. import get_resource
@@ -240,3 +241,32 @@ class TestExportCommand(CommandTest, TUITest):
             assert [log for log in logs if log[0] == "cobib.commands.export"] == expected_log
 
         self.run_tui(keys, assertion, {"selection": select})
+
+    def test_event_pre_export_command(self, setup: Any) -> None:
+        """Tests the PreExportCommand event."""
+        args = ["-b", str(TMPDIR / "cobib_test_export.bib")]
+
+        @Event.PreExportCommand.subscribe
+        def hook(largs: Namespace) -> None:
+            largs.selection = True
+            largs.filter = ["einstein"]
+
+        assert Event.PreExportCommand.validate()
+
+        ExportCommand().execute(args)
+
+        self._assert_bib(["-s"] + args + ["--", "einstein"])
+
+    def test_event_post_export_command(self, setup: Any) -> None:
+        """Tests the PostExportCommand event."""
+        args = ["-b", str(TMPDIR / "cobib_test_export.bib")]
+
+        @Event.PostExportCommand.subscribe
+        def hook(labels: List[str], largs: Namespace) -> None:
+            os.remove(str(TMPDIR / "cobib_test_export.bib"))
+
+        assert Event.PostExportCommand.validate()
+
+        ExportCommand().execute(args)
+
+        assert not os.path.exists(str(TMPDIR / "cobib_test_export.bib"))

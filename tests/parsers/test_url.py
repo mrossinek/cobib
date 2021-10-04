@@ -2,12 +2,13 @@
 # pylint: disable=no-self-use,unused-argument
 
 import logging
-from typing import Callable
+from typing import Callable, Dict, Optional
 
 import pytest
 
-from cobib import parsers
+from cobib.config import Event
 from cobib.database import Entry
+from cobib.parsers import URLParser
 
 from .parser_test import ParserTest
 from .test_arxiv import assert_default_test_entry as assert_arxiv_entry
@@ -54,21 +55,21 @@ class TestURLParser(ParserTest):
     def test_from_url(
         self, query: str, assertion: Callable[[Entry], None], caplog: pytest.LogCaptureFixture
     ) -> None:
-        """Test parsing from arXiv.
+        """Test parsing from URL.
 
         Args:
             query: the URL which to query.
             assertion: the assertion method to run.
             caplog: the built-in pytest fixture.
         """
-        entries = parsers.URLParser().parse(query)
+        entries = URLParser().parse(query)
 
         entry = list(entries.values())[0]
         assertion(entry)
 
     def test_invalid_url(self) -> None:
         """Test parsing an invalid URL."""
-        entries = parsers.URLParser().parse("https://github.com/")
+        entries = URLParser().parse("https://github.com/")
         assert not entries
         assert entries == {}
 
@@ -79,10 +80,43 @@ class TestURLParser(ParserTest):
             caplog: the built-in pytest fixture.
         """
         entry = Entry("dummy", {"ENTRYTYPE": "unpublished"})
-        parsers.URLParser().dump(entry)
+        URLParser().dump(entry)
 
         assert (
             "cobib.parsers.url",
             logging.ERROR,
             "Cannot dump an entry as a URL.",
         ) in caplog.record_tuples
+
+    def test_event_pre_url_parse(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Tests the PreURLParse event."""
+
+        @Event.PreURLParse.subscribe
+        def hook(string: str) -> Optional[str]:
+            return "https://www.nature.com/articles/s41467-019-10988-2"
+
+        assert Event.PreURLParse.validate()
+
+        entries = URLParser().parse("Hello world!")
+        if any(s == "cobib.parsers.url" and t == logging.ERROR for s, t, _ in caplog.record_tuples):
+            pytest.skip("The requests API encountered an error. Skipping test.")
+
+        entry = list(entries.values())[0]
+        assert_default_test_entry(entry)
+
+    def test_event_post_url_parse(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Tests the PostURLParse event."""
+
+        @Event.PostURLParse.subscribe
+        def hook(bib: Dict[str, Entry]) -> None:
+            bib["Grimsley_2019"].data["test"] = "dummy"
+
+        assert Event.PostURLParse.validate()
+
+        entries = URLParser().parse("https://www.nature.com/articles/s41467-019-10988-2")
+        if any(s == "cobib.parsers.url" and t == logging.ERROR for s, t, _ in caplog.record_tuples):
+            pytest.skip("The requests API encountered an error. Skipping test.")
+
+        entry = list(entries.values())[0]
+        assert_default_test_entry(entry)
+        assert entry.data["test"] == "dummy"

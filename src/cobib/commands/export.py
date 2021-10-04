@@ -55,6 +55,7 @@ import sys
 from typing import IO, TYPE_CHECKING, Any, List
 from zipfile import ZipFile
 
+from cobib.config import Event
 from cobib.database import Database
 from cobib.parsers.bibtex import BibtexParser
 from cobib.utils.journal_abbreviations import JournalAbbreviations
@@ -136,6 +137,8 @@ class ExportCommand(Command):
             LOGGER.error(exc.message)
             return
 
+        Event.PreExportCommand.fire(largs)
+
         if largs.bibtex is None and largs.zip is None:
             msg = "No output file specified!"
             LOGGER.error(msg)
@@ -180,6 +183,8 @@ class ExportCommand(Command):
             except KeyError:
                 msg = f"No entry with the label '{label}' could be found."
                 LOGGER.warning(msg)
+
+        Event.PostExportCommand.fire(labels, largs)
 
         if largs.zip is not None:
             largs.zip.close()
