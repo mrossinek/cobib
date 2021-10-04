@@ -59,7 +59,7 @@ def test_print_changelog(
             get_resource("expected_changelog_printing.txt", "utils"), "r", encoding="utf-8"
         ) as expected:
             expected_lines = expected.read().splitlines()
-            for true, exp in zip(captured[:-2], expected_lines):
+            for true, exp in zip(captured[:-10], expected_lines):
                 assert true == exp
             for true, exp in zip(captured[-2:], expected_lines[-2:]):
                 assert true == exp
