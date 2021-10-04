@@ -313,42 +313,6 @@ class TestListCommand(CommandTest, TUITest):
             # clean up config
             config.defaults()
 
-    def test_deprecation_warning(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test logged warning for deprecated argument.
-
-        Args:
-            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
-            caplog: the built-in pytest fixture.
-        """
-        file = StringIO()
-        tags = ListCommand().execute(["++ID", "einstein"], out=file)
-        expected = ["einstein"]
-        assert tags == expected
-        for source, level, message in caplog.record_tuples:
-            if (
-                source == "cobib.commands.list"
-                and level == 30
-                and "The `ID` filter argument is deprecated" in message
-            ):
-                break
-        else:
-            assert False, "Missing deprecation warning!"
-
-        # label argument takes precedence
-        file = StringIO()
-        tags = ListCommand().execute(["++ID", "einstein", "++label", "knuthwebsite"], out=file)
-        expected = ["knuthwebsite"]
-        assert tags == expected
-        for source, level, message in caplog.record_tuples:
-            if (
-                source == "cobib.commands.list"
-                and level == 30
-                and "your `ID` argument will be ignored" in message
-            ):
-                break
-        else:
-            assert False, "Missing deprecation warning!"
-
     def test_event_pre_list_command(self, setup: Any) -> None:
         """Tests the PreListCommand event."""
 
