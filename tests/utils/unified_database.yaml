@@ -3,7 +3,6 @@ Einstein1905_a:
   ENTRYTYPE: article
   author: Albert Einstein
   doi: http://dx.doi.org/10.1002/andp.19053221004
-  file: []
   journal: Annalen der Physik
   number: 10
   pages: 891--921
@@ -16,7 +15,6 @@ Goossens1993:
   ENTRYTYPE: book
   address: Reading, Massachusetts
   author: Michel Goossens and Frank Mittelbach and Alexander Samarin
-  file: []
   publisher: Addison-Wesley
   title: The \LaTeX\ Companion
   year: 1993
@@ -25,7 +23,6 @@ Goossens1993:
 Knuth:
   ENTRYTYPE: misc
   author: Donald Knuth
-  file: []
   title: 'Knuth: Computers and Typesetting'
   url:
   - http://www-cs-faculty.stanford.edu/\~{}uno/abcde.html
@@ -35,7 +32,6 @@ Einstein1905_b:
   ENTRYTYPE: article
   author: A. Einstein
   doi: 10.1002/andp.19053220806
-  file: []
   journal: Annalen der Physik
   number: 8
   pages: 549--560
@@ -48,11 +44,10 @@ Einstein1905_b:
   year: 1905
 ...
 ---
-Einstein1905_c:
+Einstein1905:
   ENTRYTYPE: article
   author: A. Einstein
   doi: 10.1002/andp.19053220607
-  file: []
   journal: Annalen der Physik
   number: 6
   pages: 132--148
@@ -65,11 +60,10 @@ Einstein1905_c:
   year: 1905
 ...
 ---
-Einstein1905_d:
+Einstein1905_c:
   ENTRYTYPE: article
   author: A. Einstein
   doi: 10.1002/andp.19053231314
-  file: []
   journal: Annalen der Physik
   number: 13
   pages: 639--641
@@ -79,4 +73,11 @@ Einstein1905_d:
   - https://doi.org/10.1002%2Fandp.19053231314
   volume: 323
   year: 1905
+...
+---
+Author2021:
+  ENTRYTYPE: misc
+  author: Some Author
+  title: this label is already correct and should remain unchanged
+  year: 2021
 ...

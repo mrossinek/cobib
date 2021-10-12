@@ -74,3 +74,10 @@ einstein_2:
   volume: 323
   year: 1905
 ...
+---
+Author2021:
+  ENTRYTYPE: misc
+  author: Some Author
+  title: this label is already correct and should remain unchanged
+  year: 2021
+...

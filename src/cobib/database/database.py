@@ -95,7 +95,7 @@ class Database(OrderedDict):  # type: ignore
         LOGGER.debug("Renaming entry '%s' to '%s'.", old_label, new_label)
         Database._unsaved_entries[old_label] = new_label
 
-    def disambiguate_label(self, label: str) -> str:
+    def disambiguate_label(self, label: str, entry: cobib.database.Entry) -> str:
         """Disambiguate a given label to ensure it becomes unique.
 
         This function ensures that a label is unique by appending a configurable suffix to a label
@@ -103,11 +103,12 @@ class Database(OrderedDict):  # type: ignore
 
         Args:
             label: the label which to disambiguate.
+            entry: the `Entry` to which this label belongs.
 
         Returns:
             A unique label.
         """
-        if label not in self.keys():
+        if label not in self.keys() or self[label] == entry:
             return label
 
         LOGGER.warning("Label '%s' already exists in database. Running disambiguation.", label)

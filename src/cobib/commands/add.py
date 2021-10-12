@@ -288,7 +288,7 @@ class AddCommand(Command):
                         "config.database.format.label_suffix"
                     )
                     LOGGER.warning(msg)
-                    new_label = bib.disambiguate_label(lbl)
+                    new_label = bib.disambiguate_label(lbl, entry)
                     entry.label = new_label
                     new_entries[new_label] = entry
                     new_entries.pop(lbl)
