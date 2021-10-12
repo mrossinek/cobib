@@ -328,7 +328,7 @@ class ModifyCommand(Command):
 
                 # guard against overwriting existing data if label gets changed
                 if field == "label":
-                    new_value = bib.disambiguate_label(new_value)
+                    new_value = bib.disambiguate_label(new_value, entry)
 
                 if new_value == prev_value:
                     LOGGER.info(
@@ -385,7 +385,7 @@ class ModifyCommand(Command):
                                     continue
                             if not largs.dry:
                                 new_files.append(file)
-                        if not largs.dry:
+                        if not largs.dry and new_files:
                             entry.file = new_files
 
                 if not largs.dry:

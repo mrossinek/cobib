@@ -120,12 +120,12 @@ def test_database_rename() -> None:
 @pytest.mark.parametrize(
     ["label_suffix", "expected"],
     [
-        [("_", LabelSuffix.ALPHA), "dummy_a"],
-        [("_", LabelSuffix.CAPTIAL), "dummy_A"],
-        [("_", LabelSuffix.NUMERIC), "dummy_1"],
-        [(".", LabelSuffix.ALPHA), "dummy.a"],
-        [(".", LabelSuffix.CAPTIAL), "dummy.A"],
-        [(".", LabelSuffix.NUMERIC), "dummy.1"],
+        [("_", LabelSuffix.ALPHA), "test_a"],
+        [("_", LabelSuffix.CAPTIAL), "test_A"],
+        [("_", LabelSuffix.NUMERIC), "test_1"],
+        [(".", LabelSuffix.ALPHA), "test.a"],
+        [(".", LabelSuffix.CAPTIAL), "test.A"],
+        [(".", LabelSuffix.NUMERIC), "test.1"],
     ],
 )
 def test_database_disambiguate_label(
@@ -133,13 +133,14 @@ def test_database_disambiguate_label(
 ) -> None:
     # pylint: disable=invalid-name
     """Test the `cobib.database.Database.disambiguate_label` method."""
+    config.database.format.default_label_format = "test"
     config.database.format.label_suffix = label_suffix
 
-    entries = {"dummy": "test"}
+    entries = {"dummy": "test", "test": "no"}
     bib = Database()
     bib.update(entries)  # type: ignore
 
-    new_label = Database().disambiguate_label("dummy")
+    new_label = Database().disambiguate_label("test", entries["dummy"])  # type: ignore
     assert new_label == expected
 
 

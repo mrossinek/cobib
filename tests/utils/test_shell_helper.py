@@ -296,8 +296,9 @@ class TestUnifyLabels(ShellHelperTest):
         "[INFO] latexcompanion: changing field 'label' from latexcompanion to Goossens1993",
         "[INFO] knuthwebsite: changing field 'label' from knuthwebsite to Knuth",
         "[INFO] Einstein_1905: changing field 'label' from Einstein_1905 to Einstein1905_b",
-        "[INFO] Einstein1905: changing field 'label' from Einstein1905 to Einstein1905_c",
-        "[INFO] einstein_2: changing field 'label' from einstein_2 to Einstein1905_d",
+        "[INFO] New and previous values match. Skipping modification of entry 'Einstein1905'.",
+        "[INFO] einstein_2: changing field 'label' from einstein_2 to Einstein1905_c",
+        "[INFO] New and previous values match. Skipping modification of entry 'Author2021'.",
     ]
 
     @staticmethod

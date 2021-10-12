@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import tempfile
 from argparse import Namespace
@@ -142,7 +143,11 @@ class TestAddCommand(CommandTest, TUITest):
 
     @pytest.mark.parametrize("folder", [None, "."])
     def test_add_with_download(
-        self, folder: Optional[str], setup: Any, capsys: pytest.CaptureFixture[str]
+        self,
+        folder: Optional[str],
+        setup: Any,
+        capsys: pytest.CaptureFixture[str],
+        caplog: pytest.LogCaptureFixture,
     ) -> None:
         """Test adding a new entry with an associated file automatically downloaded.
 
@@ -150,6 +155,7 @@ class TestAddCommand(CommandTest, TUITest):
             folder: the folder for the downloaded file.
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             capsys: the built-in pytest fixture.
+            caplog: the built-in pytest fixture.
         """
         path = RelPath(f"{'/tmp' if folder is None else folder}/Cao2018.pdf")
         try:
@@ -161,7 +167,16 @@ class TestAddCommand(CommandTest, TUITest):
             args = ["-a", "1812.09976"]
             if folder:
                 args += ["-p", folder]
+
             AddCommand().execute(args)
+
+            if (
+                "cobib.parsers.arxiv",
+                logging.ERROR,
+                "An Exception occurred while trying to query the arXiv ID: 1812.09976.",
+            ) in caplog.record_tuples:
+                pytest.skip("The requests API encountered an error. Skipping test.")
+
             entry = Database()["Cao2018"]
             assert entry.label == "Cao2018"
             assert entry.data["archivePrefix"] == "arXiv"
@@ -175,16 +190,26 @@ class TestAddCommand(CommandTest, TUITest):
             except FileNotFoundError:
                 pass
 
-    def test_add_skip_download(self, setup: Any) -> None:
+    def test_add_skip_download(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test adding a new entry and skipping the automatic download.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
         """
         path = RelPath("/tmp/Cao2018.pdf")
         try:
             args = ["-a", "1812.09976", "--skip-download"]
+
             AddCommand().execute(args)
+
+            if (
+                "cobib.parsers.arxiv",
+                logging.ERROR,
+                "An Exception occurred while trying to query the arXiv ID: 1812.09976.",
+            ) in caplog.record_tuples:
+                pytest.skip("The requests API encountered an error. Skipping test.")
+
             entry = Database()["Cao2018"]
             assert entry.label == "Cao2018"
             assert entry.data["archivePrefix"] == "arXiv"
@@ -205,14 +230,22 @@ class TestAddCommand(CommandTest, TUITest):
         ],
         indirect=["setup"],
     )
-    def test_add_with_update(self, setup: Any) -> None:
+    def test_add_with_update(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test update option of AddCommand.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
         """
         git = setup.get("git", False)
         AddCommand().execute(["-a", "1812.09976", "--skip-download"])
+
+        if (
+            "cobib.parsers.arxiv",
+            logging.ERROR,
+            "An Exception occurred while trying to query the arXiv ID: 1812.09976.",
+        ) in caplog.record_tuples:
+            pytest.skip("The requests API encountered an error. Skipping test.")
 
         # assert initial state
         entry = Database()["Cao2018"]
@@ -234,6 +267,13 @@ class TestAddCommand(CommandTest, TUITest):
 
         args = ["-d", "10.1021/acs.chemrev.8b00803", "-l", "Cao2018", "--skip-download", "--update"]
         AddCommand().execute(args)
+
+        if (
+            "cobib.parsers.doi",
+            logging.ERROR,
+            "An Exception occurred while trying to query the DOI: 10.1021/acs.chemrev.8b00803.",
+        ) in caplog.record_tuples:
+            pytest.skip("The requests API encountered an error. Skipping test.")
 
         # assert final state
         entry = Database()["Cao2018"]
