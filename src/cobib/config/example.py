@@ -113,6 +113,11 @@ config.database.stringify.list_separator.url = ", "
 # You can specify whether the bibtex-parser should ignore non-standard bibtex entry types.
 config.parsers.bibtex.ignore_non_standard_types = False
 
+# You can specify that the C-based implementation of the YAML parser (called `LibYAML`) shall be
+# used, *significantly* increasing the performance of the parsing. Note, that this requires manual
+# installation of the C-based parser:
+# https://yaml.readthedocs.io/en/latest/install.html#optional-requirements
+config.parsers.yaml.use_c_lib_yaml = False
 
 # TUI
 # These settings affect the functionality and look of the TUI.

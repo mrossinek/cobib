@@ -189,6 +189,7 @@ def test_config_validation(setup: Any) -> None:
         [["database", "stringify", "list_separator"], "tags"],
         [["database", "stringify", "list_separator"], "url"],
         [["parsers", "bibtex"], "ignore_non_standard_types"],
+        [["parsers", "yaml"], "use_c_lib_yaml"],
         [["tui"], "default_list_args"],
         [["tui"], "prompt_before_quit"],
         [["tui"], "reverse_order"],

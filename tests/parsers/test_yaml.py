@@ -5,7 +5,7 @@ from typing import Dict, Optional, cast
 
 import pytest
 
-from cobib.config import Event
+from cobib.config import Event, config
 from cobib.database import Entry
 from cobib.parsers import YAMLParser
 
@@ -22,12 +22,21 @@ class TestYAMLParser(ParserTest):
         with open(self.EXAMPLE_YAML_FILE, "r", encoding="utf-8") as file:
             assert yaml_str == file.read()
 
-    def test_from_yaml_file(self) -> None:
-        """Test parsing a yaml file."""
-        reference = self.EXAMPLE_ENTRY_DICT.copy()
-        entries = YAMLParser().parse(self.EXAMPLE_YAML_FILE)
-        entry = list(entries.values())[0]
-        assert entry.data == reference
+    @pytest.mark.parametrize("use_c_lib_yaml", [False, True])
+    def test_from_yaml_file(self, use_c_lib_yaml: bool) -> None:
+        """Test parsing a yaml file.
+
+        Args:
+            use_c_lib_yaml: the configuration setting.
+        """
+        try:
+            config.parsers.yaml.use_c_lib_yaml = use_c_lib_yaml
+            reference = self.EXAMPLE_ENTRY_DICT.copy()
+            entries = YAMLParser().parse(self.EXAMPLE_YAML_FILE)
+            entry = list(entries.values())[0]
+            assert entry.data == reference
+        finally:
+            config.defaults()
 
     def test_raise_missing_file(self) -> None:
         """Test assertion is raised for missing file."""
