@@ -48,8 +48,16 @@ class TestURLParser(ParserTest):
         ("query", "assertion"),
         [
             ("https://arxiv.org/abs/1812.09976", assert_arxiv_entry),
-            ("https://doi.org/10.1021/acs.chemrev.8b00803", assert_doi_entry),
-            ("https://www.nature.com/articles/s41467-019-10988-2", assert_default_test_entry),
+            pytest.param(
+                "https://doi.org/10.1021/acs.chemrev.8b00803",
+                assert_doi_entry,
+                marks=pytest.mark.skip("https://gitlab.com/mrossinek/cobib/-/issues/91"),
+            ),
+            pytest.param(
+                "https://www.nature.com/articles/s41467-019-10988-2",
+                assert_default_test_entry,
+                marks=pytest.mark.skip("https://gitlab.com/mrossinek/cobib/-/issues/91"),
+            ),
         ],
     )
     def test_from_url(
@@ -88,6 +96,7 @@ class TestURLParser(ParserTest):
             "Cannot dump an entry as a URL.",
         ) in caplog.record_tuples
 
+    @pytest.mark.skip("https://gitlab.com/mrossinek/cobib/-/issues/91")
     def test_event_pre_url_parse(self, caplog: pytest.LogCaptureFixture) -> None:
         """Tests the PreURLParse event."""
 
@@ -104,6 +113,7 @@ class TestURLParser(ParserTest):
         entry = list(entries.values())[0]
         assert_default_test_entry(entry)
 
+    @pytest.mark.skip("https://gitlab.com/mrossinek/cobib/-/issues/91")
     def test_event_post_url_parse(self, caplog: pytest.LogCaptureFixture) -> None:
         """Tests the PostURLParse event."""
 

@@ -32,6 +32,7 @@ def assert_default_test_entry(entry: Entry) -> None:
 class TestDOIParser(ParserTest):
     """Tests for coBib's DOIParser."""
 
+    @pytest.mark.skip("https://gitlab.com/mrossinek/cobib/-/issues/91")
     @pytest.mark.parametrize(
         "query", ["10.1021/acs.chemrev.8b00803", "https://doi.org/10.1021/acs.chemrev.8b00803"]
     )
@@ -108,6 +109,7 @@ class TestDOIParser(ParserTest):
             "Cannot dump an entry as a DOI.",
         ) in caplog.record_tuples
 
+    @pytest.mark.skip("https://gitlab.com/mrossinek/cobib/-/issues/91")
     def test_event_pre_doi_parse(self, caplog: pytest.LogCaptureFixture) -> None:
         """Tests the PreDOIParse event."""
 
@@ -128,6 +130,7 @@ class TestDOIParser(ParserTest):
         entry = list(entries.values())[0]
         assert_default_test_entry(entry)
 
+    @pytest.mark.skip("https://gitlab.com/mrossinek/cobib/-/issues/91")
     def test_event_post_doi_parse(self, caplog: pytest.LogCaptureFixture) -> None:
         """Tests the PostDOIParse event."""
 
