@@ -15,11 +15,11 @@ import io
 import logging
 from collections import OrderedDict
 from pathlib import Path
-from typing import IO, Dict, Optional, Union, cast
+from typing import IO, Dict, Optional, Union
 
 from ruamel import yaml
 
-from cobib.config import Event
+from cobib.config import Event, config
 from cobib.database import Entry
 
 from .base_parser import Parser
@@ -32,24 +32,9 @@ class YAMLParser(Parser):
 
     name = "yaml"
 
-    class YamlDumper(yaml.YAML):  # type: ignore
-        """Wrapper class for YAML dumping."""
-
-        # pylint: disable=arguments-differ,inconsistent-return-statements
-        def dump(self, data, stream=None, **kw) -> Optional[str]:  # type: ignore
-            """A wrapper to dump as a string.
-
-            Adapted from
-            [here](https://yaml.readthedocs.io/en/latest/example.html#output-of-dump-as-a-string).
-            """
-            inefficient = False
-            if stream is None:  # pragma: no branch
-                inefficient = True
-                stream = yaml.compat.StringIO()
-            yaml.YAML.dump(self, data, stream, **kw)  # type: ignore
-            if inefficient:
-                return cast(str, stream.getvalue())
-            return None  # pragma: no cover
+    _yaml = yaml.YAML(pure=config.parsers.yaml.use_c_lib_yaml)  # type: ignore[attr-defined]
+    _yaml.explicit_start = True
+    _yaml.explicit_end = True
 
     def parse(self, string: Union[str, Path]) -> Dict[str, Entry]:
         # pdoc will inherit the docstring from the base class
@@ -60,14 +45,13 @@ class YAMLParser(Parser):
         bib = OrderedDict()
         LOGGER.debug("Loading YAML data from file: %s.", string)
         try:
-            stream: IO = io.StringIO(Path(string))  # type: ignore
+            stream: IO = io.StringIO(Path(string))  # type: ignore[arg-type,type-arg]
         except TypeError:
             try:
                 stream = open(string, "r", encoding="utf-8")  # pylint: disable=consider-using-with
             except FileNotFoundError as exc:
                 raise exc
-        yml = yaml.YAML(typ="safe", pure=True)  # type: ignore
-        for entry in yml.load_all(stream):
+        for entry in self._yaml.load_all(stream):
             for label, data in entry.items():
                 bib[label] = Entry(label, data)
         stream.close()
@@ -82,11 +66,10 @@ class YAMLParser(Parser):
 
         Event.PreYAMLDump.fire(entry)
 
-        yml = self.YamlDumper()
-        yml.explicit_start = True
-        yml.explicit_end = True
         LOGGER.debug("Converting entry %s to YAML format.", entry.label)
-        string = yml.dump({entry.label: dict(sorted(entry.data.items()))})
+        stream = io.StringIO()
+        self._yaml.dump({entry.label: dict(sorted(entry.data.items()))}, stream=stream)
+        string = stream.getvalue()
 
         string = Event.PostYAMLDump.fire(string) or string
 

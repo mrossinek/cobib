@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- the new `config.parsers.yaml.use_c_lib_yaml` setting which significantly improves loading performance
+    - this setting will change its default value to `True` in version 4.0.0
+
 
 ## [3.3.1] - 2021-10-19
 
