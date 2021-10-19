@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - erroneous label disambiguation of Entry labels which already conform with `config.database.format.default_label_format` (#87,!47)
 - do not add empty file list when unifying database
 
+### Security
+- log warning when using the DOI parser because of (#91)
+
 
 ## [3.3.0] - 2021-10-04
 

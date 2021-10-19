@@ -66,6 +66,16 @@ class DOIParser(Parser):
             return OrderedDict()
         doi = match.group(1)
         LOGGER.info("Gathering BibTex data for DOI: %s.", doi)
+
+        LOGGER.warning(
+            "Please be aware of an open issues caused by a change in the Crossref API, from which "
+            "coBib queries the BibTeX data for a given DOI. The exact nature of this issue is still"
+            " unknown, but it can cause faulty labels as well as entry information (e.g. the "
+            "journal) to be missing. You can alleviate the faulty label to some degree by setting "
+            "the `config.database.format.label_default` option to your liking. For more information"
+            " please refer to: https://gitlab.com/mrossinek/cobib/-/issues/91"
+        )
+
         try:
             page = requests.get(DOI_URL + doi, headers=DOI_HEADER, timeout=10)
             # this assumes that the doi.org page redirects to the correct journal's landing page
