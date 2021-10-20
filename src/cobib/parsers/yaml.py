@@ -32,9 +32,12 @@ class YAMLParser(Parser):
 
     name = "yaml"
 
-    _yaml = yaml.YAML(pure=config.parsers.yaml.use_c_lib_yaml)  # type: ignore[attr-defined]
+    _yaml = yaml.YAML(  # type: ignore[attr-defined]
+        typ="safe", pure=config.parsers.yaml.use_c_lib_yaml
+    )
     _yaml.explicit_start = True
     _yaml.explicit_end = True
+    _yaml.default_flow_style = False
 
     def parse(self, string: Union[str, Path]) -> Dict[str, Entry]:
         # pdoc will inherit the docstring from the base class
