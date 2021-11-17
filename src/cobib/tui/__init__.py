@@ -10,6 +10,7 @@ The code is split into several submodules:
 """
 
 import curses
+import os
 
 from .buffer import InputBuffer as InputBuffer
 from .buffer import TextBuffer as TextBuffer
@@ -27,3 +28,4 @@ def tui() -> None:
     care of all the rest.
     """
     curses.wrapper(TUI)  # pragma: no cover
+    os.system("cls" if os.name == "nt" else "clear")
