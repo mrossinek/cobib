@@ -126,6 +126,10 @@ class MockCursesPad:
         # noqa: D102
         self.logger.debug("nodelay: %s", flag)
 
+    def keypad(self, flag):  # type: ignore
+        # noqa: D102
+        self.logger.debug("keypad: %s", flag)
+
     def delch(self, row, col):  # type: ignore
         # noqa: D102
         self.logger.debug("delch: %s, %s", row, col)
