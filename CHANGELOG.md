@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - this ensures proper arrow-key behavior after returning from an external editor
 - clear screen after closing TUI to remove all screen artifacts
 
+### Security
+- remove warning when using the DOI parser because the upstream issue related to #91 got fixed
+
 
 ## [3.3.1] - 2021-10-19
 
