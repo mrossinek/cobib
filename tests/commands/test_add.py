@@ -222,7 +222,6 @@ class TestAddCommand(CommandTest, TUITest):
             except FileNotFoundError:
                 pass
 
-    @pytest.mark.skip("https://gitlab.com/mrossinek/cobib/-/issues/91")
     @pytest.mark.parametrize(
         ["setup"],
         [
