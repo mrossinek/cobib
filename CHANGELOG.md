@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- re-enable the terminal keypad during resize event
+    - this ensures proper arrow-key behavior after returning from an external editor
+
 
 ## [3.3.1] - 2021-10-19
 

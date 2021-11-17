@@ -272,6 +272,7 @@ class TUI:
         # actually resize the terminal
         curses.resize_term(self.height, self.width)
         # clear and refresh for a blank canvas
+        self.stdscr.keypad(True)
         self.stdscr.clear()
         self.stdscr.refresh()
         # update top statusbar

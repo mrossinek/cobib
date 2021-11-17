@@ -407,6 +407,7 @@ class TestTUI(CmdLineTest, TUITest):
         assert tui.prompt.size[1] == 70  # type: ignore
         expected_log = [
             ("TUITest", 10, "resize_term"),
+            ("MockCursesPad", 10, "keypad: True"),
             ("MockCursesPad", 10, "clear"),
             ("MockCursesPad", 10, "refresh: None None None None None None"),
             ("MockCursesPad", 10, "resize: 1 70"),
