@@ -25,6 +25,8 @@ from cobib.config import LabelSuffix, config
 
 
 # LOGGING
+# You can specify the default cache location.
+config.logging.cache = "~/.cache/cobib/cache"
 # You can specify the default logfile location.
 config.logging.logfile = "~/.cache/cobib/cobib.log"
 # You can also set the location for the cached version number based on which coBib shows you the
@@ -180,6 +182,7 @@ config.tui.key_bindings.edit = "e"
 config.tui.key_bindings.export = "x"
 config.tui.key_bindings.filter = "f"
 config.tui.key_bindings.help = "?"
+config.tui.key_bindings["import"] = "i"  # since `import` is a keyword, this syntax is required
 config.tui.key_bindings.modify = "m"
 config.tui.key_bindings.open = "o"
 config.tui.key_bindings.prompt = ":"

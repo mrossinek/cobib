@@ -65,7 +65,7 @@ class TestArxivParser(ParserTest):
         """Test parsing an invalid arXiv ID."""
         entries = ArxivParser().parse("10.1021/acs.chemrev.8b00803")
         assert not entries
-        assert entries == {}
+        assert entries == {}  # pylint: disable=C1803
 
     def test_arxiv_without_doi(self) -> None:
         """Test parsing an arXiv ID without an associated DOI."""

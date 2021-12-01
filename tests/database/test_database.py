@@ -99,7 +99,7 @@ def test_database_pop() -> None:
     bib.update(entries)  # type: ignore
     # pylint: disable=protected-access
     Database._unsaved_entries = {}
-    assert Database._unsaved_entries == {}
+    assert Database._unsaved_entries == {}  # pylint: disable=C1803
     entry = bib.pop("dummy1")
     assert entry == "test1"
     assert "dummy1" not in bib.keys()
@@ -111,7 +111,7 @@ def test_database_rename() -> None:
     bib = Database()
     # pylint: disable=protected-access
     Database._unsaved_entries = {}
-    assert Database._unsaved_entries == {}
+    assert Database._unsaved_entries == {}  # pylint: disable=C1803
     bib.rename("einstein", "dummy")
     # pylint: disable=protected-access
     assert Database._unsaved_entries == {"einstein": "dummy"}
@@ -149,7 +149,7 @@ def test_database_read() -> None:
     bib = Database()
     bib.read()
     # pylint: disable=protected-access
-    assert Database._unsaved_entries == {}
+    assert Database._unsaved_entries == {}  # pylint: disable=C1803
     assert list(bib.keys()) == ["einstein", "latexcompanion", "knuthwebsite"]
 
 
@@ -172,7 +172,7 @@ def test_database_save_add() -> None:
 
     try:
         # pylint: disable=protected-access
-        assert Database._unsaved_entries == {}
+        assert Database._unsaved_entries == {}  # pylint: disable=C1803
 
         with open(config.database.file, "r", encoding="utf-8") as file:
             # NOTE: do NOT use zip_longest to omit last entries (for testing simplicity)
@@ -201,7 +201,7 @@ def test_database_save_modify() -> None:
 
     try:
         # pylint: disable=protected-access
-        assert Database._unsaved_entries == {}
+        assert Database._unsaved_entries == {}  # pylint: disable=C1803
 
         with open(config.database.file, "r", encoding="utf-8") as file:
             with open(EXAMPLE_LITERATURE, "r", encoding="utf-8") as expected:
@@ -234,7 +234,7 @@ def test_database_save_delete() -> None:
 
     try:
         # pylint: disable=protected-access
-        assert Database._unsaved_entries == {}
+        assert Database._unsaved_entries == {}  # pylint: disable=C1803
 
         with open(config.database.file, "r", encoding="utf-8") as file:
             with open(EXAMPLE_LITERATURE, "r", encoding="utf-8") as expected:

@@ -94,7 +94,7 @@ class TestTextBuffer:
         """Test `cobib.tui.buffer.TextBuffer.clear`."""
         self.buffer.lines = ["test"]
         self.buffer.clear()
-        assert self.buffer.lines == []
+        assert self.buffer.lines == []  # pylint: disable=C1803
         assert self.buffer.height == 0
         assert self.buffer.width == 0
         assert self.buffer.wrapped is False

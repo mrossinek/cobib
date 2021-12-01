@@ -105,6 +105,7 @@ class TestListCommands(ShellHelperTest):
         "delete",
         "edit",
         "export",
+        "import",
         "init",
         "list",
         "modify",

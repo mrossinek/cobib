@@ -2,7 +2,7 @@
 
 import tempfile
 from os import remove
-from typing import Any, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import pytest
 import requests
@@ -206,10 +206,10 @@ def test_event_pre_download(monkeypatch: pytest.MonkeyPatch) -> None:
 
     @Event.PreFileDownload.subscribe
     def hook(
-        url: str, label: str, folder: Optional[str]
-    ) -> Optional[Tuple[str, str, Optional[str]]]:
+        url: str, label: str, folder: Optional[str], headers: Optional[Dict[str, str]]
+    ) -> Optional[Tuple[str, str, Optional[str], Optional[Dict[str, str]]]]:
         label = "test"
-        return (url, label, folder)
+        return (url, label, folder, headers)
 
     assert Event.PreFileDownload.validate()
 

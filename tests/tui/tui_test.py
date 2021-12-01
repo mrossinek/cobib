@@ -122,6 +122,10 @@ class TUITest:
                        arguments: a pyte screen object and the caplog.record_tuples.
             assertion_kwargs: additional keyword arguments propagated to the assertion call.
         """
+        # "hack" the fallback terminal size
+        os.environ["COLUMNS"] = "80"
+        os.environ["LINES"] = "24"
+
         # create pseudo-terminal
         pid, f_d = os.forkpty()
 

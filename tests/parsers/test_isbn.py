@@ -62,7 +62,7 @@ class TestISBNParser(ParserTest):
             pytest.skip("The requests API encountered an error. Skipping test.")
 
         assert not entries
-        assert entries == {}
+        assert entries == {}  # pylint: disable=C1803
 
         assert ("cobib.parsers.isbn", logging.WARNING) in [
             (source, level) for source, level, _ in caplog.record_tuples
