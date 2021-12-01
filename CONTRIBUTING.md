@@ -43,5 +43,5 @@ To create a new release you should do the following steps:
 3. Ensure you have the following packages installed: `pip install build twine`
 4. Create the release wheel and archive files: `python -m build`
 5. Publish the new release on pypi: `python -m twine upload dist/cobib-VERSION*`
-6. Create a release on Gitlab by adding the changelog section to the tag release notes
+6. Create a release on Gitlab (and Github) by adding the changelog section to the tag release notes
 7. Trigger the manual CI action `pages`, which will update the online documentation.
