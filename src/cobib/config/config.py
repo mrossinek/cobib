@@ -73,6 +73,7 @@ class Config(Dict[str, Any]):
             },
             "open": {
                 "command": "xdg-open" if sys.platform.lower() == "linux" else "open",
+                "fields": ["file", "url"],
             },
             "search": {
                 "grep": "grep",
@@ -440,6 +441,10 @@ class Config(Dict[str, Any]):
         self._assert(
             isinstance(self.commands.open.command, str),
             "config.commands.open.command should be a string.",
+        )
+        self._assert(
+            isinstance(self.commands.open.fields, list),
+            "config.commands.open.fields should be a list.",
         )
         # COMMANDS.SEARCH section
         LOGGER.debug("Validating the COMMANDS.SEARCH configuration section.")

@@ -76,6 +76,7 @@ msg
 mypy
 noqa
 oauth
+openable
 openlibrary
 ordereddict
 os

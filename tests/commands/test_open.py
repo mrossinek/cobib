@@ -218,6 +218,48 @@ class TestOpenCommand(CommandTest, TUITest):
             "The entry 'einstein' has no actionable field associated with it.",
         ) in caplog.record_tuples
 
+    def test_config_openable_fields(
+        self,
+        setup: Any,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        """Test the `config.commands.open.fields` setting.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            monkeypatch: the built-in pytest fixture.
+            capsys: the built-in pytest fixture.
+        """
+        config.commands.open.fields = ["note"]
+
+        with open(
+            get_resource("example_multi_file_entry.yaml", "commands"), "r", encoding="utf-8"
+        ) as multi_file_entry:
+            with open(config.database.file, "a", encoding="utf-8") as database:
+                for line in multi_file_entry.readlines():
+                    if line == "  file:\n":
+                        database.write("  note:\n")
+                    else:
+                        database.write(line)
+
+        Database().read()
+
+        monkeypatch.setattr("sys.stdin", MockStdin())
+
+        OpenCommand().execute(["example_multi_file_entry"])
+
+        true_out = capsys.readouterr().out.split("\n")
+
+        expected_out = [
+            "  1: [note] " + self.TMP_FILE_A,
+            "  2: [note] " + self.TMP_FILE_B,
+            "Entry to open [Type 'help' for more info]: ",
+        ]
+
+        for line, truth in zip(true_out, expected_out):
+            assert line == truth
+
     @pytest.mark.parametrize(
         ["post_setup"],
         [

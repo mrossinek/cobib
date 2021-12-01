@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - this release provides the `--zotero` importer
     - see `cobib import --zotero -- --help` for more information
 - the `config.logging.cache` option, specifying the location of a simple json cache
+- the `config.commands.open.fields` option, specifying the names of the data fields which are checked for openable URLs (#89)
 
 ### Changed
 - the `PreFileDownload` event now takes an additional argument: `headers: Optional[Dict[str, str]]`

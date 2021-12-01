@@ -177,6 +177,7 @@ def test_config_validation(setup: Any) -> None:
         [["commands", "edit"], "default_entry_type"],
         [["commands", "edit"], "editor"],
         [["commands", "open"], "command"],
+        [["commands", "open"], "fields"],
         [["commands", "search"], "grep"],
         [["commands", "search"], "grep_args"],
         [["commands", "search"], "ignore_case"],

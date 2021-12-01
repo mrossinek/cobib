@@ -5,7 +5,8 @@ This command can be used to open associated files of an entry.
 cobib open <label 1> [<label 2> ...]
 ```
 
-The `file` and `url` fields of `cobib.database.Entry.data` are queried for Path or URL strings.
+The keys of `cobib.database.Entry.data` which are queried for paths or URL strings can be configured
+via the `config.commands.open.fields` setting (defaulting to `["file", "url"]`).
 If one such string is found, it is automatically opened with the program configured by
 `config.commands.open.command`.
 If multiple matches are found, the user will be presented with a menu to choose one or multiple
@@ -106,7 +107,7 @@ class OpenCommand(Command):
             # first: find all possible things to open
             try:
                 entry = bib[label]
-                for field in ("file", "url"):
+                for field in config.commands.open.fields:
                     if field in entry.data.keys() and entry.data[field]:
                         value = entry.data[field]
                         for val in value:
