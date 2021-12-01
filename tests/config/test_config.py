@@ -18,9 +18,9 @@ EXAMPLE_LITERATURE = get_resource("example_literature.yaml")
 def test_config_init() -> None:
     """Test Config initialization."""
     # empty init
-    assert Config() == {}
+    assert Config() == {}  # pylint: disable=C1803
     # init from empty dictionary
-    assert Config({}) == {}
+    assert Config({}) == {}  # pylint: disable=C1803
     # init from dictionary
     assert Config({"dummy": "test"}) == {"dummy": "test"}
     # init from non-dictionary
@@ -219,6 +219,7 @@ def test_config_validation(setup: Any) -> None:
         [["tui", "key_bindings"], "delete"],
         [["tui", "key_bindings"], "edit"],
         [["tui", "key_bindings"], "filter"],
+        [["tui", "key_bindings"], "import"],
         [["tui", "key_bindings"], "modify"],
         [["tui", "key_bindings"], "open"],
         [["tui", "key_bindings"], "quit"],

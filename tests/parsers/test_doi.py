@@ -62,7 +62,7 @@ class TestDOIParser(ParserTest):
         """
         entries = DOIParser().parse("1812.09976")
         assert not entries
-        assert entries == {}
+        assert entries == {}  # pylint: disable=C1803
 
         assert (
             "cobib.parsers.doi",

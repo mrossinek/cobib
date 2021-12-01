@@ -2,4 +2,5 @@ beautifulsoup4
 bibtexparser
 pylatexenc
 requests
+requests_oauthlib
 ruamel.yaml

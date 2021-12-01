@@ -9,6 +9,7 @@ from .add import AddCommand as AddCommand
 from .delete import DeleteCommand as DeleteCommand
 from .edit import EditCommand as EditCommand
 from .export import ExportCommand as ExportCommand
+from .import_ import ImportCommand as ImportCommand
 from .init import InitCommand as InitCommand
 from .list import ListCommand as ListCommand
 from .modify import ModifyCommand as ModifyCommand

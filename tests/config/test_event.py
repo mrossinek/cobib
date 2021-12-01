@@ -28,16 +28,29 @@ def setup() -> Generator[Any, None, None]:
         Event.PreAddCommand,
         Event.PostAddCommand,
         Event.PreDeleteCommand,
+        Event.PostDeleteCommand,
         Event.PreEditCommand,
+        Event.PostEditCommand,
         Event.PreExportCommand,
+        Event.PostExportCommand,
+        Event.PreImportCommand,
+        Event.PostImportCommand,
         Event.PreInitCommand,
+        Event.PostInitCommand,
         Event.PreListCommand,
+        Event.PostListCommand,
         Event.PreModifyCommand,
+        Event.PostModifyCommand,
         Event.PreOpenCommand,
+        Event.PostOpenCommand,
         Event.PreRedoCommand,
+        Event.PostRedoCommand,
         Event.PreSearchCommand,
+        Event.PostSearchCommand,
         Event.PreShowCommand,
+        Event.PostShowCommand,
         Event.PreUndoCommand,
+        Event.PostUndoCommand,
         Event.PreBibtexParse,
         Event.PostBibtexParse,
         Event.PreBibtexDump,
@@ -54,6 +67,8 @@ def setup() -> Generator[Any, None, None]:
         Event.PostISBNParse,
         Event.PreURLParse,
         Event.PostURLParse,
+        Event.PreZoteroImport,
+        Event.PostZoteroImport,
         Event.PreFileDownload,
         Event.PostFileDownload,
         Event.PreGitCommit,
@@ -61,7 +76,11 @@ def setup() -> Generator[Any, None, None]:
     ],
 )
 def test_config_validation(event: Event) -> None:
-    """TODO."""
+    """Test the config validation of faulty hook subscription functions.
+
+    Args:
+        event: the coBib Event which to subscribe to.
+    """
 
     @event.subscribe
     def faulty_hook() -> None:

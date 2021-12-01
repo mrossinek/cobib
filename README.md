@@ -65,6 +65,23 @@ cobib init --git
 Be sure to check out my [Quickstart blog post](https://mrossinek.gitlab.io/programming/introducing-cobib/)
 for a more guided introduction compared to the following section!
 
+### Importing your library
+
+coBib provides an `import` command through which you can easily import your library
+from another bibliography manager. For more details check out:
+```
+cobib import --help
+```
+
+So far, coBib knows how to import your library from Zotero by simply running:
+```
+cobib import --zotero
+```
+Check out the following command, the man page or the online documentation for more details:
+```
+cobib import --zotero -- --help
+```
+
 
 ## Usage
 

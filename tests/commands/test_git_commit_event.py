@@ -45,7 +45,7 @@ class DummyCommand(Command):
 
 
 class TestGitCommitEvent(CommandTest):
-    """TODO."""
+    """Tests for the automatic git-commit related events."""
 
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
         # noqa: D102
@@ -61,7 +61,11 @@ class TestGitCommitEvent(CommandTest):
 
     @pytest.mark.parametrize("setup", [{"git": True}], indirect=["setup"])
     def test_event_pre_git_commit(self, setup: Any) -> None:
-        """TODO."""
+        """Test the PreGitCommit event.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+        """
 
         @Event.PreGitCommit.subscribe
         def hook(msg: str, args: Optional[Dict[str, Any]] = None) -> Optional[str]:
@@ -75,7 +79,11 @@ class TestGitCommitEvent(CommandTest):
 
     @pytest.mark.parametrize("setup", [{"git": True}], indirect=["setup"])
     def test_event_post_git_commit(self, setup: Any) -> None:
-        """TODO."""
+        """Test the PostGitCommit event.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+        """
 
         @Event.PostGitCommit.subscribe
         def hook(root: Path, file: Path) -> None:

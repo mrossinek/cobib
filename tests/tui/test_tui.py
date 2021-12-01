@@ -194,6 +194,7 @@ class TestTUI(CmdLineTest, TUITest):
             100: "Delete",
             101: "Edit",
             102: "Filter",
+            105: "Import",
             109: "Modify",
             111: "Open",
             113: "Quit",
@@ -214,6 +215,7 @@ class TestTUI(CmdLineTest, TUITest):
             ("cobib.tui.tui", 20, "Binding key d to the Delete command."),
             ("cobib.tui.tui", 20, "Binding key e to the Edit command."),
             ("cobib.tui.tui", 20, "Binding key f to the Filter command."),
+            ("cobib.tui.tui", 20, "Binding key i to the Import command."),
             ("cobib.tui.tui", 20, "Binding key m to the Modify command."),
             ("cobib.tui.tui", 20, "Binding key o to the Open command."),
             ("cobib.tui.tui", 20, "Binding key q to the Quit command."),
@@ -258,8 +260,8 @@ class TestTUI(CmdLineTest, TUITest):
         infoline = TUI.infoline()
         assert (
             infoline
-            == "a:Add d:Delete e:Edit x:Export f:Filter ?:Help m:Modify o:Open ::Prompt q:Quit "
-            "r:Redo /:Search v:Select ENTER:Show s:Sort u:Undo w:Wrap"
+            == "a:Add d:Delete e:Edit x:Export f:Filter ?:Help i:Import m:Modify o:Open ::Prompt "
+            "q:Quit r:Redo /:Search v:Select ENTER:Show s:Sort u:Undo w:Wrap"
         )
 
     @pytest.mark.parametrize(
@@ -310,8 +312,8 @@ class TestTUI(CmdLineTest, TUITest):
         assert isinstance(tui.botbar, MockCursesPad)
         assert (
             tui.botbar.lines[0]
-            == "a:Add d:Delete e:Edit x:Export f:Filter ?:Help m:Modify o:Open ::Prompt q:Quit "
-            "r:Redo /:Search v:Select ENTER:Show s:Sort u:Undo w:Wrap"
+            == "a:Add d:Delete e:Edit x:Export f:Filter ?:Help i:Import m:Modify o:Open ::Prompt "
+            "q:Quit r:Redo /:Search v:Select ENTER:Show s:Sort u:Undo w:Wrap"
         )
         assert isinstance(tui.prompt, MockCursesPad)
         assert isinstance(tui.viewport, Frame)
@@ -366,6 +368,7 @@ class TestTUI(CmdLineTest, TUITest):
             ("cobib.tui.tui", 20, "Binding key d to the Delete command."),
             ("cobib.tui.tui", 20, "Binding key e to the Edit command."),
             ("cobib.tui.tui", 20, "Binding key f to the Filter command."),
+            ("cobib.tui.tui", 20, "Binding key i to the Import command."),
             ("cobib.tui.tui", 20, "Binding key m to the Modify command."),
             ("cobib.tui.tui", 20, "Binding key o to the Open command."),
             ("cobib.tui.tui", 20, "Binding key q to the Quit command."),
@@ -423,8 +426,9 @@ class TestTUI(CmdLineTest, TUITest):
             (
                 "MockCursesPad",
                 10,
-                "addnstr: 0 0 a:Add d:Delete e:Edit x:Export f:Filter ?:Help m:Modify o:Open "
-                "::Prompt q:Quit r:Redo /:Search v:Select ENTER:Show s:Sort u:Undo w:Wrap 69 0",
+                "addnstr: 0 0 a:Add d:Delete e:Edit x:Export f:Filter ?:Help i:Import m:Modify "
+                "o:Open ::Prompt q:Quit r:Redo /:Search v:Select ENTER:Show s:Sort u:Undo w:Wrap "
+                "69 0",
             ),
             ("MockCursesPad", 10, "refresh: None None None None None None"),
             ("MockCursesPad", 10, "refresh: None None None None None None"),
@@ -490,13 +494,13 @@ class TestTUI(CmdLineTest, TUITest):
             ("cobib.tui.tui", 10, "Help command triggered."),
             ("cobib.tui.tui", 10, "Generating help text."),
             ("MockCursesPad", 10, "erase"),
-            ("MockCursesPad", 10, "refresh: 0 0 1 0 22 80"),
-            ("MockCursesPad", 10, "resize: 21 80"),
+            ("MockCursesPad", 10, "refresh: 0 0 0 0 22 80"),
+            ("MockCursesPad", 10, "resize: 22 80"),
             ("MockCursesPad", 10, "addstr: 1 1                              coBib TUI Help"),
             ("MockCursesPad", 10, "addstr: 2 1   Key    Command  Description"),
             ("MockCursesPad", 10, "bkgd:   (6,)"),
             ("MockCursesPad", 10, "box"),
-            ("MockCursesPad", 10, "refresh: 0 0 1 0 22 80"),
+            ("MockCursesPad", 10, "refresh: 0 0 0 0 22 80"),
             ("MockCursesPad", 10, "getch"),
             ("MockCursesPad", 10, "clear"),
             ("cobib.tui.tui", 10, "Handling resize event."),
@@ -538,7 +542,7 @@ class TestTUI(CmdLineTest, TUITest):
             for cmd, desc in TUI.HELP_DICT.items():
                 assert any(
                     "{:<8} {}".format(cmd + ":", desc) in line
-                    for line in screen.display[2 + offset : 19 + offset]
+                    for line in screen.display[2 + offset : 20 + offset]
                 )
 
         self.run_tui("?", assertion, {})

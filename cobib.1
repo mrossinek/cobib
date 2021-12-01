@@ -309,6 +309,42 @@ list of abbreviations must be configured via
 .in +4n
 Works in conjunction with the \fIabbreviate\fR argument in order to remove
 punctuation from the journal abbreviations.
+.TP
+.B cobib import \fI<args>\fR ...
+Imports entries from another bibliography manager. You usually only need to run
+this command once.
+The \fI<args>\fR may be any of the following:
+.PP
+.in +8n
+.BR \-\-skip\-download
+.in +4n
+Skips downloading of attachments encountered during the library import.
+.PP
+.in +8n
+Furthermore you can specify one of the following sources from which to import
+your library. Each of those sources can optionally take further arguments via
+positional arguments following a \fI--\fR separator.
+.PP
+.in +8n
+.BR \-\-zotero " -- " \fI<args>\fR
+.in +4n
+The \fI<args>\fR may be any of the following:
+.PP
+.in +12n
+.BR \-\-no-cache
+.in +8n
+Disabling loading or storing of cached OAuth authentication tokens.
+.PP
+.in +12n
+.BR \-\-user-id " " \fI<user\ ID>\fR
+.in +8n
+Provide a custom Zotero user ID. If this is a publicly accessible library, no
+API key is required. Otherwise you must also use the following argument.
+.PP
+.in +12n
+.BR \-\-api-key " "\fI<API\ key>\fR
+.in +8n
+Provide a custom Zotero API key.
 .SH FILTERS
 In order to limit the output of the \fIlist\fR, \fImodify\fR, \fIsearch\fR, and
 \fIexport\fR commands you can apply additional filters via keyword arguments.

@@ -129,7 +129,7 @@ class Event(Enum):
         Before starting the `cobib.commands.add.AddCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of of command arguments.
+        - `largs`: the `Namespace` dictionary of command arguments.
 
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
@@ -157,7 +157,7 @@ class Event(Enum):
         Before starting the `cobib.commands.delete.DeleteCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of of command arguments.
+        - `largs`: the `Namespace` dictionary of command arguments.
 
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
@@ -172,7 +172,7 @@ class Event(Enum):
         Before starting the `cobib.commands.edit.EditCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of of command arguments.
+        - `largs`: the `Namespace` dictionary of command arguments.
 
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
@@ -187,7 +187,7 @@ class Event(Enum):
         Before starting the `cobib.commands.export.ExportCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of of command arguments.
+        - `largs`: the `Namespace` dictionary of command arguments.
 
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
@@ -208,13 +208,37 @@ class Event(Enum):
         If exporting to a zip file, it will only be closed *after* this event got fired.
     """
 
+    PreImportCommand: Event = Callable[[Namespace], None]  # type: ignore[assignment]
+    """
+    Fires:
+        Before starting the `cobib.commands.import_.ImportCommand`.
+
+    Arguments:
+        - `largs`: the `Namespace` dictionary of command arguments.
+
+    Returns:
+        Nothing. But the `Namespace` can be modified, affecting the command execution.
+    """
+    PostImportCommand: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment]
+    """
+    Fires:
+        Before finishing the `cobib.commands.import_.ImportCommand`.
+
+    Arguments:
+        - `new_entries`: the dictionary of new entries to be imported into the database.
+
+    Returns:
+        Nothing. But the dictionary of new entries can be modified before the changes are made
+        persistent in the database.
+    """
+
     PreInitCommand: Event = Callable[[Namespace], None]  # type: ignore[assignment]
     """
     Fires:
         Before starting the `cobib.commands.init.InitCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of of command arguments.
+        - `largs`: the `Namespace` dictionary of command arguments.
 
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
@@ -238,7 +262,7 @@ class Event(Enum):
         Before starting the `cobib.commands.list.ListCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of of command arguments.
+        - `largs`: the `Namespace` dictionary of command arguments.
 
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
@@ -261,7 +285,7 @@ class Event(Enum):
         Before starting the `cobib.commands.modify.ModifyCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of of command arguments.
+        - `largs`: the `Namespace` dictionary of command arguments.
 
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
@@ -285,7 +309,7 @@ class Event(Enum):
         Before starting the `cobib.commands.open.OpenCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of of command arguments.
+        - `largs`: the `Namespace` dictionary of command arguments.
 
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
@@ -308,7 +332,7 @@ class Event(Enum):
         Before starting the `cobib.commands.redo.RedoCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of of command arguments.
+        - `largs`: the `Namespace` dictionary of command arguments.
 
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
@@ -336,7 +360,7 @@ class Event(Enum):
         Before starting the `cobib.commands.search.SearchCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of of command arguments.
+        - `largs`: the `Namespace` dictionary of command arguments.
 
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
@@ -360,7 +384,7 @@ class Event(Enum):
         Before starting the `cobib.commands.show.ShowCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of of command arguments.
+        - `largs`: the `Namespace` dictionary of command arguments.
 
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
@@ -386,7 +410,7 @@ class Event(Enum):
         Before starting the `cobib.commands.undo.UndoCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of of command arguments.
+        - `largs`: the `Namespace` dictionary of command arguments.
 
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
@@ -618,8 +642,45 @@ class Event(Enum):
         propagated to the database.
     """
 
+    PreZoteroImport: Event = Callable[  # type: ignore[assignment]
+        [str, Dict[str, str]], Optional[Tuple[str, Dict[str, str]]]
+    ]
+    """
+    Fires:
+        Before starting `cobib.importers.zotero.ZoteroImporter.fetch`.
+
+    Arguments:
+        - `url`: the URL from which to fetch the Zotero library.
+        - `authentication`: the authentication dictionary header for the GET request.
+
+    Returns:
+        This can optionally return a tuple overwriting the input arguments.
+
+    Note:
+        If a registered hook returns a new tuple of arguments, no subsequent hooks will be run!
+    """
+
+    PostZoteroImport: Event = Callable[  # type: ignore[assignment]
+        [List["Entry"]], Optional[List["Entry"]]
+    ]
+    """
+    Fires:
+        Before finishing `cobib.importers.zotero.ZoteroImporter.fetch`.
+
+    Arguments:
+        - `imported_entries`: the list of entries to be imported.
+
+    Returns:
+        This can optionally return an updated list of imported entries.
+
+    Note:
+        - The entry labels will not have been mapped or disambiguated at this point.
+        - If a registered hook returns a new tuple of arguments, no subsequent hooks will be run!
+    """
+
     PreFileDownload: Event = Callable[  # type: ignore[assignment]
-        [str, str, Optional[str]], Optional[Tuple[str, str, Optional[str]]]
+        [str, str, Optional[str], Optional[Dict[str, str]]],
+        Optional[Tuple[str, str, Optional[str], Optional[Dict[str, str]]]],
     ]
     """
     Fires:
@@ -629,6 +690,7 @@ class Event(Enum):
         - `url`: the URL from which to download a file.
         - `label`: the label of the `Entry` to which the file belongs.
         - `folder`: an optional folder where the file will be stored.
+        - `headers`: an optional headers dictionary for the download `GET` request.
 
     Returns:
         This can optionally return a tuple overwriting the input arguments.

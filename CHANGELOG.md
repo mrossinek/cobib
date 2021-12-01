@@ -6,9 +6,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- coBib now requires the `requests-oauthlib` package
+    - technically this is an optional dependency for now, but it will likely become a requirement soon
+
 ### Added
 - the new `config.parsers.yaml.use_c_lib_yaml` setting which significantly improves loading performance
     - this setting will change its default value to `True` in version 4.0.0
+* the `Import` command (#86,!49):
+    - can be used to import libraries from other bibliography managers (see next bullet)
+    - see `cobib import --help` for more information
+- the `cobib.importers` module:
+    - provides importer classes for various other bibliography managers
+    - these get registered at runtime under the `cobib import` command
+    - this release provides the `--zotero` importer
+    - see `cobib import --zotero -- --help` for more information
+- the `config.logging.cache` option, specifying the location of a simple json cache
+
+### Changed
+- the `PreFileDownload` event now takes an additional argument: `headers: Optional[Dict[str, str]]`
+
+### Fixed
+- downloaded file names will not duplicate the `.pdf` suffix
 
 
 ## [3.3.2] - 2021-11-17

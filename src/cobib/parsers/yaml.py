@@ -34,7 +34,7 @@ class YAMLParser(Parser):
 
     _yaml: Optional[yaml.YAML] = None  # type: ignore[name-defined]
 
-    def __init__(self) -> None:
+    def __init__(self) -> None:  # pylint: disable=C0116
         # noqa: D107
         if YAMLParser._yaml is None:
             # we need to lazily construct this in order to be able to respect the config setting

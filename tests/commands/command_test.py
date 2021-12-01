@@ -47,6 +47,10 @@ class CommandTest(CmdLineTest):
             The command to be tested by this class.
         """
 
+    def get_safe_command_name(self) -> str:
+        """Returns the safe command name."""
+        return self.get_command().name
+
     @abstractmethod
     def test_command(self) -> None:
         """Test the command itself."""
@@ -159,8 +163,9 @@ class CommandTest(CmdLineTest):
         command_cls = self.get_command()
         command_cls().execute(["--dummy"])
         name = command_cls.name
+        safe_name = self.get_safe_command_name()
         for (source, level, message) in caplog.record_tuples:
-            if (f"cobib.commands.{name}", logging.ERROR) == (
+            if (f"cobib.commands.{safe_name}", logging.ERROR) == (
                 source,
                 level,
             ) and f"Error: {name}: error:" in message:

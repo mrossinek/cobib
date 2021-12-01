@@ -62,6 +62,7 @@ class Config(Dict[str, Any]):
 
     DEFAULTS: Dict[str, Any] = {
         "logging": {
+            "cache": "~/.cache/cobib/cache",
             "logfile": "~/.cache/cobib/cobib.log",
             "version": "~/.cache/cobib/version",
         },
@@ -137,6 +138,7 @@ class Config(Dict[str, Any]):
                 "delete": "d",
                 "edit": "e",
                 "filter": "f",
+                "import": "i",
                 "modify": "m",
                 "open": "o",
                 "quit": "q",
@@ -410,6 +412,9 @@ class Config(Dict[str, Any]):
 
         # LOGGING section
         LOGGER.debug("Validating the LOGGING configuration section.")
+        self._assert(
+            isinstance(self.logging.cache, str), "config.logging.cache should be a string."
+        )
         self._assert(
             isinstance(self.logging.logfile, str), "config.logging.logfile should be a string."
         )

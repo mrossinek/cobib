@@ -2,6 +2,7 @@ abstractmethod
 addcommand
 aip
 ansi
+api
 archlinux
 arg
 argparse
@@ -16,6 +17,7 @@ aug
 aur
 automagically
 backend
+backends
 biblatex
 bibtex
 bibtexexpression
@@ -73,6 +75,7 @@ mrossinek
 msg
 mypy
 noqa
+oauth
 openlibrary
 ordereddict
 os
@@ -144,6 +147,7 @@ unittests
 url
 viewport
 vpn
+www
 xdg
 yaml
 yamlparser

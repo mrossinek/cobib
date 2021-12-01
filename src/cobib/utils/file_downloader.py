@@ -6,7 +6,8 @@ import logging
 import re
 import sys
 import tempfile
-from typing import Callable, Optional
+from pathlib import Path
+from typing import Callable, Dict, Optional
 
 import requests
 
@@ -114,7 +115,12 @@ class FileDownloader:
             pass
 
     def download(
-        self, url: str, label: str, folder: Optional[str] = None, overwrite: bool = False
+        self,
+        url: str,
+        label: str,
+        folder: Optional[str] = None,
+        overwrite: bool = False,
+        headers: Optional[Dict[str, str]] = None,
     ) -> Optional[RelPath]:
         """Downloads a file.
 
@@ -126,6 +132,7 @@ class FileDownloader:
             label: the name of the entry.
             folder: an optional folder where the downloaded file will be stored.
             overwrite: whether or not to overwrite an existing file.
+            headers: optional headers for the download `GET` request.
 
         Returns:
             The `RelPath` to the downloaded file. If downloading was not successful, `None` is
@@ -134,11 +141,11 @@ class FileDownloader:
         if folder is None:
             folder = config.utils.file_downloader.default_location
 
-        hook_result = Event.PreFileDownload.fire(url, label, folder)
+        hook_result = Event.PreFileDownload.fire(url, label, folder, headers)
         if hook_result is not None:
-            url, label, folder = hook_result
+            url, label, folder, headers = hook_result
 
-        path = RelPath(f"{folder}/{label}.pdf")
+        path = RelPath(Path(f"{folder}/{label}").with_suffix(".pdf"))
 
         backup = None
         if path.path.exists():
@@ -166,7 +173,7 @@ class FileDownloader:
         with open(path.path, "wb") as file:
             LOGGER.info("Downloading %s to %s", url, path)
             try:
-                response = requests.get(url, timeout=10, stream=True)
+                response = requests.get(url, timeout=10, stream=True, headers=headers)
                 total_length = int(response.headers.get("content-length", -1))
             except requests.exceptions.RequestException as err:
                 msg = f"An Exception occurred while downloading the file located at {url}"
