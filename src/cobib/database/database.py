@@ -208,7 +208,7 @@ class Database(OrderedDict):  # type: ignore
                 LOGGER.debug('Reached end of entry "%s".', cur_label)
                 overwrite = False
 
-                new_label = cls._unsaved_entries.pop(cur_label)  # type: ignore
+                new_label = cls._unsaved_entries.pop(cur_label)
                 entry = _instance.get(new_label, None)
                 if entry:
                     LOGGER.debug('Writing modified entry "%s".', new_label)
@@ -219,7 +219,8 @@ class Database(OrderedDict):  # type: ignore
                     LOGGER.debug('Deleting entry "%s".', new_label)
                     buffer.pop()
                 # we pop `new_label` too, because in case of a rename it differs from `cur_label`
-                cls._unsaved_entries.pop(new_label, None)
+                if new_label is not None:
+                    cls._unsaved_entries.pop(new_label, None)
             elif not overwrite:
                 # keep previous line
                 buffer.append(line)

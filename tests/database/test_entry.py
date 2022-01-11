@@ -45,7 +45,7 @@ def test_init_logging(caplog: pytest.LogCaptureFixture) -> None:
         "Converting field 'number' of entry 'dummy' to integer: 1.",
     ) in caplog.record_tuples
     assert entry.label == "dummy"
-    assert "ID" not in entry.data.keys()
+    assert "ID" not in entry.data
     assert (
         "cobib.database.entry",
         20,

@@ -210,14 +210,14 @@ class Frame:
         if STATE.mode == Mode.LIST.value:
             # In the list mode, the label can be found in the current line
             # or in one of the previous lines if we are on a wrapped line
-            while chr(self.pad.inch(cur_y, 0)) == TextBuffer.INDENT[0]:  # type: ignore
+            while chr(self.pad.inch(cur_y, 0)) == TextBuffer.INDENT[0]:
                 cur_y -= 1
-            label = self.pad.instr(cur_y, 0).decode("utf-8").split(" ")[0]  # type: ignore
+            label = self.pad.instr(cur_y, 0).decode("utf-8").split(" ")[0]
         elif STATE.mode == Mode.SEARCH.value:
             # In the search mode, the same holds but we need to slightly change the label detection.
-            while chr(self.pad.inch(cur_y, 0)) in ("[", TextBuffer.INDENT[0]):  # type: ignore
+            while chr(self.pad.inch(cur_y, 0)) in ("[", TextBuffer.INDENT[0]):
                 cur_y -= 1
-            label = self.pad.instr(cur_y, 0).decode("utf-8").split(" ")[0]  # type: ignore
+            label = self.pad.instr(cur_y, 0).decode("utf-8").split(" ")[0]
         else:
             # In any other mode, the label can be found in the top statusbar
             label = "-".join(STATE.topstatus.split("-")[1:]).strip()

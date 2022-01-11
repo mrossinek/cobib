@@ -121,7 +121,7 @@ class Event(Enum):
         obj = object.__new__(cls)
         obj._value_ = (value, annotation)
         obj._annotation_ = annotation
-        return obj  # type: ignore[no-any-return]
+        return obj
 
     PreAddCommand: Event = Callable[[Namespace], None]  # type: ignore[assignment]
     """
@@ -764,7 +764,7 @@ class Event(Enum):
             The same callable which ensures that we can chain multiple subscription decorators to
             subscribe the same function to multiple events.
         """
-        if self not in config.events.keys():
+        if self not in config.events:
             config.events[self] = []
         LOGGER.debug("Subscribing new hook to %s.", str(self))
         config.events[self].append(function)
@@ -785,7 +785,7 @@ class Event(Enum):
             Whatever a hook returns or `None` as a default.
         """
         LOGGER.debug("Firing %s.", str(self))
-        if self not in config.events.keys():
+        if self not in config.events:
             return None
         for hook in config.events[self]:
             res = hook(*args, **kwargs)
@@ -799,7 +799,7 @@ class Event(Enum):
         Returns:
             Whether or not all subscribers have the correct type hint.
         """
-        if self not in config.events.keys():
+        if self not in config.events:
             return True
 
         def _compare_types(expected: Any, provided: Any) -> List[bool]:

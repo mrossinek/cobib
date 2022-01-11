@@ -559,7 +559,7 @@ class Config(Dict[str, Any]):
             )
 
         for name, color in self.tui.colors.items():
-            if name not in self.DEFAULTS["tui"]["colors"].keys() and name not in ANSI_COLORS:
+            if name not in self.DEFAULTS["tui"]["colors"] and name not in ANSI_COLORS:
                 LOGGER.warning("Ignoring unknown TUI color: %s.", name)
             self._assert(
                 bool(

@@ -298,7 +298,7 @@ class ZoteroImporter(Importer):
             if skip_download:
                 LOGGER.info("Skipping attachment download.")
                 continue
-            if key not in encountered_attachments.keys():
+            if key not in encountered_attachments:
                 LOGGER.warning("Skipping unknown attachment: %s", key)
                 continue
 

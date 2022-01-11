@@ -237,7 +237,7 @@ class TestTUI(CmdLineTest, TUITest):
         """
         config.tui.key_bindings.prompt = "p"
         TUI.bind_keys()
-        assert ord(":") not in TUI.KEYDICT.keys()
+        assert ord(":") not in TUI.KEYDICT
         assert ord("p") in TUI.KEYDICT and TUI.KEYDICT[ord("p")] == "Prompt"
         assert ("cobib.tui.tui", 20, "Binding key p to the Prompt command.") in caplog.record_tuples
 
