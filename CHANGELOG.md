@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- the configuration loading can be disabled via the environment variable `COBIB_CONFIG`
+    - values which enable the loading are: `"", 0, f, false, nil, none`
+    - you can also specify an entirely custom path to a configuration file in this variable
 
 ## [3.4.0] - 2021-12-01
 

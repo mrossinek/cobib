@@ -268,6 +268,15 @@ class Config(Dict[str, Any]):
         if configpath is not None:
             if isinstance(configpath, (TextIO, io.TextIOWrapper)):
                 configpath = configpath.name
+        elif "COBIB_CONFIG" in os.environ:
+            configpath_env = os.environ["COBIB_CONFIG"]
+            if configpath_env.lower() in ("", "0", "f", "false", "nil", "none"):
+                LOGGER.info(
+                    "Skipping configuration loading because negative COBIB_CONFIG environment "
+                    "variable was detected."
+                )
+                return
+            configpath = RelPath(configpath_env).path
         elif RelPath(Config.XDG_CONFIG_FILE).exists():
             configpath = RelPath(Config.XDG_CONFIG_FILE).path
         elif RelPath(Config.LEGACY_XDG_CONFIG_FILE).exists():  # pragma: no cover

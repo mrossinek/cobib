@@ -2,6 +2,7 @@
 # pylint: disable=unused-argument, redefined-outer-name
 
 import logging
+import os
 import tempfile
 from typing import Any, Generator, List
 
@@ -82,11 +83,41 @@ def test_config_load_nothing() -> None:
     config.validate()
 
 
+def test_config_disable_load() -> None:
+    """Test that loading can be disabled via environment variable."""
+    prev_value = os.environ.get("COBIB_CONFIG", None)
+    try:
+        config.database.file = "dummy"
+        os.environ["COBIB_CONFIG"] = "0"
+        config.load()
+        assert config.database.file == "dummy"
+    finally:
+        if prev_value is None:
+            os.environ.pop("COBIB_CONFIG", None)
+        else:
+            os.environ["COBIB_CONFIG"] = prev_value
+
+
+def test_config_load_from_env_var() -> None:
+    """Test that loading can be configured via environment variable."""
+    prev_value = os.environ.get("COBIB_CONFIG", None)
+    try:
+        os.environ["COBIB_CONFIG"] = get_resource("debug.py")
+        config.load()
+        assert config.database.file == str(EXAMPLE_LITERATURE)
+    finally:
+        if prev_value is None:
+            os.environ.pop("COBIB_CONFIG", None)
+        else:
+            os.environ["COBIB_CONFIG"] = prev_value
+
+
 def test_config_load_xdg() -> None:
     """Test loading a config from XDG path."""
     Config.XDG_CONFIG_FILE = get_resource("debug.py")
     config.load()
     assert config.database.file == str(EXAMPLE_LITERATURE)
+
 
 
 # TODO: remove legacy configuration support on 1.1.2022
