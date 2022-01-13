@@ -134,7 +134,7 @@ class Event(Enum):
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
     """
-    PostAddCommand: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment]
+    PostAddCommand: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment,misc]
     """
     Fires:
         Before finishing the `cobib.commands.add.AddCommand`.
@@ -219,7 +219,7 @@ class Event(Enum):
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
     """
-    PostImportCommand: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment]
+    PostImportCommand: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment,misc]
     """
     Fires:
         Before finishing the `cobib.commands.import_.ImportCommand`.
@@ -442,7 +442,7 @@ class Event(Enum):
     Note:
         If a registered hook returns a new string, no subsequent hooks will be run!
     """
-    PostBibtexParse: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment]
+    PostBibtexParse: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment,misc]
     """
     Fires:
         Before finishing `cobib.parsers.bibtex.BibtexParser.parse`.
@@ -495,7 +495,7 @@ class Event(Enum):
     Note:
         If a registered hook returns a new string, no subsequent hooks will be run!
     """
-    PostYAMLParse: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment]
+    PostYAMLParse: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment,misc]
     """
     Fires:
         Before finishing `cobib.parsers.yaml.YAMLParser.parse`.
@@ -548,7 +548,7 @@ class Event(Enum):
     Note:
         If a registered hook returns a new string, no subsequent hooks will be run!
     """
-    PostArxivParse: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment]
+    PostArxivParse: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment,misc]
     """
     Fires:
         Before finishing `cobib.parsers.arxiv.ArxivParser.parse`.
@@ -575,7 +575,7 @@ class Event(Enum):
     Note:
         If a registered hook returns a new string, no subsequent hooks will be run!
     """
-    PostDOIParse: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment]
+    PostDOIParse: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment,misc]
     """
     Fires:
         Before finishing `cobib.parsers.doi.DOIParser.parse`.
@@ -602,7 +602,7 @@ class Event(Enum):
     Note:
         If a registered hook returns a new string, no subsequent hooks will be run!
     """
-    PostISBNParse: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment]
+    PostISBNParse: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment,misc]
     """
     Fires:
         Before finishing `cobib.parsers.isbn.ISBNParser.parse`.
@@ -629,7 +629,7 @@ class Event(Enum):
     Note:
         If a registered hook returns a new string, no subsequent hooks will be run!
     """
-    PostURLParse: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment]
+    PostURLParse: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment,misc]
     """
     Fires:
         Before finishing `cobib.parsers.url.URLParser.parse`.
@@ -660,7 +660,7 @@ class Event(Enum):
         If a registered hook returns a new tuple of arguments, no subsequent hooks will be run!
     """
 
-    PostZoteroImport: Event = Callable[  # type: ignore[assignment]
+    PostZoteroImport: Event = Callable[  # type: ignore[assignment,misc]
         [List["Entry"]], Optional[List["Entry"]]
     ]
     """
