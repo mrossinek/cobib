@@ -463,6 +463,11 @@ If you do have an old configuration file (prior to v3.0) and would like some
 guidance on how to migrate it, please read this short blog post of mine:
 https://mrossinek.gitlab.io/programming/cobibs-new-configuration/
 .PP
+Since v3.5, coBib also respects the \fICOBIB_CONFIG\fR environment variable.
+With this you can either specify a custom path to your configuration file or
+disable the loading of a configuration file entirely by setting it to one of the
+following values: \fI"", 0, "f", "false", "nil", "none"\fR.
+.PP
 The following section summarizes the syntax and all possibly settings, for
 completeness.
 .TP
