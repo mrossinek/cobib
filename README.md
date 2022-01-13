@@ -19,6 +19,20 @@ As such it follows some basic design goals:
 * **command-line and TUI support**: all features are available through the command-line as well as a curses-based TUI.
 
 
+### **News:** coBib v4.0 will come with a new UI!
+The plan is to switch to [rich][rich] and [textual][textual] instead of the current curses TUI.
+This will open up some great possibilities for a much more modern UI.
+
+However, this change will require some *major* refactoring including breaking changes of the API
+and some of the user configuration options. It will also be a rather drastic change in style.
+Thus, I will attempt to support v3.5 with bugfix releases until 1.1.2023
+
+It will likely take a few months until v4.0 gets released but I am starting development on it now.
+You can follow the progress here: {https://gitlab.com/mrossinek/cobib/-/issues/78}
+
+[rich]: https://github.com/Textualize/rich
+[textual]: https://github.com/Textualize/textual
+
 ## Installation
 
 For all common purposes you can install coBib via `pip`:

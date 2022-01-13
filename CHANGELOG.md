@@ -6,6 +6,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [3.5.0] - 2022-01-13
+
+Pypi: https://pypi.org/project/cobib/3.5.0/
+
+### **News:** coBib v4.0 will come with a new UI!
+The plan is to switch to [rich][rich] and [textual][textual] instead of the current curses TUI.
+This will open up some great possibilities for a much more modern UI.
+
+However, this change will require some *major* refactoring including breaking changes of the API
+and some of the user configuration options. It will also be a rather drastic change in style.
+Thus, I will attempt to support v3.5 with bugfix releases until 1.1.2023
+
+It will likely take a few months until v4.0 gets released but I am starting development on it now.
+You can follow the progress here: {https://gitlab.com/mrossinek/cobib/-/issues/78}
+
+[rich]: https://github.com/Textualize/rich
+[textual]: https://github.com/Textualize/textual
+
 ### Added
 - the configuration loading can be disabled via the environment variable `COBIB_CONFIG`
     - values which disable the loading entirely are: `"", 0, f, false, nil, none`
@@ -590,7 +609,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v3.4.0...master
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v3.5.0...master
+[3.5.0]: https://gitlab.com/mrossinek/cobib/-/compare/v3.5.0
 [3.4.0]: https://gitlab.com/mrossinek/cobib/-/compare/v3.4.0
 [3.3.2]: https://gitlab.com/mrossinek/cobib/-/compare/v3.3.2
 [3.3.1]: https://gitlab.com/mrossinek/cobib/-/compare/v3.3.1
