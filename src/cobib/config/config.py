@@ -6,7 +6,6 @@ Note, that this last link will not point to the correct location in the online d
 the nature of the lower-level import.
 """
 
-import configparser
 import copy
 import importlib.util
 import io
@@ -55,10 +54,6 @@ class Config(Dict[str, Any]):
 
     XDG_CONFIG_FILE: str = "~/.config/cobib/config.py"
     """The XDG-based standard configuration location."""
-    # TODO: remove legacy configuration support on 1.1.2022
-    LEGACY_XDG_CONFIG_FILE: str = "~/.config/cobib/config.ini"
-    """The *legacy* XDG-based standard configuration location.
-    This will be removed on January 1st, 2020."""
 
     DEFAULTS: Dict[str, Any] = {
         "logging": {
@@ -268,37 +263,27 @@ class Config(Dict[str, Any]):
         if configpath is not None:
             if isinstance(configpath, (TextIO, io.TextIOWrapper)):
                 configpath = configpath.name
+        elif "COBIB_CONFIG" in os.environ:
+            configpath_env = os.environ["COBIB_CONFIG"]
+            if configpath_env.lower() in ("", "0", "f", "false", "nil", "none"):
+                LOGGER.info(
+                    "Skipping configuration loading because negative COBIB_CONFIG environment "
+                    "variable was detected."
+                )
+                return
+            configpath = RelPath(configpath_env).path
         elif RelPath(Config.XDG_CONFIG_FILE).exists():
             configpath = RelPath(Config.XDG_CONFIG_FILE).path
-        elif RelPath(Config.LEGACY_XDG_CONFIG_FILE).exists():  # pragma: no cover
-            configpath = RelPath(Config.LEGACY_XDG_CONFIG_FILE).path  # pragma: no cover
         else:  # pragma: no cover
             return  # pragma: no cover
         LOGGER.info("Loading configuration from default location: %s", configpath)
 
-        if RelPath(Config.LEGACY_XDG_CONFIG_FILE).exists():
-            msg = (
-                "The configuration mechanism of coBib underwent a major re-design for version 3.0! "
-                "This means, that the old `INI`-style configuration is deprecated and will be "
-                "fully removed on 1.1.2022. Instead, the configuration is now done through a "
-                "Python file. For guidance on how to convert your existing configuration please "
-                "consult the man-page or my blog post: "
-                "https://mrossinek.gitlab.io/programming/cobibs-new-configuration/"
-                "\nIf you have successfully migrated your configuration you should delete the old "
-                "file in order to remove this warning message."
-            )
-            print("\x1b[1;37;41m#############\x1b[0m", file=sys.stderr)
-            print("\x1b[1;37;41m## WARNING ##\x1b[0m", file=sys.stderr)
-            print("\x1b[1;37;41m#############\x1b[0m", file=sys.stderr)
-            LOGGER.warning(msg)
-
         spec = importlib.util.spec_from_file_location("config", configpath)
         if spec is None:
-            LOGGER.warning(
+            LOGGER.error(
                 "The config at %s could not be interpreted as a Python module.", configpath
             )
-            # attempt to load legacy INI configuration
-            Config.load_legacy_config(configpath)
+            sys.exit(1)
         else:
             cfg = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(cfg)  # type: ignore
@@ -309,99 +294,6 @@ class Config(Dict[str, Any]):
         except RuntimeError as exc:
             LOGGER.error(exc)
             sys.exit(1)
-
-    @staticmethod
-    def load_legacy_config(configpath: Union[str, Path, TextIO, io.TextIOWrapper]) -> None:
-        # pylint: disable=too-many-branches,too-many-nested-blocks
-        """Loads a legacy `INI`-style configuration file.
-
-        WARNING: This functionality will be removed on January 1st, 2022!
-        Users are being warned when using this configuration method.
-
-        Args:
-            configpath: the path to the configuration.
-        """
-        ini_conf = configparser.ConfigParser()
-        # make option names case-sensitive:
-        ini_conf.optionxform = str  # type: ignore
-        ini_conf.read(configpath)
-
-        def _ignore_option(section: str, field: str, value: Optional[Any] = None) -> None:
-            if value is not None:  # pragma: no cover
-                LOGGER.warning(  # pragma: no cover
-                    "Ignoring unknown option for %s/%s = %s", section, field, value
-                )
-            else:  # pragma: no cover
-                LOGGER.warning(  # pragma: no cover
-                    "Ignoring unknown setting %s", f"{section}/{field}"
-                )
-
-        # We need to manually iterate all sections and fields because some settings need to be moved
-        # and/or need to be converted to the correct Python types
-        for section in ini_conf.sections():
-            if section == "DATABASE":
-                for field, value in dict(ini_conf[section]).items():
-                    if field in ["file"]:
-                        config.database[field] = value
-                    elif field in ["git"]:
-                        try:
-                            config.database[field] = ini_conf[section].getboolean(field)
-                        except ValueError as exc:  # pragma: no cover
-                            LOGGER.error(exc)  # pragma: no cover
-                            _ignore_option(section, field, value)  # pragma: no cover
-                    elif field == "open":
-                        config.commands.open.command = value
-                    elif field == "grep":
-                        config.commands.search.grep = value
-                    elif field == "search_ignore_case":
-                        config.commands.search.ignore_case = ini_conf[section].getboolean(field)
-                    else:
-                        _ignore_option(section, field)  # pragma: no cover
-            elif section == "FORMAT":
-                for field, value in dict(ini_conf[section]).items():
-                    if field == "default_entry_type":
-                        config.commands.edit.default_entry_type = value
-                    elif field == "ignore_non_standard_types":
-                        try:
-                            config.parsers.bibtex[field] = ini_conf[section].getboolean(field)
-                        except ValueError as exc:  # pragma: no cover
-                            LOGGER.error(exc)  # pragma: no cover
-                            _ignore_option(section, field, value)  # pragma: no cover
-                    elif field == "month":
-                        if value == "int":
-                            config.database.format.month = int
-                        elif value == "str":
-                            config.database.format.month = str
-                        else:
-                            _ignore_option(section, field, value)  # pragma: no cover
-                    else:
-                        _ignore_option(section, field)  # pragma: no cover
-            elif section == "TUI":
-                for field, value in dict(ini_conf[section]).items():
-                    if field == "default_list_args":
-                        config.tui[field] = value.split(" ")
-                    elif field in ["prompt_before_quit", "reverse_order"]:
-                        try:
-                            config.tui[field] = ini_conf[section].getboolean(field)
-                        except ValueError as exc:  # pragma: no cover
-                            LOGGER.error(exc)  # pragma: no cover
-                            _ignore_option(section, field, value)  # pragma: no cover
-                    elif field in ["scroll_offset"]:
-                        try:
-                            config.tui[field] = ini_conf[section].getint(field)
-                        except ValueError as exc:  # pragma: no cover
-                            LOGGER.error(exc)  # pragma: no cover
-                            _ignore_option(section, field, value)  # pragma: no cover
-                    else:
-                        _ignore_option(section, field)  # pragma: no cover
-            elif section == "COLORS":
-                for field, value in dict(ini_conf[section]).items():
-                    config.tui.colors[field] = value
-            elif section == "KEY_BINDINGS":
-                for field, value in dict(ini_conf[section]).items():
-                    config.tui.key_bindings[field.lower()] = value
-            else:
-                LOGGER.warning("Ignoring unknown config section %s", section)  # pragma: no cover
 
     def validate(self) -> None:
         """Validates the configuration at runtime.
@@ -559,7 +451,7 @@ class Config(Dict[str, Any]):
             )
 
         for name, color in self.tui.colors.items():
-            if name not in self.DEFAULTS["tui"]["colors"].keys() and name not in ANSI_COLORS:
+            if name not in self.DEFAULTS["tui"]["colors"] and name not in ANSI_COLORS:
                 LOGGER.warning("Ignoring unknown TUI color: %s.", name)
             self._assert(
                 bool(

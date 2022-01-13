@@ -210,7 +210,8 @@ cobib _example_config > ~/.config/cobib/config.py
 
 You can then modify it to your liking.
 
-You may also specify a different config file at runtime by using the `-c` or `--config` command line argument.
+You may also specify a different config file at runtime by using the `-c` or `--config` command line argument or by specifying a custom path in the `COBIB_CONFIG` environment variable.
+You can also disable loading of _any_ configuration file be setting this environment variable to one of the following values: `"", 0, "f", "false", "nil", "none"`.
 
 Finally, be sure to take a look at the man page (`man cobib`) and/or the online documentation for more information.
 

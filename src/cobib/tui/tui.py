@@ -365,7 +365,7 @@ class TUI:
         for command, key in config.tui.key_bindings.items():
             command = command.title()
             LOGGER.info("Binding key %s to the %s command.", key, command)
-            if command not in TUI.COMMANDS.keys():
+            if command not in TUI.COMMANDS:
                 LOGGER.warning('Unknown command "%s". Ignoring key binding.', command)
                 continue
             if key == "ENTER":
@@ -463,9 +463,9 @@ class TUI:
             for x_pos in range(0, self.viewport.pad.getmaxyx()[1]):
                 x_ch = self.viewport.pad.inch(STATE.current_line, x_pos)
                 # store attributes by filtering out the character text
-                current_attributes.append(x_ch & curses.A_CHARTEXT)  # type: ignore
+                current_attributes.append(x_ch & curses.A_CHARTEXT)
                 # extract color information
-                x_color = x_ch & curses.A_COLOR  # type: ignore
+                x_color = x_ch & curses.A_COLOR
                 color_pair_content = curses.pair_content(curses.pair_number(x_color))
                 # if the current color attribute is lower in priority than the current line
                 # highlighting, use that instead
@@ -620,7 +620,7 @@ class TUI:
                     break
             elif key in (10, 13):  # ENTER
                 LOGGER.debug("Execute the command as prompted.")
-                command = cast(bytes, self.prompt.instr(0, 1)).decode("utf-8").strip()
+                command = self.prompt.instr(0, 1).decode("utf-8").strip()
                 break
             elif key == -1:  # no input
                 break  # pragma: no cover

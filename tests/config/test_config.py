@@ -2,7 +2,7 @@
 # pylint: disable=unused-argument, redefined-outer-name
 
 import logging
-import tempfile
+import os
 from typing import Any, Generator, List
 
 import pytest
@@ -76,10 +76,38 @@ def test_config_load_from_open_file() -> None:
 def test_config_load_nothing() -> None:
     """Test that nothing changes when no XDG files are present."""
     Config.XDG_CONFIG_FILE = ""
-    Config.LEGACY_XDG_CONFIG_FILE = ""
     config.load()
     # we manually call validate because load exits early
     config.validate()
+
+
+def test_config_disable_load() -> None:
+    """Test that loading can be disabled via environment variable."""
+    prev_value = os.environ.get("COBIB_CONFIG", None)
+    try:
+        config.database.file = "dummy"
+        os.environ["COBIB_CONFIG"] = "0"
+        config.load()
+        assert config.database.file == "dummy"
+    finally:
+        if prev_value is None:
+            os.environ.pop("COBIB_CONFIG", None)
+        else:
+            os.environ["COBIB_CONFIG"] = prev_value
+
+
+def test_config_load_from_env_var() -> None:
+    """Test that loading can be configured via environment variable."""
+    prev_value = os.environ.get("COBIB_CONFIG", None)
+    try:
+        os.environ["COBIB_CONFIG"] = get_resource("debug.py")
+        config.load()
+        assert config.database.file == str(EXAMPLE_LITERATURE)
+    finally:
+        if prev_value is None:
+            os.environ.pop("COBIB_CONFIG", None)
+        else:
+            os.environ["COBIB_CONFIG"] = prev_value
 
 
 def test_config_load_xdg() -> None:
@@ -87,42 +115,6 @@ def test_config_load_xdg() -> None:
     Config.XDG_CONFIG_FILE = get_resource("debug.py")
     config.load()
     assert config.database.file == str(EXAMPLE_LITERATURE)
-
-
-# TODO: remove legacy configuration support on 1.1.2022
-def assert_legacy_config() -> None:
-    """Assert the legacy configuration has been applied."""
-    assert config.commands.edit.default_entry_type == "string"
-    assert config.commands.open.command == "string"
-    assert config.commands.search.grep == "string"
-    assert config.commands.search.ignore_case is True
-    assert config.database.file == "string"
-    assert config.database.git is True
-    assert config.parsers.bibtex.ignore_non_standard_types is True
-    assert config.tui.default_list_args == ["string"]
-    assert config.tui.prompt_before_quit is False
-    assert config.tui.reverse_order is False
-    assert config.tui.scroll_offset == 5
-    assert config.tui.colors.cursor_line_fg == "black"
-    assert config.tui.key_bindings.prompt == "p"
-
-
-def test_config_load_legacy() -> None:
-    """Test loading a legacy config file."""
-    config.load_legacy_config(get_resource("legacy_config.ini", "config"))
-    # first, it must pass the validation test
-    config.validate()
-    # then we also check that all settings have been changed somehow
-    assert_legacy_config()
-
-
-def test_config_load_legacy_xdg() -> None:
-    """Test loading a legacy config from XDG path."""
-    Config.XDG_CONFIG_FILE = ""
-    Config.LEGACY_XDG_CONFIG_FILE = get_resource("legacy_config.ini", "config")
-    config.load()  # validation is done internally
-    # then we also check that all settings have been changed somehow
-    assert_legacy_config()
 
 
 def test_config_example() -> None:
@@ -351,35 +343,6 @@ def test_deprecation_warning(
             source == "cobib.config.config"
             and level == logging.WARNING
             and f"The config.{'.'.join(setting)} setting is deprecated" in message
-        ):
-            break
-    else:
-        assert False, "Missing deprecation warning!"
-
-
-@pytest.mark.parametrize(
-    ["setting", "attribute"], [["[FORMAT]\nmonth=str", "database.format.month"]]
-)
-def test_deprecation_warning_legacy(
-    setting: str, attribute: str, caplog: pytest.LogCaptureFixture
-) -> None:
-    """Test logged warning for deprecated setting.
-
-    Args:
-        setting: the legacy formatted string of the deprecated setting.
-        attribute: the new formatted name of the deprecated setting.
-        caplog: the built-in pytest fixture.
-    """
-    with tempfile.NamedTemporaryFile("w") as legacy_file:
-        legacy_file.write(setting)
-        legacy_file.seek(0)
-        config.load_legacy_config(legacy_file.name)
-        config.validate()
-    for source, level, message in caplog.record_tuples:
-        if (
-            source == "cobib.config.config"
-            and level == logging.WARNING
-            and f"The config.{attribute} setting is deprecated" in message
         ):
             break
     else:

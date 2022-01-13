@@ -90,7 +90,7 @@ class ArxivParser(Parser):
             elif key.name == "title":
                 entry["title"] = re.sub(r"\s+", " ", key.contents[0].strip().replace("\n", " "))
             elif key.name == "author":
-                if "author" not in entry.keys():
+                if "author" not in entry:
                     first = True
                     entry["author"] = ""
                 name = [n.contents[0] for n in key.findChildren()][0]

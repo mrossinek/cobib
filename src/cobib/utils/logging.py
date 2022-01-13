@@ -14,7 +14,7 @@ from pkg_resources import get_distribution
 from .rel_path import RelPath
 
 
-class _StderrHandler(logging.StreamHandler):
+class _StderrHandler(logging.StreamHandler):  # type: ignore[type-arg]
     """A logging handler hard-coded to `sys.stderr`.
 
     The reason for explicitly deriving this class, is that Python's `logging.StreamHandler` does not
@@ -29,7 +29,9 @@ class _StderrHandler(logging.StreamHandler):
         super().emit(record)
 
 
-def get_stream_handler(level: int = logging.WARNING) -> logging.StreamHandler:
+def get_stream_handler(
+    level: int = logging.WARNING,
+) -> logging.StreamHandler:  # type: ignore[type-arg]
     """Returns a basic StreamHandler logging to `sys.stderr`.
 
     Args:

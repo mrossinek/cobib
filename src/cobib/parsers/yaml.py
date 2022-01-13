@@ -20,7 +20,7 @@ from typing import IO, Dict, Optional, Union
 from ruamel import yaml
 
 from cobib.config import Event, config
-from cobib.database import Entry
+from cobib.database.entry import Entry
 
 from .base_parser import Parser
 

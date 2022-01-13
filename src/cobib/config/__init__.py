@@ -5,9 +5,10 @@ The configuration has undergone a major revision during v3.0 when it was redesig
 The configuration will be read from the file that appears first in the following list:
 
 1. a file pointed to by the `--config` command-line option.
-2. the XDG-default location: `~/.config/cobib/config.py`.
-3. the *legacy* XDG-default location: `~/.config/cobib/config.ini`. This option will be removed on
-   January 1st, 2022.
+2. the file located at the path provided by the environment variable `COBIB_CONFIG`. If this
+   variable is set to one of the values (`"", 0, "f", "false", "nil", "none"`), no configuration
+   file will be loaded and the rest of this list is skipped.
+3. the XDG-default location: `~/.config/cobib/config.py`.
 4. if none of the above are found, coBib will fallback to the default configuration.
 
 A configuration file is *not* required to set all attributes itself.

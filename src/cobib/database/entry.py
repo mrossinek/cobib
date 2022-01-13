@@ -329,7 +329,7 @@ class Entry:
         match_list = []
         stringified_data = self.stringify()
         for key, values in filter_.items():
-            if key[0] not in stringified_data.keys():
+            if key[0] not in stringified_data:
                 match_list.append(not key[1])
                 continue
             for val in values:

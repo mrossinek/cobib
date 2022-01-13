@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- the configuration loading can be disabled via the environment variable `COBIB_CONFIG`
+    - values which disable the loading entirely are: `"", 0, f, false, nil, none`
+    - you can also specify a custom path to a configuration file in this variable
+
+### Removed
+- the `INI`-style configuration got fully removed (as deprecated in [3.0.0] - 2021-04-10)
+
 
 ## [3.4.0] - 2021-12-01
 
