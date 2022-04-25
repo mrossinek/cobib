@@ -94,6 +94,10 @@ def print_changelog(version: str, cached_version_path: Optional[str]) -> None:
     if cached_version_path is None:
         return
 
+    _cached_version_path = RelPath(cached_version_path).path
+    if not _cached_version_path.parent.exists():
+        _cached_version_path.parent.mkdir(parents=True)
+
     try:
         current_version = version[: version.index("+")]
     except ValueError:
@@ -101,7 +105,7 @@ def print_changelog(version: str, cached_version_path: Optional[str]) -> None:
 
     cached_version = None
     try:
-        with open(RelPath(cached_version_path).path, "r", encoding="utf-8") as version_file:
+        with open(_cached_version_path, "r", encoding="utf-8") as version_file:
             cached_version = version_file.read().strip()
     except FileNotFoundError:
         pass
@@ -109,7 +113,7 @@ def print_changelog(version: str, cached_version_path: Optional[str]) -> None:
     if current_version == cached_version:
         return
 
-    with open(RelPath(cached_version_path).path, "w", encoding="utf-8") as version_file:
+    with open(_cached_version_path, "w", encoding="utf-8") as version_file:
         version_file.write(current_version)
 
     lines = ["\x1b[1mHi there! It looks like you have updated coBib; here is what's new:\x1b[22m\n"]

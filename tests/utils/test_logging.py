@@ -3,6 +3,7 @@
 import logging
 import re
 import tempfile
+from pathlib import Path
 from typing import Optional
 
 import pytest
@@ -46,12 +47,16 @@ def test_print_changelog(
         assert capsys.readouterr().out == ""
     else:
         with tempfile.NamedTemporaryFile("w") as file:
+            path = Path(file.name)
             if not cached_version:
                 file.close()
             else:
                 file.write(cached_version)
                 file.flush()
-            print_changelog("0.2", file.name)
+            print_changelog("0.2", str(path))
+        # ensure we do not leave a temporary file behind
+        if path.exists():
+            path.unlink()
         captured = ansi_regex.sub("", capsys.readouterr().out).splitlines()
         if cached_version == "0.2":
             assert captured == []
@@ -63,3 +68,26 @@ def test_print_changelog(
                 assert true == exp
             for true, exp in zip(captured[-2:], expected_lines[-2:]):
                 assert true == exp
+
+
+def test_safe_cache_access(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Regression test against #94.
+
+    Args:
+        monkeypatch: the built-in pytest fixture.
+    """
+    monkeypatch.setattr("sys.stdin", MockStdin())
+    # create an empty temporary directory
+    tmp_dir = tempfile.mkdtemp()
+    # use a path which surely does not exist
+    tmp_cache_file = Path(tmp_dir) / "cache/version"
+    try:
+        # try to read the version from a file whose parent directory does not exist
+        print_changelog("0.2", str(tmp_cache_file))
+        # if the test regresses, this will fail with a `FileNotFoundError`
+    finally:
+        if tmp_cache_file.exists():
+            tmp_cache_file.unlink()
+        if tmp_cache_file.parent.exists():
+            tmp_cache_file.parent.rmdir()
+        Path(tmp_dir).rmdir()
