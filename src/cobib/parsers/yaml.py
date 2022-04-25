@@ -32,17 +32,15 @@ class YAMLParser(Parser):
 
     name = "yaml"
 
-    _yaml: Optional[yaml.YAML] = None  # type: ignore[name-defined]
+    _yaml: Optional[yaml.YAML] = None
 
     def __init__(self) -> None:  # pylint: disable=C0116
         # noqa: D107
         if YAMLParser._yaml is None:
             # we need to lazily construct this in order to be able to respect the config setting
-            YAMLParser._yaml = yaml.YAML(  # type: ignore[attr-defined]
-                typ="safe", pure=not config.parsers.yaml.use_c_lib_yaml
-            )
-            YAMLParser._yaml.explicit_start = True
-            YAMLParser._yaml.explicit_end = True
+            YAMLParser._yaml = yaml.YAML(typ="safe", pure=not config.parsers.yaml.use_c_lib_yaml)
+            YAMLParser._yaml.explicit_start = True  # type: ignore[assignment]
+            YAMLParser._yaml.explicit_end = True  # type: ignore[assignment]
             YAMLParser._yaml.default_flow_style = False
 
     def parse(self, string: Union[str, Path]) -> Dict[str, Entry]:
