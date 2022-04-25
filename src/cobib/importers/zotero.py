@@ -156,6 +156,9 @@ class ZoteroImporter(Importer):
             cached_data["Zotero"] = {}
         cached_data["Zotero"].update(tokens)
 
+        if not cache_path.parent.exists():
+            cache_path.parent.mkdir(parents=True)
+
         with open(cache_path, "w", encoding="utf-8") as cache:
             json.dump(cached_data, cache)
 
