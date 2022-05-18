@@ -54,7 +54,9 @@ lint:
             - cobertura.xml
             - htmlmypy
         reports:
-            cobertura: cobertura.xml
+          coverage_report:
+            coverage_format: cobertura
+            path: cobertura.xml
 
 test:
     stage: test
@@ -93,7 +95,9 @@ coverage:
             - coverage.xml
             - htmlcov
         reports:
-            cobertura: coverage.xml
+          coverage_report:
+            coverage_format: cobertura
+            path: cobertura.xml
 
 develop:
     stage: deploy
