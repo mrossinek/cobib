@@ -82,8 +82,8 @@ def main() -> None:
     Database()
 
     if not args.command:
-        if platform.system() not in ("Linux", "Darwin"):
-            LOGGER.error("Only Linux and Darwin systems are supported by coBib's TUI!")
+        if platform.system() not in ("Linux", "Darwin", "OpenBSD"):
+            LOGGER.error("Only UNIX-like systems are supported by coBib's TUI!")
             return
 
         # pylint: disable=import-outside-toplevel
