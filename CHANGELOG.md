@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- run TUI on BSD platforms (!52)
+
 
 ## [3.5.1] - 2022-04-25
 
