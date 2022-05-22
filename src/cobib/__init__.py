@@ -6,7 +6,7 @@
 import subprocess
 from pathlib import Path
 
-__version__ = "3.5.1"
+__version__ = "3.5.2"
 
 if (Path(__file__).parent.parent.parent / ".git").exists():
     # if installed from source, append HEAD commit SHA to version info as metadata

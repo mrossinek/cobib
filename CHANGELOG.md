@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [3.5.2] - 2022-05-22
+
+Pypi: https://pypi.org/project/cobib/3.5.2/
+
 ### Fixed
 - run TUI on BSD platforms (!52)
 
@@ -16,6 +21,7 @@ Pypi: https://pypi.org/project/cobib/3.5.1/
 
 ### Fixed
 - safely check cache existence before attempting to write (#94)
+
 
 ## [3.5.0] - 2022-01-13
 
@@ -619,7 +625,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v3.5.1...master
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v3.5.2...master
+[3.5.2]: https://gitlab.com/mrossinek/cobib/-/compare/v3.5.2
 [3.5.1]: https://gitlab.com/mrossinek/cobib/-/compare/v3.5.1
 [3.5.0]: https://gitlab.com/mrossinek/cobib/-/compare/v3.5.0
 [3.4.0]: https://gitlab.com/mrossinek/cobib/-/compare/v3.4.0
