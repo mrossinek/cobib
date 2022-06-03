@@ -1,5 +1,5 @@
 """Tests for coBib's DOIParser."""
-# pylint: disable=no-self-use,unused-argument
+# pylint: disable=unused-argument
 
 import logging
 from typing import Dict, Optional

@@ -1,5 +1,5 @@
 """coBib GitCommit event tests."""
-# pylint: disable=no-self-use,unused-argument
+# pylint: disable=unused-argument
 
 from __future__ import annotations
 

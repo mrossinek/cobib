@@ -1,5 +1,5 @@
 """Tests for coBib's ISBNParser."""
-# pylint: disable=no-self-use,unused-argument
+# pylint: disable=unused-argument
 
 import json
 import logging

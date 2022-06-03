@@ -1,5 +1,4 @@
 """coBib command test class."""
-# pylint: disable=no-self-use
 
 from __future__ import annotations
 

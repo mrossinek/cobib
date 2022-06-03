@@ -1,5 +1,5 @@
 """Tests for coBib's ExportCommand."""
-# pylint: disable=no-self-use,unused-argument
+# pylint: disable=unused-argument
 
 from __future__ import annotations
 
@@ -63,7 +63,7 @@ class TestExportCommand(CommandTest, TUITest):
                         assert line == truth
                     if "-s" in args:
                         with pytest.raises(StopIteration):
-                            file.__next__()
+                            next(file)
         finally:
             # clean up file system
             os.remove(TMPDIR / "cobib_test_export.bib")

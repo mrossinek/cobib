@@ -179,7 +179,7 @@ def test_database_save_add() -> None:
             for line, truth in zip(file, expected):
                 assert line.strip() == truth.strip()
             with pytest.raises(StopIteration):
-                file.__next__()
+                next(file)
     finally:
         os.remove(config.database.file)
         config.database.file = EXAMPLE_LITERATURE
@@ -214,7 +214,7 @@ def test_database_save_modify() -> None:
                         line = next(file)
                     assert line == truth
                 with pytest.raises(StopIteration):
-                    file.__next__()
+                    next(file)
     finally:
         os.remove(config.database.file)
         config.database.file = EXAMPLE_LITERATURE
@@ -242,7 +242,7 @@ def test_database_save_delete() -> None:
                 for line, truth in zip(file, expected):
                     assert line == truth
                 with pytest.raises(StopIteration):
-                    file.__next__()
+                    next(file)
     finally:
         os.remove(config.database.file)
         config.database.file = EXAMPLE_LITERATURE

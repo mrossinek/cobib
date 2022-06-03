@@ -194,7 +194,6 @@ class TestLintDatabase(ShellHelperTest):
             if msg.strip() and truth:
                 assert msg == truth
 
-    # pylint: disable=no-self-use
     def test_no_lint_warnings(self) -> None:
         """Test the case of no raised lint warnings."""
         config.load(get_resource("debug.py"))
@@ -321,7 +320,6 @@ class TestUnifyLabels(ShellHelperTest):
 
     @pytest.mark.parametrize("git", [False, True])
     def test_unify_labels(self, git: bool) -> None:
-        # pylint: disable=no-self-use
         """Test actual changes of label unification.
 
         Args:
