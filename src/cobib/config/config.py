@@ -35,9 +35,10 @@ ANSI_COLORS = [
 class LabelSuffix(Enum):
     """Suffixes to disambiguate Entry labels."""
 
-    ALPHA = lambda count: chr(96 + count)
-    CAPTIAL = lambda count: chr(64 + count)
-    NUMERIC = lambda count: str(count)  # pylint: disable=unnecessary-lambda
+    ALPHA = lambda count: chr(96 + count)  # pylint: disable=unnecessary-lambda-assignment
+    CAPTIAL = lambda count: chr(64 + count)  # pylint: disable=unnecessary-lambda-assignment
+    # pylint: disable=unnecessary-lambda,unnecessary-lambda-assignment
+    NUMERIC = lambda count: str(count)
 
 
 class Config(Dict[str, Any]):
@@ -248,7 +249,7 @@ class Config(Dict[str, Any]):
             kwargs: key, value pairs to be added to the configuration data.
         """
         for key, value in kwargs.items():
-            self.__setitem__(key, copy.deepcopy(value))
+            self[key] = copy.deepcopy(value)
 
     @staticmethod
     def load(configpath: Optional[Union[str, Path, TextIO, io.TextIOWrapper]] = None) -> None:

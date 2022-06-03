@@ -82,7 +82,7 @@ class Database(OrderedDict):  # type: ignore
         Database._unsaved_entries[label] = None
         return entry
 
-    def rename(self, old_label: str, new_label: str) -> None:  # pylint: disable=no-self-use
+    def rename(self, old_label: str, new_label: str) -> None:
         """Renames an entry label.
 
         This function performs no actual changes to the database. It merely registers a rename

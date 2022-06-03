@@ -1,5 +1,5 @@
 """Tests for coBib's BibtexParser."""
-# pylint: disable=no-self-use,unused-argument
+# pylint: disable=unused-argument
 
 from typing import Dict, Optional
 

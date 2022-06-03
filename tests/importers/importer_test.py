@@ -10,6 +10,5 @@ class ImporterTest:
 
     @pytest.fixture(autouse=True)
     def setup(self) -> None:
-        # pylint: disable=no-self-use
         """Setup."""
         config.defaults()

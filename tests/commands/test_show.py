@@ -1,5 +1,5 @@
 """Tests for coBib's ShowCommand."""
-# pylint: disable=no-self-use,unused-argument
+# pylint: disable=unused-argument
 
 from __future__ import annotations
 

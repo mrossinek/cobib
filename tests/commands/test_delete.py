@@ -1,5 +1,5 @@
 """Tests for coBib's DeleteCommand."""
-# pylint: disable=no-self-use,unused-argument
+# pylint: disable=unused-argument
 
 from __future__ import annotations
 
@@ -48,7 +48,7 @@ class TestDeleteCommand(CommandTest, TUITest):
                 for line, truth in zip(file, expected):
                     assert line == truth
                 with pytest.raises(StopIteration):
-                    file.__next__()
+                    next(file)
 
     @pytest.mark.parametrize(
         ["setup"],

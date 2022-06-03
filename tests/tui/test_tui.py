@@ -1,5 +1,5 @@
 """Tests for coBib's TUI."""
-# pylint: disable=no-self-use,unused-argument,too-many-public-methods
+# pylint: disable=unused-argument,too-many-public-methods
 
 import copy
 import tempfile
