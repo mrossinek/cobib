@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- incorrect author concatenation in ISBN Parser
+
 
 ## [3.5.2] - 2022-05-22
 

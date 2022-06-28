@@ -22,7 +22,7 @@ def assert_default_test_entry(entry: Entry) -> None:
         entry: the entry to assert.
     """
     assert entry.label == "Lutz2013"
-    assert entry.data["author"] == "Mark Lutz"
+    assert entry.data["author"] == "Mark Lutz and David Ascher"
     assert entry.data["pages"] == 1540
     assert entry.data["title"] == "Learning Python"
     assert entry.data["year"] == 2013

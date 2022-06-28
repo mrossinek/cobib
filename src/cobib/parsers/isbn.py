@@ -104,9 +104,9 @@ class ISBNParser(Parser):
                     pass  # pragma: no cover
             elif key == "authors":
                 label = value[0]["name"].split()[-1] + label
-                entry["author"] = " and".join([a["name"] for a in value])
+                entry["author"] = " and ".join([a["name"] for a in value])
             elif key == "publishers":
-                entry["publisher"] = " and".join([a["name"] for a in value])
+                entry["publisher"] = " and ".join([a["name"] for a in value])
         # set entry-type do 'book'
         entry["ENTRYTYPE"] = "book"
         bib = OrderedDict()
