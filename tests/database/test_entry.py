@@ -315,7 +315,6 @@ def test_match_with_wrong_key() -> None:
                     "something else}",
                     "}",
                     "",
-                    "",
                 ],
             ],
         ],
