@@ -248,7 +248,7 @@ class ZoteroImporter(Importer):
         if pre_hook_result is not None:
             protected_url, authentication = pre_hook_result
 
-        raw_result = requests.get(protected_url, headers=authentication)
+        raw_result = requests.get(protected_url, headers=authentication, timeout=30)
 
         bibtex_parser = BibtexParser()
 
