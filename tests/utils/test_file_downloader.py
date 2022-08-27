@@ -27,7 +27,7 @@ def setup_remove_content_length(monkeypatch: pytest.MonkeyPatch, enable: bool = 
 
     def remove_content_length(*args, **kwargs):  # type: ignore
         """Mock function to remove `content-length` from response."""
-        response = requests.request("get", *args, **kwargs, timeout=30)
+        response = requests.request("get", *args, timeout=kwargs.pop("timeout", 30), **kwargs)
         response.headers.pop("content-length")
         return response
 
