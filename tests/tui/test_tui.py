@@ -967,7 +967,7 @@ class TestTUI(CmdLineTest, TUITest):
             else:
                 assert screen.display[1][:2] == "kn"
 
-        self.run_tui([SIGWINCH] + list(keys), assertion, assertion_kwargs)  # type: ignore
+        self.run_tui([SIGWINCH] + list(keys), assertion, assertion_kwargs)
 
     @pytest.mark.parametrize(
         ["kwargs"],
