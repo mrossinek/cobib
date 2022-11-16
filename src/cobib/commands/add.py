@@ -303,7 +303,10 @@ class AddCommand(Command):
                     entry.data.pop("_download")
                 else:
                     path = FileDownloader().download(
-                        entry.data.pop("_download"), lbl, folder=largs.path, overwrite=largs.update
+                        entry.data.pop("_download"),
+                        entry.label,
+                        folder=largs.path,
+                        overwrite=largs.update,
                     )
                     if path is not None:
                         entry.data["file"] = str(path)

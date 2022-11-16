@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - incorrect author concatenation in ISBN Parser
+- using the disambiguated label for the names of downloaded files (#96)
 
 
 ## [3.5.2] - 2022-05-22

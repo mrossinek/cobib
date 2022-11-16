@@ -455,6 +455,61 @@ class TestAddCommand(CommandTest, TUITest):
             # assert the git commit message
             self.assert_git_commit_message("add", None)
 
+    def test_disambiguate_download(
+        self,
+        setup: Any,
+        capsys: pytest.CaptureFixture[str],
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        """Test label disambiguation is propagated to downloaded files.
+
+        This is a regression test against https://gitlab.com/mrossinek/cobib/-/issues/96.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            capsys: the built-in pytest fixture.
+            caplog: the built-in pytest fixture.
+        """
+        database = Database()
+
+        for label in ("Cao2018", "Cao2018_a"):
+            try:
+                path = RelPath(f"/tmp/{label}.pdf")
+                try:
+                    # ensure file does not exist yet
+                    os.remove(path.path)
+                except FileNotFoundError:
+                    pass
+
+                # by repeatedly calling the same add command, we trigger the label disambiguation
+                AddCommand().execute(["-a", "1812.09976"])
+
+                if (
+                    "cobib.parsers.arxiv",
+                    logging.ERROR,
+                    "An Exception occurred while trying to query the arXiv ID: 1812.09976.",
+                ) in caplog.record_tuples:
+                    pytest.skip("The requests API encountered an error. Skipping test.")
+
+                entry = database[label]
+                assert entry.data["author"].startswith("Yudong Cao")
+                assert entry.data["title"].startswith(
+                    "Quantum Chemistry in the Age of Quantum Computing"
+                )
+                assert entry.data["arxivid"].startswith("1812.09976")
+                assert entry.data["doi"] == "10.1021/acs.chemrev.8b00803"
+                assert entry.data["primaryClass"] == "quant-ph"
+                assert entry.data["archivePrefix"] == "arXiv"
+                assert entry.data["abstract"] != ""
+                assert entry.data["year"] == 2018
+                assert os.path.exists(path)
+
+            finally:
+                try:
+                    os.remove(path.path)
+                except FileNotFoundError:
+                    pass
+
     @pytest.mark.parametrize(
         ["setup"],
         [
