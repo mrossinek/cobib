@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [3.5.3] - 2022-11-16
+
+Pypi: https://pypi.org/project/cobib/3.5.3/
+
 ### Fixed
 - incorrect author concatenation in ISBN Parser
 - using the disambiguated label for the names of downloaded files (#96)
@@ -629,7 +634,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v3.5.2...master
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v3.5.3...master
+[3.5.3]: https://gitlab.com/mrossinek/cobib/-/compare/v3.5.3
 [3.5.2]: https://gitlab.com/mrossinek/cobib/-/compare/v3.5.2
 [3.5.1]: https://gitlab.com/mrossinek/cobib/-/compare/v3.5.1
 [3.5.0]: https://gitlab.com/mrossinek/cobib/-/compare/v3.5.0
