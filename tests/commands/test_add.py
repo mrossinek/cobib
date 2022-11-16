@@ -502,7 +502,7 @@ class TestAddCommand(CommandTest, TUITest):
                 assert entry.data["archivePrefix"] == "arXiv"
                 assert entry.data["abstract"] != ""
                 assert entry.data["year"] == 2018
-                assert os.path.exists(path)
+                assert os.path.exists(path.path)
 
             finally:
                 try:
