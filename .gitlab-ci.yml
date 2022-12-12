@@ -6,7 +6,7 @@ default:
         - apt-get update
         - git config --global user.email "cobib@cobib.org"
         - git config --global user.name "CoBib"
-        - pip install virtualenv tox
+        - pip install virtualenv "tox<4"
 
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
@@ -34,7 +34,7 @@ build:
     script:
         - virtualenv venv
         - source venv/bin/activate
-        - pip install tox
+        - pip install "tox<4"
 
 lint:
     stage: test
@@ -44,7 +44,7 @@ lint:
         - which python
         - pip install pyenchant
         - python <<< 'import enchant; print(enchant.list_dicts())'
-        - pip install tox
+        - pip install "tox<4"
         - tox -e lint
         - head -1 cobertura.xml | awk -F'line-rate*=*\"' '{sub(/".*/,"",$2); printf "mypy coverage %.0f", $2 * 100; print "%"}'
     coverage: '/mypy coverage \d+%/'
@@ -69,7 +69,7 @@ test:
         - virtualenv venv
         - source venv/bin/activate
         - which python
-        - pip install tox
+        - pip install "tox<4"
         - tox -e py$PYTHON_VERSION
     artifacts:
         when: always
@@ -86,7 +86,7 @@ coverage:
         - virtualenv venv-coverage
         - source venv-coverage/bin/activate
         - which python
-        - pip install tox
+        - pip install "tox<4"
         - tox -e coverage
     coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+\s+\d+\s+)*(\d+%)/'
     artifacts:
@@ -108,7 +108,7 @@ develop:
     script:
         - source venv/bin/activate
         - which python
-        - pip install tox
+        - pip install "tox<4"
         - tox -e docs
         - mv docs public
     artifacts:
@@ -122,7 +122,7 @@ pages:
     script:
         - source venv/bin/activate
         - which python
-        - pip install tox
+        - pip install "tox<4"
         - tox -e docs
         - mv docs public
     artifacts:
