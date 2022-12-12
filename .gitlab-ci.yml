@@ -6,7 +6,7 @@ default:
         - apt-get update
         - git config --global user.email "cobib@cobib.org"
         - git config --global user.name "CoBib"
-        - pip install virtualenv
+        - pip install virtualenv tox
 
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
