@@ -40,7 +40,9 @@ lint:
     stage: test
     script:
         - apt-get install -y python3-enchant
-        - source venv/bin/activate
+        # TODO: figure out why it is necessary to have a separate venv here
+        - virtualenv venv-lint
+        - source venv-lint/bin/activate
         - which python
         - pip install pyenchant
         - python <<< 'import enchant; print(enchant.list_dicts())'
