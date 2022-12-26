@@ -388,6 +388,13 @@ class Entry:
 
         for file_ in self.file:
             grep_prog = config.commands.search.grep
+            path = RelPath(file_).path
+            if not path.exists():
+                LOGGER.warning(
+                    "The associated file %s of entry %s does not exist!", file_, self.label
+                )
+                continue
+
             LOGGER.debug("Searching associated file %s with %s", file_, grep_prog)
             with subprocess.Popen(
                 [

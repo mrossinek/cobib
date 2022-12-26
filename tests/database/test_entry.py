@@ -363,6 +363,26 @@ def test_search_with_file() -> None:
         assert res == exp
 
 
+def test_search_with_missing_file(caplog: pytest.LogCaptureFixture) -> None:
+    """Test the `cobib.database.Entry.search` method with a missing file.
+
+    Args:
+        caplog: the built-in pytest fixture.
+    """
+    entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
+    entry.file = "some_non_existent_file.txt"  # type: ignore
+    _ = entry.search("Chemical", context=0)
+    for source, level, message in caplog.record_tuples:
+        if level != 30 or source != "cobib.database.entry":
+            continue
+        if message.startswith("The associated file") and message.endswith(
+            "of entry Cao_2019 does not exist!"
+        ):
+            break
+    else:
+        pytest.fail("Missing file was not logged.")
+
+
 def test_escape_special_chars() -> None:
     """Test escaping of special characters.
 
