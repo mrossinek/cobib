@@ -209,6 +209,9 @@ class TextBuffer:
         pad.resize(self.height + (2 if box else 1), max(self.width, smaxcol + (0 if box else 1)))
         # and populate
         for row, line in enumerate(self.lines):
+            # replace newline characters with a single space
+            line = line.replace("\n", " ")
+            line = line.replace("\r", " ")
             start, end, color = -1, -1, -1
             # This list will store the spanned regions for each ANSI color pair.
             # Its entries will be (curses color pair number, start, end).

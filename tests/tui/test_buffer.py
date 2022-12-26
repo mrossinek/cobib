@@ -263,6 +263,33 @@ class TestTextBuffer:
             record for record in caplog.record_tuples if record[0] == "MockCursesPad"
         ] == expected_log
 
+    def test_view_with_newline(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Test `cobib.tui.buffer.TextBuffer.view` with newline character contents.
+
+        This is a regression test against https://gitlab.com/mrossinek/cobib/-/issues/98.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
+        self.buffer.lines = [
+            "Label0  Title0 by\n Author0",
+            "Label1  Title1 by\r Author1",
+        ]
+        pad = MockCursesPad()
+        self.buffer.view(pad, 10, 40, box=True)
+        expected_log = [
+            ("MockCursesPad", 10, "erase"),
+            ("MockCursesPad", 10, "refresh: 0 0 1 0 10 40"),
+            ("MockCursesPad", 10, "resize: 2 40"),
+            ("MockCursesPad", 10, "addstr: 1 1 Label0  Title0 by  Author0"),
+            ("MockCursesPad", 10, "addstr: 2 1 Label1  Title1 by  Author1"),
+            ("MockCursesPad", 10, "box"),
+            ("MockCursesPad", 10, "refresh: 0 0 1 0 10 40"),
+        ]
+        assert [
+            record for record in caplog.record_tuples if record[0] == "MockCursesPad"
+        ] == expected_log
+
     def test_view_with_box(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test `cobib.tui.buffer.TextBuffer.view` with a surrounding box.
 
