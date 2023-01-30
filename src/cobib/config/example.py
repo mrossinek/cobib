@@ -83,8 +83,9 @@ config.database.git = False
 # of this option follows the f-string like formatting of modifications (see also the documentation
 # of the [ModifyCommand](https://mrossinek.gitlab.io/cobib/cobib/commands/modify.html)). The default
 # configuration value leaves the label unchanged compared to the metadata provided by the source
-# from which the entry gets added. A more useful example is `"{author.split()[1]}{year}"` which
-# takes the surname of the first author and immediately appends the publication year.
+# from which the entry gets added. A more useful example is
+#     `"{author.split(' and ')[0].split()[-1]}{year}"`
+# which takes the surname of the first author and immediately appends the publication year.
 config.database.format.label_default = "{label}"
 
 # You can specify the suffix format which is used to disambiguate labels if a conflict would occur.
