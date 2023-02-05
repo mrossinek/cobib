@@ -163,7 +163,7 @@ class CommandTest(CmdLineTest):
         command_cls().execute(["--dummy"])
         name = command_cls.name
         safe_name = self.get_safe_command_name()
-        for (source, level, message) in caplog.record_tuples:
+        for source, level, message in caplog.record_tuples:
             if (f"cobib.commands.{safe_name}", logging.ERROR) == (
                 source,
                 level,

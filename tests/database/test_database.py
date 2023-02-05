@@ -69,7 +69,7 @@ def test_database_missing_file(caplog: pytest.LogCaptureFixture) -> None:
     try:
         with pytest.raises(SystemExit):
             Database().read()
-        for (source, level, message) in caplog.record_tuples:
+        for source, level, message in caplog.record_tuples:
             if ("cobib.database.database", logging.CRITICAL) == (
                 source,
                 level,

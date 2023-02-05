@@ -74,7 +74,7 @@ class TestUndoCommand(CommandTest, TUITest):
 
         if not git:
             UndoCommand().execute([])
-            for (source, level, message) in caplog.record_tuples:
+            for source, level, message in caplog.record_tuples:
                 if ("cobib.commands.undo", logging.ERROR) == (
                     source,
                     level,
@@ -86,7 +86,7 @@ class TestUndoCommand(CommandTest, TUITest):
             # Regression test related to #65
             with pytest.raises(SystemExit):
                 UndoCommand().execute([])
-            for (source, level, message) in caplog.record_tuples:
+            for source, level, message in caplog.record_tuples:
                 if ("cobib.commands.undo", logging.WARNING) == (
                     source,
                     level,
@@ -140,7 +140,7 @@ class TestUndoCommand(CommandTest, TUITest):
         """
         rmtree(self.COBIB_TEST_DIR_GIT)
         UndoCommand().execute([])
-        for (source, level, message) in caplog.record_tuples:
+        for source, level, message in caplog.record_tuples:
             if ("cobib.commands.undo", logging.ERROR) == (
                 source,
                 level,

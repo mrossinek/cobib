@@ -54,7 +54,7 @@ class TestImportCommand(CommandTest, TUITest):
         """
 
         def assertion(screen, logs, **kwargs):  # type: ignore
-            for (source, level, message) in logs:
+            for source, level, message in logs:
                 if ("cobib.tui.tui", logging.INFO) == (
                     source,
                     level,

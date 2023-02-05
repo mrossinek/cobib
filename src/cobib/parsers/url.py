@@ -82,7 +82,6 @@ class URLParser(Parser):
             entries = DOIParser().parse(most_common_doi[0])
 
         if entries:
-
             Event.PostURLParse.fire(entries)
 
             LOGGER.debug("Successfully extracted metadata from most common DOI")

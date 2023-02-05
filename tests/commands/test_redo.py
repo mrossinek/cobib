@@ -74,7 +74,7 @@ class TestRedoCommand(CommandTest, TUITest):
 
         if not git:
             RedoCommand().execute([])
-            for (source, level, message) in caplog.record_tuples:
+            for source, level, message in caplog.record_tuples:
                 if ("cobib.commands.redo", logging.ERROR) == (
                     source,
                     level,
@@ -87,7 +87,7 @@ class TestRedoCommand(CommandTest, TUITest):
             AddCommand().execute(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB])
             with pytest.raises(SystemExit):
                 RedoCommand().execute([])
-            for (source, level, message) in caplog.record_tuples:
+            for source, level, message in caplog.record_tuples:
                 if ("cobib.commands.redo", logging.WARNING) == (
                     source,
                     level,
@@ -148,7 +148,7 @@ class TestRedoCommand(CommandTest, TUITest):
         """
         rmtree(self.COBIB_TEST_DIR_GIT)
         RedoCommand().execute([])
-        for (source, level, message) in caplog.record_tuples:
+        for source, level, message in caplog.record_tuples:
             if ("cobib.commands.redo", logging.ERROR) == (
                 source,
                 level,

@@ -92,7 +92,7 @@ class TestZoteroImporter(ImporterTest):
             caplog: the built-in pytest fixture.
         """
         ZoteroImporter().fetch(["--dummy"])
-        for (source, level, message) in caplog.record_tuples:
+        for source, level, message in caplog.record_tuples:
             if ("cobib.importers.zotero", logging.ERROR) == (
                 source,
                 level,
