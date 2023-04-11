@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.5.5] - 2023-04-11
+
+Pypi: https://pypi.org/project/cobib/3.5.5/
+
 ### Fixed
 - opening of non-list type fields (#100)
 
@@ -646,7 +650,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v3.5.4...master
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v3.5.5...master
+[3.5.5]: https://gitlab.com/mrossinek/cobib/-/compare/v3.5.5
 [3.5.4]: https://gitlab.com/mrossinek/cobib/-/compare/v3.5.4
 [3.5.3]: https://gitlab.com/mrossinek/cobib/-/compare/v3.5.3
 [3.5.2]: https://gitlab.com/mrossinek/cobib/-/compare/v3.5.2
