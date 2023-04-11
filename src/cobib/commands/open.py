@@ -110,6 +110,8 @@ class OpenCommand(Command):
                 for field in config.commands.open.fields:
                     if field in entry.data.keys() and entry.data[field]:
                         value = entry.data[field]
+                        if not isinstance(value, list):
+                            value = [value]
                         for val in value:
                             val = val.strip()
                             LOGGER.debug('Parsing "%s" for URLs.', val)

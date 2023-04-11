@@ -260,6 +260,57 @@ class TestOpenCommand(CommandTest, TUITest):
         for line, truth in zip(true_out, expected_out):
             assert line == truth
 
+    def test_open_non_list_field(
+        self,
+        setup: Any,
+        monkeypatch: pytest.MonkeyPatch,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        """Test opening of non-list type fields.
+
+        This is a regression test against https://gitlab.com/mrossinek/cobib/-/issues/100
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            monkeypatch: the built-in pytest fixture.
+            caplog: the built-in pytest fixture.
+        """
+        config.commands.open.fields = ["note"]
+
+        with open(
+            get_resource("example_multi_file_entry.yaml", "commands"), "r", encoding="utf-8"
+        ) as multi_file_entry:
+            with open(config.database.file, "a", encoding="utf-8") as database:
+                for line in multi_file_entry.readlines():
+                    if line == "  file:\n":
+                        database.write("  note: /tmp/a.txt\n")
+                        database.write("...\n")
+                        break
+                    database.write(line)
+
+        Database().read()
+
+        monkeypatch.setattr("sys.stdin", MockStdin())
+
+        OpenCommand().execute(["example_multi_file_entry"])
+
+        true_log = [rec for rec in caplog.record_tuples if rec[0] == "cobib.commands.open"]
+
+        expected_log = [
+            ("cobib.commands.open", 10, "Starting Open command."),
+            (
+                "cobib.commands.open",
+                10,
+                'Parsing "/tmp/a.txt" for URLs.',
+            ),
+            (
+                "cobib.commands.open",
+                10,
+                'Opening "/tmp/a.txt" with cat.',
+            ),
+        ]
+        assert true_log == expected_log
+
     @pytest.mark.parametrize(
         ["post_setup"],
         [

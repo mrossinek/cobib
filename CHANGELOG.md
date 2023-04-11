@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- opening of non-list type fields (#100)
+
 
 ## [3.5.4] - 2022-12-26
 
