@@ -28,7 +28,8 @@ class TestMainExecutable(CmdLineTest):
         """Load testing config."""
         config.load(get_resource("debug.py"))
 
-    def test_version(
+    @pytest.mark.asyncio
+    async def test_version(
         self, setup: Any, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
     ) -> None:
         """Tests the version parser argument.
@@ -39,17 +40,18 @@ class TestMainExecutable(CmdLineTest):
             capsys: the built-in pytest fixture.
         """
         with pytest.raises(SystemExit):
-            self.run_module(monkeypatch, "main", ["cobib", "--version"])
+            await self.run_module(monkeypatch, "main", ["cobib", "--version"])
         # pylint: disable=import-outside-toplevel
         from cobib import __version__
 
         assert capsys.readouterr().out.strip() == f"coBib v{__version__}"
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        ["main", "args"],
+        "args",
         [
-            ["main", ["open", "einstein"]],
-            ["helper_main", ["_example_config"]],
+            ["open", "einstein"],
+            ["_example_config"],
         ],
     )
     @pytest.mark.parametrize(
@@ -59,11 +61,10 @@ class TestMainExecutable(CmdLineTest):
             ["-vv", logging.DEBUG],
         ],
     )
-    def test_verbosity(
+    async def test_verbosity(
         self,
         setup: Any,
         monkeypatch: pytest.MonkeyPatch,
-        main: str,
         args: List[str],
         verbosity_arg: str,
         level: int,
@@ -73,7 +74,6 @@ class TestMainExecutable(CmdLineTest):
         Args:
             setup: a local pytest fixture.
             monkeypatch: the built-in pytest fixture.
-            main: the name of the `main` executable of the module to run.
             args: the list of values with which to monkeypatch `sys.argv`.
             verbosity_arg: the value of the verbosity argument.
             level: the level of the verbosity argument.
@@ -82,52 +82,52 @@ class TestMainExecutable(CmdLineTest):
         args = ["cobib"] + args
         if verbosity_arg:
             args.insert(1, verbosity_arg)
-        self.run_module(monkeypatch, main, args)
+        await self.run_module(monkeypatch, "main", args)
         assert logging.getLogger().getEffectiveLevel() == logging.DEBUG
         assert logging.getLogger().handlers[-1].level == level
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        ["main", "args"],
+        "args",
         [
-            ["main", ["open", "einstein"]],
-            ["helper_main", ["_example_config"]],
+            ["open", "einstein"],
+            ["_example_config"],
         ],
     )
-    def test_logfile(
-        self, setup: Any, monkeypatch: pytest.MonkeyPatch, main: str, args: List[str]
+    async def test_logfile(
+        self, setup: Any, monkeypatch: pytest.MonkeyPatch, args: List[str]
     ) -> None:
         """Tests the logfile parser argument.
 
         Args:
             setup: a local pytest fixture.
             monkeypatch: the built-in pytest fixture.
-            main: the name of the `main` executable of the module to run.
             args: the list of values with which to monkeypatch `sys.argv`.
         """
         logfile = str(Path(tempfile.gettempdir()) / "cobib_test_logging.log")
         # we choose the open command as an arbitrary choice which has minimal side effects
-        self.run_module(monkeypatch, main, ["cobib", "-l", logfile] + args)
+        await self.run_module(monkeypatch, "main", ["cobib", "-l", logfile] + args)
         try:
             assert isinstance(logging.getLogger().handlers[-1], logging.FileHandler)
             assert logging.getLogger().handlers[-1].baseFilename == logfile  # type: ignore
         finally:
             os.remove(logfile)
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        ["main", "args"],
+        "args",
         [
-            ["main", ["open", "einstein"]],
-            ["helper_main", ["_example_config"]],
+            ["open", "einstein"],
+            ["_example_config"],
         ],
     )
-    def test_configfile(self, monkeypatch: pytest.MonkeyPatch, main: str, args: List[str]) -> None:
+    async def test_configfile(self, monkeypatch: pytest.MonkeyPatch, args: List[str]) -> None:
         """Tests the configfile parser argument.
 
         Args:
             monkeypatch: the built-in pytest fixture.
-            main: the name of the `main` executable of the module to run.
             args: the list of values with which to monkeypatch `sys.argv`.
         """
         # we choose the open command as an arbitrary choice which has minimal side effects
-        self.run_module(monkeypatch, main, ["cobib", "-c", get_resource("debug.py")] + args)
+        await self.run_module(monkeypatch, "main", ["cobib", "-c", get_resource("debug.py")] + args)
         assert config.database.file == get_resource("example_literature.yaml")

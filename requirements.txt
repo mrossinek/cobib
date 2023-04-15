@@ -3,4 +3,6 @@ bibtexparser
 pylatexenc
 requests
 requests_oauthlib
+rich
 ruamel.yaml
+textual>=0.14

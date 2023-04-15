@@ -38,7 +38,7 @@ cobib export --abbreviate --bibtex my_database.bib
 cobib export --abbreviate --dotless --bibtex my_database.bib
 ```
 
-You can also trigger this command from the `cobib.tui.tui.TUI`.
+You can also trigger this command from the `cobib.ui.tui.TUI`.
 By default, it is bound to the `x` key which will drop you into the prompt where you can type out a
 normal command-line command:
 ```
@@ -50,13 +50,11 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
-import sys
-from typing import IO, TYPE_CHECKING, Any, List
+from typing import List
 from zipfile import ZipFile
 
 from cobib.config import Event
-from cobib.database import Database
+from cobib.database import Database, Entry
 from cobib.parsers.bibtex import BibtexParser
 from cobib.utils.journal_abbreviations import JournalAbbreviations
 from cobib.utils.rel_path import RelPath
@@ -66,40 +64,21 @@ from .list import ListCommand
 
 LOGGER = logging.getLogger(__name__)
 
-if TYPE_CHECKING:
-    import cobib.tui
-
 
 class ExportCommand(Command):
     """The Export Command."""
 
     name = "export"
 
-    def execute(self, args: List[str], out: IO[Any] = sys.stdout) -> None:
-        """Exports the database.
+    def __init__(self, args: List[str]) -> None:
+        """TODO."""
+        super().__init__(args)
 
-        This command exports the database (or a selected subset of entries).
-        You can choose the exported formats from the following list:
-        * BibLaTex (via the `--bibtex` argument)
-        * Zip archive (via the `--zip` argument)
+        self.exported_entries: List[Entry] = []
 
-        Args:
-            args: a sequence of additional arguments used for the execution. The following values
-                are allowed for this command:
-                    * `-b`, `--bibtex`: specifies a BibLaTex filename into which to export.
-                    * `-z`, `--zip`: specifies a Zip-filename into which to export associated files.
-                    * `-a`, `--abbreviate`: abbreviate the Journal names before exporting. See also
-                      `config.utils.journal_abbreviations`.
-                    * `--dotless`: remove punctuation from the Journal abbreviations.
-                    * `-s`, `--selection`: when specified, the positional arguments will *not* be
-                      interpreted as filters but rather as a direct list of entry labels. This can
-                      be used on the command-line but is mainly meant for the TUIs visual selection
-                      interface (hence the name).
-                    * in addition to the above, you can add `filters` to specify a subset of your
-                      database for exporting. For more information refer to `cobib.commands.list`.
-            out: the output IO stream. This defaults to `sys.stdout`.
-        """
-        LOGGER.debug("Starting Export command.")
+    @classmethod
+    def init_argparser(cls) -> None:
+        """TODO."""
         parser = ArgumentParser(prog="export", description="Export subcommand parser.")
         parser.add_argument(
             "-b", "--bibtex", type=argparse.FileType("a"), help="BibLaTeX output file"
@@ -126,76 +105,85 @@ class ExportCommand(Command):
         parser.add_argument(
             "--dotless", action="store_true", help="Remove punctuation from journal abbreviations"
         )
+        cls.argparser = parser
 
-        if not args:
-            parser.print_usage(sys.stderr)
-            sys.exit(1)
+    def execute(self) -> None:
+        """Exports the database.
 
-        try:
-            largs = parser.parse_intermixed_args(args)
-        except argparse.ArgumentError as exc:
-            LOGGER.error(exc.message)
-            return
+        This command exports the database (or a selected subset of entries).
+        You can choose the exported formats from the following list:
+        * BibLaTex (via the `--bibtex` argument)
+        * Zip archive (via the `--zip` argument)
 
-        Event.PreExportCommand.fire(largs)
+        Args:
+            args: a sequence of additional arguments used for the execution. The following values
+                are allowed for this command:
+                    * `-b`, `--bibtex`: specifies a BibLaTex filename into which to export.
+                    * `-z`, `--zip`: specifies a Zip-filename into which to export associated files.
+                    * `-a`, `--abbreviate`: abbreviate the Journal names before exporting. See also
+                      `config.utils.journal_abbreviations`.
+                    * `--dotless`: remove punctuation from the Journal abbreviations.
+                    * `-s`, `--selection`: when specified, the positional arguments will *not* be
+                      interpreted as filters but rather as a direct list of entry labels. This can
+                      be used on the command-line but is mainly meant for the TUIs visual selection
+                      interface (hence the name).
+                    * in addition to the above, you can add `filters` to specify a subset of your
+                      database for exporting. For more information refer to `cobib.commands.list`.
+            out: the output IO stream. This defaults to `sys.stdout`.
+        """
+        LOGGER.debug("Starting Export command.")
 
-        if largs.bibtex is None and largs.zip is None:
+        Event.PreExportCommand.fire(self)
+
+        if self.largs.bibtex is None and self.largs.zip is None:
             msg = "No output file specified!"
             LOGGER.error(msg)
             return
-        if largs.zip is not None:
-            largs.zip = ZipFile(largs.zip.name, "w")  # pylint: disable=consider-using-with
+        if self.largs.zip is not None:
+            self.largs.zip = ZipFile(  # pylint: disable=consider-using-with
+                self.largs.zip.name, "w"
+            )
 
-        if largs.selection:
+        if self.largs.selection:
             LOGGER.info("Selection given. Interpreting `filter` as a list of labels")
-            labels = largs.filter
+            labels = self.largs.filter
+            bib = Database()
+            for label in labels:
+                try:
+                    self.exported_entries.append(bib[label])
+                except KeyError:
+                    msg = f"No entry with the label '{label}' could be found."
+                    LOGGER.warning(msg)
         else:
             LOGGER.debug("Gathering filtered list of entries to be exported.")
-            with open(os.devnull, "w", encoding="utf-8") as devnull:
-                labels = ListCommand().execute(largs.filter, out=devnull)
+            self.exported_entries, _ = ListCommand(self.largs.filter).filter_entries()
 
         bibtex_parser = BibtexParser()
 
-        bib = Database()
-
-        for label in labels:
-            try:
-                LOGGER.info('Exporting entry "%s".', label)
-                entry = bib[label]
-                if largs.bibtex is not None:
-                    if largs.abbreviate and "journal" in entry.data.keys():
-                        entry.data["journal"] = JournalAbbreviations.abbreviate(
-                            entry.data["journal"], dotless=largs.dotless
+        for entry in self.exported_entries:
+            LOGGER.info('Exporting entry "%s".', entry.label)
+            if self.largs.bibtex is not None:
+                if self.largs.abbreviate and "journal" in entry.data.keys():
+                    entry.data["journal"] = JournalAbbreviations.abbreviate(
+                        entry.data["journal"], dotless=self.largs.dotless
+                    )
+                entry_str = bibtex_parser.dump(entry)
+                self.largs.bibtex.write(entry_str)
+            if self.largs.zip is not None:
+                if "file" in entry.data.keys() and entry.file is not None:
+                    files = entry.file
+                    if not isinstance(files, list):
+                        files = [files]
+                    for file in files:
+                        path = RelPath(file).path
+                        LOGGER.debug(
+                            'Adding "%s" associated with "%s" to the zip file.', path, entry.label
                         )
-                    entry_str = bibtex_parser.dump(entry)
-                    largs.bibtex.write(entry_str)
-                if largs.zip is not None:
-                    if "file" in entry.data.keys() and entry.file is not None:
-                        files = entry.file
-                        if not isinstance(files, list):
-                            files = [files]
-                        for file in files:
-                            path = RelPath(file).path
-                            LOGGER.debug(
-                                'Adding "%s" associated with "%s" to the zip file.', path, label
-                            )
-                            largs.zip.write(path, path.name)
-            except KeyError:
-                msg = f"No entry with the label '{label}' could be found."
-                LOGGER.warning(msg)
+                        self.largs.zip.write(path, path.name)
 
-        Event.PostExportCommand.fire(labels, largs)
+        Event.PostExportCommand.fire(self)
 
-        if largs.zip is not None:
-            largs.zip.close()
-
-    @staticmethod
-    def tui(tui: cobib.tui.TUI) -> None:
-        # pdoc will inherit the docstring from the base class
-        # noqa: D102
-        LOGGER.debug("Export command triggered from TUI.")
-        # handle input via prompt
-        if tui.selection:
-            tui.execute_command("export -s", pass_selection=True)
-        else:
-            tui.execute_command("export")
+        if self.largs.bibtex is not None:
+            self.largs.bibtex.close()
+        if self.largs.zip is not None:
+            self.largs.zip.close()

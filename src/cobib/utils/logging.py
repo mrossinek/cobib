@@ -7,9 +7,13 @@ import logging
 import logging.handlers
 import sys
 from pathlib import Path
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 from pkg_resources import get_distribution
+from rich.console import ConsoleRenderable, Group
+from rich.markdown import Markdown
+from rich.panel import Panel
+from rich.text import Text
 
 from .rel_path import RelPath
 
@@ -79,8 +83,8 @@ def get_file_handler(
     return handler
 
 
-def print_changelog(version: str, cached_version_path: Optional[str]) -> None:
-    """Prints the latest section of the CHANGELOG to stdout.
+def print_changelog(version: str, cached_version_path: Optional[str]) -> Optional[Panel]:
+    """Generates a `rich.Panel` to display the changelog since the last displayed version.
 
     This function prints the contents of the CHANGELOG (extracted from the PKG-INFO metadata)
     between the current version (`version`) and the latest cached version (extracted from the
@@ -90,9 +94,12 @@ def print_changelog(version: str, cached_version_path: Optional[str]) -> None:
         version: the currently running version of coBib.
         cached_version_path: the path to the file which caches the previously executed version of
             coBib. If `None`, this method exits early (thereby silencing this feature).
+
+    Returns:
+        An optional `rich.Panel` with the rendered Markdown.
     """
     if cached_version_path is None:
-        return
+        return None
 
     _cached_version_path = RelPath(cached_version_path).path
     if not _cached_version_path.parent.exists():
@@ -111,12 +118,18 @@ def print_changelog(version: str, cached_version_path: Optional[str]) -> None:
         pass
 
     if current_version == cached_version:
-        return
+        return None
 
     with open(_cached_version_path, "w", encoding="utf-8") as version_file:
         version_file.write(current_version)
 
-    lines = ["\x1b[1mHi there! It looks like you have updated coBib; here is what's new:\x1b[22m\n"]
+    groups: List[ConsoleRenderable] = []
+    groups.append(
+        Text(
+            "Hi there! It looks like you have updated coBib; here is what's new:",
+            style="bold yellow",
+        )
+    )
 
     metadata = ""
     try:
@@ -125,35 +138,28 @@ def print_changelog(version: str, cached_version_path: Optional[str]) -> None:
         try:
             metadata = get_distribution("cobib").get_metadata("PKG-INFO")
         except FileNotFoundError:
-            lines += [
-                "I wanted to show you the new changes here but was unable to query ",
-                "them from your installation. You can look them up yourself, here: ",
-                "https://gitlab.com/mrossinek/cobib/-/blob/master/CHANGELOG.md",
-            ]
+            groups.append(
+                Text(
+                    "I wanted to show you the new changes here but was unable to query them from "
+                    + "your installation. You can look them up yourself, here:\n"
+                    + "https://gitlab.com/mrossinek/cobib/-/blob/master/CHANGELOG.md",
+                    style="bold red",
+                )
+            )
+            return Panel(Group(*groups), width=80)
 
-    num_printed_lines = -1
+    lines: List[str] = []
+    started = False
     for line in metadata.splitlines():
         line = line.strip()
         if line.startswith(f"## [{current_version}]"):
-            num_printed_lines = 0
+            started = True
         elif line.startswith(f"## [{cached_version}]"):
-            num_printed_lines = -1
-        elif num_printed_lines >= 20:
-            num_printed_lines = -1
-            lines.extend(
-                [
-                    "\n...\n\x1b[31m",
-                    "This output is shortened for the sake of brevity! For more information visit:",
-                    "https://gitlab.com/mrossinek/cobib/-/blob/master/CHANGELOG.md",
-                ]
-            )
+            break
 
-        if num_printed_lines >= 0:
+        if started:
             lines.append(line)
-            num_printed_lines += 1
 
-    print("\x1b[33m", end="")
-    print("\n".join(lines).strip())
-    print("\x1b[0m", end="", flush=True)
+    groups.append(Markdown("\n".join(lines)))
 
-    input("\nPress Enter to continue...")
+    return Panel(Group(*groups))

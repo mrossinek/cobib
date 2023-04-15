@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import logging
 import re
-import sys
 import tempfile
 from pathlib import Path
-from typing import Callable, Dict, Optional
+from typing import Dict, Optional
 
 import requests
+from rich.progress import DownloadColumn, Progress, SpinnerColumn, TimeElapsedColumn
 
 from cobib.config import Event, config
 
@@ -28,9 +28,6 @@ class FileDownloader:
     _instance: Optional[FileDownloader] = None
     """The singleton instance of this class."""
 
-    _logger: Callable[[str], None] = lambda text: print(text, end="", flush=True, file=sys.stdout)
-    """The logging method used to display the downloading progress bar."""
-
     def __new__(cls) -> FileDownloader:
         """Singleton constructor.
 
@@ -41,46 +38,7 @@ class FileDownloader:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    @staticmethod
-    def set_logger(log_method: Callable[[str], None]) -> None:
-        """Sets the class-wide logging method (see also `FileDownloader._logger`).
-
-        This method is used to display the progress bar of the file downloading.
-
-        Args:
-            log_method: the logging method.
-        """
-        FileDownloader._logger = log_method
-
-    # bytes pretty-printing
-    _UNITS_MAPPING = [
-        (1 << 50, " PB"),
-        (1 << 40, " TB"),
-        (1 << 30, " GB"),
-        (1 << 20, " MB"),
-        (1 << 10, " KB"),
-        (1, " B"),
-    ]
-    """Maps byte sizes to units."""
-
-    @staticmethod
-    def _size(bytes_: int) -> str:
-        """Human-readable file size.
-
-        Args:
-            bytes_: the size in bytes.
-
-        Returns:
-            The size formatted for easy human readability.
-
-        Reference:
-            https://stackoverflow.com/a/12912296
-        """
-        for factor, suffix in FileDownloader._UNITS_MAPPING:
-            if bytes_ >= factor:
-                break
-        amount = int(bytes_ / factor)
-        return str(amount) + suffix
+    # TODO: re-integrate internal logger as a rich.console (?)
 
     _PDF_MARKER = bytes("%PDF", "utf-8")
     """A marker which the downloaded file's beginning is checked against, to determine that it is
@@ -114,8 +72,8 @@ class FileDownloader:
         except FileNotFoundError:
             pass
 
+    @staticmethod
     def download(
-        self,
         url: str,
         label: str,
         folder: Optional[str] = None,
@@ -154,65 +112,48 @@ class FileDownloader:
                     "A file at '%s' already exists! Using that rather than downloading.", path
                 )
                 return path
-            # we make a copy of the existing file in case downloading a new one fails
-            backup = tempfile.NamedTemporaryFile()  # pylint: disable=consider-using-with
-            backup.write(path.path.read_bytes())
-            backup.seek(0)
+            backup = FileDownloader._backup_file(path)
 
-        for pattern_url, repl_url in config.utils.file_downloader.url_map.items():
-            if re.match(pattern_url, url):
-                new_url = re.sub(pattern_url, repl_url, url)
-                LOGGER.info(
-                    "Matched the file's URL to your pattern URL %s and replaced it to become %s",
-                    pattern_url,
-                    new_url,
-                )
-                url = new_url
-                break
+        url = FileDownloader._map_url(url)
 
         with open(path.path, "wb") as file:
             LOGGER.info("Downloading %s to %s", url, path)
+
             try:
                 response = requests.get(url, timeout=10, stream=True, headers=headers)
-                total_length = int(response.headers.get("content-length", -1))
+                total_length = response.headers.get("content-length", None)
+                total_length = int(total_length) if total_length is not None else None
             except requests.exceptions.RequestException as err:
                 msg = f"An Exception occurred while downloading the file located at {url}"
                 LOGGER.warning(msg)
                 LOGGER.error(err)
-                FileDownloader._unlink(path)
-                if backup is not None:
-                    path.path.write_bytes(backup.read())
-                    backup.close()
+                FileDownloader._recover(path, backup)
                 return None
-            if total_length < 0:
-                if not FileDownloader._assert_pdf(response.content):
-                    FileDownloader._unlink(path)
-                    if backup is not None:
-                        path.path.write_bytes(backup.read())
-                        backup.close()
-                    return None
-                file.write(response.content)
-            else:
+
+            with Progress(
+                SpinnerColumn(),
+                *Progress.get_default_columns(),
+                TimeElapsedColumn(),
+                DownloadColumn(),
+                transient=False,
+            ) as progress:
+                task = progress.add_task("Downloading...", total=total_length)
                 accumulated_length = 0
-                total_size = self._size(total_length)
-                for data in response.iter_content(chunk_size=4096):
-                    if accumulated_length == 0 and not FileDownloader._assert_pdf(data):
-                        FileDownloader._unlink(path)
-                        if backup is not None:
-                            path.path.write_bytes(backup.read())
-                            backup.close()
+
+                if total_length is None:
+                    if not FileDownloader._assert_pdf(response.content):
+                        FileDownloader._recover(path, backup)
                         return None
-                    accumulated_length += len(data)
-                    file.write(data)
-                    percentage = accumulated_length / total_length
-                    progress = int(40 * percentage)
-                    FileDownloader._logger(
-                        "\rDownloading:"
-                        f" [{'=' * progress}{' ' * (40 - progress)}] "
-                        f"{100*percentage:6.1f}%"
-                        f"{self._size(accumulated_length): >7} / {total_size: <7}",
-                    )
-                FileDownloader._logger("\n")
+                    file.write(response.content)
+                else:
+                    for data in response.iter_content(chunk_size=4096):
+                        if accumulated_length == 0 and not FileDownloader._assert_pdf(data):
+                            FileDownloader._recover(path, backup)
+                            return None
+                        accumulated_length += len(data)
+                        progress.update(task, advance=len(data))
+                        file.write(data)
+
             msg = f"Successfully downloaded {path}"
             print(msg)
             LOGGER.info(msg)
@@ -220,3 +161,37 @@ class FileDownloader:
             path = Event.PostFileDownload.fire(path) or path
 
             return path
+
+    @staticmethod
+    # pylint: disable=unsubscriptable-object
+    def _backup_file(path: RelPath) -> tempfile._TemporaryFileWrapper[bytes]:
+        """TODO."""
+        # we make a copy of the existing file in case downloading a new one fails
+        backup = tempfile.NamedTemporaryFile(delete=False)  # pylint: disable=consider-using-with
+        backup.write(path.path.read_bytes())
+        backup.seek(0)
+        return backup
+
+    @staticmethod
+    def _map_url(url: str) -> str:
+        """TODO."""
+        for pattern_url, repl_url in config.utils.file_downloader.url_map.items():
+            if re.match(pattern_url, url):
+                new_url: str = re.sub(pattern_url, repl_url, url)
+                LOGGER.info(
+                    "Matched the file's URL to your pattern URL %s and replaced it to become %s",
+                    pattern_url,
+                    new_url,
+                )
+                return new_url
+        return url
+
+    @staticmethod
+    # pylint: disable=unsubscriptable-object
+    def _recover(path: RelPath, backup: Optional[tempfile._TemporaryFileWrapper[bytes]]) -> None:
+        """TODO."""
+        FileDownloader._unlink(path)
+        if backup is not None:
+            path.path.write_bytes(backup.read())
+            backup.close()
+            Path(backup.name).unlink()

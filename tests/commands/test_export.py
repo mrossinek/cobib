@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import os
 import tempfile
-from argparse import Namespace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, List, Type
 from zipfile import ZipFile
@@ -17,7 +16,6 @@ from cobib.config import Event, config
 from cobib.database import Database
 
 from .. import get_resource
-from ..tui.tui_test import TUITest
 from .command_test import CommandTest
 
 TMPDIR = Path(tempfile.gettempdir())
@@ -26,7 +24,7 @@ if TYPE_CHECKING:
     import cobib.commands
 
 
-class TestExportCommand(CommandTest, TUITest):
+class TestExportCommand(CommandTest):
     """Tests for coBib's ExportCommand."""
 
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
@@ -113,7 +111,7 @@ class TestExportCommand(CommandTest, TUITest):
             # add a dummy file to the `einstein` entry
             entry = Database()["einstein"]
             entry.file = get_resource("debug.py")
-        ExportCommand().execute(args)
+        ExportCommand(args).execute()
         self._assert(args)
 
     @pytest.mark.parametrize("dotless", [False, True])
@@ -128,7 +126,7 @@ class TestExportCommand(CommandTest, TUITest):
         args = ["-a", "-b", str(TMPDIR / "cobib_test_export.bib"), "-s", "--", "einstein"]
         if dotless:
             args.insert(1, "--dotless")
-        ExportCommand().execute(args)
+        ExportCommand(args).execute()
         self._assert_journal_abbreviation(dotless)
 
     def _assert_journal_abbreviation(self, dotless: bool) -> None:
@@ -156,7 +154,7 @@ class TestExportCommand(CommandTest, TUITest):
             caplog: the built-in pytest fixture.
         """
         args = ["-b", str(TMPDIR / "cobib_test_export.bib"), "-s", "--", "dummy"]
-        ExportCommand().execute(args)
+        ExportCommand(args).execute()
         assert (
             "cobib.commands.export",
             30,
@@ -171,9 +169,10 @@ class TestExportCommand(CommandTest, TUITest):
             caplog: the built-in pytest fixture.
         """
         args = ["-s", "--", "einstein"]
-        ExportCommand().execute(args)
+        ExportCommand(args).execute()
         assert ("cobib.commands.export", 40, "No output file specified!") in caplog.record_tuples
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         ["args"],
         [
@@ -181,7 +180,9 @@ class TestExportCommand(CommandTest, TUITest):
         ],
     )
     # other variants are already covered by test_command
-    def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch, args: List[str]) -> None:
+    async def test_cmdline(
+        self, setup: Any, monkeypatch: pytest.MonkeyPatch, args: List[str]
+    ) -> None:
         """Test the command-line access of the command.
 
         Args:
@@ -189,71 +190,21 @@ class TestExportCommand(CommandTest, TUITest):
             monkeypatch: the built-in pytest fixture.
             args: additional arguments to pass to the command.
         """
-        self.run_module(monkeypatch, "main", ["cobib", "export"] + args)
+        await self.run_module(monkeypatch, "main", ["cobib", "export"] + args)
         self._assert(args)
-
-    @pytest.mark.parametrize(
-        ["select", "keys"],
-        [
-            [False, "x-b" + str(TMPDIR / "cobib_test_export.bib") + " -- ++label einstein\n"],
-            [True, "Gvx-b" + str(TMPDIR / "cobib_test_export.bib") + "\n"],
-        ],
-    )
-    def test_tui(self, setup: Any, select: bool, keys: str) -> None:
-        """Test the TUI access of the command.
-
-        Args:
-            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
-            select: whether to use the TUI selection.
-            keys: the string of keys to pass to the TUI.
-        """
-
-        def assertion(screen, logs, **kwargs):  # type: ignore
-            dummy_args = ["-b"]
-            if kwargs.get("selection", False):
-                dummy_args += ["-s"]
-            self._assert(dummy_args)
-
-            expected_log = [
-                ("cobib.commands.export", 10, "Export command triggered from TUI."),
-                ("cobib.commands.export", 10, "Starting Export command."),
-                ("cobib.commands.export", 20, 'Exporting entry "einstein".'),
-            ]
-            if kwargs.get("selection", False):
-                expected_log.insert(
-                    2,
-                    (
-                        "cobib.commands.export",
-                        20,
-                        "Selection given. Interpreting `filter` as a list of labels",
-                    ),
-                )
-            else:
-                expected_log.insert(
-                    2,
-                    (
-                        "cobib.commands.export",
-                        10,
-                        "Gathering filtered list of entries to be exported.",
-                    ),
-                )
-
-            assert [log for log in logs if log[0] == "cobib.commands.export"] == expected_log
-
-        self.run_tui(keys, assertion, {"selection": select})
 
     def test_event_pre_export_command(self, setup: Any) -> None:
         """Tests the PreExportCommand event."""
         args = ["-b", str(TMPDIR / "cobib_test_export.bib")]
 
         @Event.PreExportCommand.subscribe
-        def hook(largs: Namespace) -> None:
-            largs.selection = True
-            largs.filter = ["einstein"]
+        def hook(command: ExportCommand) -> None:
+            command.largs.selection = True
+            command.largs.filter = ["einstein"]
 
         assert Event.PreExportCommand.validate()
 
-        ExportCommand().execute(args)
+        ExportCommand(args).execute()
 
         self._assert_bib(["-s"] + args + ["--", "einstein"])
 
@@ -262,11 +213,11 @@ class TestExportCommand(CommandTest, TUITest):
         args = ["-b", str(TMPDIR / "cobib_test_export.bib")]
 
         @Event.PostExportCommand.subscribe
-        def hook(labels: List[str], largs: Namespace) -> None:
+        def hook(command: ExportCommand) -> None:
             os.remove(str(TMPDIR / "cobib_test_export.bib"))
 
         assert Event.PostExportCommand.validate()
 
-        ExportCommand().execute(args)
+        ExportCommand(args).execute()
 
         assert not os.path.exists(str(TMPDIR / "cobib_test_export.bib"))

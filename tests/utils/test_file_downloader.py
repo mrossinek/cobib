@@ -41,15 +41,6 @@ def test_downloader_singleton() -> None:
     assert f_d is f_d2
 
 
-def test_set_logger() -> None:
-    """Test the FileDownloader.set_logger method."""
-    f_d = FileDownloader()
-    logger = lambda text: f"test: {text}"  # pylint: disable=unnecessary-lambda-assignment
-    f_d.set_logger(logger)  # type: ignore
-    # pylint: disable=protected-access
-    assert FileDownloader._logger("") == "test: "  # type: ignore
-
-
 def test_download(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test the FileDownloader.download method.
 

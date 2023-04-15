@@ -82,7 +82,7 @@ You can disable this disambiguation by passing `--skip-existing` to the add comm
 
 ### TUI
 
-You can also trigger this command from the `cobib.tui.tui.TUI`.
+You can also trigger this command from the `cobib.ui.tui.TUI`.
 By default, it is bound to the `a` key which will drop you into the prompt where you can type out a
 normal command-line command:
 ```
@@ -97,7 +97,7 @@ import inspect
 import logging
 import sys
 from collections import OrderedDict
-from typing import IO, TYPE_CHECKING, Any, Dict, List
+from typing import Dict, List
 
 from cobib import parsers
 from cobib.config import Event, config
@@ -111,17 +111,76 @@ from .modify import evaluate_as_f_string
 
 LOGGER = logging.getLogger(__name__)
 
-if TYPE_CHECKING:
-    import cobib.tui
-
 
 class AddCommand(Command):
     """The Add Command."""
 
     name = "add"
 
-    # pylint: disable=too-many-branches,too-many-statements
-    def execute(self, args: List[str], out: IO[Any] = sys.stdout) -> None:
+    file_action = "extend" if sys.version_info[1] >= 8 else "append"
+
+    avail_parsers = {
+        cls.name: cls for _, cls in inspect.getmembers(parsers) if inspect.isclass(cls)
+    }
+
+    def __init__(self, args: List[str]) -> None:
+        """TODO."""
+        super().__init__(args)
+
+        self.new_entries: Dict[str, Entry] = OrderedDict()
+
+    @classmethod
+    def init_argparser(cls) -> None:
+        """TODO."""
+        parser = ArgumentParser(prog="add", description="Add subcommand parser.")
+        parser.add_argument("-l", "--label", type=str, help="the label for the new database entry")
+        parser.add_argument(
+            "-u",
+            "--update",
+            action="store_true",
+            help="update an entry if the label exists already",
+        )
+        parser.add_argument(
+            "-f",
+            "--file",
+            type=str,
+            nargs="+",
+            action=cls.file_action,
+            help="files associated with this entry",
+        )
+        parser.add_argument("-p", "--path", type=str, help="the path for the associated file")
+        parser.add_argument(
+            "--skip-download",
+            action="store_true",
+            help="skip the automatic download of an associated file",
+        )
+        parser.add_argument(
+            "--skip-existing",
+            action="store_true",
+            help="skips entry addition if existent instead of using label disambiguation",
+        )
+        group_add = parser.add_mutually_exclusive_group()
+        for name in cls.avail_parsers.keys():
+            try:
+                group_add.add_argument(
+                    f"-{name[0]}", f"--{name}", type=str, help=f"{name} object identfier"
+                )
+            except argparse.ArgumentError:
+                try:
+                    group_add.add_argument(f"--{name}", type=str, help=f"{name} object identfier")
+                except argparse.ArgumentError:
+                    continue
+        parser.add_argument(
+            "tags",
+            nargs=argparse.REMAINDER,
+            help="A list of space-separated tags to associate with this entry."
+            "\nYou can use quotes to specify tags with spaces in them.",
+        )
+
+        cls.argparser = parser
+
+    # pylint: disable=too-many-branches
+    def execute(self) -> None:
         """Adds a new entry.
 
         Depending on the `args`, if a keyword for one of the available `cobib.parsers` was used
@@ -151,82 +210,25 @@ class AddCommand(Command):
             out: the output IO stream. This defaults to `sys.stdout`.
         """
         LOGGER.debug("Starting Add command.")
-        parser = ArgumentParser(prog="add", description="Add subcommand parser.")
-        parser.add_argument("-l", "--label", type=str, help="the label for the new database entry")
-        parser.add_argument(
-            "-u",
-            "--update",
-            action="store_true",
-            help="update an entry if the label exists already",
-        )
-        file_action = "extend" if sys.version_info[1] >= 8 else "append"
-        parser.add_argument(
-            "-f",
-            "--file",
-            type=str,
-            nargs="+",
-            action=file_action,
-            help="files associated with this entry",
-        )
-        parser.add_argument("-p", "--path", type=str, help="the path for the associated file")
-        parser.add_argument(
-            "--skip-download",
-            action="store_true",
-            help="skip the automatic download of an associated file",
-        )
-        parser.add_argument(
-            "--skip-existing",
-            action="store_true",
-            help="skips entry addition if existent instead of using label disambiguation",
-        )
-        group_add = parser.add_mutually_exclusive_group()
-        avail_parsers = {
-            cls.name: cls for _, cls in inspect.getmembers(parsers) if inspect.isclass(cls)
-        }
-        for name in avail_parsers.keys():
-            try:
-                group_add.add_argument(
-                    f"-{name[0]}", f"--{name}", type=str, help=f"{name} object identfier"
-                )
-            except argparse.ArgumentError:
-                try:
-                    group_add.add_argument(f"--{name}", type=str, help=f"{name} object identfier")
-                except argparse.ArgumentError:
-                    continue
-        parser.add_argument(
-            "tags",
-            nargs=argparse.REMAINDER,
-            help="A list of space-separated tags to associate with this entry."
-            "\nYou can use quotes to specify tags with spaces in them.",
-        )
-        if not args:
-            parser.print_usage(sys.stderr)
-            sys.exit(1)
 
-        try:
-            largs = parser.parse_args(args)
-        except argparse.ArgumentError as exc:
-            LOGGER.error(exc.message)
-            return
-
-        Event.PreAddCommand.fire(largs)
-
-        new_entries: Dict[str, Entry] = OrderedDict()
+        Event.PreAddCommand.fire(self)
 
         edit_entries = False
-        for name, cls in avail_parsers.items():
-            string = getattr(largs, name, None)
+        for name, cls in AddCommand.avail_parsers.items():
+            string = getattr(self.largs, name, None)
             if string is None:
                 continue
             LOGGER.debug("Adding entries from %s: '%s'.", name, string)
-            new_entries = cls().parse(string)
+            self.new_entries = cls().parse(string)
             break
         else:
-            if largs.label is not None:
-                LOGGER.warning("No input to parse. Creating new entry '%s' manually.", largs.label)
-                new_entries = {
-                    largs.label: Entry(
-                        largs.label,
+            if self.largs.label is not None:
+                LOGGER.warning(
+                    "No input to parse. Creating new entry '%s' manually.", self.largs.label
+                )
+                self.new_entries = {
+                    self.largs.label: Entry(
+                        self.largs.label,
                         {"ENTRYTYPE": config.commands.edit.default_entry_type},
                     )
                 }
@@ -236,50 +238,52 @@ class AddCommand(Command):
                 LOGGER.error(msg)
                 return
 
-        if largs.label is not None:
-            assert len(new_entries.values()) == 1
-            for value in new_entries.values():
+        if self.largs.label is not None:
+            assert len(self.new_entries.values()) == 1
+            for value in self.new_entries.copy().values():
                 # logging done by cobib/database/entry.py
-                value.label = largs.label
-            new_entries = OrderedDict((largs.label, value) for value in new_entries.values())
+                value.label = self.largs.label
+            self.new_entries = OrderedDict(
+                (self.largs.label, value) for value in self.new_entries.values()
+            )
         else:
             formatted_entries = OrderedDict()
-            for label, value in new_entries.items():
+            for label, value in self.new_entries.items():
                 formatted_label = evaluate_as_f_string(
                     config.database.format.label_default, {"label": label, **value.data.copy()}
                 )
                 value.label = formatted_label
                 formatted_entries[formatted_label] = value
-            new_entries = formatted_entries
+            self.new_entries = formatted_entries
 
-        if largs.file is not None:
-            if file_action == "append":
+        if self.largs.file is not None:
+            if AddCommand.file_action == "append":
                 # We need to flatten the potentially nested list.
                 # pylint: disable=import-outside-toplevel
                 from itertools import chain
 
-                largs.file = list(chain.from_iterable(largs.file))
-            assert len(new_entries.values()) == 1
-            for value in new_entries.values():
+                self.largs.file = list(chain.from_iterable(self.largs.file))
+            assert len(self.new_entries.values()) == 1
+            for value in self.new_entries.values():
                 # logging done by cobib/database/entry.py
-                value.file = largs.file
+                value.file = self.largs.file
 
-        if largs.tags != []:
-            assert len(new_entries.values()) == 1
-            for value in new_entries.values():
+        if self.largs.tags != []:
+            assert len(self.new_entries.values()) == 1
+            for value in self.new_entries.values():
                 # logging done by cobib/database/entry.py
-                value.tags = largs.tags
+                value.tags = self.largs.tags
 
         bib = Database()
         existing_labels = set(bib.keys())
 
-        for lbl, entry in new_entries.copy().items():
+        for lbl, entry in self.new_entries.copy().items():
             # check if label already exists
             if lbl in existing_labels:
-                if not largs.update:
+                if not self.largs.update:
                     msg = f"You tried to add a new entry '{lbl}' which already exists!"
                     LOGGER.warning(msg)
-                    if edit_entries or largs.skip_existing:
+                    if edit_entries or self.largs.skip_existing:
                         msg = f"Please use `cobib edit {lbl}` instead!"
                         LOGGER.warning(msg)
                         continue
@@ -290,8 +294,8 @@ class AddCommand(Command):
                     LOGGER.warning(msg)
                     new_label = bib.disambiguate_label(lbl, entry)
                     entry.label = new_label
-                    new_entries[new_label] = entry
-                    new_entries.pop(lbl)
+                    self.new_entries[new_label] = entry
+                    self.new_entries.pop(lbl)
                 else:
                     # label exists but the user asked to update an existing entry
                     existing_data = bib[lbl].data.copy()
@@ -299,14 +303,14 @@ class AddCommand(Command):
                     entry.data = existing_data.copy()
             # download associated file (if requested)
             if "_download" in entry.data.keys():
-                if largs.skip_download:
+                if self.largs.skip_download:
                     entry.data.pop("_download")
                 else:
                     path = FileDownloader().download(
                         entry.data.pop("_download"),
                         entry.label,
-                        folder=largs.path,
-                        overwrite=largs.update,
+                        folder=self.largs.path,
+                        overwrite=self.largs.update,
                     )
                     if path is not None:
                         entry.data["file"] = str(path)
@@ -314,27 +318,16 @@ class AddCommand(Command):
             if "journal" in entry.data.keys():
                 entry.data["journal"] = JournalAbbreviations.elongate(entry.data["journal"])
 
-        Event.PostAddCommand.fire(new_entries)
+        Event.PostAddCommand.fire(self)
 
-        bib.update(new_entries)
+        bib.update(self.new_entries)
         if edit_entries:
-            EditCommand().execute([largs.label])
+            EditCommand([self.largs.label]).execute()
 
         bib.save()
 
-        self.git(args=vars(largs))
+        self.git()
 
-        for label in new_entries:
+        for label in self.new_entries:
             msg = f"'{label}' was added to the database."
             LOGGER.info(msg)
-
-    @staticmethod
-    def tui(tui: cobib.tui.TUI) -> None:
-        # pdoc will inherit the docstring from the base class
-        # noqa: D102
-        LOGGER.debug("Add command triggered from TUI.")
-        # handle input via prompt
-        tui.execute_command("add")
-        # update database list
-        LOGGER.debug("Updating list after Add command.")
-        tui.viewport.update_list()

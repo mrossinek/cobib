@@ -16,7 +16,6 @@ As such it follows some basic design goals:
   database file in a centralized fashion but allows you to spread the actual contents of your
   library across the entire file system (this is the major different to
   [papis](https://papis.readthedocs.io/en/latest/library_structure.html)).
-* **command-line and TUI support**: all features are available through the command-line as well as a curses-based TUI.
 
 
 ### **News:** coBib v4.0 will come with a new UI!
@@ -61,8 +60,7 @@ coBib is packaged in the AUR.
 ### Windows
 
 Windows is **only partially** supported!
-This is due to the fact that [Python under Windows does not ship with the `curses` module][1].
-Thus, you cannot run coBib's _TUI_ on Windows.
+You cannot run coBib's _TUI_ on Windows.
 However, if you are using Windows 10 you should be able to install and use coBib's full
 functionality within the Linux subsystem.
 
@@ -204,12 +202,7 @@ man cobib
 
 ### TUI
 
-Finally, you can also use coBib's TUI for a more interactive experience (see also `cobib.tui`), by
-simply typing
-
-```
-cobib
-```
+⚠️ The TUI is undergoing a major rewrite... Stay tuned!
 
 
 ## Configuration
@@ -264,7 +257,5 @@ You can find the detailed changes throughout coBib's history in [the Changelog](
 coBib is licensed under the [MIT License](https://gitlab.com/mrossinek/cobib/-/blob/master/LICENSE.txt).
 
 [^1]: References like this one get interpreted by the documentation generator. If you are reading this as the README page, you may find the [online documentation](https://mrossinek.gitlab.io/cobib/cobib.html) more enjoyable.
-
-[1]: https://docs.python.org/3/howto/curses.html#what-is-curses
 
 [//]: # ( vim: set ft=markdown: )

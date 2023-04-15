@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import contextlib
 import tempfile
-from argparse import Namespace
 from io import StringIO
 from typing import TYPE_CHECKING, Any, List, Type
 
@@ -16,14 +15,13 @@ from cobib.config import Event
 from cobib.database import Database
 from cobib.utils.rel_path import RelPath
 
-from ..tui.tui_test import TUITest
 from .command_test import CommandTest
 
 if TYPE_CHECKING:
     import cobib.commands
 
 
-class TestModifyCommand(CommandTest, TUITest):
+class TestModifyCommand(CommandTest):
     """Tests for coBib's ModifyCommand."""
 
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
@@ -77,14 +75,14 @@ class TestModifyCommand(CommandTest, TUITest):
 
         if add:
             # first insert something to add to
-            ModifyCommand().execute(["tags:dummy", "++label", "einstein"])
+            ModifyCommand(["tags:dummy", "++label", "einstein"]).execute()
             args = ["-a"] + args
             expected = ["dummy"] + expected
 
         if dry:
             args.insert(0, "--dry")
 
-        ModifyCommand().execute(args)
+        ModifyCommand(args).execute()
 
         if dry:
             if add:
@@ -100,12 +98,12 @@ class TestModifyCommand(CommandTest, TUITest):
                 self.assert_git_commit_message(
                     "modify",
                     {
+                        "modification": modification.split(":"),
                         "dry": False,
                         "add": add,
                         "selection": selection,
-                        "preserve_files": False,
-                        "modification": modification.split(":"),
                         "filter": filters,
+                        "preserve_files": False,
                     },
                 )
             except AssertionError:
@@ -133,7 +131,7 @@ class TestModifyCommand(CommandTest, TUITest):
 
         field, _ = modification.split(":")
 
-        ModifyCommand().execute(args)
+        ModifyCommand(args).execute()
 
         assert Database()["einstein"].data[field] == expected
 
@@ -161,7 +159,7 @@ class TestModifyCommand(CommandTest, TUITest):
 
         field, *_ = modification.split(":")
 
-        ModifyCommand().execute(args)
+        ModifyCommand(args).execute()
 
         if field != "label":
             assert Database()["einstein"].data[field] == expected
@@ -187,7 +185,7 @@ class TestModifyCommand(CommandTest, TUITest):
             args = ["label:dummy", "-s", "--", "knuthwebsite"]
             if preserve_files:
                 args.insert(2, "--preserve-files")
-            ModifyCommand().execute(args)
+            ModifyCommand(args).execute()
             assert "dummy" in Database().keys()
 
             target = RelPath(tmpdirname + "/dummy.pdf")
@@ -205,13 +203,14 @@ class TestModifyCommand(CommandTest, TUITest):
         """
         # Note: when using a filter, no non-existent label can occur
         args = ["-s", "tags:test", "--", "dummy"]
-        ModifyCommand().execute(args)
+        ModifyCommand(args).execute()
         assert (
             "cobib.commands.modify",
             30,
             "No entry with the label 'dummy' could be found.",
         ) in caplog.record_tuples
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         ["setup"],
         [
@@ -227,7 +226,9 @@ class TestModifyCommand(CommandTest, TUITest):
         ],
     )
     # other variants are already covered by test_command
-    def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch, args: List[str]) -> None:
+    async def test_cmdline(
+        self, setup: Any, monkeypatch: pytest.MonkeyPatch, args: List[str]
+    ) -> None:
         """Test the command-line access of the command.
 
         Args:
@@ -235,74 +236,19 @@ class TestModifyCommand(CommandTest, TUITest):
             monkeypatch: the built-in pytest fixture.
             args: additional arguments to pass to the command.
         """
-        self.run_module(monkeypatch, "main", ["cobib", "modify"] + args)
+        await self.run_module(monkeypatch, "main", ["cobib", "modify"] + args)
         assert Database()["einstein"].data["tags"] == ["test"]
-
-    @pytest.mark.parametrize(
-        ["select", "keys"],
-        [
-            [False, "mtags:test -- ++label knuthwebsite\n\n"],
-            [True, "vmtags:test\n\n"],
-        ],
-    )
-    def test_tui(self, setup: Any, select: bool, keys: str) -> None:
-        """Test the TUI access of the command.
-
-        Args:
-            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
-            select: whether to use the TUI selection.
-            keys: the string of keys to pass to the TUI.
-        """
-
-        def assertion(screen, logs, **kwargs):  # type: ignore
-            expected_screen = [
-                "@misc{knuthwebsite,",
-                "author = {Donald Knuth},",
-                "tags = {test},",
-                "title = {Knuth: Computers and Typesetting},",
-                r"url = {http://www-cs-faculty.stanford.edu/\~{}uno/abcde.html}",
-                "}",
-            ]
-            for line, truth in zip(expected_screen, screen.display[1:]):
-                assert line == truth.strip()
-
-            expected_log = [
-                ("cobib.commands.modify", 10, "Modify command triggered from TUI."),
-                ("cobib.commands.modify", 10, "Starting Modify command."),
-                ("cobib.commands.modify", 20, "'knuthwebsite' was modified."),
-            ]
-            if kwargs.get("selection", False):
-                expected_log.insert(
-                    2,
-                    (
-                        "cobib.commands.modify",
-                        20,
-                        "Selection given. Interpreting `filter` as a list of labels",
-                    ),
-                )
-            else:
-                expected_log.insert(
-                    2,
-                    (
-                        "cobib.commands.modify",
-                        10,
-                        "Gathering filtered list of entries to be modified.",
-                    ),
-                )
-            assert [log for log in logs if log[0] == "cobib.commands.modify"] == expected_log
-
-        self.run_tui(keys, assertion, {"selection": select})
 
     def test_event_pre_modify_command(self, setup: Any) -> None:
         """Tests the PreModifyCommand event."""
 
         @Event.PreModifyCommand.subscribe
-        def hook(largs: Namespace) -> None:
-            largs.modification = ("number", "2")
+        def hook(command: ModifyCommand) -> None:
+            command.largs.modification = ("number", "2")
 
         assert Event.PreModifyCommand.validate()
 
-        ModifyCommand().execute(["-a", "number:3", "++label", "einstein"])
+        ModifyCommand(["-a", "number:3", "++label", "einstein"]).execute()
 
         assert Database()["einstein"].data["number"] == 12
 
@@ -310,12 +256,11 @@ class TestModifyCommand(CommandTest, TUITest):
         """Tests the PostModifyCommand event."""
 
         @Event.PostModifyCommand.subscribe
-        def hook(labels: List[str], dry: bool) -> None:
-            print(labels)
+        def hook(command: ModifyCommand) -> None:
+            print([entry.label for entry in command.modified_entries])
 
         assert Event.PostModifyCommand.validate()
 
         with contextlib.redirect_stdout(StringIO()) as out:
-            ModifyCommand().execute(["-a", "number:3", "++label", "einstein"])
-
+            ModifyCommand(["-a", "number:3", "++label", "einstein"]).execute()
             assert out.getvalue() == "['einstein']\n"

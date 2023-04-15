@@ -26,7 +26,7 @@ documentation at `cobib.importers` for more details.
 
 ### TUI
 
-You can also trigger this command from the `cobib.tui.tui.TUI`.
+You can also trigger this command from the `cobib.ui.tui.TUI`.
 By default, it is bound to the `i` key which will drop you into the prompt where you can type out a
 normal command-line command:
 ```
@@ -39,9 +39,8 @@ from __future__ import annotations
 import argparse
 import inspect
 import logging
-import sys
 from collections import OrderedDict
-from typing import IO, TYPE_CHECKING, Any, Dict, List
+from typing import Dict, List
 
 from cobib import importers
 from cobib.config import Event
@@ -51,17 +50,46 @@ from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
 
-if TYPE_CHECKING:
-    import cobib.tui
-
 
 class ImportCommand(Command):
     """The ImportCommand."""
 
     name = "import"
 
-    # pylint: disable=too-many-branches,too-many-statements
-    def execute(self, args: List[str], out: IO[Any] = sys.stdout) -> None:
+    avail_parsers = {
+        cls.name: cls for _, cls in inspect.getmembers(importers) if inspect.isclass(cls)
+    }
+
+    def __init__(self, args: List[str]) -> None:
+        """TODO."""
+        super().__init__(args)
+
+        self.new_entries: Dict[str, Entry] = OrderedDict()
+
+    @classmethod
+    def init_argparser(cls) -> None:
+        """TODO."""
+        parser = ArgumentParser(prog="import", description="Import subcommand parser.")
+        parser.add_argument(
+            "--skip-download",
+            action="store_true",
+            help="skip the automatic download of encountered PDF attachments",
+        )
+        parser.add_argument(
+            "importer_arguments",
+            nargs="*",
+            help="You can pass additional arguments to the chosen importer. To ensure this works as"
+            " expected you should add the pseudo-argument '--' before the remaining arguments.",
+        )
+        group_import = parser.add_mutually_exclusive_group()
+        for name in cls.avail_parsers.keys():
+            try:
+                group_import.add_argument(f"--{name}", action="store_true", help=f"{name} importer")
+            except argparse.ArgumentError:
+                continue
+        cls.argparser = parser
+
+    def execute(self) -> None:
         """Imports new entries from another bibliography manager.
 
         The source from which to import new entries is configured via the `args`. The available
@@ -80,56 +108,23 @@ class ImportCommand(Command):
             out: the output IO stream. This defaults to `sys.stdout`.
         """
         LOGGER.debug("Starting Import command.")
-        parser = ArgumentParser(prog="import", description="Import subcommand parser.")
-        parser.add_argument(
-            "--skip-download",
-            action="store_true",
-            help="skip the automatic download of encountered PDF attachments",
-        )
-        parser.add_argument(
-            "importer_arguments",
-            nargs="*",
-            help="You can pass additional arguments to the chosen importer. To ensure this works as"
-            " expected you should add the pseudo-argument '--' before the remaining arguments.",
-        )
-        group_import = parser.add_mutually_exclusive_group()
-        avail_parsers = {
-            cls.name: cls for _, cls in inspect.getmembers(importers) if inspect.isclass(cls)
-        }
-        for name in avail_parsers.keys():
-            try:
-                group_import.add_argument(f"--{name}", action="store_true", help=f"{name} importer")
-            except argparse.ArgumentError:
-                continue
 
-        if not args:
-            parser.print_usage(sys.stderr)
-            sys.exit(1)
-
-        try:
-            largs = parser.parse_args(args)
-        except argparse.ArgumentError as exc:
-            LOGGER.error(exc.message)
-            return
-
-        Event.PreImportCommand.fire(largs)
+        Event.PreImportCommand.fire(self)
 
         imported_entries: List[Entry] = []
 
-        for name, cls in avail_parsers.items():
-            enabled = getattr(largs, name, False)
+        for name, cls in ImportCommand.avail_parsers.items():
+            enabled = getattr(self.largs, name, False)
             if not enabled:
                 continue
             LOGGER.debug("Importing entries from %s.", name)
             imported_entries = cls().fetch(
-                largs.importer_arguments, skip_download=largs.skip_download
+                self.largs.importer_arguments, skip_download=self.largs.skip_download
             )
             break
 
         bib = Database()
         existing_labels = set(bib.keys())
-
-        new_entries: Dict[str, Entry] = OrderedDict()
 
         for entry in imported_entries:
             # check if label already exists
@@ -144,20 +139,9 @@ class ImportCommand(Command):
 
             bib.update({entry.label: entry})
             existing_labels.add(entry.label)
-            new_entries[entry.label] = entry
+            self.new_entries[entry.label] = entry
 
-        Event.PostImportCommand.fire(new_entries)
-        bib.update(new_entries)
+        Event.PostImportCommand.fire(self)
+        bib.update(self.new_entries)
 
         bib.save()
-
-    @staticmethod
-    def tui(tui: cobib.tui.TUI) -> None:
-        # pdoc will inherit the docstring from the base class
-        # noqa: D102
-        LOGGER.debug("Import command triggered from TUI.")
-        # handle input via prompt
-        tui.execute_command("import")
-        # update database list
-        LOGGER.debug("Updating list after Import command.")
-        tui.viewport.update_list()

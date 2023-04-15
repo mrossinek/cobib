@@ -60,7 +60,8 @@ class ShellHelperTest(CmdLineTest):
         cmds = getattr(shell_helper, str(self.COMMAND))(args)
         self._assert("\n".join(cmds))
 
-    def test_cmdline(
+    @pytest.mark.asyncio
+    async def test_cmdline(
         self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
     ) -> None:
         """Test the command-line access of the helper method.
@@ -69,10 +70,11 @@ class ShellHelperTest(CmdLineTest):
             monkeypatch: the built-in pytest fixture.
             capsys: the built-in pytest fixture.
         """
-        CmdLineTest.run_module(monkeypatch, "helper_main", ["cobib", f"_{self.COMMAND}"])
+        await CmdLineTest.run_module(monkeypatch, "main", ["cobib", f"_{self.COMMAND}"])
         self._assert(capsys.readouterr().out)
 
-    def test_cmdline_via_main(
+    @pytest.mark.asyncio
+    async def test_cmdline_via_main(
         self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
     ) -> None:
         """Test the command-line access of the helper method via the main method.
@@ -81,8 +83,7 @@ class ShellHelperTest(CmdLineTest):
             monkeypatch: the built-in pytest fixture.
             capsys: the built-in pytest fixture.
         """
-        with pytest.raises(SystemExit):
-            CmdLineTest.run_module(monkeypatch, "main", ["cobib", f"_{self.COMMAND}"])
+        await CmdLineTest.run_module(monkeypatch, "main", ["cobib", f"_{self.COMMAND}"])
         self._assert(capsys.readouterr().out)
 
 

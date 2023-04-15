@@ -4,24 +4,22 @@
 from __future__ import annotations
 
 import tempfile
-from argparse import Namespace
 from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Type
 
 import pytest
 
 from cobib.commands import EditCommand
 from cobib.config import Event, config
-from cobib.database import Database, Entry
+from cobib.database import Database
 from cobib.utils.rel_path import RelPath
 
-from ..tui.tui_test import TUITest
 from .command_test import CommandTest
 
 if TYPE_CHECKING:
     import cobib.commands
 
 
-class TestEditCommand(CommandTest, TUITest):
+class TestEditCommand(CommandTest):
     """Tests for coBib's EditCommand.
 
     Note: in order to be able to test this command to at least a minimal degree, the test
@@ -90,7 +88,7 @@ class TestEditCommand(CommandTest, TUITest):
         """
         git = setup.get("git", False)
 
-        EditCommand().execute(args)
+        EditCommand(args).execute()
 
         true_log = [rec for rec in caplog.record_tuples if rec[0] == "cobib.commands.edit"]
 
@@ -118,7 +116,7 @@ class TestEditCommand(CommandTest, TUITest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        EditCommand().execute(["-a", "einstein"])
+        EditCommand(["-a", "einstein"]).execute()
         assert (
             "cobib.commands.edit",
             30,
@@ -147,7 +145,7 @@ class TestEditCommand(CommandTest, TUITest):
                 args = ["einstein"]
                 if preserve_files:
                     args.insert(2, "--preserve-files")
-                EditCommand().execute(args)
+                EditCommand(args).execute()
                 assert "dummy" in Database().keys()
 
                 target = RelPath(tmpdirname + "/dummy.pdf")
@@ -165,7 +163,7 @@ class TestEditCommand(CommandTest, TUITest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        EditCommand().execute(["dummy"])
+        EditCommand(["dummy"]).execute()
         assert (
             "cobib.commands.edit",
             40,
@@ -173,6 +171,7 @@ class TestEditCommand(CommandTest, TUITest):
             "Use `--add` to add a new entry with this label.",
         ) in caplog.record_tuples
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         ["setup"],
         [
@@ -180,40 +179,27 @@ class TestEditCommand(CommandTest, TUITest):
         ],
         indirect=["setup"],
     )
-    def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch) -> None:
+    async def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test the command-line access of the command.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             monkeypatch: the built-in pytest fixture.
         """
-        self.run_module(monkeypatch, "main", ["cobib", "edit", "-a", "dummy"])
+        await self.run_module(monkeypatch, "main", ["cobib", "edit", "-a", "dummy"])
         self._assert(changes=True, logs=None)
-
-    def test_tui(self, setup: Any) -> None:
-        """Test the TUI access of the command.
-
-        Args:
-            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
-        """
-
-        def assertion(screen, logs, **kwargs):  # type: ignore
-            true_log = [log for log in logs if log[0] == "cobib.commands.edit"]
-            self._assert(changes=False, logs=true_log)
-
-        self.run_tui("e", assertion, {})
 
     def test_event_pre_edit_command(self, setup: Any) -> None:
         """Tests the PreEditCommand event."""
 
         @Event.PreEditCommand.subscribe
-        def hook(largs: Namespace) -> None:
-            largs.add = True
-            largs.label = "dummy"
+        def hook(command: EditCommand) -> None:
+            command.largs.add = True
+            command.largs.label = "dummy"
 
         assert Event.PreEditCommand.validate()
 
-        EditCommand().execute(["einstein"])
+        EditCommand(["einstein"]).execute()
 
         self._assert(changes=True)
 
@@ -221,11 +207,11 @@ class TestEditCommand(CommandTest, TUITest):
         """Tests the PostEditCommand event."""
 
         @Event.PostEditCommand.subscribe
-        def hook(new_entry: Entry) -> None:
-            new_entry.data["tags"] = "test"
+        def hook(command: EditCommand) -> None:
+            command.new_entry.data["tags"] = "test"
 
         assert Event.PostEditCommand.validate()
 
-        EditCommand().execute(["-a", "dummy"])
+        EditCommand(["-a", "dummy"]).execute()
 
         assert Database()["dummy"].data["tags"] == "test"
