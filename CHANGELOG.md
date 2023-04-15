@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- the new default value of `config.parsers.yaml.use_c_lib_yaml` is now `True` as announced in version [3.4.0]
+
 ### Features
 - Full rewrite of all commands to use `rich` for a nicer CLI (#78,!51)
 - Full rewrite of the TUI based on `textual` (#78,!51)

@@ -97,7 +97,7 @@ class Config(Dict[str, Any]):
                 "ignore_non_standard_types": False,
             },
             "yaml": {
-                "use_c_lib_yaml": False,
+                "use_c_lib_yaml": True,
             },
         },
         "utils": {
@@ -379,11 +379,6 @@ class Config(Dict[str, Any]):
             isinstance(self.parsers.yaml.use_c_lib_yaml, bool),
             "config.parsers.yaml.use_c_lib_yaml should be a boolean.",
         )
-        if self.parsers.yaml.use_c_lib_yaml is False:
-            LOGGER.warning(
-                "The config.parsers.yaml.use_c_lib_yaml setting (introduced in version 3.4.0) will "
-                "change its default value to `True` in version 4.0.0!"
-            )
 
         # UTILS section
         LOGGER.debug("Validating the UTILS configuration section.")

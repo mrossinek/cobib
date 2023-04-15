@@ -129,7 +129,7 @@ config.parsers.bibtex.ignore_non_standard_types = False
 # used, *significantly* increasing the performance of the parsing. Note, that this requires manual
 # installation of the C-based parser:
 # https://yaml.readthedocs.io/en/latest/install.html#optional-requirements
-config.parsers.yaml.use_c_lib_yaml = False
+config.parsers.yaml.use_c_lib_yaml = True
 
 # UTILS
 
