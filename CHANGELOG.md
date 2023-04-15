@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Full rewrite of all commands to use `rich` for a nicer CLI (#78,!51)
 - Full rewrite of the TUI based on `textual` (#78,!51)
 
+### Removed
+- the warning triggered upon setting `config.database.format.month` which got removed in [3.1.0]
+
 ## [3.5.5] - 2023-04-11
 
 Pypi: https://pypi.org/project/cobib/3.5.5/

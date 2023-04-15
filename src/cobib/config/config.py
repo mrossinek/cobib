@@ -321,13 +321,6 @@ class Config(Dict[str, Any]):
             isinstance(self.database.git, bool), "config.database.git should be a boolean."
         )
         # DATABASE.FORMAT section
-        if "month" in self["database"]["format"].keys():
-            LOGGER.warning(
-                "The config.database.format.month setting is deprecated as of version 3.1.0! "
-                "Instead, coBib will store the month as a three-letter code which is a common "
-                "format for which most citation styles include macros. See also "
-                "https://www.bibtex.com/f/month-field/"
-            )
         self._assert(
             isinstance(self.database.format.label_default, str),
             "config.database.format.label_default should be a string.",

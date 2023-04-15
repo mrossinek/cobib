@@ -205,7 +205,7 @@ def test_missing_config_fields(setup: Any, sections: List[str], field: str) -> N
     assert f"config.{'.'.join(sections)}.{field}" in str(exc_info.value)
 
 
-@pytest.mark.parametrize(["setting", "value"], [[["database", "format", "month"], str]])
+@pytest.mark.parametrize(["setting", "value"], [])
 def test_deprecation_warning(
     setting: List[str], value: Any, caplog: pytest.LogCaptureFixture
 ) -> None:
