@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Python 3.11 is now officially tested and supported
+
 ### Changed
 - the new default value of `config.parsers.yaml.use_c_lib_yaml` is now `True` as announced in version [3.4.0]
 
@@ -15,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - the warning triggered upon setting `config.database.format.month` which got removed in [3.1.0]
+- Python 3.7 is no longer supported
 
 ## [3.5.5] - 2023-04-11
 

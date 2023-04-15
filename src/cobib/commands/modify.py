@@ -128,10 +128,6 @@ def evaluate_as_f_string(value: str, locals_: Optional[Dict[str, Any]] = None) -
         if typ is ast.Constant:
             result.append(part.value)
 
-        elif typ is ast.Str:
-            # TODO: remove once support for Python 3.7 will be dropped
-            result.append(part.s)
-
         elif typ is ast.FormattedValue:
             value = evaluate_ast_node(part.value, locals_)
 

@@ -66,11 +66,7 @@ class FileDownloader:
         Args:
             path: the file to remove.
         """
-        try:
-            # TODO: once Python 3.7 is dropped, leverage `missing_ok` argument
-            path.path.unlink()
-        except FileNotFoundError:
-            pass
+        path.path.unlink(missing_ok=True)
 
     @staticmethod
     def download(
