@@ -8,8 +8,8 @@ from cobib.ui.cli import CLI
 from cobib.ui.shell_helper import ShellHelper
 
 
-async def main() -> None:
-    """Main executable.
+async def async_main() -> None:
+    """Main async executable.
 
     coBib's main function used to parse optional keyword arguments and subcommands.
     """
@@ -20,5 +20,10 @@ async def main() -> None:
         await CLI().run()
 
 
+def main() -> None:
+    """The main method wrapping the async method with `asyncio.run`."""
+    asyncio.run(async_main())
+
+
 if __name__ == "__main__":
-    asyncio.run(main())  # pragma: no cover
+    main()  # pragma: no cover
