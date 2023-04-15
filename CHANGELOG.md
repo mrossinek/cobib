@@ -1,10 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Features
+- Full rewrite of all commands to use `rich` for a nicer CLI (#78,!51)
+- Full rewrite of the TUI based on `textual` (#78,!51)
 
 ## [3.5.5] - 2023-04-11
 
