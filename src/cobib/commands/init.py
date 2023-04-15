@@ -22,11 +22,11 @@ git-integration by only running the second command.
 
 from __future__ import annotations
 
-import argparse
 import logging
 import os
 import sys
-from typing import IO, TYPE_CHECKING, Any, List
+from pathlib import Path
+from typing import List
 
 from cobib.config import Event, config
 from cobib.utils.rel_path import RelPath
@@ -35,16 +35,27 @@ from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
 
-if TYPE_CHECKING:
-    import cobib.tui
-
 
 class InitCommand(Command):
     """The Init Command."""
 
     name = "init"
 
-    def execute(self, args: List[str], out: IO[Any] = sys.stdout) -> None:
+    def __init__(self, args: List[str]) -> None:
+        """TODO."""
+        super().__init__(args)
+
+        self.file: Path
+        self.root: Path
+
+    @classmethod
+    def init_argparser(cls) -> None:
+        """TODO."""
+        parser = ArgumentParser(prog="init", description="Init subcommand parser.")
+        parser.add_argument("-g", "--git", action="store_true", help="initialize git repository")
+        cls.argparser = parser
+
+    def execute(self) -> None:
         """Initializes the database.
 
         Initializes the YAML database in the location specified by `config.database.file`.
@@ -58,22 +69,14 @@ class InitCommand(Command):
             out: the output IO stream. This defaults to `sys.stdout`.
         """
         LOGGER.debug("Starting Init command.")
-        parser = ArgumentParser(prog="init", description="Init subcommand parser.")
-        parser.add_argument("-g", "--git", action="store_true", help="initialize git repository")
 
-        try:
-            largs = parser.parse_args(args)
-        except argparse.ArgumentError as exc:
-            LOGGER.error(exc.message)
-            return
+        Event.PreInitCommand.fire(self)
 
-        Event.PreInitCommand.fire(largs)
+        self.file = RelPath(config.database.file).path
+        self.root = self.file.parent
 
-        file = RelPath(config.database.file).path
-        root = file.parent
-
-        file_exists = file.exists()
-        git_tracked = (root / ".git").exists()
+        file_exists = self.file.exists()
+        git_tracked = (self.root / ".git").exists()
 
         if file_exists:
             if git_tracked:
@@ -84,19 +87,19 @@ class InitCommand(Command):
                 LOGGER.info(msg)
                 return
 
-            if not git_tracked and not largs.git:
+            if not git_tracked and not self.largs.git:
                 msg = "Database file already exists! Use --git to start tracking it with git."
                 LOGGER.warning(msg)
                 return
 
         else:
-            LOGGER.debug('Creating path for database file: "%s"', root)
-            root.mkdir(parents=True, exist_ok=True)
+            LOGGER.debug('Creating path for database file: "%s"', self.root)
+            self.root.mkdir(parents=True, exist_ok=True)
 
-            LOGGER.debug('Creating empty database file: "%s"', file)
-            open(file, "w", encoding="utf-8").close()  # pylint: disable=consider-using-with
+            LOGGER.debug('Creating empty database file: "%s"', self.file)
+            open(self.file, "w", encoding="utf-8").close()  # pylint: disable=consider-using-with
 
-        if largs.git:
+        if self.largs.git:
             if not config.database.git:
                 msg = (
                     "You are about to initialize the git tracking of your database, but this will "
@@ -118,15 +121,8 @@ class InitCommand(Command):
                 )
                 LOGGER.warning(msg)
                 sys.exit(1)
-            LOGGER.debug('Initializing git repository in "%s"', root)
-            os.system(f"git init {root}")
-            self.git(args=vars(largs), force=True)
+            LOGGER.debug('Initializing git repository in "%s"', self.root)
+            os.system(f"git init {self.root}")
+            self.git(force=True)
 
-        Event.PostInitCommand.fire(root, file)
-
-    @staticmethod
-    def tui(tui: cobib.tui.TUI) -> None:
-        """🛑 This command is *not* available via the TUI.
-
-        This is the case because the TUI cannot be started before the database has been initialized.
-        """
+        Event.PostInitCommand.fire(self)

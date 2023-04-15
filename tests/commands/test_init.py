@@ -4,9 +4,7 @@
 from __future__ import annotations
 
 import os
-from argparse import Namespace
 from datetime import datetime
-from pathlib import Path
 from shutil import rmtree
 from typing import TYPE_CHECKING, Any, Type
 
@@ -52,7 +50,7 @@ class TestInitCommand(CommandTest):
         # store current time
         now = float(datetime.now().timestamp())
         # try running init
-        InitCommand().execute(["--git"] if setup["git"] else [])
+        InitCommand(["--git"] if setup["git"] else []).execute()
         if safe:
             # check database file still contains 'test'
             with open(config.database.file, "r", encoding="utf-8") as file:
@@ -90,7 +88,7 @@ class TestInitCommand(CommandTest):
             # store current time
             now = float(datetime.now().timestamp())
             # try running init
-            InitCommand().execute(["--git"])
+            InitCommand(["--git"]).execute()
 
             # assert warning is printed
             assert (
@@ -118,6 +116,7 @@ class TestInitCommand(CommandTest):
             # clean up file system
             rmtree(self.COBIB_TEST_DIR_GIT)
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         ["setup"],
         [
@@ -126,7 +125,7 @@ class TestInitCommand(CommandTest):
         indirect=["setup"],
     )
     # other variants are already covered by test_command
-    def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch) -> None:
+    async def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test the command-line access of the command.
 
         Args:
@@ -136,7 +135,7 @@ class TestInitCommand(CommandTest):
         # store current time
         now = float(datetime.now().timestamp())
         # try calling init
-        self.run_module(monkeypatch, "main", ["cobib", "init"])
+        await self.run_module(monkeypatch, "main", ["cobib", "init"])
         # try running init
         # check creation time of temporary database file
         ctime = os.stat(config.database.file).st_ctime
@@ -147,12 +146,12 @@ class TestInitCommand(CommandTest):
         """Tests the PreInitCommand event."""
 
         @Event.PreInitCommand.subscribe
-        def hook(largs: Namespace) -> None:
-            largs.git = True
+        def hook(command: InitCommand) -> None:
+            command.largs.git = True
 
         assert Event.PreInitCommand.validate()
 
-        InitCommand().execute([])
+        InitCommand([]).execute()
 
         self.assert_git_commit_message("init", {"git": True})
 
@@ -160,11 +159,11 @@ class TestInitCommand(CommandTest):
         """Tests the PostInitCommand event."""
 
         @Event.PostInitCommand.subscribe
-        def hook(root: Path, file: Path) -> None:
-            os.remove(file)
+        def hook(command: InitCommand) -> None:
+            os.remove(command.file)
 
         assert Event.PostInitCommand.validate()
 
-        InitCommand().execute([])
+        InitCommand([]).execute()
 
         assert not os.path.exists(self.COBIB_TEST_DIR_GIT / "literature.yaml")

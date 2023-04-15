@@ -41,7 +41,7 @@ DOI_URL = "https://doi.org/"
 """The DOI 'API' URL."""
 DOI_HEADER = {"Accept": "application/x-bibtex"}
 """The DOI 'API' header taken from [here](https://crosscite.org/docs.html)."""
-DOI_REGEX = r'(10\.[0-9a-zA-Z]+\/(?:(?!["&\'])\S)+)\b'
+DOI_REGEX = r'(10\.[0-9a-zA-Z]+\/(?:(?!["&\'\?])\S)+)\b'
 """A regex pattern used to match valid DOIs."""
 
 

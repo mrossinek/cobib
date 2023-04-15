@@ -3,9 +3,9 @@
 
 from __future__ import annotations
 
-import sys
+import argparse
 from pathlib import Path
-from typing import IO, TYPE_CHECKING, Any, Dict, List, Optional, Type
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type
 
 import pytest
 
@@ -17,7 +17,6 @@ from .command_test import CommandTest
 
 if TYPE_CHECKING:
     import cobib.commands
-    import cobib.tui
 
 
 class DummyCommand(Command):
@@ -25,7 +24,15 @@ class DummyCommand(Command):
 
     name = "dummy"
 
-    def execute(self, args: List[str], out: IO[Any] = sys.stdout) -> None:
+    def __init__(self, args: List[str]) -> None:  # pylint: disable=super-init-not-called
+        """TODO."""
+        self.largs = argparse.Namespace()
+
+    @classmethod
+    def init_argparser(cls) -> None:
+        """TODO."""
+
+    def execute(self) -> None:
         """Does nothing but generate a dummy git commit.
 
         Args:
@@ -36,12 +43,6 @@ class DummyCommand(Command):
             file.write("dummy")
 
         self.git()
-
-    @staticmethod
-    def tui(tui: cobib.tui.TUI) -> None:
-        # pdoc will inherit the docstring from the base class
-        # noqa: D102
-        pass
 
 
 class TestGitCommitEvent(CommandTest):
@@ -73,7 +74,7 @@ class TestGitCommitEvent(CommandTest):
 
         assert Event.PreGitCommit.validate()
 
-        DummyCommand().execute([])
+        DummyCommand([]).execute()
 
         self.assert_git_commit_message("dummy", msg="Hello world!\n")
 
@@ -91,6 +92,6 @@ class TestGitCommitEvent(CommandTest):
 
         assert Event.PostGitCommit.validate()
 
-        DummyCommand().execute([])
+        DummyCommand([]).execute()
 
         assert not RelPath(config.database.file).path.exists()

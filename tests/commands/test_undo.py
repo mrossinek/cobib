@@ -7,9 +7,7 @@ import contextlib
 import logging
 import os
 import subprocess
-from argparse import Namespace
 from io import StringIO
-from pathlib import Path
 from shutil import rmtree
 from typing import TYPE_CHECKING, Any, Type
 
@@ -20,7 +18,6 @@ from cobib.config import Event, config
 from cobib.database import Database
 
 from .. import get_resource
-from ..tui.tui_test import TUITest
 from .command_test import CommandTest
 
 EXAMPLE_MULTI_FILE_ENTRY_BIB = get_resource("example_multi_file_entry.bib", "commands")
@@ -29,7 +26,7 @@ if TYPE_CHECKING:
     import cobib.commands
 
 
-class TestUndoCommand(CommandTest, TUITest):
+class TestUndoCommand(CommandTest):
     """Tests for coBib's UndoCommand."""
 
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
@@ -73,7 +70,7 @@ class TestUndoCommand(CommandTest, TUITest):
         git = setup.get("git", False)
 
         if not git:
-            UndoCommand().execute([])
+            UndoCommand([]).execute()
             for source, level, message in caplog.record_tuples:
                 if ("cobib.commands.undo", logging.ERROR) == (
                     source,
@@ -85,7 +82,7 @@ class TestUndoCommand(CommandTest, TUITest):
         elif expected_exit:
             # Regression test related to #65
             with pytest.raises(SystemExit):
-                UndoCommand().execute([])
+                UndoCommand([]).execute()
             for source, level, message in caplog.record_tuples:
                 if ("cobib.commands.undo", logging.WARNING) == (
                     source,
@@ -95,8 +92,8 @@ class TestUndoCommand(CommandTest, TUITest):
             else:
                 pytest.fail("No Error logged from UndoCommand.")
         else:
-            AddCommand().execute(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB])
-            UndoCommand().execute([])
+            AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
+            UndoCommand([]).execute()
 
             self._assert()
 
@@ -114,12 +111,12 @@ class TestUndoCommand(CommandTest, TUITest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        AddCommand().execute(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB])
-        AddCommand().execute(["-b", get_resource("example_entry.bib")])
-        UndoCommand().execute([])
+        AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
+        AddCommand(["-b", get_resource("example_entry.bib")]).execute()
+        UndoCommand([]).execute()
         caplog.clear()
 
-        UndoCommand().execute([])
+        UndoCommand([]).execute()
         self._assert()
         assert "Storing undone commit" in caplog.record_tuples[4][2]
         assert "Skipping" in caplog.record_tuples[6][2]
@@ -139,7 +136,7 @@ class TestUndoCommand(CommandTest, TUITest):
             caplog: the built-in pytest fixture.
         """
         rmtree(self.COBIB_TEST_DIR_GIT)
-        UndoCommand().execute([])
+        UndoCommand([]).execute()
         for source, level, message in caplog.record_tuples:
             if ("cobib.commands.undo", logging.ERROR) == (
                 source,
@@ -149,6 +146,7 @@ class TestUndoCommand(CommandTest, TUITest):
         else:
             pytest.fail("No Error logged from UndoCommand.")
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         ["setup"],
         [
@@ -157,7 +155,7 @@ class TestUndoCommand(CommandTest, TUITest):
         indirect=["setup"],
     )
     # other variants are already covered by test_command
-    def test_cmdline(
+    async def test_cmdline(
         self, setup: Any, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
     ) -> None:
         """Test the command-line access of the command.
@@ -167,8 +165,8 @@ class TestUndoCommand(CommandTest, TUITest):
             monkeypatch: the built-in pytest fixture.
             caplog: the built-in pytest fixture.
         """
-        AddCommand().execute(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB])
-        self.run_module(monkeypatch, "main", ["cobib", "undo"])
+        AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
+        await self.run_module(monkeypatch, "main", ["cobib", "undo"])
 
         self._assert()
 
@@ -198,55 +196,19 @@ class TestUndoCommand(CommandTest, TUITest):
             # clean up config
             config.defaults()
 
-    @pytest.mark.parametrize(
-        ["setup"],
-        [
-            [{"git": True}],
-        ],
-        indirect=["setup"],
-    )
-    def test_tui(self, setup: Any) -> None:
-        """Test the TUI access of the command.
-
-        Args:
-            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
-        """
-
-        def assertion(screen, logs, **kwargs):  # type: ignore
-            # check that the undone entry has actually been present in the buffer before
-            assert (
-                "cobib.tui.buffer",
-                10,
-                "Appending string to text buffer: example_multi_file_entry",
-            ) in logs
-            # but is no longer there, now
-            assert "example_multi_file_entry" not in screen.display[1]
-
-            expected_log = [
-                ("cobib.commands.undo", 10, "Undo command triggered from TUI."),
-                ("cobib.commands.undo", 10, "Starting Undo command."),
-                ("cobib.commands.undo", 10, "Obtaining git log."),
-            ]
-            # we only assert the first three messages because the following ones will contain always
-            # changing commit SHAs
-            assert [log for log in logs if log[0] == "cobib.commands.undo"][0:3] == expected_log
-
-        AddCommand().execute(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB])
-        self.run_tui("u", assertion, {})
-
     @pytest.mark.parametrize("setup", [{"git": True}], indirect=["setup"])
     def test_event_pre_undo_command(self, setup: Any) -> None:
         """Tests the PreUndoCommand event."""
 
         @Event.PreUndoCommand.subscribe
-        def hook(largs: Namespace) -> None:
+        def hook(command: UndoCommand) -> None:
             print("Hello world!")
 
         assert Event.PreUndoCommand.validate()
 
         with contextlib.redirect_stdout(StringIO()) as out:
             with pytest.raises(SystemExit):
-                UndoCommand().execute([])
+                UndoCommand([]).execute()
 
             assert out.getvalue() == "Hello world!\n"
 
@@ -255,14 +217,14 @@ class TestUndoCommand(CommandTest, TUITest):
         """Tests the PostUndoCommand event."""
 
         @Event.PostUndoCommand.subscribe
-        def hook(root: Path, sha: str) -> None:
-            print(root)
+        def hook(command: UndoCommand) -> None:
+            print(command.root)
 
         assert Event.PostUndoCommand.validate()
 
         with contextlib.redirect_stdout(StringIO()) as out:
-            AddCommand().execute(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB])
-            UndoCommand().execute([])
+            AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
+            UndoCommand([]).execute()
 
             self._assert()
 

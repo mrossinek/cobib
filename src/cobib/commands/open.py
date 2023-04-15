@@ -33,20 +33,28 @@ With the above options, here is what will happen depending on the users choice:
 * `help`: will print the detailed help-menu again.
 * `ENTER`: will abort the command.
 
-You can also trigger this command from the `cobib.tui.tui.TUI`.
+You can also trigger this command from the `cobib.ui.tui.TUI`.
 By default, it is bound to the `o` key.
 """
 
 from __future__ import annotations
 
-import argparse
+import asyncio
 import logging
 import os
 import subprocess
-import sys
+import warnings
 from collections import defaultdict
-from typing import IO, TYPE_CHECKING, Any, Dict, List
+from typing import Any, Optional, TextIO, cast
 from urllib.parse import ParseResult, urlparse
+
+from rich.console import Console, RenderableType
+from rich.prompt import InvalidResponse, PromptBase
+from rich.text import Text, TextType
+from textual.app import App
+from textual.reactive import reactive
+from textual.widget import Widget
+from textual.widgets import Input
 
 from cobib.config import Event, config
 from cobib.database import Database
@@ -56,8 +64,114 @@ from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
 
-if TYPE_CHECKING:
-    import cobib.tui
+
+class RichOpenPrompt(PromptBase[str]):
+    """TODO."""
+
+    def process_response(self, value: str) -> str:
+        """TODO."""
+        return_value: str = super().process_response(value)
+
+        if return_value == "help":
+            LOGGER.debug("User requested help.")
+            raise InvalidResponse(
+                "[yellow]Multiple targets were found. You may select the following:\n"
+                "  1. an individual URL number\n"
+                "  2. a target type (provided in '[...]')\n"
+                "  3. 'all'\n"
+                "  4. or 'cancel' to abort the command"
+            )
+
+        return return_value
+
+
+# TODO: unify this with the new Popup methodology in the TUI
+class Popup(Widget, can_focus=False):
+    """TODO."""
+
+    DEFAULT_CSS = """
+        Popup {
+            dock: bottom;
+            padding: 1 0;
+            width: 100%;
+            height: auto;
+        }
+    """
+
+    string: reactive[RenderableType] = reactive("")
+
+    def render(self) -> RenderableType:
+        """TODO."""
+        return self.string
+
+
+class PromptInput(Input):
+    """TODO."""
+
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        """TODO."""
+        event.input.remove()
+        event.stop()
+
+
+class TextualOpenPrompt(RichOpenPrompt):
+    """TODO."""
+
+    console: App[None]  # type: ignore[assignment]
+
+    async def __call__(  # type: ignore[override]
+        self, *, default: Any = ..., stream: TextIO | None = None
+    ) -> str:
+        # pylint: disable=invalid-overridden-method
+        """TODO."""
+        popup = Popup()
+        popup.string = Text()
+        await self.console.mount(popup)
+        while True:
+            self.pre_prompt()
+            prompt = self.make_prompt(default)
+            popup.string.append(prompt)
+            value = await self.get_input(self.console, prompt, self.password, stream=stream)
+            if value == "" and default != ...:
+                await popup.remove()
+                return str(default)
+            popup.string = Text()
+            try:
+                return_value = self.process_response(value)
+            except InvalidResponse as error:
+                self.on_validate_error(value, error)
+                continue
+            else:
+                await popup.remove()
+                return return_value
+
+    @classmethod
+    async def get_input(  # type: ignore[override]
+        cls, console: App[None], prompt: TextType, password: bool, stream: TextIO | None = None
+    ) -> str:
+        # pylint: disable=invalid-overridden-method
+        """TODO."""
+        inp = PromptInput()
+        inp.styles.dock = "bottom"  # type: ignore[arg-type]
+        inp.styles.border = (None, None)
+        inp.styles.padding = (0, 0)
+        await console.mount(inp)
+
+        inp.focus()
+
+        while console.is_mounted(inp):
+            await asyncio.sleep(0)
+
+        return str(inp.value)
+
+    def on_validate_error(self, value: str, error: InvalidResponse) -> None:
+        """TODO."""
+        if value == "help":
+            popup = self.console.query_one(Popup)
+            if isinstance(error.message, Text):
+                popup.string = error.message + "\n"
+            else:
+                popup.string = Text.from_markup(error.message + "\n")
 
 
 class OpenCommand(Command):
@@ -65,8 +179,20 @@ class OpenCommand(Command):
 
     name = "open"
 
-    # pylint: disable=too-many-branches
-    def execute(self, args: List[str], out: IO[Any] = sys.stderr) -> None:
+    prompt = RichOpenPrompt
+
+    console: Console | App[None] | None = None
+
+    @classmethod
+    def init_argparser(cls) -> None:
+        """TODO."""
+        parser = ArgumentParser(prog="open", description="Open subcommand parser.")
+        parser.add_argument("labels", type=str, nargs="+", help="labels of the entries")
+        cls.argparser = parser
+
+    # TODO: can we make the implementation cleaner and avoid the type ignore comment below?
+    async def execute(self) -> None:  # type: ignore[override]
+        # pylint: disable=invalid-overridden-method
         """Opens associated files of an entry.
 
         This command opens the associated file(s) of one (or multiple) entries.
@@ -83,26 +209,13 @@ class OpenCommand(Command):
             out: the output IO stream. This defaults to `sys.stdout`.
         """
         LOGGER.debug("Starting Open command.")
-        parser = ArgumentParser(prog="open", description="Open subcommand parser.")
-        parser.add_argument("labels", type=str, nargs="+", help="labels of the entries")
 
-        if not args:
-            parser.print_usage(sys.stderr)
-            sys.exit(1)
-
-        try:
-            largs = parser.parse_args(args)
-        except argparse.ArgumentError as exc:
-            LOGGER.error(exc.message)
-            return
-
-        Event.PreOpenCommand.fire(largs)
+        Event.PreOpenCommand.fire(self)
 
         bib = Database()
 
-        # pylint: disable=too-many-nested-blocks
-        for label in largs.labels:
-            things_to_open: Dict[str, List[ParseResult]] = defaultdict(list)
+        for label in self.largs.labels:
+            things_to_open: dict[str, list[ParseResult]] = defaultdict(list)
             count = 0
             # first: find all possible things to open
             try:
@@ -133,57 +246,53 @@ class OpenCommand(Command):
                 self._open_url(list(things_to_open.values())[0][0])
             else:
                 # we query the user what to do
-                idx = 1
-                url_list = []
-                prompt: List[str] = []
+                idx = 0
+                url_list: list[ParseResult] = []
+                prompt_text = Text()
+                choices = ["all"] + config.commands.open.fields + ["help", "cancel"]
+
                 # print formatted list of available URLs
                 for field, urls in things_to_open.items():
                     for url in urls:
-                        prompt.append(f"{idx:3}: [{field}] {url.geturl()}")
-                        url_list.append(url)
                         idx += 1
-                # loop until the user picks a valid choice
-                help_requested = False
-                while True:
-                    prompt_copy = prompt.copy()
-                    prompt_copy.append("Entry to open [Type 'help' for more info]: ")
-                    try:
-                        choice = input("\n".join(prompt_copy)).strip()
-                    except EOFError:
-                        choice = ""
-                    if not choice:
-                        # empty input
-                        msg = "User aborted open command."
-                        LOGGER.warning(msg)
-                        break
-                    if choice == "help":
-                        LOGGER.debug("User requested help.")
-                        if not help_requested:
-                            prompt = [
-                                "You can specify one of the following options:",
-                                "  1. a url number",
-                                "  2. a field name provided in '[...]'",
-                                "  3. or simply 'all'",
-                                "  4. ENTER will abort the command",
-                                "",
-                            ] + prompt
-                        help_requested = True
-                    elif choice == "all":
-                        LOGGER.debug("User selected all urls.")
-                        for url in url_list:
-                            self._open_url(url)
-                        break
-                    elif choice in things_to_open.keys():
-                        LOGGER.debug("User selected the %s set of urls.", choice)
-                        for url in things_to_open[choice]:
-                            self._open_url(url)
-                        break
-                    elif choice.isdigit() and int(choice) > 0 and int(choice) <= count:
-                        LOGGER.debug("User selected url %s", choice)
-                        self._open_url(url_list[int(choice) - 1])
-                        break
+                        url_list.append(url)
+                        choices.append(str(idx))
+                        prompt_text.append(f"{idx:3}", "prompt.choices")
+                        prompt_text.append(": [")
+                        prompt_text.append(field, "prompt.choices")
+                        prompt_text.append(f"] {url.geturl()}\n")
+                prompt_text.append("[all,help,cancel]", "prompt.choices")
 
-        Event.PostOpenCommand.fire(largs.labels)
+                if self.prompt is TextualOpenPrompt:
+                    choice = await self.prompt.ask(  # type: ignore[call-overload]
+                        prompt_text,
+                        choices=choices,
+                        show_choices=False,
+                        console=cast(App[None], self.console),
+                    )
+                else:
+                    choice = self.prompt.ask(
+                        prompt_text,
+                        choices=choices,
+                        show_choices=False,
+                        console=cast(Optional[Console], self.console),
+                    )
+
+                if choice == "cancel":
+                    LOGGER.warning("User aborted open command.")
+                elif choice == "all":
+                    LOGGER.debug("User selected all urls.")
+                    for url in url_list:
+                        self._open_url(url)
+                elif choice in things_to_open.keys():
+                    LOGGER.debug("User selected the %s set of urls.", choice)
+                    for url in things_to_open[choice]:
+                        self._open_url(url)
+                elif choice.isdigit():
+                    LOGGER.debug("User selected url %s", choice)
+                    self._open_url(url_list[int(choice) - 1])
+
+        Event.PostOpenCommand.fire(self)
 
     @staticmethod
     def _open_url(url: ParseResult) -> None:
@@ -193,22 +302,14 @@ class OpenCommand(Command):
             url_str: str = url.geturl() if url.scheme else str(RelPath(url.geturl()).path)
             LOGGER.debug('Opening "%s" with %s.', url_str, opener)
             with open(os.devnull, "w", encoding="utf-8") as devnull:
-                subprocess.Popen(  # pylint: disable=consider-using-with
-                    [opener, url_str], stdout=devnull, stderr=devnull, stdin=devnull, close_fds=True
-                )
+                with warnings.catch_warnings():
+                    warnings.filterwarnings("ignore", category=ResourceWarning)
+                    subprocess.Popen(  # pylint: disable=consider-using-with
+                        [opener, url_str],
+                        stdout=devnull,
+                        stderr=devnull,
+                        stdin=devnull,
+                        close_fds=True,
+                    )
         except FileNotFoundError as err:
             LOGGER.error(err)
-
-    @staticmethod
-    def tui(tui: cobib.tui.TUI) -> None:
-        # pdoc will inherit the docstring from the base class
-        # noqa: D102
-        LOGGER.debug("Open command triggered from TUI.")
-        if tui.selection:
-            # use selection for command
-            labels = list(tui.selection)
-        else:
-            # get current label
-            label, _ = tui.viewport.get_current_label()
-            labels = [label]
-        tui.execute_command(["open"] + labels, skip_prompt=True)

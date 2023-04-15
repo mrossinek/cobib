@@ -190,14 +190,17 @@ def lint_database(args: List[str]) -> List[str]:
 
             name = "lint"
 
-            def execute(self, args, out=None):  # type: ignore
+            def __init__(self, args: List[str]) -> None:  # pylint: disable=super-init-not-called
+                self.largs = largs
+
+            @classmethod
+            def init_argparser(cls) -> None:
                 pass
 
-            @staticmethod
-            def tui(tui):  # type: ignore
+            def execute(self):  # type: ignore
                 pass
 
-        LintCommand().git(args=vars(largs))
+        LintCommand([]).git()
 
         return ["The following lint messages have successfully been resolved:"] + lint_messages
 
@@ -242,6 +245,7 @@ def unify_labels(args: List[str]) -> List[str]:
         modify_args = modify_args[1:]
 
     with contextlib.redirect_stderr(StringIO()) as out:
-        ModifyCommand().execute(modify_args)
+        cmd = ModifyCommand(modify_args)
+        cmd.execute()
 
     return out.getvalue().strip().split("\n")

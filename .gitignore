@@ -13,6 +13,9 @@ __pycache__
 htmlcov
 htmlmypy
 
+# Logging data
+textual.log
+
 # Documentation data
 docs
 

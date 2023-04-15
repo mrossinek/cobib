@@ -55,7 +55,7 @@ cobib modify --dry <modification> -- ...
 This is useful if you want to test large bulk modifications before running them in order to prevent
 mistakes.
 
-You can also trigger this command from the `cobib.tui.tui.TUI`.
+You can also trigger this command from the `cobib.ui.tui.TUI`.
 By default, it is bound to the `m` key which will drop you into the prompt where you can type out a
 normal command-line command:
 ```
@@ -67,15 +67,12 @@ normal command-line command:
 
 from __future__ import annotations
 
-import argparse
 import ast
 import logging
-import os
-import sys
-from typing import IO, TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from cobib.config import Event
-from cobib.database import Database
+from cobib.database import Database, Entry
 from cobib.utils.logging import get_stream_handler
 from cobib.utils.rel_path import RelPath
 
@@ -83,9 +80,6 @@ from .base_command import ArgumentParser, Command
 from .list import ListCommand
 
 LOGGER = logging.getLogger(__name__)
-
-if TYPE_CHECKING:
-    import cobib.tui
 
 
 def evaluate_ast_node(node: ast.expr, locals_: Optional[Dict[str, Any]] = None) -> str:
@@ -162,6 +156,12 @@ class ModifyCommand(Command):
 
     name = "modify"
 
+    def __init__(self, args: List[str]) -> None:
+        """TODO."""
+        super().__init__(args)
+
+        self.modified_entries: List[Entry] = []
+
     @staticmethod
     def field_value_pair(string: str) -> Tuple[str, str]:
         """Utility method to assert the field-value pair argument type.
@@ -179,41 +179,13 @@ class ModifyCommand(Command):
         # specifications
         return (field, ":".join(value))
 
-    # pylint: disable=too-many-branches,too-many-statements
-    def execute(self, args: List[str], out: IO[Any] = sys.stdout) -> None:
-        """Modifies multiple entries in bulk.
-
-        This command allows bulk modification of multiple entries.
-        It takes a modification in the form `<field>:<value>` and will overwrite the `field` of all
-        matching entries with the new `value`.
-        The entries can be specified as a manual selection (when using `--selection` or the visual
-        selection of the TUI) or through filters (see also `cobib.commands.list`).
-
-        Args:
-            args: a sequence of additional arguments used for the execution. The following values
-                are allowed for this command:
-                    * `modification`: a string conforming to `<field>:<value>` indicating the
-                      modification that should be applied to all matching entries. By default, the
-                      modification will overwrite any existing data in the specified `field` with
-                      the new `value`. For more information about formatting options of `<value>`
-                      refer to the module documentation or the man-page.
-                    * `--dry`: run in "dry"-mode which lists modifications without applying them.
-                    * `-a`, `--add`: when specified, the modification's value will be added to the
-                      entry's field rather than overwrite it. If the field in question is numeric,
-                      the numbers will be added.
-                    * `-s`, `--selection`: when specified, the positional arguments will *not* be
-                      interpreted as filters but rather as a direct list of entry labels. This can
-                      be used on the command-line but is mainly meant for the TUIs visual selection
-                      interface (hence the name).
-                    * in addition to the above, you can add `filters` to specify a subset of your
-                      database for exporting. For more information refer to `cobib.commands.list`.
-            out: the output IO stream. This defaults to `sys.stdout`.
-        """
-        LOGGER.debug("Starting Modify command.")
+    @classmethod
+    def init_argparser(cls) -> None:
+        """TODO."""
         parser = ArgumentParser(prog="modify", description="Modify subcommand parser.")
         parser.add_argument(
             "modification",
-            type=self.field_value_pair,
+            type=ModifyCommand.field_value_pair,
             help="Modification to apply to the specified entries."
             "\nThis argument must be a string formatted as <field>:<value> where field can be any "
             "field of the entries and value can be any string which should be placed in that "
@@ -249,21 +221,44 @@ class ModifyCommand(Command):
         parser.add_argument(
             "--preserve-files", action="store_true", help="do not rename associated files"
         )
+        cls.argparser = parser
 
-        if not args:
-            parser.print_usage(sys.stderr)
-            sys.exit(1)
+    # pylint: disable=too-many-branches
+    def execute(self) -> None:
+        """Modifies multiple entries in bulk.
 
-        try:
-            largs = parser.parse_intermixed_args(args)
-        except argparse.ArgumentError as exc:
-            LOGGER.error(exc.message)
-            return
+        This command allows bulk modification of multiple entries.
+        It takes a modification in the form `<field>:<value>` and will overwrite the `field` of all
+        matching entries with the new `value`.
+        The entries can be specified as a manual selection (when using `--selection` or the visual
+        selection of the TUI) or through filters (see also `cobib.commands.list`).
 
-        Event.PreModifyCommand.fire(largs)
+        Args:
+            args: a sequence of additional arguments used for the execution. The following values
+                are allowed for this command:
+                    * `modification`: a string conforming to `<field>:<value>` indicating the
+                      modification that should be applied to all matching entries. By default, the
+                      modification will overwrite any existing data in the specified `field` with
+                      the new `value`. For more information about formatting options of `<value>`
+                      refer to the module documentation or the man-page.
+                    * `--dry`: run in "dry"-mode which lists modifications without applying them.
+                    * `-a`, `--add`: when specified, the modification's value will be added to the
+                      entry's field rather than overwrite it. If the field in question is numeric,
+                      the numbers will be added.
+                    * `-s`, `--selection`: when specified, the positional arguments will *not* be
+                      interpreted as filters but rather as a direct list of entry labels. This can
+                      be used on the command-line but is mainly meant for the TUIs visual selection
+                      interface (hence the name).
+                    * in addition to the above, you can add `filters` to specify a subset of your
+                      database for exporting. For more information refer to `cobib.commands.list`.
+            out: the output IO stream. This defaults to `sys.stdout`.
+        """
+        LOGGER.debug("Starting Modify command.")
+
+        Event.PreModifyCommand.fire(self)
 
         info_handler: logging.Handler
-        if largs.dry:
+        if self.largs.dry:
             info_handler = get_stream_handler(logging.INFO)
 
             class ModifyInfoFilter(logging.Filter):
@@ -275,15 +270,15 @@ class ModifyCommand(Command):
             info_handler.addFilter(ModifyInfoFilter())
             LOGGER.addHandler(info_handler)
 
-        if largs.selection:
+        if self.largs.selection:
             LOGGER.info("Selection given. Interpreting `filter` as a list of labels")
-            labels = largs.filter
+            labels = self.largs.filter
         else:
             LOGGER.debug("Gathering filtered list of entries to be modified.")
-            with open(os.devnull, "w", encoding="utf-8") as devnull:
-                labels = ListCommand().execute(largs.filter, out=devnull)
+            filtered_entries, _ = ListCommand(self.largs.filter).filter_entries()
+            labels = [entry.label for entry in filtered_entries]
 
-        field, value = largs.modification
+        field, value = self.largs.modification
 
         bib = Database()
 
@@ -297,7 +292,7 @@ class ModifyCommand(Command):
                 else:
                     prev_value = entry.data.get(field, None)
 
-                if not largs.add:
+                if not self.largs.add:
                     new_value = local_value
                     if local_value.isnumeric():
                         new_value = int(local_value)  # type: ignore
@@ -337,7 +332,7 @@ class ModifyCommand(Command):
                     continue
 
                 if hasattr(entry, field):
-                    if largs.dry:
+                    if self.largs.dry:
                         LOGGER.info(
                             "%s: changing field '%s' from %s to %s",
                             entry.label,
@@ -347,7 +342,7 @@ class ModifyCommand(Command):
                         )
                     setattr(entry, field, new_value)
                 else:
-                    if largs.dry:
+                    if self.largs.dry:
                         LOGGER.info(
                             "%s: adding field '%s' = %s",
                             entry.label,
@@ -360,7 +355,7 @@ class ModifyCommand(Command):
 
                 if entry.label != label:
                     bib.rename(label, entry.label)
-                    if not largs.preserve_files:
+                    if not self.largs.preserve_files:
                         new_files = []
                         for file in entry.file:
                             path = RelPath(file)
@@ -372,7 +367,7 @@ class ModifyCommand(Command):
                                         "Found conflicting file, not renaming '%s'.", str(path)
                                     )
                                 else:
-                                    if largs.dry:
+                                    if self.largs.dry:
                                         LOGGER.info(
                                             "%s: renaming associated file '%s' to '%s'",
                                             entry.label,
@@ -383,35 +378,25 @@ class ModifyCommand(Command):
                                         path.path.rename(target.path)
                                         new_files.append(str(target))
                                     continue
-                            if not largs.dry:
+                            if not self.largs.dry:
                                 new_files.append(file)
-                        if not largs.dry and new_files:
+                        if not self.largs.dry and new_files:
                             entry.file = new_files
 
-                if not largs.dry:
+                if not self.largs.dry:
+                    self.modified_entries.append(entry)
                     msg = f"'{label}' was modified."
                     LOGGER.info(msg)
             except KeyError:
                 msg = f"No entry with the label '{label}' could be found."
                 LOGGER.warning(msg)
 
-        Event.PostModifyCommand.fire(labels, largs.dry)
+        Event.PostModifyCommand.fire(self)
 
-        if largs.dry:
+        if self.largs.dry:
             LOGGER.removeHandler(info_handler)
             # read also functions as a restoring method
             bib.read()
         else:
             bib.save()
-            self.git(args=vars(largs))
-
-    @staticmethod
-    def tui(tui: cobib.tui.TUI) -> None:
-        # pdoc will inherit the docstring from the base class
-        # noqa: D102
-        LOGGER.debug("Modify command triggered from TUI.")
-        # handle input via prompt
-        if tui.selection:
-            tui.execute_command("modify -s", pass_selection=True)
-        else:
-            tui.execute_command("modify")
+            self.git()

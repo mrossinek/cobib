@@ -4,10 +4,12 @@
 
 There are various kinds of event types:
     - Pre*Command: these fire before a command gets executed. Hooks subscribing to these events
-      are passed the argument dictionary which they can modify to their desire.
+      are passed an instance of the command which will be populated with the original command-line
+      arguments as well as the resulting `argparse.Namespace`.
     - Post*Command: these fire after a command got executed but (generally) **before** the
       Database gets written to file, allowing final touch-ups and modifications to take place.
-      The inputs to these hooks depend on the specific command firing the event (see below).
+      Just like the `Pre*Command` events, the input will be an instance of the command through which
+      a user can modify the command data at runtime.
     - Pre*Parse: just like the Pre-Command events, these fire before a parser runs. As an input
       they generally get the driver input.
     - Post*Parse: these fire after a parser ran. They again allow final touch-ups of the
@@ -60,7 +62,6 @@ def print_new_entries(bib: Dict[str, Entry) -> None:
 from __future__ import annotations
 
 import logging
-from argparse import Namespace
 from enum import Enum
 from itertools import zip_longest
 from pathlib import Path
@@ -72,7 +73,6 @@ from typing import (
     ForwardRef,
     List,
     Optional,
-    Set,
     Tuple,
     get_type_hints,
 )
@@ -83,10 +83,24 @@ from .config import config
 
 _FORWARD_REFS: Dict[str, str] = {}
 if TYPE_CHECKING:
+    from cobib import commands
     from cobib.database import Entry
 else:
     _FORWARD_REFS = {
         "ForwardRef('Entry')": "Entry",
+        "ForwardRef('commands.AddCommand')": "cobib.commands.add.AddCommand",
+        "ForwardRef('commands.DeleteCommand')": "cobib.commands.delete.DeleteCommand",
+        "ForwardRef('commands.EditCommand')": "cobib.commands.edit.EditCommand",
+        "ForwardRef('commands.ExportCommand')": "cobib.commands.export.ExportCommand",
+        "ForwardRef('commands.ImportCommand')": "cobib.commands.import_.ImportCommand",
+        "ForwardRef('commands.InitCommand')": "cobib.commands.init.InitCommand",
+        "ForwardRef('commands.ListCommand')": "cobib.commands.list.ListCommand",
+        "ForwardRef('commands.ModifyCommand')": "cobib.commands.modify.ModifyCommand",
+        "ForwardRef('commands.OpenCommand')": "cobib.commands.open.OpenCommand",
+        "ForwardRef('commands.RedoCommand')": "cobib.commands.redo.RedoCommand",
+        "ForwardRef('commands.SearchCommand')": "cobib.commands.search.SearchCommand",
+        "ForwardRef('commands.ShowCommand')": "cobib.commands.show.ShowCommand",
+        "ForwardRef('commands.UndoCommand')": "cobib.commands.undo.UndoCommand",
     }
 
 LOGGER = logging.getLogger(__name__)
@@ -123,7 +137,7 @@ class Event(Enum):
         obj._annotation_ = annotation
         return obj
 
-    PreAddCommand: Event = Callable[[Namespace], None]  # type: ignore[assignment]
+    PreAddCommand: Event = Callable[["commands.AddCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before starting the `cobib.commands.add.AddCommand`.
@@ -134,7 +148,7 @@ class Event(Enum):
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
     """
-    PostAddCommand: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment]
+    PostAddCommand: Event = Callable[["commands.AddCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before finishing the `cobib.commands.add.AddCommand`.
@@ -151,7 +165,7 @@ class Event(Enum):
         manual entry addition is requested.
     """
 
-    PreDeleteCommand: Event = Callable[[Namespace], None]  # type: ignore[assignment]
+    PreDeleteCommand: Event = Callable[["commands.DeleteCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before starting the `cobib.commands.delete.DeleteCommand`.
@@ -162,11 +176,13 @@ class Event(Enum):
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
     """
-    PostDeleteCommand: Event = Callable[[Set[str]], None]  # type: ignore[assignment]
+    PostDeleteCommand: Event = Callable[  # type: ignore[assignment]
+        ["commands.DeleteCommand"], None
+    ]
     """Gets fired before finishing the `cobib.commands.DeleteCommand`. The deleted entry labels are
     provided as input. Modifying them has no effect."""
 
-    PreEditCommand: Event = Callable[[Namespace], None]  # type: ignore[assignment]
+    PreEditCommand: Event = Callable[["commands.EditCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before starting the `cobib.commands.edit.EditCommand`.
@@ -177,11 +193,11 @@ class Event(Enum):
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
     """
-    PostEditCommand: Event = Callable[["Entry"], None]  # type: ignore[assignment]
+    PostEditCommand: Event = Callable[["commands.EditCommand"], None]  # type: ignore[assignment]
     """Gets fired before finishing the `cobib.commands.EditCommand`. The new entry gets provided as
     input and it may be modified. However, renaming the label will no longer be possible."""
 
-    PreExportCommand: Event = Callable[[Namespace], None]  # type: ignore[assignment]
+    PreExportCommand: Event = Callable[["commands.ExportCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before starting the `cobib.commands.export.ExportCommand`.
@@ -192,7 +208,9 @@ class Event(Enum):
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
     """
-    PostExportCommand: Event = Callable[[List[str], Namespace], None]  # type: ignore[assignment]
+    PostExportCommand: Event = Callable[  # type: ignore[assignment]
+        ["commands.ExportCommand"], None
+    ]
     """
     Fires:
         Before finishing the `cobib.commands.export.ExportCommand`.
@@ -208,7 +226,7 @@ class Event(Enum):
         If exporting to a zip file, it will only be closed *after* this event got fired.
     """
 
-    PreImportCommand: Event = Callable[[Namespace], None]  # type: ignore[assignment]
+    PreImportCommand: Event = Callable[["commands.ImportCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before starting the `cobib.commands.import_.ImportCommand`.
@@ -219,7 +237,9 @@ class Event(Enum):
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
     """
-    PostImportCommand: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment]
+    PostImportCommand: Event = Callable[  # type: ignore[assignment]
+        ["commands.ImportCommand"], None
+    ]
     """
     Fires:
         Before finishing the `cobib.commands.import_.ImportCommand`.
@@ -232,7 +252,7 @@ class Event(Enum):
         persistent in the database.
     """
 
-    PreInitCommand: Event = Callable[[Namespace], None]  # type: ignore[assignment]
+    PreInitCommand: Event = Callable[["commands.InitCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before starting the `cobib.commands.init.InitCommand`.
@@ -243,7 +263,7 @@ class Event(Enum):
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
     """
-    PostInitCommand: Event = Callable[[Path, Path], None]  # type: ignore[assignment]
+    PostInitCommand: Event = Callable[["commands.InitCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before finishing the `cobib.commands.init.InitCommand`.
@@ -256,7 +276,7 @@ class Event(Enum):
         Nothing.
     """
 
-    PreListCommand: Event = Callable[[Namespace], None]  # type: ignore[assignment]
+    PreListCommand: Event = Callable[["commands.ListCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before starting the `cobib.commands.list.ListCommand`.
@@ -267,19 +287,20 @@ class Event(Enum):
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
     """
-    PostListCommand: Event = Callable[[List[str]], None]  # type: ignore[assignment]
+    PostListCommand: Event = Callable[["commands.ListCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before finishing the `cobib.commands.list.ListCommand`.
 
     Arguments:
-        - `labels`: the list of labels.
+        - `entries`: the list of entries being displayed.
+        - `columns`: the list of columns being displayed.
 
     Returns:
         Nothing.
     """
 
-    PreModifyCommand: Event = Callable[[Namespace], None]  # type: ignore[assignment]
+    PreModifyCommand: Event = Callable[["commands.ModifyCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before starting the `cobib.commands.modify.ModifyCommand`.
@@ -290,7 +311,9 @@ class Event(Enum):
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
     """
-    PostModifyCommand: Event = Callable[[List[str], bool], None]  # type: ignore[assignment]
+    PostModifyCommand: Event = Callable[  # type: ignore[assignment]
+        ["commands.ModifyCommand"], None
+    ]
     """
     Fires:
         Before finishing the `cobib.commands.modify.ModifyCommand`.
@@ -303,7 +326,7 @@ class Event(Enum):
         Nothing.
     """
 
-    PreOpenCommand: Event = Callable[[Namespace], None]  # type: ignore[assignment]
+    PreOpenCommand: Event = Callable[["commands.OpenCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before starting the `cobib.commands.open.OpenCommand`.
@@ -314,7 +337,7 @@ class Event(Enum):
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
     """
-    PostOpenCommand: Event = Callable[[List[str]], None]  # type: ignore[assignment]
+    PostOpenCommand: Event = Callable[["commands.OpenCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before finishing the `cobib.commands.open.OpenCommand`.
@@ -326,7 +349,7 @@ class Event(Enum):
         Nothing.
     """
 
-    PreRedoCommand: Event = Callable[[Namespace], None]  # type: ignore[assignment]
+    PreRedoCommand: Event = Callable[["commands.RedoCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before starting the `cobib.commands.redo.RedoCommand`.
@@ -341,7 +364,7 @@ class Event(Enum):
         As of right now, the `redo` command does not take any arguments, so there is nothing to
         modify here.
     """
-    PostRedoCommand: Event = Callable[[Path, str], None]  # type: ignore[assignment]
+    PostRedoCommand: Event = Callable[["commands.RedoCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before finishing the `cobib.commands.redo.RedoCommand`.
@@ -354,7 +377,7 @@ class Event(Enum):
         Nothing.
     """
 
-    PreSearchCommand: Event = Callable[[Namespace], None]  # type: ignore[assignment]
+    PreSearchCommand: Event = Callable[["commands.SearchCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before starting the `cobib.commands.search.SearchCommand`.
@@ -365,20 +388,22 @@ class Event(Enum):
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
     """
-    PostSearchCommand: Event = Callable[[int, List[str]], None]  # type: ignore[assignment]
+    PostSearchCommand: Event = Callable[  # type: ignore[assignment]
+        ["commands.SearchCommand"], None
+    ]
     """
     Fires:
         Before finishing the `cobib.commands.search.SearchCommand`.
 
     Arguments:
         - `hits`: the number of matches found in the database.
-        - `labels`: the list of matching labels.
+        - `entries`: the list of matching entries.
 
     Returns:
         Nothing.
     """
 
-    PreShowCommand: Event = Callable[[Namespace], None]  # type: ignore[assignment]
+    PreShowCommand: Event = Callable[["commands.ShowCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before starting the `cobib.commands.show.ShowCommand`.
@@ -389,7 +414,7 @@ class Event(Enum):
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
     """
-    PostShowCommand: Event = Callable[[str], Optional[str]]  # type: ignore[assignment]
+    PostShowCommand: Event = Callable[["commands.ShowCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before finishing the `cobib.commands.show.ShowCommand`.
@@ -404,7 +429,7 @@ class Event(Enum):
         If a registered hook returns a new string, no subsequent hooks will be run!
     """
 
-    PreUndoCommand: Event = Callable[[Namespace], None]  # type: ignore[assignment]
+    PreUndoCommand: Event = Callable[["commands.UndoCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before starting the `cobib.commands.undo.UndoCommand`.
@@ -415,7 +440,7 @@ class Event(Enum):
     Returns:
         Nothing. But the `Namespace` can be modified, affecting the command execution.
     """
-    PostUndoCommand: Event = Callable[[Path, str], None]  # type: ignore[assignment]
+    PostUndoCommand: Event = Callable[["commands.UndoCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before finishing the `cobib.commands.undo.UndoCommand`.

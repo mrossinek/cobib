@@ -6,7 +6,6 @@ from __future__ import annotations
 import logging
 import os
 import tempfile
-from argparse import Namespace
 from itertools import zip_longest
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type
 
@@ -14,11 +13,10 @@ import pytest
 
 from cobib.commands import AddCommand
 from cobib.config import Event, config
-from cobib.database import Database, Entry
+from cobib.database import Database
 from cobib.utils.rel_path import RelPath
 
 from .. import get_resource
-from ..tui.tui_test import TUITest
 from .command_test import CommandTest
 
 EXAMPLE_LITERATURE = get_resource("example_literature.yaml")
@@ -31,7 +29,7 @@ if TYPE_CHECKING:
     import cobib.commands
 
 
-class TestAddCommand(CommandTest, TUITest):
+class TestAddCommand(CommandTest):
     """Tests for coBib's AddCommand."""
 
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
@@ -104,7 +102,7 @@ class TestAddCommand(CommandTest, TUITest):
             label = "example_multi_file_entry"
         args = ["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB] + more_args
 
-        AddCommand().execute(args)
+        AddCommand(args).execute()
 
         assert Database()[label]
 
@@ -126,7 +124,7 @@ class TestAddCommand(CommandTest, TUITest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        AddCommand().execute(["-l", "dummy"])
+        AddCommand(["-l", "dummy"]).execute()
         assert (
             "cobib.commands.add",
             30,
@@ -168,7 +166,7 @@ class TestAddCommand(CommandTest, TUITest):
             if folder:
                 args += ["-p", folder]
 
-            AddCommand().execute(args)
+            AddCommand(args).execute()
 
             if (
                 "cobib.parsers.arxiv",
@@ -201,7 +199,7 @@ class TestAddCommand(CommandTest, TUITest):
         try:
             args = ["-a", "1812.09976", "--skip-download"]
 
-            AddCommand().execute(args)
+            AddCommand(args).execute()
 
             if (
                 "cobib.parsers.arxiv",
@@ -238,7 +236,7 @@ class TestAddCommand(CommandTest, TUITest):
             caplog: the built-in pytest fixture.
         """
         git = setup.get("git", False)
-        AddCommand().execute(["-a", "1812.09976", "--skip-download"])
+        AddCommand(["-a", "1812.09976", "--skip-download"]).execute()
 
         if (
             "cobib.parsers.arxiv",
@@ -266,7 +264,7 @@ class TestAddCommand(CommandTest, TUITest):
         assert "volume" not in entry.data.keys()
 
         args = ["-d", "10.1021/acs.chemrev.8b00803", "-l", "Cao2018", "--skip-download", "--update"]
-        AddCommand().execute(args)
+        AddCommand(args).execute()
 
         if (
             "cobib.parsers.doi",
@@ -305,7 +303,7 @@ class TestAddCommand(CommandTest, TUITest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        AddCommand().execute(["-l", "einstein"])
+        AddCommand(["-l", "einstein"]).execute()
         assert (
             "cobib.commands.add",
             30,
@@ -331,7 +329,7 @@ class TestAddCommand(CommandTest, TUITest):
                 file.writelines(existing.readlines())
             file.writelines(["@article{dummy,\nauthor = {Dummy},\n}"])
             file.flush()
-            AddCommand().execute(["--skip-existing", "-b", file.name])
+            AddCommand(["--skip-existing", "-b", file.name]).execute()
         assert (
             "cobib.commands.add",
             30,
@@ -355,7 +353,7 @@ class TestAddCommand(CommandTest, TUITest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        AddCommand().execute([""])
+        AddCommand([""]).execute()
         assert (
             "cobib.commands.add",
             40,
@@ -383,7 +381,7 @@ class TestAddCommand(CommandTest, TUITest):
         config.utils.journal_abbreviations = [("Annalen der Physik", "Ann. Phys.")]
         git = setup.get("git", False)
         # add potentially duplicate entry
-        AddCommand().execute(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB, "--label", "duplicate_resolver"])
+        AddCommand(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB, "--label", "duplicate_resolver"]).execute()
 
         assert Database()["duplicate_resolver"]
 
@@ -410,7 +408,7 @@ class TestAddCommand(CommandTest, TUITest):
         config.database.format.label_default = "{author.split()[1]}{year}"
         git = setup.get("git", False)
 
-        AddCommand().execute(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB])
+        AddCommand(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB]).execute()
 
         assert Database()["Einstein1905"]
 
@@ -435,7 +433,7 @@ class TestAddCommand(CommandTest, TUITest):
         """
         git = setup.get("git", False)
 
-        AddCommand().execute(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB])
+        AddCommand(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB]).execute()
 
         assert (
             "cobib.commands.add",
@@ -482,7 +480,7 @@ class TestAddCommand(CommandTest, TUITest):
                     pass
 
                 # by repeatedly calling the same add command, we trigger the label disambiguation
-                AddCommand().execute(["-a", "1812.09976"])
+                AddCommand(["-a", "1812.09976"]).execute()
 
                 if (
                     "cobib.parsers.arxiv",
@@ -510,6 +508,7 @@ class TestAddCommand(CommandTest, TUITest):
                 except FileNotFoundError:
                     pass
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         ["setup"],
         [
@@ -518,54 +517,28 @@ class TestAddCommand(CommandTest, TUITest):
         indirect=["setup"],
     )
     # other variants are already covered by test_command
-    def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch) -> None:
+    async def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test the command-line access of the command.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             monkeypatch: the built-in pytest fixture.
         """
-        self.run_module(monkeypatch, "main", ["cobib", "add", "-b", EXAMPLE_MULTI_FILE_ENTRY_BIB])
+        await self.run_module(
+            monkeypatch, "main", ["cobib", "add", "-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]
+        )
         self._assert(EXAMPLE_MULTI_FILE_ENTRY_YAML)
-
-    def test_tui(self, setup: Any) -> None:
-        """Test the TUI access of the command.
-
-        Args:
-            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
-        """
-
-        def assertion(screen, logs, **kwargs):  # type: ignore
-            self._assert(EXAMPLE_MULTI_FILE_ENTRY_YAML)
-
-            assert "example_multi_file_entry" in screen.display[1]
-
-            expected_log = [
-                ("cobib.commands.add", 10, "Add command triggered from TUI."),
-                ("cobib.commands.add", 10, "Starting Add command."),
-                (
-                    "cobib.commands.add",
-                    10,
-                    "Adding entries from bibtex: '" + EXAMPLE_MULTI_FILE_ENTRY_BIB + "'.",
-                ),
-                ("cobib.commands.add", 20, "'example_multi_file_entry' was added to the database."),
-                ("cobib.commands.add", 10, "Updating list after Add command."),
-            ]
-            assert [log for log in logs if log[0] == "cobib.commands.add"] == expected_log
-
-        keys = "a-b " + EXAMPLE_MULTI_FILE_ENTRY_BIB + "\n"
-        self.run_tui(keys, assertion, {})
 
     def test_event_pre_add_command(self, setup: Any) -> None:
         """Tests the PreAddCommand event."""
 
         @Event.PreAddCommand.subscribe
-        def hook(largs: Namespace) -> None:
-            largs.label = "dummy"
+        def hook(command: AddCommand) -> None:
+            command.largs.label = "dummy"
 
         assert Event.PreAddCommand.validate()
 
-        AddCommand().execute(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB])
+        AddCommand(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB]).execute()
 
         assert "dummy" in Database().keys()
 
@@ -573,11 +546,11 @@ class TestAddCommand(CommandTest, TUITest):
         """Tests the PostAddCommand event."""
 
         @Event.PostAddCommand.subscribe
-        def hook(new_entries: Dict[str, Entry]) -> None:
-            new_entries["dummy"] = new_entries.pop("einstein_a")
+        def hook(command: AddCommand) -> None:
+            command.new_entries["dummy"] = command.new_entries.pop("einstein_a")
 
         assert Event.PostAddCommand.validate()
 
-        AddCommand().execute(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB])
+        AddCommand(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB]).execute()
 
         assert "dummy" in Database().keys()

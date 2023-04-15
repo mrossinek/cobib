@@ -7,9 +7,7 @@ import contextlib
 import logging
 import os
 import subprocess
-from argparse import Namespace
 from io import StringIO
-from pathlib import Path
 from shutil import rmtree
 from typing import TYPE_CHECKING, Any, Type
 
@@ -20,7 +18,6 @@ from cobib.config import Event, config
 from cobib.database import Database
 
 from .. import get_resource
-from ..tui.tui_test import TUITest
 from .command_test import CommandTest
 
 EXAMPLE_MULTI_FILE_ENTRY_BIB = get_resource("example_multi_file_entry.bib", "commands")
@@ -29,7 +26,7 @@ if TYPE_CHECKING:
     import cobib.commands
 
 
-class TestRedoCommand(CommandTest, TUITest):
+class TestRedoCommand(CommandTest):
     """Tests for coBib's RedoCommand."""
 
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
@@ -73,7 +70,7 @@ class TestRedoCommand(CommandTest, TUITest):
         git = setup.get("git", False)
 
         if not git:
-            RedoCommand().execute([])
+            RedoCommand([]).execute()
             for source, level, message in caplog.record_tuples:
                 if ("cobib.commands.redo", logging.ERROR) == (
                     source,
@@ -84,9 +81,9 @@ class TestRedoCommand(CommandTest, TUITest):
                 pytest.fail("No Error logged from RedoCommand.")
         elif expected_exit:
             # Regression test against #65
-            AddCommand().execute(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB])
+            AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
             with pytest.raises(SystemExit):
-                RedoCommand().execute([])
+                RedoCommand([]).execute()
             for source, level, message in caplog.record_tuples:
                 if ("cobib.commands.redo", logging.WARNING) == (
                     source,
@@ -96,13 +93,13 @@ class TestRedoCommand(CommandTest, TUITest):
             else:
                 pytest.fail("No Error logged from UndoCommand.")
         else:
-            AddCommand().execute(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB])
-            UndoCommand().execute([])
+            AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
+            UndoCommand([]).execute()
 
             if Database().get("example_multi_file_entry", None) is not None:
                 pytest.skip("UndoCommand failed. No point in attempting Redo.")
 
-            RedoCommand().execute([])
+            RedoCommand([]).execute()
 
             self._assert()
 
@@ -120,14 +117,14 @@ class TestRedoCommand(CommandTest, TUITest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        AddCommand().execute(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB])
-        AddCommand().execute(["-b", get_resource("example_entry.bib")])
-        UndoCommand().execute([])
-        UndoCommand().execute([])
-        RedoCommand().execute([])
+        AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
+        AddCommand(["-b", get_resource("example_entry.bib")]).execute()
+        UndoCommand([]).execute()
+        UndoCommand([]).execute()
+        RedoCommand([]).execute()
         caplog.clear()
 
-        RedoCommand().execute([])
+        RedoCommand([]).execute()
         self._assert()
         assert "Storing redone commit" in caplog.record_tuples[4][2]
         assert "Skipping" in caplog.record_tuples[6][2]
@@ -147,7 +144,7 @@ class TestRedoCommand(CommandTest, TUITest):
             caplog: the built-in pytest fixture.
         """
         rmtree(self.COBIB_TEST_DIR_GIT)
-        RedoCommand().execute([])
+        RedoCommand([]).execute()
         for source, level, message in caplog.record_tuples:
             if ("cobib.commands.redo", logging.ERROR) == (
                 source,
@@ -157,6 +154,7 @@ class TestRedoCommand(CommandTest, TUITest):
         else:
             pytest.fail("No Error logged from RedoCommand.")
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         ["setup"],
         [
@@ -165,7 +163,7 @@ class TestRedoCommand(CommandTest, TUITest):
         indirect=["setup"],
     )
     # other variants are already covered by test_command
-    def test_cmdline(
+    async def test_cmdline(
         self, setup: Any, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
     ) -> None:
         """Test the command-line access of the command.
@@ -175,13 +173,13 @@ class TestRedoCommand(CommandTest, TUITest):
             monkeypatch: the built-in pytest fixture.
             caplog: the built-in pytest fixture.
         """
-        AddCommand().execute(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB])
-        UndoCommand().execute([])
+        AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
+        UndoCommand([]).execute()
 
         if Database().get("example_multi_file_entry", None) is not None:
             pytest.skip("UndoCommand failed. No point in attempting Redo.")
 
-        self.run_module(monkeypatch, "main", ["cobib", "redo"])
+        await self.run_module(monkeypatch, "main", ["cobib", "redo"])
 
         self._assert()
 
@@ -211,49 +209,19 @@ class TestRedoCommand(CommandTest, TUITest):
             # clean up config
             config.defaults()
 
-    @pytest.mark.parametrize(
-        ["setup"],
-        [
-            [{"git": True}],
-        ],
-        indirect=["setup"],
-    )
-    def test_tui(self, setup: Any) -> None:
-        """Test the TUI access of the command.
-
-        Args:
-            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
-        """
-
-        def assertion(screen, logs, **kwargs):  # type: ignore
-            assert "example_multi_file_entry" in screen.display[1]
-
-            expected_log = [
-                ("cobib.commands.redo", 10, "Redo command triggered from TUI."),
-                ("cobib.commands.redo", 10, "Starting Redo command."),
-                ("cobib.commands.redo", 10, "Obtaining git log."),
-            ]
-            # we only assert the first three messages because the following ones will contain always
-            # changing commit SHAs
-            assert [log for log in logs if log[0] == "cobib.commands.redo"][0:3] == expected_log
-
-        AddCommand().execute(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB])
-        UndoCommand().execute([])
-        self.run_tui("r", assertion, {})
-
     @pytest.mark.parametrize("setup", [{"git": True}], indirect=["setup"])
     def test_event_pre_redo_command(self, setup: Any) -> None:
         """Tests the PreRedoCommand event."""
 
         @Event.PreRedoCommand.subscribe
-        def hook(largs: Namespace) -> None:
+        def hook(command: RedoCommand) -> None:
             print("Hello world!")
 
         assert Event.PreRedoCommand.validate()
 
         with contextlib.redirect_stdout(StringIO()) as out:
             with pytest.raises(SystemExit):
-                RedoCommand().execute([])
+                RedoCommand([]).execute()
 
             assert out.getvalue() == "Hello world!\n"
 
@@ -262,19 +230,19 @@ class TestRedoCommand(CommandTest, TUITest):
         """Tests the PostRedoCommand event."""
 
         @Event.PostRedoCommand.subscribe
-        def hook(root: Path, sha: str) -> None:
-            print(root)
+        def hook(command: RedoCommand) -> None:
+            print(command.root)
 
         assert Event.PostRedoCommand.validate()
 
         with contextlib.redirect_stdout(StringIO()) as out:
-            AddCommand().execute(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB])
-            UndoCommand().execute([])
+            AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
+            UndoCommand([]).execute()
 
             if Database().get("example_multi_file_entry", None) is not None:
                 pytest.skip("UndoCommand failed. No point in attempting Redo.")
 
-            RedoCommand().execute([])
+            RedoCommand([]).execute()
 
             self._assert()
 

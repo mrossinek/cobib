@@ -6,6 +6,8 @@ Note, that this last link will not point to the correct location in the online d
 the nature of the lower-level import.
 """
 
+from __future__ import annotations
+
 import copy
 import importlib.util
 import io
@@ -19,17 +21,6 @@ from typing import Any, Dict, Optional, TextIO, Union
 from cobib.utils.rel_path import RelPath
 
 LOGGER = logging.getLogger(__name__)
-
-ANSI_COLORS = [
-    "black",
-    "red",
-    "green",
-    "yellow",
-    "blue",
-    "magenta",
-    "cyan",
-    "white",
-]
 
 
 class LabelSuffix(Enum):
@@ -67,6 +58,9 @@ class Config(Dict[str, Any]):
                 "default_entry_type": "article",
                 "editor": os.environ.get("EDITOR", "vim"),
             },
+            "list": {
+                "default_columns": ["label", "title"],
+            },
             "open": {
                 "command": "xdg-open" if sys.platform.lower() == "linux" else "open",
                 "fields": ["file", "url"],
@@ -75,6 +69,10 @@ class Config(Dict[str, Any]):
                 "grep": "grep",
                 "grep_args": [],
                 "ignore_case": False,
+                "highlights": {
+                    "label": "blue",
+                    "query": "red",
+                },
             },
         },
         "database": {
@@ -100,52 +98,6 @@ class Config(Dict[str, Any]):
             },
             "yaml": {
                 "use_c_lib_yaml": False,
-            },
-        },
-        "tui": {
-            "default_list_args": ["-l"],
-            "prompt_before_quit": True,
-            "reverse_order": True,
-            "scroll_offset": 3,
-            "colors": {
-                "cursor_line_fg": "white",
-                "cursor_line_bg": "cyan",
-                "top_statusbar_fg": "black",
-                "top_statusbar_bg": "yellow",
-                "bottom_statusbar_fg": "black",
-                "bottom_statusbar_bg": "yellow",
-                "search_label_fg": "blue",
-                "search_label_bg": "black",
-                "search_query_fg": "red",
-                "search_query_bg": "black",
-                "popup_help_fg": "white",
-                "popup_help_bg": "green",
-                "popup_stdout_fg": "white",
-                "popup_stdout_bg": "blue",
-                "popup_stderr_fg": "white",
-                "popup_stderr_bg": "red",
-                "selection_fg": "white",
-                "selection_bg": "magenta",
-            },
-            "key_bindings": {
-                "prompt": ":",
-                "search": "/",
-                "help": "?",
-                "add": "a",
-                "delete": "d",
-                "edit": "e",
-                "filter": "f",
-                "import": "i",
-                "modify": "m",
-                "open": "o",
-                "quit": "q",
-                "redo": "r",
-                "sort": "s",
-                "undo": "u",
-                "select": "v",
-                "wrap": "w",
-                "export": "x",
-                "show": "ENTER",
             },
         },
         "utils": {
@@ -261,8 +213,10 @@ class Config(Dict[str, Any]):
         Args:
             configpath: the path to the configuration.
         """
+        LOGGER.info(configpath)
         if configpath is not None:
             if isinstance(configpath, (TextIO, io.TextIOWrapper)):
+                configpath.close()
                 configpath = configpath.name
         elif "COBIB_CONFIG" in os.environ:
             configpath_env = os.environ["COBIB_CONFIG"]
@@ -273,7 +227,7 @@ class Config(Dict[str, Any]):
                 )
                 return
             configpath = RelPath(configpath_env).path
-        elif RelPath(Config.XDG_CONFIG_FILE).exists():
+        elif Config.XDG_CONFIG_FILE and RelPath(Config.XDG_CONFIG_FILE).exists():
             configpath = RelPath(Config.XDG_CONFIG_FILE).path
         else:  # pragma: no cover
             return  # pragma: no cover
@@ -328,6 +282,11 @@ class Config(Dict[str, Any]):
         self._assert(
             isinstance(self.commands.edit.editor, str),
             "config.commands.edit.editor should be a string.",
+        )
+        # COMMANDS.LIST section
+        self._assert(
+            isinstance(self.commands.list.default_columns, list),
+            "config.commands.list.default_columns should be a list.",
         )
         # COMMANDS.OPEN section
         LOGGER.debug("Validating the COMMANDS.OPEN configuration section.")
@@ -426,57 +385,6 @@ class Config(Dict[str, Any]):
                 "change its default value to `True` in version 4.0.0!"
             )
 
-        # TUI section
-        self._assert(
-            isinstance(self.tui.default_list_args, list),
-            "config.tui.default_list_args should be a list.",
-        )
-        self._assert(
-            isinstance(self.tui.prompt_before_quit, bool),
-            "config.tui.prompt_before_quit should be a boolean.",
-        )
-        self._assert(
-            isinstance(self.tui.reverse_order, bool),
-            "config.tui.reverse_order should be a boolean.",
-        )
-        self._assert(
-            isinstance(self.tui.scroll_offset, int),
-            "config.tui.scroll_offset should be an integer.",
-        )
-
-        # TUI.COLORS section
-        LOGGER.debug("Validating the TUI.COLORS configuration section.")
-        for name in self.DEFAULTS["tui"]["colors"]:
-            self._assert(
-                name in self.tui.colors.keys(), f"Missing config.tui.colors.{name} specification!"
-            )
-
-        for name, color in self.tui.colors.items():
-            if name not in self.DEFAULTS["tui"]["colors"] and name not in ANSI_COLORS:
-                LOGGER.warning("Ignoring unknown TUI color: %s.", name)
-            self._assert(
-                bool(
-                    (color in ANSI_COLORS)
-                    or (
-                        len(color.strip("#")) == 6
-                        and tuple(int(color.strip("#")[i : i + 2], 16) for i in (0, 2, 4))
-                    )
-                ),
-                f"Unknown color specification: {color}",
-            )
-
-        # TUI.KEY_BINDINGS section
-        LOGGER.debug("Validating the TUI.KEY_BINDINGS configuration section.")
-        for command in self.DEFAULTS["tui"]["key_bindings"]:
-            self._assert(
-                command in self.tui.key_bindings.keys(),
-                f"Missing config.tui.key_bindings.{command} key binding!",
-            )
-        for command, key in self.DEFAULTS["tui"]["key_bindings"].items():
-            self._assert(
-                isinstance(key, str), f"config.tui.key_bindings.{command} should be a string."
-            )
-
         # UTILS section
         LOGGER.debug("Validating the UTILS configuration section.")
         self._assert(
@@ -526,26 +434,6 @@ class Config(Dict[str, Any]):
                 self["events"] = {}
                 continue
             self[section].update(**self.DEFAULTS[section])
-
-    def get_ansi_color(self, name: str) -> str:
-        r"""Returns an ANSI color code for the named color.
-
-        Appending `_fg` and `_bg` to the color name will yield the configured colors for the fore-
-        and background property, respectively.
-        The [ANSI color code](https://en.wikipedia.org/wiki/ANSI_escape_code#3-bit_and_4-bit) can
-        then be constructed using the formula `\x1b[{FG};{BG}m`.
-
-        Args:
-            name: a named color as specified in the configuration *excluding* the `_fg` or `_bg`
-                  suffix.
-
-        Returns:
-            A string representing the foreground and background ANSI color code.
-        """
-        fg_color = 30 + ANSI_COLORS.index(self.tui.colors.get(name + "_fg"))
-        bg_color = 40 + ANSI_COLORS.index(self.tui.colors.get(name + "_bg"))
-
-        return f"\x1b[{fg_color};{bg_color}m"
 
 
 config: Config = Config()

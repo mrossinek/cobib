@@ -15,7 +15,7 @@ It maintains a plain-text database of literature data in YAML format at
 .PP
 coBib provides a variety of \fBSUBCOMMANDS\fR through which you may
 investigate and manage the database.
-For easy of use it also comes with a curses-based \fBTUI\fR which is
+For easy of use it also comes with a textual-based \fBTUI\fR which is
 automatically started when no other subcommand is found (more information is
 provided in that section).
 .PP
@@ -386,71 +386,7 @@ Lists only entries with the `quantum` tag from the year 2019.
 .B cobib list -x ++year 2019 ++year 2020
 Lists only entries published in 2019 or 2020.
 .SH TUI
-The curses-based TUI is started automatically when no other subcommand is
-supplied, i.e. by simply running \fBcobib\fR.
-By default, it lists all entries of the database in a buffer which may be
-scrolled in vim-fashion with \fIh,j,k,l,^B,^U,^D,^F\fR.
-The arrow and paging keys are also available for scrolling.
-The following default key bindings are available:
-.TP
-.BR q " " quit
-Quits one level of the viewing buffer.
-.TP
-.BR ? " " help
-Opens a small window providing help for the key bindings.
-.TP
-.BR ENTER " " show
-Populates the viewing buffer with a BibLaTex view of the selected entry.
-.TP
-.BR o " " open
-Opens the current (or \fIselected\fR) label(s).
-.TP
-.BR w " " wrap
-Toggles wrapping of the viewing buffer.
-.TP
-.BR a " " add
-Opens a command prompt which allows running the \fBadd\fR command as if outside
-of the TUI.
-.TP
-.BR d " " delete
-Deletes the current (or \fIselected\fR) label(s).
-.TP
-.BR e " " edit
-Opens the current label in an external editor.
-.TP
-.BR m " " modify
-Opens a command prompt which allows running the \fBmodify\fR command as if
-outside of the TUI. If a \fIselection\fR is present, the \fI-s\fR argument will
-be set automatically.
-.TP
-.BR u " " undo
-Undoes the last auto-committed change to the database file.
-This requires the git-integration (since v2.6.0) to be enabled!
-.TP
-.BR r " " redo
-Reapplies the last undone change.
-This requires the git-integration (since v2.6.0) to be enabled!
-.TP
-.BR / " " search
-Opens a search prompt and views the results in the viewing buffer.
-.TP
-.BR f " " filter
-Allows adding filters to the list view.
-.TP
-.BR s " " sort
-Allows sorting the list view.
-.TP
-.BR v " " select
-Adds the current label to the \fIselection\fR.
-.TP
-.BR x " " export
-Opens a command prompt which allows running the \fBexport\fR command as if
-outside of the TUI. If a \fIselection\fR is present, the \fI-s\fR argument will
-be set automatically.
-.TP
-.BR : " " prompt
-Opens a command prompt allowing the user to execute an arbitrary coBib CLI
-command.
+\fBThe TUI is undergoing a major rewrite... stay tuned!\fR
 .SH CONFIGURATION
 Since version 3.0, coBib can be configured directly via \fIPython\fR. To do so,
 you must place the configuration file at \fI$HOME/.config/cobib/config.py\fR.
@@ -577,108 +513,7 @@ for more details.
 .PP
 .BR TUI
 .TP
-.IR config.tui.default_list_args = ['\-l']
-This can be set to a list of default arguments to use for the TUI's list view.
-.TP
-.IR config.tui.prompt_before_quit = True
-This setting specifies whether the user is prompted to verify the final quit
-operation.
-.TP
-.IR config.tui.reverse_order = True
-This setting specifies whether the database is listed in reverse order by
-default. This is useful because the most recently added entries will be at the
-top.
-.TP
-.IR config.tui.scroll_offset = 3
-This setting specifies the scrolling offset used to prevent the cursor line from
-coming too close to the ends of the screen while scrolling.  The intent of this
-setting is to provide a similar behavior as the 'scrolloff' option available in
-Vim. Note, that you can pin the cursor line to the center of the screen by
-setting this option to a very large value (e.g. 99).
-.PP
-.BR TUI.COLORS
-With the following settings you can change the look of the TUI. Each of these
-settings accepts any of the following color names: \fIblack\fR, \fIred\fR,
-\fIgreen\fR, \fIyellow\fR, \fIblue\fR, \fImagenta\fR, \fIcyan\fR and
-\fIwhite\fR.
-.TP
-.IR config.tui.colors.cursor_line_fg = 'white'
-.TP
-.IR config.tui.colors.cursor_line_bg = 'cyan'
-.TP
-.IR config.tui.colors.top_statusbar_fg = 'black'
-.TP
-.IR config.tui.colors.top_statusbar_bg = 'yellow'
-.TP
-.IR config.tui.colors.bottom_statusbar_fg = 'black'
-.TP
-.IR config.tui.colors.bottom_statusbar_bg = 'yellow'
-.TP
-.IR config.tui.colors.search_label_fg = 'blue'
-.TP
-.IR config.tui.colors.search_label_bg = 'black'
-.TP
-.IR config.tui.colors.search_query_fg = 'red'
-.TP
-.IR config.tui.colors.search_query_bg = 'black'
-.TP
-.IR config.tui.colors.popup_help_fg = 'white'
-.TP
-.IR config.tui.colors.popup_help_bg = 'green'
-.TP
-.IR config.tui.colors.popup_stdout_fg = 'white'
-.TP
-.IR config.tui.colors.popup_stdout_bg = 'blue'
-.TP
-.IR config.tui.colors.popup_stderr_fg = 'white'
-.TP
-.IR config.tui.colors.popup_stderr_bg = 'red'
-.TP
-.IR config.tui.colors.selection_fg = 'white'
-.TP
-.IR config.tui.colors.selection_bg = 'magenta'
-.PP
-.BR TUI.KEY_BINDINGS
-You can change the default key bindings of the TUI by overwriting any of the
-following settings with a different key. Any setting will interpret the provided
-string as a single character whose ASCII value is used for triggering the
-command.
-The only exception is the \fIENTER\fR string, which will be internally mapped to
-the ASCII codes 10 (\fIline feed\fR) and 13 (\fIcarriage return\fR).
-.TP
-.IR config.tui.key_bindings.prompt = ':'
-.TP
-.IR config.tui.key_bindings.search = '/'
-.TP
-.IR config.tui.key_bindings.help = '?'
-.TP
-.IR config.tui.key_bindings.add = 'a'
-.TP
-.IR config.tui.key_bindings.delete = 'd'
-.TP
-.IR config.tui.key_bindings.edit = 'e'
-.TP
-.IR config.tui.key_bindings.filter = 'f'
-.TP
-.IR config.tui.key_bindings.modify = 'm'
-.TP
-.IR config.tui.key_bindings.open = 'o'
-.TP
-.IR config.tui.key_bindings.quit = 'q'
-.TP
-.IR config.tui.key_bindings.redo = 'r'
-.TP
-.IR config.tui.key_bindings.sort = 's'
-.TP
-.IR config.tui.key_bindings.undo = 'u'
-.TP
-.IR config.tui.key_bindings.select = 'v'
-.TP
-.IR config.tui.key_bindings.wrap = 'w'
-.TP
-.IR config.tui.key_bindings.export = 'x'
-.TP
-.IR config.tui.key_bindings.show = 'ENTER'
+\fBThe TUI is undergoing a major rewrite... stay tuned!\fR
 .PP
 .BR UTILS
 .TP

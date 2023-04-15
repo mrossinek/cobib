@@ -13,10 +13,13 @@ The following documentation is mostly inherited from the abstract interface
 
 import io
 import logging
+import sys
 from collections import OrderedDict
 from pathlib import Path
 from typing import IO, Dict, Optional, Union
 
+from rich.console import Console
+from rich.progress import track
 from ruamel import yaml
 
 from cobib.config import Event, config
@@ -58,7 +61,12 @@ class YAMLParser(Parser):
                 stream = open(string, "r", encoding="utf-8")  # pylint: disable=consider-using-with
             except FileNotFoundError as exc:
                 raise exc
-        for entry in self._yaml.load_all(stream):  # type: ignore[union-attr]
+        for entry in track(
+            self._yaml.load_all(stream),  # type: ignore[union-attr]
+            description="Reading database...",
+            transient=True,
+            console=Console(file=sys.stderr),  # TODO: do not hard-code this
+        ):
             for label, data in entry.items():
                 bib[label] = Entry(label, data)
         stream.close()

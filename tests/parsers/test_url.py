@@ -75,7 +75,7 @@ class TestURLParser(ParserTest):
         """Test parsing an invalid URL."""
         entries = URLParser().parse("https://github.com/")
         assert not entries
-        assert entries == {}  # pylint: disable=C1803
+        assert entries == {}
 
     def test_dump(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test dumping.
