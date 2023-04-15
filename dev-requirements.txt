@@ -1,6 +1,6 @@
 pytest==7.3.1
 pytest-asyncio==0.21.0
-coverage<7
+coverage<8
 pytest-cov==4.0.0
 black==23.3.0
 isort==5.12.0
