@@ -29,6 +29,17 @@ keyword argument to your command like so:
 cobib add --doi <some DOI> --label "MyLabel"
 ```
 
+.. note::
+   Since this command adds new entries to the database, its outcome can be affected by your choices
+   of the various `database`-related settings in your `cobib.config`. In particular, pay attention
+   to the "stringify" settings which affect how entries are converted to/from strings. In
+   particular, the following setting will affect how multiple files are split into a list of files:
+   ```
+   config.database.stringify.list_separator.file = ", "
+   ```
+   The above will separate file paths using `, ` but if you use a different separator (for example
+   `;`) be sure to update this setting accordingly.
+
 ### 2. Manual entry addition
 
 If you want to add a new entry manually, you *must* omit any of the parser keyword arguments and
