@@ -56,7 +56,7 @@ def test_download(monkeypatch: pytest.MonkeyPatch) -> None:
         # disable the PDF assertion method
         monkeypatch.setattr(FileDownloader, "_assert_pdf", lambda _: True)
         path = FileDownloader().download(
-            "https://gitlab.com/mrossinek/cobib/-/raw/master/tests/utils/__init__.py",
+            "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
             "dummy",
             tmpdirname,
         )
@@ -85,7 +85,7 @@ def test_skip_download_if_no_pdf(setup_remove_content_length: Any) -> None:
     with tempfile.TemporaryDirectory() as tmpdirname:
         assert (
             FileDownloader().download(
-                "https://gitlab.com/mrossinek/cobib/-/raw/master/tests/utils/__init__.py",
+                "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
                 "dummy",
                 tmpdirname,
             )
@@ -106,7 +106,7 @@ def test_skip_download_if_exists(caplog: pytest.LogCaptureFixture, overwrite: bo
             tmpdirname + "/dummy.pdf", "w", encoding="utf-8"
         ).close()
         FileDownloader().download(
-            "https://gitlab.com/mrossinek/cobib/-/raw/master/tests/utils/__init__.py",
+            "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
             "dummy",
             folder=tmpdirname,
             overwrite=overwrite,
@@ -213,7 +213,7 @@ def test_event_pre_download(monkeypatch: pytest.MonkeyPatch) -> None:
         # disable the PDF assertion method
         monkeypatch.setattr(FileDownloader, "_assert_pdf", lambda _: True)
         path = FileDownloader().download(
-            "https://gitlab.com/mrossinek/cobib/-/raw/master/tests/utils/__init__.py",
+            "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
             "dummy",
             tmpdirname,
         )
@@ -246,7 +246,7 @@ def test_event_post_download(monkeypatch: pytest.MonkeyPatch) -> None:
         # disable the PDF assertion method
         monkeypatch.setattr(FileDownloader, "_assert_pdf", lambda _: True)
         path = FileDownloader().download(
-            "https://gitlab.com/mrossinek/cobib/-/raw/master/tests/utils/__init__.py",
+            "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
             "dummy",
             tmpdirname,
         )

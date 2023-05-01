@@ -47,7 +47,7 @@ class TestISBNParser(ParserTest):
         entry = list(entries.values())[0]
         assert_default_test_entry(entry)
 
-    # regression test for https://gitlab.com/mrossinek/cobib/-/issues/53
+    # regression test for https://gitlab.com/cobib/cobib/-/issues/53
     def test_from_empty_isbn(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test parsing an empty ISBN.
 

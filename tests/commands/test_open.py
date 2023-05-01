@@ -274,7 +274,7 @@ class TestOpenCommand(CommandTest):
     ) -> None:
         """Test opening of non-list type fields.
 
-        This is a regression test against https://gitlab.com/mrossinek/cobib/-/issues/100
+        This is a regression test against https://gitlab.com/cobib/cobib/-/issues/100
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.

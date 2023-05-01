@@ -1,7 +1,7 @@
 # Contributing
-If you want to contribute to coBib feel free to open a [PR on Gitlab](https://gitlab.com/mrossinek/cobib/-/merge_requests).
+If you want to contribute to coBib feel free to open a [PR on Gitlab](https://gitlab.com/cobib/cobib/-/merge_requests).
 Bug fixes and feature additions are always welcome!
-If you need some inspiration you also take a look at the [list of open issues](https://gitlab.com/mrossinek/cobib/-/issues) to see whether there is something you can help with.
+If you need some inspiration you also take a look at the [list of open issues](https://gitlab.com/cobib/cobib/-/issues) to see whether there is something you can help with.
 
 ## Setup
 We are using [`tox`](https://tox.readthedocs.io/en/latest/index.html) for a unified testing experience between local installations and the CI.
@@ -30,7 +30,7 @@ tox -e coverage
 ```
 
 ## Documentation
-When working on coBib you may find the online documentation at https://mrossinek.gitlab.io/cobib/cobib.html or a locally generated version, useful.
+When working on coBib you may find the online documentation at https://cobib.gitlab.io/cobib/cobib.html or a locally generated version, useful.
 For the latter, please refer to the README.
 
 Once you have opened a merge request on GitLab, you can also view an automatically generated version of the documentation for your branch through the `View App` button below the `Pipeline` results.

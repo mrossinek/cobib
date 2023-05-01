@@ -88,7 +88,7 @@ config.database.git = False
 
 # You can specify a default label format which will be used for the database entry keys. The format
 # of this option follows the f-string like formatting of modifications (see also the documentation
-# of the [ModifyCommand](https://mrossinek.gitlab.io/cobib/cobib/commands/modify.html)). The default
+# of the [ModifyCommand](https://cobib.gitlab.io/cobib/cobib/commands/modify.html)). The default
 # configuration value leaves the label unchanged compared to the metadata provided by the source
 # from which the entry gets added. A more useful example is
 #     `"{author.split(' and ')[0].split()[-1]}{year}"`
@@ -173,4 +173,4 @@ config.events = {}
 #
 # Note, that the typing is required for the config validation to pass!
 # For more information refer to the
-# [online documentation](https://mrossinek.gitlab.io/cobib/cobib/config/event.html).
+# [online documentation](https://cobib.gitlab.io/cobib/cobib/config/event.html).

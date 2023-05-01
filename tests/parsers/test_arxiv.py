@@ -60,7 +60,7 @@ class TestArxivParser(ParserTest):
         entry = list(entries.values())[0]
         assert_default_test_entry(entry)
 
-    # regression test for https://gitlab.com/mrossinek/cobib/-/issues/57
+    # regression test for https://gitlab.com/cobib/cobib/-/issues/57
     def test_invalid_arxiv_id(self) -> None:
         """Test parsing an invalid arXiv ID."""
         entries = ArxivParser().parse("10.1021/acs.chemrev.8b00803")

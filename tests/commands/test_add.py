@@ -461,7 +461,7 @@ class TestAddCommand(CommandTest):
     ) -> None:
         """Test label disambiguation is propagated to downloaded files.
 
-        This is a regression test against https://gitlab.com/mrossinek/cobib/-/issues/96.
+        This is a regression test against https://gitlab.com/cobib/cobib/-/issues/96.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.

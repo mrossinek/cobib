@@ -1,9 +1,9 @@
-[![coBib](https://gitlab.com/mrossinek/cobib/-/raw/master/logo/cobib_logo.svg)](https://mrossinek.gitlab.io/cobib/cobib.html)
+[![coBib](https://gitlab.com/cobib/cobib/-/raw/master/logo/cobib_logo.svg)](https://cobib.gitlab.io/cobib/cobib.html)
 
 # coBib
 
-[![pipeline](https://gitlab.com/mrossinek/cobib/badges/master/pipeline.svg)](https://gitlab.com/mrossinek/cobib/-/pipelines)
-[![coverage](https://gitlab.com/mrossinek/cobib/badges/master/coverage.svg)](https://gitlab.com/mrossinek/cobib/-/graphs/master/charts)
+[![pipeline](https://gitlab.com/cobib/cobib/badges/master/pipeline.svg)](https://gitlab.com/cobib/cobib/-/pipelines)
+[![coverage](https://gitlab.com/cobib/cobib/badges/master/coverage.svg)](https://gitlab.com/cobib/cobib/-/graphs/master/charts)
 [![PyPI](https://img.shields.io/pypi/v/cobib)](https://pypi.org/project/cobib/)
 
 coBib is a simple, command-line based bibliography management tool.
@@ -27,7 +27,7 @@ and some of the user configuration options. It will also be a rather drastic cha
 Thus, I will attempt to support v3.5 with bugfix releases until 1.1.2023
 
 It will likely take a few months until v4.0 gets released but I am starting development on it now.
-You can follow the progress here: <https://gitlab.com/mrossinek/cobib/-/issues/78>
+You can follow the progress here: <https://gitlab.com/cobib/cobib/-/issues/78>
 
 [rich]: https://github.com/Textualize/rich
 [textual]: https://github.com/Textualize/textual
@@ -46,7 +46,7 @@ If you would also like to install the man-page and (crude!) Zsh completion,
 you need to download the source code and do the following:
 
 ```
-git clone https://gitlab.com/mrossinek/cobib
+git clone https://gitlab.com/cobib/cobib
 cd cobib
 make install_extras
 ```
@@ -208,7 +208,7 @@ man cobib
 ## Configuration
 
 You can overwrite the default configuration by placing a `config.py` file in `~/.config/cobib/`.
-The easiest way to get started with this file is by copying [`example.py`](https://gitlab.com/mrossinek/cobib/-/blob/master/src/cobib/config/example.py)
+The easiest way to get started with this file is by copying [`example.py`](https://gitlab.com/cobib/cobib/-/blob/master/src/cobib/config/example.py)
 or by using:
 
 ```
@@ -225,15 +225,15 @@ Finally, be sure to take a look at the man page (`man cobib`) and/or the online 
 
 ## Documentation
 
-coBib's documentation is hosted [here](https://mrossinek.gitlab.io/cobib/cobib.html).
+coBib's documentation is hosted [here](https://cobib.gitlab.io/cobib/cobib.html).
 
 If you would like to generate a local version during development, you need to clone the source code, and install [`pdoc`](https://github.com/mitmproxy/pdoc) in order to generate it:
 
 ```
-git clone https://gitlab.com/mrossinek/cobib.git
+git clone https://gitlab.com/cobib/cobib.git
 cd cobib
 pip install pdoc
-pdoc -d google -e cobib=https://gitlab.com/mrossinek/cobib/-/blob/master/src/cobib/ -t html -o docs src/cobib tests
+pdoc -d google -e cobib=https://gitlab.com/cobib/cobib/-/blob/master/src/cobib/ -t html -o docs src/cobib tests
 ```
 
 You can then browse the documentation from `docs/cobib.html`.
@@ -249,13 +249,13 @@ coBib is written in Python and uses a YAML file to store its bibliography in a p
 
 ### Changelog
 
-You can find the detailed changes throughout coBib's history in [the Changelog](https://gitlab.com/mrossinek/cobib/-/blob/master/CHANGELOG.md).
+You can find the detailed changes throughout coBib's history in [the Changelog](https://gitlab.com/cobib/cobib/-/blob/master/CHANGELOG.md).
 
 
 ## License
 
-coBib is licensed under the [MIT License](https://gitlab.com/mrossinek/cobib/-/blob/master/LICENSE.txt).
+coBib is licensed under the [MIT License](https://gitlab.com/cobib/cobib/-/blob/master/LICENSE.txt).
 
-[^1]: References like this one get interpreted by the documentation generator. If you are reading this as the README page, you may find the [online documentation](https://mrossinek.gitlab.io/cobib/cobib.html) more enjoyable.
+[^1]: References like this one get interpreted by the documentation generator. If you are reading this as the README page, you may find the [online documentation](https://cobib.gitlab.io/cobib/cobib.html) more enjoyable.
 
 [//]: # ( vim: set ft=markdown: )

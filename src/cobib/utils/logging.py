@@ -142,7 +142,7 @@ def print_changelog(version: str, cached_version_path: Optional[str]) -> Optiona
                 Text(
                     "I wanted to show you the new changes here but was unable to query them from "
                     + "your installation. You can look them up yourself, here:\n"
-                    + "https://gitlab.com/mrossinek/cobib/-/blob/master/CHANGELOG.md",
+                    + "https://gitlab.com/coBib/cobib/-/blob/master/CHANGELOG.md",
                     style="bold red",
                 )
             )
