@@ -16,6 +16,7 @@ from rich.style import Style
 from rich.table import Table
 from textual.app import App, ComposeResult
 from textual.binding import Binding
+from textual.color import Color
 from textual.containers import Container
 from textual.coordinate import Coordinate
 from textual.css.query import NoMatches
@@ -69,7 +70,8 @@ class SelectionFilter(LineFilter):
         self.selection: set[str] = set()
         self.selection_style = Style(color="white", bgcolor="magenta")
 
-    def apply(self, segments: list[Segment]) -> list[Segment]:
+    def apply(self, segments: list[Segment], background: Color | None = None) -> list[Segment]:
+        # pylint: disable=unused-argument
         """TODO."""
         return [
             Segment(
