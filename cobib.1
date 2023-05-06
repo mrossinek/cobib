@@ -36,6 +36,10 @@ By default, the verbosity of coBib's CLI is set to \fIwarning\fR but if the TUI
 is started, logging will be increased to \fIinfo\fR and redirected to
 \fIconfig.logging.logfile\fR.
 .TP
+.BR \-p ", " \-\-porcelain
+Switches the output that will be printed to the terminal to "porcelain" mode.
+This is meant to be useful for parsing and testing purposes.
+.TP
 .BR \-c ", " \-\-config " " \fI<path>\fR
 Run with an alternate configuration file at \fI<path>\fR.
 .TP
@@ -98,12 +102,6 @@ Attempts to extract an entry from the \fI<URL>\fR.
 Store the newly added entry under the specified \fIlabel\fR.
 .PP
 .in +8n
-.BR \-u ", " \-\-update
-.in +4n
-Updates an existing entry with the newly added data. Existing fields will be
-overwritten.
-.PP
-.in +8n
 .BR \-f ", " \-\-file " " \fI<path>\fR
 .in +4n
 Associate the newly added entry with the \fIfile\fR at the provided path.
@@ -116,15 +114,28 @@ Overwrites the location for the automatically downloaded file. If not specified,
 this setting defaults to \fIconfig.utils.file_downloader.default_location\fR.
 .PP
 .in +8n
+.BR \-\-disambiguation " " \fI<reply>\fR
+.in +4n
+Sets the reply for the interactive prompt if an addition needs to be
+disambiguated. The possible values for \fI<reply>\fR are the following:
+.in +4n
+.IR keep
+to keep the existing entry
+.in +0n
+.IR replace
+to replace the existing entry
+.in +0n
+.IR update
+to update the existing entry
+.in +0n
+.IR disambiguate
+to disambiguate the new label from the existing one by adding a label suffix
+(see also \fIconfig.database.format.label_suffix\fR)
+.PP
+.in +8n
 .BR \-\-skip\-download
 .in +4n
 Skips attempting to automatically download an associated file for the entry.
-.PP
-.in +8n
-.BR \-\-skip\-existing
-.in +4n
-Skips entry addition if the label already exists instead of using label
-disambiguation to find a new label.
 .TP
 .B cobib delete \fI<label>\fR
 Deletes the entry with the given \fIlabel\fR.

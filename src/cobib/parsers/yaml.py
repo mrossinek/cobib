@@ -1,3 +1,4 @@
+# mypy: warn-unused-ignores=False
 """coBib's YAML parser.
 
 This parser leverages the [`ruamel.yaml`](https://pypi.org/project/ruamel.yaml/) library to convert

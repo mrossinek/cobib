@@ -9,9 +9,11 @@ import os
 import shlex
 import sys
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List, Optional, Type
 
-from rich.console import ConsoleRenderable
+from rich.console import Console, ConsoleRenderable
+from rich.prompt import PromptBase
+from textual.app import App
 
 from cobib.config import Event, config
 from cobib.ui.argument_parser import ArgumentParser as ArgumentParser
@@ -31,6 +33,13 @@ class Command(ABC):
     """
 
     argparser: ArgumentParser
+    """TODO."""
+
+    prompt: Type[PromptBase[str]] | None = None
+    """TODO."""
+
+    console: Console | App[None] | None = None
+    """TODO."""
 
     def __init__(self, args: List[str]) -> None:
         """The initializer of any concrete implementation should *not* take any arguments!"""

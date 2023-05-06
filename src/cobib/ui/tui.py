@@ -8,12 +8,14 @@ import logging
 import shlex
 import sys
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
-from typing import Any, Iterator, cast
+from typing import Any, Iterator, TextIO, cast
 
 from rich.console import RenderableType
+from rich.prompt import InvalidResponse, PromptBase
 from rich.segment import Segment
 from rich.style import Style
 from rich.table import Table
+from rich.text import Text, TextType
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.color import Color
@@ -41,6 +43,15 @@ class Input(_Input):
         if self.parent is not None:
             self.parent.refresh(layout=True)
         await self.remove()
+
+
+class PromptInput(Input):
+    """TODO."""
+
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        """TODO."""
+        event.input.remove()
+        event.stop()
 
 
 # TODO:
@@ -144,6 +155,7 @@ class PopupPanel(Container, can_focus=False):
             align: center bottom;
             width: 100%;
             height: auto;
+            offset-y: -1;
         }
     """
 
@@ -154,13 +166,19 @@ class Popup(Label, can_focus=False):
     DEFAULT_CSS = """
         Popup {
             text-style: bold;
+            min-height: 1;
             width: 100%;
             color: auto;
         }
     """
 
     def __init__(
-        self, renderable: RenderableType, *args: Any, level: int = logging.INFO, **kwargs: Any
+        self,
+        renderable: RenderableType,
+        *args: Any,
+        level: int = logging.INFO,
+        timer: float | None = 5.0,
+        **kwargs: Any,
     ) -> None:
         """TODO."""
         super().__init__(renderable, *args, **kwargs)
@@ -175,9 +193,8 @@ class Popup(Label, can_focus=False):
             self.styles.background = "green"
         elif level >= logging.DEBUG:
             self.styles.background = "blue"
-        else:
-            self.styles.background = "black"
-        self.set_timer(5, self.remove)
+        if timer is not None:
+            self.set_timer(timer, self.remove)
 
 
 class PopupLoggingHandler(logging.Handler):
@@ -200,7 +217,79 @@ class PopupLoggingHandler(logging.Handler):
 
     def emit(self, record: logging.LogRecord) -> None:
         """TODO."""
-        self.app.query_one(PopupPanel).mount(Popup(self.format(record), level=record.levelno))
+        self.app.print(Popup(self.format(record), level=record.levelno))
+
+
+class TextualPrompt(PromptBase[str]):
+    """TODO."""
+
+    console: TUI  # type: ignore[assignment]
+
+    help_popup: Popup | None = None
+
+    async def __call__(  # type: ignore[override]
+        self, *, default: Any = ..., stream: TextIO | None = None
+    ) -> str:
+        # pylint: disable=invalid-overridden-method
+        """TODO."""
+        popup: Popup
+        reply: str
+        while True:
+            self.pre_prompt()
+            prompt = self.make_prompt(default)
+            prompt.rstrip()
+            popup = Popup(prompt + "\n", level=0, timer=None)
+            self.console.print(popup)
+            value = await self.get_input(self.console, prompt, self.password, stream=stream)
+            await popup.remove()
+            if value == "" and default != ...:
+                reply = str(default)
+                break
+            try:
+                return_value = self.process_response(value)
+            except InvalidResponse as error:
+                self.on_validate_error(value, error)
+                continue
+            else:
+                reply = return_value
+                break
+        if self.help_popup is not None:
+            self.help_popup.remove()
+        return reply
+
+    @classmethod
+    async def get_input(  # type: ignore[override]
+        cls, console: App[None], prompt: TextType, password: bool, stream: TextIO | None = None
+    ) -> str:
+        # pylint: disable=invalid-overridden-method
+        """TODO."""
+        inp = PromptInput()
+        inp.styles.layer = "overlay"
+        inp.styles.dock = "bottom"  # type: ignore[arg-type]
+        inp.styles.border = (None, None)
+        inp.styles.padding = (0, 0)
+        await console.mount(inp)
+
+        inp.focus()
+
+        while console.is_mounted(inp):
+            await asyncio.sleep(0)
+
+        return str(inp.value)
+
+    def on_validate_error(self, value: str, error: InvalidResponse) -> None:
+        """TODO."""
+        if value == "help":
+            if self.help_popup is not None:
+                self.help_popup.remove()
+            if isinstance(error.message, Text):
+                popup = Popup(error.message + "\n", level=0, timer=None)
+            else:
+                popup = Popup(Text.from_markup(error.message + "\n"), level=0, timer=None)
+            self.console.print(popup)
+            self.help_popup = popup
+        else:
+            super().on_validate_error(value, error)
 
 
 class TUI(UI, App[None]):
@@ -403,9 +492,7 @@ class TUI(UI, App[None]):
             labels = [self._get_current_label()]
 
         open_cmd = commands.OpenCommand(labels)
-        from cobib.commands.open import TextualOpenPrompt  # pylint: disable=import-outside-toplevel
-
-        open_cmd.prompt = TextualOpenPrompt
+        open_cmd.prompt = TextualPrompt
         open_cmd.console = self
         task = asyncio.create_task(open_cmd.execute())
         self._background_tasks.add(task)
@@ -490,16 +577,35 @@ class TUI(UI, App[None]):
                     with redirect_stderr(io.StringIO()) as stderr:
                         try:
                             subcmd = getattr(commands, command[0].title() + "Command")(command[1:])
-                            subcmd.execute()
+                            subcmd.prompt = TextualPrompt
+                            subcmd.console = self
+
+                            task = asyncio.create_task(
+                                subcmd.execute()  # type: ignore[func-returns-value]
+                            )
+                            self._background_tasks.add(task)
+                            task.add_done_callback(self._background_tasks.discard)
+                            task.add_done_callback(lambda _: self._update_table)
                         except SystemExit:
                             pass
                 stdout_val = stdout.getvalue().strip()
                 if stdout_val:
-                    self.app.query_one(PopupPanel).mount(Popup(stdout_val, level=logging.INFO))
+                    self.print(Popup(stdout_val, level=logging.INFO))
                 stderr_val = stderr.getvalue().strip()
                 if stderr_val:
-                    self.app.query_one(PopupPanel).mount(Popup(stderr_val, level=logging.CRITICAL))
+                    self.print(Popup(stderr_val, level=logging.CRITICAL))
                 self._update_table()
+
+    def print(self, renderable: RenderableType | Popup) -> Popup:
+        """TODO."""
+        if not isinstance(renderable, Popup):
+            popup = Popup(renderable, level=0, timer=None)
+        else:
+            popup = renderable
+
+        self.query_one(PopupPanel).mount(popup)
+
+        return popup
 
     async def action_search(self) -> None:
         """TODO."""
