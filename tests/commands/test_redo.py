@@ -48,6 +48,7 @@ class TestRedoCommand(CommandTest):
             # assert subject line
             assert "Redo" in split_message[0]
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         ["setup", "expected_exit"],
         [
@@ -57,9 +58,10 @@ class TestRedoCommand(CommandTest):
         ],
         indirect=["setup"],
     )
-    def test_command(
+    async def test_command(
         self, setup: Any, expected_exit: bool, caplog: pytest.LogCaptureFixture
     ) -> None:
+        # pylint: disable=invalid-overridden-method
         """Test the command itself.
 
         Args:
@@ -81,7 +83,7 @@ class TestRedoCommand(CommandTest):
                 pytest.fail("No Error logged from RedoCommand.")
         elif expected_exit:
             # Regression test against #65
-            AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
+            await AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
             with pytest.raises(SystemExit):
                 RedoCommand([]).execute()
             for source, level, message in caplog.record_tuples:
@@ -93,7 +95,7 @@ class TestRedoCommand(CommandTest):
             else:
                 pytest.fail("No Error logged from UndoCommand.")
         else:
-            AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
+            await AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
             UndoCommand([]).execute()
 
             if Database().get("example_multi_file_entry", None) is not None:
@@ -103,6 +105,7 @@ class TestRedoCommand(CommandTest):
 
             self._assert()
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         ["setup"],
         [
@@ -110,15 +113,17 @@ class TestRedoCommand(CommandTest):
         ],
         indirect=["setup"],
     )
-    def test_skipping_redone_commits(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
+    async def test_skipping_redone_commits(
+        self, setup: Any, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """Test skipping already redone commits.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
-        AddCommand(["-b", get_resource("example_entry.bib")]).execute()
+        await AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
+        await AddCommand(["-b", get_resource("example_entry.bib")]).execute()
         UndoCommand([]).execute()
         UndoCommand([]).execute()
         RedoCommand([]).execute()
@@ -173,7 +178,7 @@ class TestRedoCommand(CommandTest):
             monkeypatch: the built-in pytest fixture.
             caplog: the built-in pytest fixture.
         """
-        AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
+        await AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
         UndoCommand([]).execute()
 
         if Database().get("example_multi_file_entry", None) is not None:
@@ -225,8 +230,9 @@ class TestRedoCommand(CommandTest):
 
             assert out.getvalue() == "Hello world!\n"
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize("setup", [{"git": True}], indirect=["setup"])
-    def test_event_post_redo_command(self, setup: Any) -> None:
+    async def test_event_post_redo_command(self, setup: Any) -> None:
         """Tests the PostRedoCommand event."""
 
         @Event.PostRedoCommand.subscribe
@@ -236,7 +242,7 @@ class TestRedoCommand(CommandTest):
         assert Event.PostRedoCommand.validate()
 
         with contextlib.redirect_stdout(StringIO()) as out:
-            AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
+            await AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
             UndoCommand([]).execute()
 
             if Database().get("example_multi_file_entry", None) is not None:

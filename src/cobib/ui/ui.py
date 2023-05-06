@@ -34,7 +34,7 @@ class UI:
             "-p",
             "--porcelain",
             action="store_true",
-            help="switches the output to porcelain mode (meant for parsing/testing",
+            help="switches the output to porcelain mode (meant for parsing/testing)",
         )
         self.parser.add_argument(
             "-l", "--logfile", type=argparse.FileType("w"), help="Alternative log file"

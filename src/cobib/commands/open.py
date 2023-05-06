@@ -39,22 +39,19 @@ By default, it is bound to the `o` key.
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import os
 import subprocess
 import warnings
 from collections import defaultdict
-from typing import Any, Optional, TextIO, cast
+from functools import wraps
+from typing import Callable, cast
 from urllib.parse import ParseResult, urlparse
 
-from rich.console import Console, RenderableType
-from rich.prompt import InvalidResponse, PromptBase
-from rich.text import Text, TextType
+from rich.console import Console
+from rich.prompt import InvalidResponse, Prompt, PromptBase, PromptType
+from rich.text import Text
 from textual.app import App
-from textual.reactive import reactive
-from textual.widget import Widget
-from textual.widgets import Input
 
 from cobib.config import Event, config
 from cobib.database import Database
@@ -65,123 +62,10 @@ from .base_command import ArgumentParser, Command
 LOGGER = logging.getLogger(__name__)
 
 
-class RichOpenPrompt(PromptBase[str]):
-    """TODO."""
-
-    def process_response(self, value: str) -> str:
-        """TODO."""
-        return_value: str = super().process_response(value)
-
-        if return_value == "help":
-            LOGGER.debug("User requested help.")
-            raise InvalidResponse(
-                "[yellow]Multiple targets were found. You may select the following:\n"
-                "  1. an individual URL number\n"
-                "  2. a target type (provided in '[...]')\n"
-                "  3. 'all'\n"
-                "  4. or 'cancel' to abort the command"
-            )
-
-        return return_value
-
-
-# TODO: unify this with the new Popup methodology in the TUI
-class Popup(Widget, can_focus=False):
-    """TODO."""
-
-    DEFAULT_CSS = """
-        Popup {
-            dock: bottom;
-            padding: 1 0;
-            width: 100%;
-            height: auto;
-        }
-    """
-
-    string: reactive[RenderableType] = reactive("")
-
-    def render(self) -> RenderableType:
-        """TODO."""
-        return self.string
-
-
-class PromptInput(Input):
-    """TODO."""
-
-    def on_input_submitted(self, event: Input.Submitted) -> None:
-        """TODO."""
-        event.input.remove()
-        event.stop()
-
-
-class TextualOpenPrompt(RichOpenPrompt):
-    """TODO."""
-
-    console: App[None]  # type: ignore[assignment]
-
-    async def __call__(  # type: ignore[override]
-        self, *, default: Any = ..., stream: TextIO | None = None
-    ) -> str:
-        # pylint: disable=invalid-overridden-method
-        """TODO."""
-        popup = Popup()
-        popup.string = Text()
-        await self.console.mount(popup)
-        while True:
-            self.pre_prompt()
-            prompt = self.make_prompt(default)
-            popup.string.append(prompt)
-            value = await self.get_input(self.console, prompt, self.password, stream=stream)
-            if value == "" and default != ...:
-                await popup.remove()
-                return str(default)
-            popup.string = Text()
-            try:
-                return_value = self.process_response(value)
-            except InvalidResponse as error:
-                self.on_validate_error(value, error)
-                continue
-            else:
-                await popup.remove()
-                return return_value
-
-    @classmethod
-    async def get_input(  # type: ignore[override]
-        cls, console: App[None], prompt: TextType, password: bool, stream: TextIO | None = None
-    ) -> str:
-        # pylint: disable=invalid-overridden-method
-        """TODO."""
-        inp = PromptInput()
-        inp.styles.dock = "bottom"  # type: ignore[arg-type]
-        inp.styles.border = (None, None)
-        inp.styles.padding = (0, 0)
-        await console.mount(inp)
-
-        inp.focus()
-
-        while console.is_mounted(inp):
-            await asyncio.sleep(0)
-
-        return str(inp.value)
-
-    def on_validate_error(self, value: str, error: InvalidResponse) -> None:
-        """TODO."""
-        if value == "help":
-            popup = self.console.query_one(Popup)
-            if isinstance(error.message, Text):
-                popup.string = error.message + "\n"
-            else:
-                popup.string = Text.from_markup(error.message + "\n")
-
-
 class OpenCommand(Command):
     """The Open Command."""
 
     name = "open"
-
-    prompt = RichOpenPrompt
-
-    console: Console | App[None] | None = None
 
     @classmethod
     def init_argparser(cls) -> None:
@@ -263,7 +147,14 @@ class OpenCommand(Command):
                         prompt_text.append(f"] {url.geturl()}\n")
                 prompt_text.append("[all,help,cancel]", "prompt.choices")
 
-                if self.prompt is TextualOpenPrompt:
+                if self.prompt is None:
+                    self.prompt = Prompt
+
+                # pylint: disable=line-too-long
+                self.prompt.process_response = self._wrap_prompt_process_response(  # type: ignore[method-assign]
+                    self.prompt.process_response  # type: ignore[assignment]
+                )
+                if self.prompt is not Prompt:
                     choice = await self.prompt.ask(  # type: ignore[call-overload]
                         prompt_text,
                         choices=choices,
@@ -275,8 +166,12 @@ class OpenCommand(Command):
                         prompt_text,
                         choices=choices,
                         show_choices=False,
-                        console=cast(Optional[Console], self.console),
+                        console=cast(Console, self.console),
                     )
+
+                self.prompt.process_response = (  # type: ignore[method-assign]
+                    self.prompt.process_response.__wrapped__  # type: ignore[attr-defined]
+                )
 
                 if choice == "cancel":
                     LOGGER.warning("User aborted open command.")
@@ -313,3 +208,28 @@ class OpenCommand(Command):
                     )
         except FileNotFoundError as err:
             LOGGER.error(err)
+
+    @staticmethod
+    def _wrap_prompt_process_response(
+        func: Callable[[PromptBase[PromptType], str], PromptType]
+    ) -> Callable[[PromptBase[PromptType], str], PromptType]:
+        """TODO."""
+
+        @wraps(func)
+        def process_response(prompt: PromptBase[PromptType], value: str) -> PromptType:
+            """TODO."""
+            return_value: PromptType = func(prompt, value)
+
+            if return_value == "help":
+                LOGGER.debug("User requested help.")
+                raise InvalidResponse(
+                    "[yellow]Multiple targets were found. You may select the following:\n"
+                    "  1. an individual URL number\n"
+                    "  2. a target type (provided in '[...]')\n"
+                    "  3. 'all'\n"
+                    "  4. or 'cancel' to abort the command"
+                )
+
+            return return_value
+
+        return process_response

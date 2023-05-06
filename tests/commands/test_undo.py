@@ -48,6 +48,7 @@ class TestUndoCommand(CommandTest):
             # assert subject line
             assert "Undo" in split_message[0]
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         ["setup", "expected_exit"],
         [
@@ -57,9 +58,10 @@ class TestUndoCommand(CommandTest):
         ],
         indirect=["setup"],
     )
-    def test_command(
+    async def test_command(
         self, setup: Any, expected_exit: bool, caplog: pytest.LogCaptureFixture
     ) -> None:
+        # pylint: disable=invalid-overridden-method
         """Test the command itself.
 
         Args:
@@ -92,11 +94,12 @@ class TestUndoCommand(CommandTest):
             else:
                 pytest.fail("No Error logged from UndoCommand.")
         else:
-            AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
+            await AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
             UndoCommand([]).execute()
 
             self._assert()
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         ["setup"],
         [
@@ -104,15 +107,17 @@ class TestUndoCommand(CommandTest):
         ],
         indirect=["setup"],
     )
-    def test_skipping_undone_commits(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
+    async def test_skipping_undone_commits(
+        self, setup: Any, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """Test skipping already undone commits.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
-        AddCommand(["-b", get_resource("example_entry.bib")]).execute()
+        await AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
+        await AddCommand(["-b", get_resource("example_entry.bib")]).execute()
         UndoCommand([]).execute()
         caplog.clear()
 
@@ -165,7 +170,7 @@ class TestUndoCommand(CommandTest):
             monkeypatch: the built-in pytest fixture.
             caplog: the built-in pytest fixture.
         """
-        AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
+        await AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
         await self.run_module(monkeypatch, "main", ["cobib", "undo"])
 
         self._assert()
@@ -212,8 +217,9 @@ class TestUndoCommand(CommandTest):
 
             assert out.getvalue() == "Hello world!\n"
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize("setup", [{"git": True}], indirect=["setup"])
-    def test_event_post_undo_command(self, setup: Any) -> None:
+    async def test_event_post_undo_command(self, setup: Any) -> None:
         """Tests the PostUndoCommand event."""
 
         @Event.PostUndoCommand.subscribe
@@ -223,7 +229,7 @@ class TestUndoCommand(CommandTest):
         assert Event.PostUndoCommand.validate()
 
         with contextlib.redirect_stdout(StringIO()) as out:
-            AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
+            await AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
             UndoCommand([]).execute()
 
             self._assert()

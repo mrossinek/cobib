@@ -76,20 +76,42 @@ If you want to manually suppress the automatic download, specify the `--skip-dow
 cobib add --skip-download --arxiv <some arXiv ID>
 ```
 
-Since v3.3.0 you can also update existing entries by using the `--update` argument:
-```
-cobib add --doi <some DOI> --update --label <some existing label>
-```
-This will take the existing entry and combine it with all new information found in the freshly added
-entry. Existing fields will be overwritten. If you have an automatically downloaded file associated
-with this entry, that will also be overwritten.
-This feature is especially useful if you want to update an entry which you previously added from the
-arXiv with its newly published version.
+Since v4.0.0 coBib will ask you what to do when encountering a conflict at runtime. That means, when
+a label already exists in your database, you have various choices how to handle it:
 
-If you don't specify `--update` and run into a situation where the label which you are trying to add
-already exists, coBib will disambiguate it based on the `config.database.format.label_suffix`
-setting. It defaults to appending `_a`, `_b`, etc.
-You can disable this disambiguation by passing `--skip-existing` to the add command.
+1. you can `keep` the existing entry and skip the addition of the new one.
+   .. note::
+      This is equivalent to the old `--skip-existing` argument (added in v3.3.0) which is now
+      deprecated and will be removed in a future version.
+
+2. you can `replace` the existing entry.
+
+3. you can `update` the existing entry.
+   ```
+   cobib add --doi <some DOI> --disambiguation update --label <some existing label>```
+
+   This will take the existing entry and combine it with all new information found in the freshly
+   added entry. Existing fields will be overwritten. If you have an automatically downloaded file
+   associated with this entry, that will also be overwritten.
+   This feature is especially useful if you want to update an entry which you previously added from
+   the arXiv with its newly published version.
+   .. note::
+      This is equivalent to the `--update` argument (added in v3.3.0) which is now deprecated and
+      will be removed in a future version.
+
+4. you can `disambiguate` the entries. This will be done based on the
+   `config.database.format.label_suffix` setting. It defaults to appending `_a`, `_b`, etc. to the
+   label in order to differentiate (disambiguate) it from the already existing one.
+
+When running into such a case, coBib will generate a side-by-side comparison of the existing and new
+entry and give you the choice of how to proceed. The default choice is to _cancel_ the addition
+(i.e. `keep`) in order to prevent data loss.
+
+If you already know that you will run into this case, you can bypass the prompt via the
+`--disambiguation` argument and provide the intended answer ahead of time, for example like so:
+```
+cobib add --doi <some DOI> --disambiguation replace --label <some existing label>
+```
 
 ### TUI
 
@@ -108,11 +130,19 @@ import inspect
 import logging
 import sys
 from collections import OrderedDict
-from typing import Dict, List
+from functools import wraps
+from typing import Callable, Dict, List, cast
+
+from rich.console import Console
+from rich.prompt import InvalidResponse, Prompt, PromptBase, PromptType
+from textual.app import App
+from textual.widget import Widget
 
 from cobib import parsers
 from cobib.config import Event, config
 from cobib.database import Database, Entry
+from cobib.parsers import BibtexParser
+from cobib.utils.diff_renderer import Differ
 from cobib.utils.file_downloader import FileDownloader
 from cobib.utils.journal_abbreviations import JournalAbbreviations
 
@@ -146,12 +176,6 @@ class AddCommand(Command):
         parser = ArgumentParser(prog="add", description="Add subcommand parser.")
         parser.add_argument("-l", "--label", type=str, help="the label for the new database entry")
         parser.add_argument(
-            "-u",
-            "--update",
-            action="store_true",
-            help="update an entry if the label exists already",
-        )
-        parser.add_argument(
             "-f",
             "--file",
             type=str,
@@ -159,7 +183,13 @@ class AddCommand(Command):
             action=cls.file_action,
             help="files associated with this entry",
         )
-        parser.add_argument("-p", "--path", type=str, help="the path for the associated file")
+        parser.add_argument("-p", "--path", type=str, help="the path for the downloaded file")
+        parser.add_argument(
+            "--disambiguation",
+            type=str,
+            choices=["keep", "replace", "update", "disambiguate"],
+            help="the reply in case of a disambiguation prompt",
+        )
         parser.add_argument(
             "--skip-download",
             action="store_true",
@@ -168,7 +198,13 @@ class AddCommand(Command):
         parser.add_argument(
             "--skip-existing",
             action="store_true",
-            help="skips entry addition if existent instead of using label disambiguation",
+            help="DEPRECATED: use '--disambiguation keep' instead!",
+        )
+        parser.add_argument(
+            "-u",
+            "--update",
+            action="store_true",
+            help="DEPRECATED: use '--disambiguation update' instead!",
         )
         group_add = parser.add_mutually_exclusive_group()
         for name in cls.avail_parsers.keys():
@@ -190,8 +226,31 @@ class AddCommand(Command):
 
         cls.argparser = parser
 
-    # pylint: disable=too-many-branches
-    def execute(self) -> None:
+    @classmethod
+    def _parse_args(cls, args: List[str]) -> argparse.Namespace:
+        """TODO."""
+        largs = super()._parse_args(args)
+
+        if largs.skip_existing:
+            msg = (
+                "The '--skip-existing' argument of the 'add' command is deprecated! "
+                "Instead you should use '--disambiguation keep'."
+            )
+            LOGGER.warning(msg)
+            largs.disambiguation = "keep"
+
+        if largs.update:
+            msg = (
+                "The '--update' argument of the 'add' command is deprecated! "
+                "Instead you should use '--disambiguation update'."
+            )
+            LOGGER.warning(msg)
+            largs.disambiguation = "update"
+
+        return largs
+
+    # pylint: disable=invalid-overridden-method,too-many-statements,too-many-branches
+    async def execute(self) -> None:  # type: ignore[override]
         """Adds a new entry.
 
         Depending on the `args`, if a keyword for one of the available `cobib.parsers` was used
@@ -204,14 +263,15 @@ class AddCommand(Command):
             args: a sequence of additional arguments used for the execution. The following values
                 are allowed for this command:
                     * `-l`, `--label`: the label to give to the new entry.
-                    * `-u`, `--update`: updates an existing database entry if it already exists.
+                    * `-d`, `--disambiguation`: hard-codes the reply to be used if a disambiguation
+                        prompt would occur.
                     * `-f`, `--file`: one or multiple files to associate with this entry. This data
                       will be stored in the `cobib.database.Entry.file` property.
                     * `-p`, `--path`: the path to store the downloaded associated file in. This can
                       be used to overwrite the `config.utils.file_downloader.default_location`.
                     * `--skip-download`: skips the automatic download of an associated file.
-                    * `--skip-existing`: skips entry if label exists instead of running label
-                      disambiguation.
+                    * `--skip-existing`: **DEPRECATED** use `--disambiguation keep` instead!
+                    * `-u`, `--update`: **DEPRECATED** use `--disambiguation update` instead!
                     * in addition to the options above, a *mutually exclusive group* of keyword
                       arguments for all available `cobib.parsers` are registered at runtime. Please
                       check the output of `cobib add --help` for the exact list.
@@ -289,15 +349,80 @@ class AddCommand(Command):
         existing_labels = set(bib.keys())
 
         for lbl, entry in self.new_entries.copy().items():
+            overwrite_file = False
             # check if label already exists
             if lbl in existing_labels:
-                if not self.largs.update:
-                    msg = f"You tried to add a new entry '{lbl}' which already exists!"
+                # if it does, we have multiple cases to differentiate:
+                if edit_entries:
+                    # the user tried to manually add an entry which already exists, point them to
+                    # the edit command instead
+                    msg = (
+                        f"You tried to add the '{lbl}' entry manually, but it already exists, "
+                        f"please use `cobib edit {lbl}` instead!"
+                    )
                     LOGGER.warning(msg)
-                    if edit_entries or self.largs.skip_existing:
-                        msg = f"Please use `cobib edit {lbl}` instead!"
-                        LOGGER.warning(msg)
-                        continue
+                    continue
+                # in all other cases, we enter an interactive prompt to let the user decide how
+                # to proceed
+                msg = f"You tried to add a new entry '{lbl}' which already exists!"
+                LOGGER.warning(msg)
+                res = self.largs.disambiguation
+                # if the user provided the reply at runtime using the --disambiguation argument, the
+                # following condition is not met
+                if res is None:
+                    parser = BibtexParser()
+                    left = parser.dump(bib[lbl])
+                    right = parser.dump(entry)
+                    diff = Differ(left, right)
+                    diff.compute()
+                    table = diff.render("bibtex")
+
+                    if self.console is None:
+                        self.console = Console()
+
+                    # pylint: disable=assignment-from-no-return
+                    popup = self.console.print(table)  # type: ignore[union-attr]
+
+                    prompt_text = "How would you like to handle this conflict?"
+                    choices = ["keep", "replace", "update", "disambiguate", "help"]
+                    default = "keep"
+
+                    if self.prompt is None:
+                        self.prompt = Prompt
+
+                    # pylint: disable=line-too-long
+                    self.prompt.process_response = self._wrap_prompt_process_response(  # type: ignore[method-assign]
+                        self.prompt.process_response  # type: ignore[assignment]
+                    )
+
+                    if self.prompt is not Prompt:
+                        res = await self.prompt.ask(  # type: ignore[call-overload]
+                            prompt_text,
+                            choices=choices,
+                            default=default,
+                            console=cast(App[None], self.console),
+                        )
+                        cast(Widget, popup).remove()
+                    else:
+                        res = self.prompt.ask(
+                            prompt_text,
+                            choices=choices,
+                            default=default,
+                            console=cast(Console, self.console),
+                        )
+
+                    self.prompt.process_response = (  # type: ignore[method-assign]
+                        self.prompt.process_response.__wrapped__  # type: ignore[attr-defined]
+                    )
+
+                if res == "update":
+                    msg = f"Updating the already existing entry '{lbl}' with the new data."
+                    LOGGER.info(msg)
+                    existing_data = bib[lbl].data.copy()
+                    existing_data.update(entry.data)
+                    entry.data = existing_data.copy()
+                    overwrite_file = True
+                elif res == "disambiguate":
                     msg = (
                         "The label will be disambiguated based on the configuration option: "
                         "config.database.format.label_suffix"
@@ -307,11 +432,15 @@ class AddCommand(Command):
                     entry.label = new_label
                     self.new_entries[new_label] = entry
                     self.new_entries.pop(lbl)
-                else:
-                    # label exists but the user asked to update an existing entry
-                    existing_data = bib[lbl].data.copy()
-                    existing_data.update(entry.data)
-                    entry.data = existing_data.copy()
+                elif res == "replace":
+                    msg = f"Overwriting the already existing entry '{lbl}' with the new data."
+                    LOGGER.info(msg)
+                elif res == "keep":
+                    msg = f"Skipping addition of the already existing entry '{lbl}'."
+                    LOGGER.info(msg)
+                    self.new_entries.pop(lbl)
+                    continue
+
             # download associated file (if requested)
             if "_download" in entry.data.keys():
                 if self.largs.skip_download:
@@ -321,7 +450,7 @@ class AddCommand(Command):
                         entry.data.pop("_download"),
                         entry.label,
                         folder=self.largs.path,
-                        overwrite=self.largs.update,
+                        overwrite=overwrite_file,
                     )
                     if path is not None:
                         entry.data["file"] = str(path)
@@ -342,3 +471,29 @@ class AddCommand(Command):
         for label in self.new_entries:
             msg = f"'{label}' was added to the database."
             LOGGER.info(msg)
+
+    @staticmethod
+    def _wrap_prompt_process_response(
+        func: Callable[[PromptBase[PromptType], str], PromptType]
+    ) -> Callable[[PromptBase[PromptType], str], PromptType]:
+        """TODO."""
+
+        @wraps(func)
+        def process_response(prompt: PromptBase[PromptType], value: str) -> PromptType:
+            """TODO."""
+            return_value: PromptType = func(prompt, value)
+
+            if return_value == "help":
+                LOGGER.debug("User requested help.")
+                raise InvalidResponse(
+                    "[yellow]A conflict between an existing (left) and newly added entry (right) "
+                    "occurred. These are your options:\n"
+                    "  'keep' the existing entry and discard the new addition (default)\n"
+                    "  'replace' the existing entry with the new one\n"
+                    "  'update' the existing entry with the new data\n"
+                    "  'disambiguate' the new entry from the existing one by adding a label suffix"
+                )
+
+            return return_value
+
+        return process_response

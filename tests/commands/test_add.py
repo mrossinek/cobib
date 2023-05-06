@@ -7,7 +7,7 @@ import logging
 import os
 import tempfile
 from itertools import zip_longest
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type
+from typing import TYPE_CHECKING, Any, Dict, Generator, List, Optional, Type
 
 import pytest
 
@@ -16,7 +16,7 @@ from cobib.config import Event, config
 from cobib.database import Database
 from cobib.utils.rel_path import RelPath
 
-from .. import get_resource
+from .. import MockStdin, get_resource
 from .command_test import CommandTest
 
 EXAMPLE_LITERATURE = get_resource("example_literature.yaml")
@@ -26,6 +26,8 @@ EXAMPLE_MULTI_FILE_ENTRY_BIB = get_resource("example_multi_file_entry.bib", "com
 EXAMPLE_MULTI_FILE_ENTRY_YAML = get_resource("example_multi_file_entry.yaml", "commands")
 
 if TYPE_CHECKING:
+    import _pytest.fixtures
+
     import cobib.commands
 
 
@@ -35,6 +37,27 @@ class TestAddCommand(CommandTest):
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
         # noqa: D102
         return AddCommand
+
+    @pytest.fixture
+    def post_setup(
+        self, monkeypatch: pytest.MonkeyPatch, request: _pytest.fixtures.SubRequest
+    ) -> Generator[Dict[str, Any], None, None]:
+        """Additional setup instructions.
+
+        Args:
+            monkeypatch: the built-in pytest fixture.
+            request: a pytest sub-request providing access to nested parameters.
+
+        Yields:
+            The internally used parameters for potential later re-use during the actual test.
+        """
+        if not hasattr(request, "param"):
+            # use default settings
+            request.param = {"stdin_list": None}
+
+        monkeypatch.setattr("sys.stdin", MockStdin(request.param.get("stdin_list", None)))
+
+        yield request.param
 
     def _assert(self, extra_filename: str) -> None:
         """Common assertion utility method.
@@ -65,6 +88,7 @@ class TestAddCommand(CommandTest):
         for key, value in kwargs.items():
             assert entry.data.get(key, None) == value
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         ["setup"],
         [
@@ -86,7 +110,10 @@ class TestAddCommand(CommandTest):
             [["tag", "tag2"], {"tags": ["tag", "tag2"]}],
         ],
     )
-    def test_command(self, setup: Any, more_args: List[str], entry_kwargs: Dict[str, Any]) -> None:
+    async def test_command(
+        self, setup: Any, more_args: List[str], entry_kwargs: Dict[str, Any]
+    ) -> None:
+        # pylint: disable=invalid-overridden-method
         """Test the command itself.
 
         Args:
@@ -102,7 +129,7 @@ class TestAddCommand(CommandTest):
             label = "example_multi_file_entry"
         args = ["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB] + more_args
 
-        AddCommand(args).execute()
+        await AddCommand(args).execute()
 
         assert Database()[label]
 
@@ -117,14 +144,15 @@ class TestAddCommand(CommandTest):
             # Note: we do not assert the arguments, because they depend on the available parsers
             self.assert_git_commit_message("add", None)
 
-    def test_add_new_entry(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
+    @pytest.mark.asyncio
+    async def test_add_new_entry(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test adding a new plain entry.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        AddCommand(["-l", "dummy"]).execute()
+        await AddCommand(["-l", "dummy"]).execute()
         assert (
             "cobib.commands.add",
             30,
@@ -139,8 +167,9 @@ class TestAddCommand(CommandTest):
             assert lines[dummy_start + 1] == "  ENTRYTYPE: article\n"
             assert lines[dummy_start + 2] == "...\n"
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize("folder", [None, "."])
-    def test_add_with_download(
+    async def test_add_with_download(
         self,
         folder: Optional[str],
         setup: Any,
@@ -166,7 +195,7 @@ class TestAddCommand(CommandTest):
             if folder:
                 args += ["-p", folder]
 
-            AddCommand(args).execute()
+            await AddCommand(args).execute()
 
             if (
                 "cobib.parsers.arxiv",
@@ -188,7 +217,8 @@ class TestAddCommand(CommandTest):
             except FileNotFoundError:
                 pass
 
-    def test_add_skip_download(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
+    @pytest.mark.asyncio
+    async def test_add_skip_download(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test adding a new entry and skipping the automatic download.
 
         Args:
@@ -199,7 +229,7 @@ class TestAddCommand(CommandTest):
         try:
             args = ["-a", "1812.09976", "--skip-download"]
 
-            AddCommand(args).execute()
+            await AddCommand(args).execute()
 
             if (
                 "cobib.parsers.arxiv",
@@ -220,6 +250,8 @@ class TestAddCommand(CommandTest):
             except FileNotFoundError:
                 pass
 
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("deprecated", (True, False))
     @pytest.mark.parametrize(
         ["setup"],
         [
@@ -228,15 +260,18 @@ class TestAddCommand(CommandTest):
         ],
         indirect=["setup"],
     )
-    def test_add_with_update(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
+    async def test_add_with_update(
+        self, setup: Any, deprecated: bool, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """Test update option of AddCommand.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            deprecated: whether to test the deprecated or new means.
             caplog: the built-in pytest fixture.
         """
         git = setup.get("git", False)
-        AddCommand(["-a", "1812.09976", "--skip-download"]).execute()
+        await AddCommand(["-a", "1812.09976", "--skip-download"]).execute()
 
         if (
             "cobib.parsers.arxiv",
@@ -263,8 +298,18 @@ class TestAddCommand(CommandTest):
         assert "pages" not in entry.data.keys()
         assert "volume" not in entry.data.keys()
 
-        args = ["-d", "10.1021/acs.chemrev.8b00803", "-l", "Cao2018", "--skip-download", "--update"]
-        AddCommand(args).execute()
+        args = [
+            "-d",
+            "10.1021/acs.chemrev.8b00803",
+            "-l",
+            "Cao2018",
+            "--skip-download",
+        ]
+        if deprecated:
+            args += ["--update"]
+        else:
+            args += ["--disambiguation", "update"]
+        await AddCommand(args).execute()
 
         if (
             "cobib.parsers.doi",
@@ -272,6 +317,14 @@ class TestAddCommand(CommandTest):
             "An Exception occurred while trying to query the DOI: 10.1021/acs.chemrev.8b00803.",
         ) in caplog.record_tuples:
             pytest.skip("The requests API encountered an error. Skipping test.")
+
+        if deprecated:
+            assert (
+                "cobib.commands.add",
+                logging.WARNING,
+                "The '--update' argument of the 'add' command is deprecated! "
+                "Instead you should use '--disambiguation update'.",
+            ) in caplog.record_tuples
 
         # assert final state
         entry = Database()["Cao2018"]
@@ -296,32 +349,38 @@ class TestAddCommand(CommandTest):
             # Note: we do not assert the arguments, because they depend on the available parsers
             self.assert_git_commit_message("add", None)
 
-    def test_skip_manual_add_if_exists(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
+    @pytest.mark.asyncio
+    async def test_skip_manual_add_if_exists(
+        self, setup: Any, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """Test manual addition is skipped if the label exists already.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        AddCommand(["-l", "einstein"]).execute()
+        await AddCommand(["-l", "einstein"]).execute()
         assert (
             "cobib.commands.add",
             30,
-            "You tried to add a new entry 'einstein' which already exists!",
-        ) in caplog.record_tuples
-        assert (
-            "cobib.commands.add",
-            30,
-            "Please use `cobib edit einstein` instead!",
+            (
+                "You tried to add the 'einstein' entry manually, but it already exists, "
+                "please use `cobib edit einstein` instead!"
+            ),
         ) in caplog.record_tuples
 
-    def test_continue_after_skip_exists(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("deprecated", (True, False))
+    async def test_continue_after_skip_exists(
+        self, setup: Any, deprecated: bool, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """Test entry addition continues after skipping over existing entry.
 
         Regression test against #83
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            deprecated: whether to test the deprecated or new means.
             caplog: the built-in pytest fixture.
         """
         with tempfile.NamedTemporaryFile("w") as file:
@@ -329,16 +388,16 @@ class TestAddCommand(CommandTest):
                 file.writelines(existing.readlines())
             file.writelines(["@article{dummy,\nauthor = {Dummy},\n}"])
             file.flush()
-            AddCommand(["--skip-existing", "-b", file.name]).execute()
+            args = ["-b", file.name]
+            if deprecated:
+                args += ["--skip-existing"]
+            else:
+                args += ["--disambiguation", "keep"]
+            await AddCommand(args).execute()
         assert (
             "cobib.commands.add",
-            30,
-            "You tried to add a new entry 'einstein' which already exists!",
-        ) in caplog.record_tuples
-        assert (
-            "cobib.commands.add",
-            30,
-            "Please use `cobib edit einstein` instead!",
+            20,
+            "Skipping addition of the already existing entry 'einstein'.",
         ) in caplog.record_tuples
         assert (
             "cobib.database.database",
@@ -346,20 +405,32 @@ class TestAddCommand(CommandTest):
             "Updating entry dummy",
         ) in caplog.record_tuples
 
-    def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
+        if deprecated:
+            assert (
+                "cobib.commands.add",
+                logging.WARNING,
+                "The '--skip-existing' argument of the 'add' command is deprecated! "
+                "Instead you should use '--disambiguation keep'.",
+            ) in caplog.record_tuples
+
+    @pytest.mark.asyncio
+    async def test_warning_missing_label(
+        self, setup: Any, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """Test warning for missing label and any other input.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        AddCommand([""]).execute()
+        await AddCommand([""]).execute()
         assert (
             "cobib.commands.add",
             40,
             "Neither an input to parse nor a label for manual creation specified!",
         ) in caplog.record_tuples
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         ["setup"],
         [
@@ -368,7 +439,7 @@ class TestAddCommand(CommandTest):
         ],
         indirect=["setup"],
     )
-    def test_overwrite_label(self, setup: Any) -> None:
+    async def test_overwrite_label(self, setup: Any) -> None:
         """Test add command while specifying a label manually.
 
         Regression test against #4.
@@ -381,7 +452,9 @@ class TestAddCommand(CommandTest):
         config.utils.journal_abbreviations = [("Annalen der Physik", "Ann. Phys.")]
         git = setup.get("git", False)
         # add potentially duplicate entry
-        AddCommand(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB, "--label", "duplicate_resolver"]).execute()
+        await AddCommand(
+            ["-b", EXAMPLE_DUPLICATE_ENTRY_BIB, "--label", "duplicate_resolver"]
+        ).execute()
 
         assert Database()["duplicate_resolver"]
 
@@ -391,6 +464,7 @@ class TestAddCommand(CommandTest):
             # assert the git commit message
             self.assert_git_commit_message("add", None)
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         ["setup"],
         [
@@ -399,7 +473,7 @@ class TestAddCommand(CommandTest):
         ],
         indirect=["setup"],
     )
-    def test_configured_label_default(self, setup: Any) -> None:
+    async def test_configured_label_default(self, setup: Any) -> None:
         """Test add command when a `label_default` is pre-configured.
 
         Args:
@@ -408,7 +482,7 @@ class TestAddCommand(CommandTest):
         config.database.format.label_default = "{author.split()[1]}{year}"
         git = setup.get("git", False)
 
-        AddCommand(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB]).execute()
+        await AddCommand(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB]).execute()
 
         assert Database()["Einstein1905"]
 
@@ -416,24 +490,31 @@ class TestAddCommand(CommandTest):
             # assert the git commit message
             self.assert_git_commit_message("add", None)
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        ["setup"],
+        ["setup", "post_setup", "args"],
         [
-            [{"git": False}],
-            [{"git": True}],
+            [{"git": False}, {"stdin_list": ["disambiguate"]}, []],
+            [{"git": True}, {"stdin_list": ["disambiguate"]}, []],
+            [{"git": False}, {}, ["--disambiguation", "disambiguate"]],
+            [{"git": True}, {}, ["--disambiguation", "disambiguate"]],
         ],
-        indirect=["setup"],
+        indirect=["setup", "post_setup"],
     )
-    def test_disambiguate_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
+    async def test_disambiguate_label(
+        self, setup: Any, post_setup: Any, args: list[str], caplog: pytest.LogCaptureFixture
+    ) -> None:
         """Test label disambiguation if the provided one already exists.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            post_setup: an additional setup fixture.
+            args: additional arguments for the AddCommand.
             caplog: the built-in pytest fixture.
         """
         git = setup.get("git", False)
 
-        AddCommand(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB]).execute()
+        await AddCommand(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB] + args).execute()
 
         assert (
             "cobib.commands.add",
@@ -453,9 +534,18 @@ class TestAddCommand(CommandTest):
             # assert the git commit message
             self.assert_git_commit_message("add", None)
 
-    def test_disambiguate_download(
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ["post_setup"],
+        [
+            [{"stdin_list": ["disambiguate"]}],
+        ],
+        indirect=["post_setup"],
+    )
+    async def test_disambiguate_download(
         self,
         setup: Any,
+        post_setup: Any,
         capsys: pytest.CaptureFixture[str],
         caplog: pytest.LogCaptureFixture,
     ) -> None:
@@ -465,6 +555,7 @@ class TestAddCommand(CommandTest):
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            post_setup: an additional setup fixture.
             capsys: the built-in pytest fixture.
             caplog: the built-in pytest fixture.
         """
@@ -480,7 +571,7 @@ class TestAddCommand(CommandTest):
                     pass
 
                 # by repeatedly calling the same add command, we trigger the label disambiguation
-                AddCommand(["-a", "1812.09976"]).execute()
+                await AddCommand(["-a", "1812.09976"]).execute()
 
                 if (
                     "cobib.parsers.arxiv",
@@ -529,7 +620,8 @@ class TestAddCommand(CommandTest):
         )
         self._assert(EXAMPLE_MULTI_FILE_ENTRY_YAML)
 
-    def test_event_pre_add_command(self, setup: Any) -> None:
+    @pytest.mark.asyncio
+    async def test_event_pre_add_command(self, setup: Any) -> None:
         """Tests the PreAddCommand event."""
 
         @Event.PreAddCommand.subscribe
@@ -538,11 +630,19 @@ class TestAddCommand(CommandTest):
 
         assert Event.PreAddCommand.validate()
 
-        AddCommand(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB]).execute()
+        await AddCommand(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB]).execute()
 
         assert "dummy" in Database().keys()
 
-    def test_event_post_add_command(self, setup: Any) -> None:
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ["post_setup"],
+        [
+            [{"stdin_list": ["disambiguate"]}],
+        ],
+        indirect=["post_setup"],
+    )
+    async def test_event_post_add_command(self, setup: Any, post_setup: Any) -> None:
         """Tests the PostAddCommand event."""
 
         @Event.PostAddCommand.subscribe
@@ -551,6 +651,47 @@ class TestAddCommand(CommandTest):
 
         assert Event.PostAddCommand.validate()
 
-        AddCommand(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB]).execute()
+        await AddCommand(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB]).execute()
 
         assert "dummy" in Database().keys()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        [
+            "args",
+            "msg_string",
+        ],
+        [
+            [
+                ["--skip-existing"],
+                "The '--skip-existing' argument of the 'add' command is deprecated! "
+                "Instead you should use '--disambiguation keep'.",
+            ],
+            [
+                ["--update"],
+                "The '--update' argument of the 'add' command is deprecated! "
+                "Instead you should use '--disambiguation update'.",
+            ],
+        ],
+    )
+    async def test_warn_deprecated_args(
+        self, setup: Any, args: list[str], msg_string: str, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Test the warning upon usage of deprecated arguments.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            args: arguments for the AddCommand.
+            msg_string: the string which the warning message must match.
+            caplog: the built-in pytest fixture.
+        """
+        args = ["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB] + args
+
+        await AddCommand(args).execute()
+
+        for source, level, msg in caplog.record_tuples:
+            if source == "cobib.commands.add" and level == 30:
+                if msg == msg_string:
+                    break
+        else:
+            pytest.fail("No Warning logged from AddCommand.")

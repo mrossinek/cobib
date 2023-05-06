@@ -8,13 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Python 3.11 is now officially tested and supported
+- Full rewrite of all commands to use `rich` for a nicer CLI (#78,!51)
+- Full rewrite of the TUI based on `textual` (#78,!51)
+- the `--disambiguation` argument of the `add` command (#99,!58)
 
 ### Changed
 - the new default value of `config.parsers.yaml.use_c_lib_yaml` is now `True` as announced in version [3.4.0]
 
-### Features
-- Full rewrite of all commands to use `rich` for a nicer CLI (#78,!51)
-- Full rewrite of the TUI based on `textual` (#78,!51)
+### Deprecated
+- the `--update` argument of the `add` command is deprecated in favor of `--disambiguation update`
+- the `--skip-existing` argument of the `add` command is deprecated in favor of `--disambiguation keep`
+
+### Fixed
+- the detection whether an entry already exists broke when label disambiguation was added in [3.3.0]
+  and is now fixed by means of an interactive prompt during the `add` command
 
 ### Removed
 - the warning triggered upon setting `config.database.format.month` which got removed in [3.1.0]
