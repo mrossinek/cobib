@@ -10,3 +10,5 @@ pydocstyle==6.3.0
 pyenchant==3.2.2
 pylint==2.17.4
 pdoc==13.1.1
+aiohttp==3.8.4
+msgpack==1.0.5
