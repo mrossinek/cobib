@@ -8,5 +8,5 @@ lxml==4.9.2
 mypy==1.2.0
 pydocstyle==6.3.0
 pyenchant==3.2.2
-pylint==2.17.3
+pylint==2.17.4
 pdoc==13.1.1
