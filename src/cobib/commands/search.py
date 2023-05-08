@@ -159,7 +159,7 @@ class SearchCommand(Command):
                     line_text.highlight_words(
                         [self.largs.query],
                         config.commands.search.highlights.query,
-                        case_sensitive=ignore_case,
+                        case_sensitive=not ignore_case,
                     )
                     matchtree.add(line_text)
 
@@ -193,7 +193,7 @@ class SearchCommand(Command):
                     line_text.highlight_words(
                         [self.largs.query],
                         config.commands.search.highlights.query,
-                        case_sensitive=ignore_case,
+                        case_sensitive=not ignore_case,
                     )
                     matchtree.add_leaf(line_text)
 
