@@ -231,7 +231,7 @@ def test_match_with_wrong_key() -> None:
     ["query", "context", "ignore_case", "expected"],
     [
         [
-            "search_query",
+            ["search_query"],
             1,
             False,
             [
@@ -240,7 +240,7 @@ def test_match_with_wrong_key() -> None:
             ],
         ],
         [
-            "search_query",
+            ["search_query"],
             1,
             True,
             [
@@ -251,7 +251,7 @@ def test_match_with_wrong_key() -> None:
             ],
         ],
         [
-            "[sS]earch_[qQ]uery",
+            ["[sS]earch_[qQ]uery"],
             1,
             False,
             [
@@ -262,7 +262,7 @@ def test_match_with_wrong_key() -> None:
             ],
         ],
         [
-            "search_query",
+            ["search_query"],
             2,
             False,
             [
@@ -284,7 +284,7 @@ def test_match_with_wrong_key() -> None:
         # the following will look almost identical to the second scenarios because otherwise the
         # next match would be included within the context.
         [
-            "search_query",
+            ["search_query"],
             2,
             True,
             [
@@ -297,7 +297,7 @@ def test_match_with_wrong_key() -> None:
         # what we care about here, is that the second match does not include lines which occur
         # *before* the first match.
         [
-            "search_query",
+            ["search_query"],
             10,
             False,
             [
@@ -321,9 +321,22 @@ def test_match_with_wrong_key() -> None:
                 ],
             ],
         ],
+        [
+            ["query", "Query"],
+            1,
+            False,
+            [
+                ["@article{search_dummy,", " abstract = {search_query", "something else"],
+                ["something else", "search_query", "something else"],
+                ["something else", "Search_Query", "something else"],
+                ["something else", "Search_Query", "something else}"],
+            ],
+        ],
     ],
 )
-def test_search(query: str, context: int, ignore_case: bool, expected: List[List[str]]) -> None:
+def test_search(
+    query: List[str], context: int, ignore_case: bool, expected: List[List[str]]
+) -> None:
     """Test search method.
 
     Args:
@@ -355,7 +368,7 @@ def test_search_with_file() -> None:
     """Test the `cobib.database.Entry.search` method with associated file."""
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     entry.file = EXAMPLE_YAML_FILE  # type: ignore
-    results = entry.search("Chemical", context=0)
+    results = entry.search(["Chemical"], context=0)
     expected = [
         [" journal = {Chemical Reviews},"],
         [" publisher = {American Chemical Society ({ACS})},"],
@@ -374,7 +387,7 @@ def test_search_with_missing_file(caplog: pytest.LogCaptureFixture) -> None:
     """
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     entry.file = "some_non_existent_file.txt"  # type: ignore
-    _ = entry.search("Chemical", context=0)
+    _ = entry.search(["Chemical"], context=0)
     for source, level, message in caplog.record_tuples:
         if level != 30 or source != "cobib.database.entry":
             continue

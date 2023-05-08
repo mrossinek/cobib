@@ -93,6 +93,18 @@ class TestSearchCommand(CommandTest):
                 ],
                 True,
             ],
+            [
+                ["einstein", "Elektro"],
+                [
+                    "einstein::2",
+                    "1::@article{einstein,",
+                    "1::author = {Albert Einstein},",
+                    "2::pages = {891--921},",
+                    r"2::title = {Zur Elektrodynamik bewegter K{\"o}rper},",
+                    "2::volume = {322},",
+                ],
+                False,
+            ],
         ],
     )
     def test_command(
@@ -162,7 +174,7 @@ class TestSearchCommand(CommandTest):
 
         @Event.PreSearchCommand.subscribe
         def hook(command: SearchCommand) -> None:
-            command.largs.query = "einstein"
+            command.largs.query = ["einstein"]
 
         assert Event.PreSearchCommand.validate()
 

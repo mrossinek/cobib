@@ -345,18 +345,20 @@ class Entry:
             return any(m for m in match_list)
         return all(m for m in match_list)
 
-    def search(self, query: str, context: int = 1, ignore_case: bool = False) -> List[List[str]]:
-        """Search entry contents for the query string.
+    def search(
+        self, query: List[str], context: int = 1, ignore_case: bool = False
+    ) -> List[List[str]]:
+        """Search entry contents for the query strings.
 
         The entry will *always* be converted to a searchable string using the
-        `cobib.parsers.BibtexParser.dump` method. This text will then be search for `query` which
-        will be interpreted as a regex pattern.
+        `cobib.parsers.BibtexParser.dump` method. This text will then be search for each item in
+        `query` and will interpret these as regex patterns.
         If a `file` is associated with this entry, the search will try its best to recursively query
         its contents, too. However, the success of this depends highly on the configured search
         tool, `config.commands.search.grep`.
 
         Args:
-            query: the text to search for.
+            query: the list of regex patterns to search for.
             context: the number of context lines to provide for each match. This behaves similarly
                 to the *Context Line Control* available for the UNIX `grep` command (`--context`).
             ignore_case: if True, the search will be case-*in*sensitive.
@@ -364,59 +366,60 @@ class Entry:
         Returns:
             A list of lists containing the context for each match associated with this entry.
         """
-        LOGGER.debug("Searching entry %s for %s.", self.label, query)
+        LOGGER.debug("Searching entry %s.", self.label)
         matches: List[List[str]] = []
         # pylint: disable=import-outside-toplevel,cyclic-import
         from cobib.parsers.bibtex import BibtexParser
 
         bibtex = BibtexParser().dump(self).split("\n")
         re_flags = re.IGNORECASE if ignore_case else 0
-        re_compiled = re.compile(rf"{query}", flags=re_flags)
-        for idx, line in enumerate(bibtex):
-            if re_compiled.search(line):
-                # add new match
-                matches.append([])
-                # upper context; (we iterate in reverse in order to ensure that we abort on the
-                # first previous occurrence of the query pattern)
-                for string in reversed(bibtex[max(idx - context, 0) : min(idx, len(bibtex))]):
-                    if re_compiled.search(string):
-                        break
-                    matches[-1].insert(0, string)
-                # matching line itself
-                matches[-1].append(line)
-                # lower context
-                for string in bibtex[max(idx + 1, 0) : min(idx + context + 1, len(bibtex))]:
-                    if re_compiled.search(string):
-                        break
-                    matches[-1].append(string)
+        for query_str in query:
+            re_compiled = re.compile(rf"{query_str}", flags=re_flags)
+            for idx, line in enumerate(bibtex):
+                if re_compiled.search(line):
+                    # add new match
+                    matches.append([])
+                    # upper context; (we iterate in reverse in order to ensure that we abort on the
+                    # first previous occurrence of the query pattern)
+                    for string in reversed(bibtex[max(idx - context, 0) : min(idx, len(bibtex))]):
+                        if re_compiled.search(string):
+                            break
+                        matches[-1].insert(0, string)
+                    # matching line itself
+                    matches[-1].append(line)
+                    # lower context
+                    for string in bibtex[max(idx + 1, 0) : min(idx + context + 1, len(bibtex))]:
+                        if re_compiled.search(string):
+                            break
+                        matches[-1].append(string)
 
-        for file_ in self.file:
-            grep_prog = config.commands.search.grep
-            path = RelPath(file_).path
-            if not path.exists():
-                LOGGER.warning(
-                    "The associated file %s of entry %s does not exist!", file_, self.label
-                )
-                continue
-
-            LOGGER.debug("Searching associated file %s with %s", file_, grep_prog)
-            with subprocess.Popen(
-                [
-                    grep_prog,
-                    *config.commands.search.grep_args,
-                    f"-C{context}",
-                    query,
-                    RelPath(file_).path,
-                ],
-                stdout=subprocess.PIPE,
-            ) as grep:
-                if grep.stdout is None:
+            for file_ in self.file:
+                grep_prog = config.commands.search.grep
+                path = RelPath(file_).path
+                if not path.exists():
+                    LOGGER.warning(
+                        "The associated file %s of entry %s does not exist!", file_, self.label
+                    )
                     continue
-                stdout = grep.stdout
-                # extract results
-                results = stdout.read().decode().split("\n--\n")
-            for match in results:
-                if match:
-                    matches.append([line.strip() for line in match.split("\n") if line.strip()])
+
+                LOGGER.debug("Searching associated file %s with %s", file_, grep_prog)
+                with subprocess.Popen(
+                    [
+                        grep_prog,
+                        *config.commands.search.grep_args,
+                        f"-C{context}",
+                        query_str,
+                        RelPath(file_).path,
+                    ],
+                    stdout=subprocess.PIPE,
+                ) as grep:
+                    if grep.stdout is None:
+                        continue
+                    stdout = grep.stdout
+                    # extract results
+                    results = stdout.read().decode().split("\n--\n")
+                for match in results:
+                    if match:
+                        matches.append([line.strip() for line in match.split("\n") if line.strip()])
 
         return matches

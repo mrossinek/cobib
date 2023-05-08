@@ -69,7 +69,7 @@ class SearchCommand(Command):
     def init_argparser(cls) -> None:
         """TODO."""
         parser = ArgumentParser(prog="search", description="Search subcommand parser.")
-        parser.add_argument("query", type=str, help="text to search for")
+        parser.add_argument("query", type=str, nargs="+", help="text to search for")
         parser.add_argument(
             "-i", "--ignore-case", action="store_true", help="ignore case for searching"
         )
@@ -103,7 +103,8 @@ class SearchCommand(Command):
             args: a sequence of additional arguments used for the execution. The following values
                 are allowed for this command:
                     * `query`: the required positional argument corresponds to the regex-interpreted
-                      text which will be searched for.
+                      text which will be searched for. You may provide multiple separate queries
+                      which will be searched for independently.
                     * `-i`, `--ignore-case`: if specified, the search will be case *in*sensitive.
                       You can enable this setting permanently with
                       `config.commands.search.ignore_case`.
@@ -157,7 +158,7 @@ class SearchCommand(Command):
                 for line in match:
                     line_text = Text(line)
                     line_text.highlight_words(
-                        [self.largs.query],
+                        self.largs.query,
                         config.commands.search.highlights.query,
                         case_sensitive=not ignore_case,
                     )
@@ -191,7 +192,7 @@ class SearchCommand(Command):
                 for line in match:
                     line_text = Text(line)
                     line_text.highlight_words(
-                        [self.largs.query],
+                        self.largs.query,
                         config.commands.search.highlights.query,
                         case_sensitive=not ignore_case,
                     )

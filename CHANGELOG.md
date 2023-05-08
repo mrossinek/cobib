@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - the `--disambiguation` argument of the `add` command (#99,!58)
 - the `--ignore-case` argument of the `list` command (#105)
   - this also comes with the new `config.commands.list.ignore_case` setting
+- the `search` command now accepts multiple query strings at once which will be
+  searched over independently (#106)
 
 ### Changed
 - the new default value of `config.parsers.yaml.use_c_lib_yaml` is now `True` as announced in version [3.4.0]
