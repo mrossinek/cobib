@@ -39,6 +39,7 @@ class TestListCommand(CommandTest):
             [["-s", "year"], ["knuthwebsite", "einstein", "latexcompanion"]],
             [["-r", "-s", "year"], ["latexcompanion", "einstein", "knuthwebsite"]],
             [["++author", "Einstein"], ["einstein"]],
+            [["++author", "einstein", "--ignore-case"], ["einstein"]],
             [["--author", "Einstein"], ["latexcompanion", "knuthwebsite"]],
             [["++author", "Einstein", "++author", "Knuth"], []],
             [["-x", "++author", "Einstein", "++author", "Knuth"], ["einstein", "knuthwebsite"]],
@@ -61,6 +62,7 @@ class TestListCommand(CommandTest):
         [
             [[], ["einstein", "latexcompanion", "knuthwebsite"], set()],
             [["++author", "Einstein"], ["einstein"], {"author"}],
+            [["++author", "einstein", "--ignore-case"], ["einstein"], {"author"}],
             [["--author", "Einstein"], ["latexcompanion", "knuthwebsite"], {"author"}],
             [["++author", "Einstein", "++author", "Knuth"], [], {"author"}],
             [

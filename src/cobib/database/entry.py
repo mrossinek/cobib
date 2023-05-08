@@ -296,7 +296,9 @@ class Entry:
             parser = YAMLParser()
         return parser.dump(self) or ""  # `dump` may return `None`
 
-    def matches(self, filter_: Dict[Tuple[str, bool], List[str]], or_: bool) -> bool:
+    def matches(
+        self, filter_: Dict[Tuple[str, bool], List[str]], or_: bool, ignore_case: bool = False
+    ) -> bool:
         """Check whether this entry matches the supplied filter.
 
         coBib provides an extensive filtering implementation. The filter is specified in the form
@@ -305,7 +307,7 @@ class Entry:
         (`false`) match is required. The values of the dictionary must be a `List[str]`. This means
         that field types are always compared on a string-basis (this is a limitation of the targeted
         command-line interface). However, as of v3.2.0 these strings are interpreted as regex
-        patterns providing the most powerful within this framework.
+        patterns providing the most power within this framework.
 
         Some examples:
 
@@ -321,11 +323,13 @@ class Entry:
             filter_: dictionary describing the filter as explained above.
             or_ : boolean indicating whether logical OR (`true`) or AND (`false`) is used to combine
                 multiple filter items.
+            ignore_case: if True, the matching will be case-*in*sensitive.
 
         Returns:
             Boolean indicating whether this entry matches the filter.
         """
         LOGGER.debug("Checking whether entry %s matches.", self.label)
+        re_flags = re.IGNORECASE if ignore_case else 0
         match_list = []
         stringified_data = self.stringify()
         for key, values in filter_.items():
@@ -333,7 +337,7 @@ class Entry:
                 match_list.append(not key[1])
                 continue
             for val in values:
-                if re.search(rf"{val}", stringified_data[key[0]]):
+                if re.search(rf"{val}", stringified_data[key[0]], flags=re_flags):
                     match_list.append(key[1])
                 else:
                     match_list.append(not key[1])

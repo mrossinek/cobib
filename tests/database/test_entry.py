@@ -190,27 +190,30 @@ def test_entry_set_month(
 
 
 @pytest.mark.parametrize(
-    ["filter_", "or_"],
+    ["filter_", "or_", "ignore_case"],
     [
-        [{("author", True): ["Cao"]}, False],
-        [{("author", False): ["wrong_author"]}, False],
-        [{("author", True): ["Cao"], ("year", True): ["2019"]}, False],
-        [{("author", True): ["Cao"], ("year", True): ["2020"]}, True],
-        [{("author", True): ["wrong_author"], ("year", True): ["2019"]}, True],
-        [{("author", False): ["wrong_author"], ("year", True): ["2019"]}, False],
-        [{("label", True): [r"\D+_\d+"]}, True],
+        [{("author", True): ["cao"]}, False, True],
+        [{("author", True): ["Cao"]}, False, False],
+        [{("author", False): ["wrong_author"]}, False, False],
+        [{("author", True): ["cao"], ("year", True): ["2019"]}, False, True],
+        [{("author", True): ["Cao"], ("year", True): ["2019"]}, False, False],
+        [{("author", True): ["Cao"], ("year", True): ["2020"]}, True, False],
+        [{("author", True): ["wrong_author"], ("year", True): ["2019"]}, True, False],
+        [{("author", False): ["wrong_author"], ("year", True): ["2019"]}, False, False],
+        [{("label", True): [r"\D+_\d+"]}, True, False],
     ],
 )
-def test_entry_matches(filter_: Dict[Tuple[str, bool], Any], or_: bool) -> None:
+def test_entry_matches(filter_: Dict[Tuple[str, bool], Any], or_: bool, ignore_case: bool) -> None:
     """Test match filter.
 
     Args:
         filter_: a filter as explained be `cobib.database.Entry.matches`.
         or_: whether to use logical `OR` rather than `AND` for filter combination.
+        ignore_case: whether to perform the filter matching case *in*sensitive.
     """
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     # author must match
-    assert entry.matches(filter_, or_=or_)
+    assert entry.matches(filter_, or_=or_, ignore_case=ignore_case)
 
 
 def test_match_with_wrong_key() -> None:

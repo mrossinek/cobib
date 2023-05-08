@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Full rewrite of all commands to use `rich` for a nicer CLI (#78,!51)
 - Full rewrite of the TUI based on `textual` (#78,!51)
 - the `--disambiguation` argument of the `add` command (#99,!58)
+- the `--ignore-case` argument of the `list` command (#105)
+  - this also comes with the new `config.commands.list.ignore_case` setting
 
 ### Changed
 - the new default value of `config.parsers.yaml.use_c_lib_yaml` is now `True` as announced in version [3.4.0]

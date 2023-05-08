@@ -111,6 +111,9 @@ class ListCommand(Command):
             "-r", "--reverse", action="store_true", help="reverses the listing order"
         )
         parser.add_argument(
+            "-i", "--ignore-case", action="store_true", help="ignore case for entry matching"
+        )
+        parser.add_argument(
             "-x",
             "--or",
             dest="OR",
@@ -160,6 +163,9 @@ class ListCommand(Command):
                       added entries at the bottom, just above the new command-line prompt.
                     * `-x`, `--or`: if specified, multiple filters will be combined with logical OR
                       rather than the default logical AND.
+                    * `-i`, `--ignore-case`: if specified, the entry matching will be case
+                      *in*sensitive. You can enable this setting permanently with
+                      `config.commands.list.ignore_case`.
                     * `-s`, `--sort`: you can specify an arbitrary `cobib.database.Entry.data` field
                       name which should be used for sorting the listed entries. This will
                       automatically include a column for this field in the output table.
@@ -196,7 +202,7 @@ class ListCommand(Command):
         _filter: Dict[Tuple[str, bool], List[Any]] = defaultdict(list)
 
         for key, val in self.largs.__dict__.items():
-            if key in ["OR", "sort", "reverse"] or val is None:
+            if key in ["OR", "sort", "reverse", "ignore_case"] or val is None:
                 # ignore special arguments
                 continue
 
@@ -220,8 +226,10 @@ class ListCommand(Command):
         if self.largs.OR:
             LOGGER.debug("Filters are combined with logical ORs!")
 
+        ignore_case = config.commands.list.ignore_case or self.largs.ignore_case
+
         for key, entry in Database().items():
-            if entry.matches(_filter, self.largs.OR):
+            if entry.matches(_filter, self.largs.OR, ignore_case):
                 LOGGER.debug('Entry "%s" matches the filter.', key)
                 self.entries.append(entry)
 

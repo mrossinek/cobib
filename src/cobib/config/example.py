@@ -46,6 +46,8 @@ config.commands.edit.editor = os.environ.get("EDITOR", "vim")
 
 # You can configure the default columns displayed during the list command.
 config.commands.list.default_columns = ["label", "title"]
+# You can specify whether filter matching should be performed case-insensitive.
+config.commands.list.ignore_case = False
 
 # You can specify a custom command which will be used to `open` files associated with your entries.
 config.commands.open.command = "xdg-open" if sys.platform.lower() == "linux" else "open"

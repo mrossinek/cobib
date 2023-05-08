@@ -168,6 +168,7 @@ def test_config_validation(setup: Any) -> None:
         [["logging"], "version"],
         [["commands", "edit"], "default_entry_type"],
         [["commands", "edit"], "editor"],
+        [["commands", "list"], "ignore_case"],
         [["commands", "open"], "command"],
         [["commands", "open"], "fields"],
         [["commands", "search"], "grep"],

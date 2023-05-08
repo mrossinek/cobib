@@ -60,6 +60,7 @@ class Config(Dict[str, Any]):
             },
             "list": {
                 "default_columns": ["label", "title"],
+                "ignore_case": False,
             },
             "open": {
                 "command": "xdg-open" if sys.platform.lower() == "linux" else "open",
@@ -287,6 +288,10 @@ class Config(Dict[str, Any]):
         self._assert(
             isinstance(self.commands.list.default_columns, list),
             "config.commands.list.default_columns should be a list.",
+        )
+        self._assert(
+            isinstance(self.commands.list.ignore_case, bool),
+            "config.commands.list.ignore_case should be a boolean.",
         )
         # COMMANDS.OPEN section
         LOGGER.debug("Validating the COMMANDS.OPEN configuration section.")
