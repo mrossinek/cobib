@@ -165,7 +165,7 @@ class ListCommand(Command):
                       rather than the default logical AND.
                     * `-i`, `--ignore-case`: if specified, the entry matching will be case
                       *in*sensitive. You can enable this setting permanently with
-                      `config.commands.list.ignore_case`.
+                      `config.commands.list_.ignore_case`.
                     * `-s`, `--sort`: you can specify an arbitrary `cobib.database.Entry.data` field
                       name which should be used for sorting the listed entries. This will
                       automatically include a column for this field in the output table.
@@ -185,7 +185,7 @@ class ListCommand(Command):
         self.entries = self._sort_entries(filtered_entries, self.largs.sort, self.largs.reverse)
 
         # construct list of columns to be displayed
-        self.columns = config.commands.list.default_columns
+        self.columns = config.commands.list_.default_columns
         # display the column along which was sorted
         if self.largs.sort and self.largs.sort not in self.columns:
             self.columns.append(self.largs.sort)
@@ -226,7 +226,7 @@ class ListCommand(Command):
         if self.largs.OR:
             LOGGER.debug("Filters are combined with logical ORs!")
 
-        ignore_case = config.commands.list.ignore_case or self.largs.ignore_case
+        ignore_case = config.commands.list_.ignore_case or self.largs.ignore_case
 
         for key, entry in Database().items():
             if entry.matches(_filter, self.largs.OR, ignore_case):

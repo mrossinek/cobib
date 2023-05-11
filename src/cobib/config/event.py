@@ -18,6 +18,8 @@ There are various kinds of event types:
       its desire. Changes will not become persistent in the Database.
     - Post*Dump: these fire after an entry got formatted as a string. The string can be
       post-processed with some final touch-ups.
+    - and finally there a few specific events not belonging to any of the categories mentioned
+      above, examples of which are the `PreGitCommit` and `PostGitCommit` events.
 
 All events are listed below.
 
@@ -26,17 +28,21 @@ All events are listed below.
 You can register a function to be executed when a certain event gets triggered as shown in the
 following example:
 ```python
-from pathlib import Path
 from os import system
 from cobib.config import Event
+from cobib.commands import InitCommand
 
 @Event.PostInitCommand.subscribe
-def add_remote(root: Path, file: Path) -> None:
-    system(f"git -C {root} remote add origin https://github.com/user/repo")
+def add_remote(cmd: InitCommand) -> None:
+    system(f"git -C {cmd.root} remote add origin https://github.com/user/repo")
 ```
 The above example gets run after the `init` command has finished. It adds a remote to the git
 repository. This can be useful in combination with automatic pushing to the remote like done here:
 ```python
+from pathlib import Path
+from os import system
+from cobib.config import Event
+
 @Event.PostGitCommit.subscribe
 def push_to_remote(root: Path, file: Path) -> None:
     system(f"git -C {root} push origin master")
@@ -143,10 +149,10 @@ class Event(Enum):
         Before starting the `cobib.commands.add.AddCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of command arguments.
+        - `cobib.commands.add.AddCommand`: the command instance that is about to run.
 
     Returns:
-        Nothing. But the `Namespace` can be modified, affecting the command execution.
+        Nothing. But the command attributes can be modified, affecting the execution.
     """
     PostAddCommand: Event = Callable[["commands.AddCommand"], None]  # type: ignore[assignment]
     """
@@ -154,11 +160,10 @@ class Event(Enum):
         Before finishing the `cobib.commands.add.AddCommand`.
 
     Arguments:
-        - `new_entries`: the dictionary of new entries to be added to the database.
+        - `cobib.commands.add.AddCommand`: the command instance that just ran.
 
     Returns:
-        Nothing. But the dictionary of new entries can be modified before the changes are made
-        persistent in the database.
+        Nothing. But the command attributes can be modified, affecting the execution.
 
     Note:
         This event fires *before* starting the `cobib.commands.edit.EditCommand` which starts if
@@ -171,16 +176,24 @@ class Event(Enum):
         Before starting the `cobib.commands.delete.DeleteCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of command arguments.
+        - `cobib.commands.delete.DeleteCommand`: the command instance that is about to run.
 
     Returns:
-        Nothing. But the `Namespace` can be modified, affecting the command execution.
+        Nothing. But the command attributes can be modified, affecting the execution.
     """
     PostDeleteCommand: Event = Callable[  # type: ignore[assignment]
         ["commands.DeleteCommand"], None
     ]
-    """Gets fired before finishing the `cobib.commands.DeleteCommand`. The deleted entry labels are
-    provided as input. Modifying them has no effect."""
+    """
+    Fires:
+        Before finishing the `cobib.commands.delete.DeleteCommand`.
+
+    Arguments:
+        - `cobib.commands.delete.DeleteCommand`: the command instance that just ran.
+
+    Returns:
+        Nothing. While the deleted entry labels are accessible, modifying them has no effect.
+    """
 
     PreEditCommand: Event = Callable[["commands.EditCommand"], None]  # type: ignore[assignment]
     """
@@ -188,14 +201,22 @@ class Event(Enum):
         Before starting the `cobib.commands.edit.EditCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of command arguments.
+        - `cobib.commands.edit.EditCommand`: the command instance that is about to run.
 
     Returns:
-        Nothing. But the `Namespace` can be modified, affecting the command execution.
+        Nothing. But the command attributes can be modified, affecting the execution.
     """
     PostEditCommand: Event = Callable[["commands.EditCommand"], None]  # type: ignore[assignment]
-    """Gets fired before finishing the `cobib.commands.EditCommand`. The new entry gets provided as
-    input and it may be modified. However, renaming the label will no longer be possible."""
+    """
+    Fires:
+        Before finishing the `cobib.commands.edit.EditCommand`.
+
+    Arguments:
+        - `cobib.commands.edit.EditCommand`: the command instance that just ran.
+
+    Returns:
+        Nothing. While the edited entry is accessible, modifying it has no effect.
+    """
 
     PreExportCommand: Event = Callable[["commands.ExportCommand"], None]  # type: ignore[assignment]
     """
@@ -203,10 +224,10 @@ class Event(Enum):
         Before starting the `cobib.commands.export.ExportCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of command arguments.
+        - `cobib.commands.export.ExportCommand`: the command instance that is about to run.
 
     Returns:
-        Nothing. But the `Namespace` can be modified, affecting the command execution.
+        Nothing. But the command attributes can be modified, affecting the execution.
     """
     PostExportCommand: Event = Callable[  # type: ignore[assignment]
         ["commands.ExportCommand"], None
@@ -216,14 +237,10 @@ class Event(Enum):
         Before finishing the `cobib.commands.export.ExportCommand`.
 
     Arguments:
-        - `labels`: the list of exported labels.
-        - `largs`: the `Namespace` dictionary of command arguments.
+        - `cobib.commands.export.ExportCommand`: the command instance that just ran.
 
     Returns:
-        Nothing.
-
-    Note:
-        If exporting to a zip file, it will only be closed *after* this event got fired.
+        Nothing. The files to which has been exported are still accessible and open.
     """
 
     PreImportCommand: Event = Callable[["commands.ImportCommand"], None]  # type: ignore[assignment]
@@ -232,10 +249,10 @@ class Event(Enum):
         Before starting the `cobib.commands.import_.ImportCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of command arguments.
+        - `cobib.commands.import_.ImportCommand`: the command instance that is about to run.
 
     Returns:
-        Nothing. But the `Namespace` can be modified, affecting the command execution.
+        Nothing. But the command attributes can be modified, affecting the execution.
     """
     PostImportCommand: Event = Callable[  # type: ignore[assignment]
         ["commands.ImportCommand"], None
@@ -245,7 +262,7 @@ class Event(Enum):
         Before finishing the `cobib.commands.import_.ImportCommand`.
 
     Arguments:
-        - `new_entries`: the dictionary of new entries to be imported into the database.
+        - `cobib.commands.import_.ImportCommand`: the command instance that just ran.
 
     Returns:
         Nothing. But the dictionary of new entries can be modified before the changes are made
@@ -258,10 +275,10 @@ class Event(Enum):
         Before starting the `cobib.commands.init.InitCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of command arguments.
+        - `cobib.commands.init.InitCommand`: the command instance that is about to run.
 
     Returns:
-        Nothing. But the `Namespace` can be modified, affecting the command execution.
+        Nothing. But the command attributes can be modified, affecting the execution.
     """
     PostInitCommand: Event = Callable[["commands.InitCommand"], None]  # type: ignore[assignment]
     """
@@ -269,8 +286,7 @@ class Event(Enum):
         Before finishing the `cobib.commands.init.InitCommand`.
 
     Arguments:
-        - `root`: the `Path` to the root directory where the database file resides.
-        - `file`: the `Path` to the database file.
+        - `cobib.commands.init.InitCommand`: the command instance that just ran.
 
     Returns:
         Nothing.
@@ -282,10 +298,10 @@ class Event(Enum):
         Before starting the `cobib.commands.list.ListCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of command arguments.
+        - `cobib.commands.list.ListCommand`: the command instance that is about to run.
 
     Returns:
-        Nothing. But the `Namespace` can be modified, affecting the command execution.
+        Nothing. But the command attributes can be modified, affecting the execution.
     """
     PostListCommand: Event = Callable[["commands.ListCommand"], None]  # type: ignore[assignment]
     """
@@ -293,8 +309,7 @@ class Event(Enum):
         Before finishing the `cobib.commands.list.ListCommand`.
 
     Arguments:
-        - `entries`: the list of entries being displayed.
-        - `columns`: the list of columns being displayed.
+        - `cobib.commands.list.ListCommand`: the command instance that just ran.
 
     Returns:
         Nothing.
@@ -306,10 +321,10 @@ class Event(Enum):
         Before starting the `cobib.commands.modify.ModifyCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of command arguments.
+        - `cobib.commands.modify.ModifyCommand`: the command instance that is about to run.
 
     Returns:
-        Nothing. But the `Namespace` can be modified, affecting the command execution.
+        Nothing. But the command attributes can be modified, affecting the execution.
     """
     PostModifyCommand: Event = Callable[  # type: ignore[assignment]
         ["commands.ModifyCommand"], None
@@ -319,11 +334,10 @@ class Event(Enum):
         Before finishing the `cobib.commands.modify.ModifyCommand`.
 
     Arguments:
-        - `labels`: the list of modified labels.
-        - `dry`: whether the command was run in dry-mode.
+        - `cobib.commands.modify.ModifyCommand`: the command instance that just ran.
 
     Returns:
-        Nothing.
+        Nothing. But the modified entries are still accessible before written to the database.
     """
 
     PreOpenCommand: Event = Callable[["commands.OpenCommand"], None]  # type: ignore[assignment]
@@ -332,10 +346,10 @@ class Event(Enum):
         Before starting the `cobib.commands.open.OpenCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of command arguments.
+        - `cobib.commands.open.OpenCommand`: the command instance that is about to run.
 
     Returns:
-        Nothing. But the `Namespace` can be modified, affecting the command execution.
+        Nothing. But the command attributes can be modified, affecting the execution.
     """
     PostOpenCommand: Event = Callable[["commands.OpenCommand"], None]  # type: ignore[assignment]
     """
@@ -343,7 +357,7 @@ class Event(Enum):
         Before finishing the `cobib.commands.open.OpenCommand`.
 
     Arguments:
-        - `labels`: the list of opened labels.
+        - `cobib.commands.open.OpenCommand`: the command instance that just ran.
 
     Returns:
         Nothing.
@@ -355,14 +369,10 @@ class Event(Enum):
         Before starting the `cobib.commands.redo.RedoCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of command arguments.
+        - `cobib.commands.redo.RedoCommand`: the command instance that is about to run.
 
     Returns:
-        Nothing. But the `Namespace` can be modified, affecting the command execution.
-
-    Note:
-        As of right now, the `redo` command does not take any arguments, so there is nothing to
-        modify here.
+        Nothing. But the command attributes can be modified, affecting the execution.
     """
     PostRedoCommand: Event = Callable[["commands.RedoCommand"], None]  # type: ignore[assignment]
     """
@@ -370,8 +380,7 @@ class Event(Enum):
         Before finishing the `cobib.commands.redo.RedoCommand`.
 
     Arguments:
-        - `root`: the `Path` to the root directory where the database file resides.
-        - `sha`: the SHA of the redone git-commit.
+        - `cobib.commands.redo.RedoCommand`: the command instance that just ran.
 
     Returns:
         Nothing.
@@ -383,10 +392,10 @@ class Event(Enum):
         Before starting the `cobib.commands.search.SearchCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of command arguments.
+        - `cobib.commands.search.SearchCommand`: the command instance that is about to run.
 
     Returns:
-        Nothing. But the `Namespace` can be modified, affecting the command execution.
+        Nothing. But the command attributes can be modified, affecting the execution.
     """
     PostSearchCommand: Event = Callable[  # type: ignore[assignment]
         ["commands.SearchCommand"], None
@@ -396,11 +405,10 @@ class Event(Enum):
         Before finishing the `cobib.commands.search.SearchCommand`.
 
     Arguments:
-        - `hits`: the number of matches found in the database.
-        - `entries`: the list of matching entries.
+        - `cobib.commands.search.SearchCommand`: the command instance that just ran.
 
     Returns:
-        Nothing.
+        Nothing. But the search results are still accessible before being rendered for the user.
     """
 
     PreShowCommand: Event = Callable[["commands.ShowCommand"], None]  # type: ignore[assignment]
@@ -409,10 +417,10 @@ class Event(Enum):
         Before starting the `cobib.commands.show.ShowCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of command arguments.
+        - `cobib.commands.show.ShowCommand`: the command instance that is about to run.
 
     Returns:
-        Nothing. But the `Namespace` can be modified, affecting the command execution.
+        Nothing. But the command attributes can be modified, affecting the execution.
     """
     PostShowCommand: Event = Callable[["commands.ShowCommand"], None]  # type: ignore[assignment]
     """
@@ -420,13 +428,10 @@ class Event(Enum):
         Before finishing the `cobib.commands.show.ShowCommand`.
 
     Arguments:
-        - `entry_str`: the formatted string-representation of the shown `Entry`.
+        - `cobib.commands.show.ShowCommand`: the command instance that just ran.
 
     Returns:
-        Optionally a new (or updated) string to represent the shown `Entry`.
-
-    Note:
-        If a registered hook returns a new string, no subsequent hooks will be run!
+        Nothing. But the string-represented entry is still accessible before being rendered.
     """
 
     PreUndoCommand: Event = Callable[["commands.UndoCommand"], None]  # type: ignore[assignment]
@@ -435,10 +440,10 @@ class Event(Enum):
         Before starting the `cobib.commands.undo.UndoCommand`.
 
     Arguments:
-        - `largs`: the `Namespace` dictionary of command arguments.
+        - `cobib.commands.undo.UndoCommand`: the command instance that is about to run.
 
     Returns:
-        Nothing. But the `Namespace` can be modified, affecting the command execution.
+        Nothing. But the command attributes can be modified, affecting the execution.
     """
     PostUndoCommand: Event = Callable[["commands.UndoCommand"], None]  # type: ignore[assignment]
     """
@@ -446,8 +451,7 @@ class Event(Enum):
         Before finishing the `cobib.commands.undo.UndoCommand`.
 
     Arguments:
-        - `root`: the `Path` to the root directory where the database file resides.
-        - `sha`: the SHA of the undone git-commit.
+        - `cobib.commands.undo.UndoCommand`: the command instance that just ran.
 
     Returns:
         Nothing.
@@ -485,7 +489,7 @@ class Event(Enum):
         Before starting `cobib.parsers.bibtex.BibtexParser.dump`.
 
     Arguments:
-        - `Entry`: the `Entry` object to be dumped in BibTeX format.
+        - `cobib.database.Entry`: the `Entry` object to be dumped in BibTeX format.
 
     Returns:
         Nothing. But the object can be modified in-place. Changes will *not* become persistent in
@@ -538,7 +542,7 @@ class Event(Enum):
         Before starting `cobib.parsers.yaml.YAMLParser.dump`.
 
     Arguments:
-        - `Entry`: the `Entry` object to be dumped in YAML format.
+        - `cobib.database.Entry`: the `Entry` object to be dumped in YAML format.
 
     Returns:
         Nothing. But the object can be modified in-place. Changes will *not* become persistent in

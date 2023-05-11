@@ -6,7 +6,7 @@ import os
 import tempfile
 from pathlib import Path
 from shutil import copyfile
-from typing import Any, Callable, Generator, Tuple
+from typing import Any, Generator, Tuple
 
 import pytest
 
@@ -128,12 +128,10 @@ def test_database_rename() -> None:
         [(".", LabelSuffix.NUMERIC), "test.1"],
     ],
 )
-def test_database_disambiguate_label(
-    label_suffix: Tuple[str, Callable[[str], str]], expected: str
-) -> None:
+def test_database_disambiguate_label(label_suffix: Tuple[str, LabelSuffix], expected: str) -> None:
     # pylint: disable=invalid-name
     """Test the `cobib.database.Database.disambiguate_label` method."""
-    config.database.format.default_label_format = "test"
+    config.database.format.label_default = "test"
     config.database.format.label_suffix = label_suffix
 
     entries = {"dummy": "test", "test": "no"}

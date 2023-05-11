@@ -2,4 +2,4 @@
 
 from cobib.config import config
 
-config.database.file = True
+config.database.file = True  # type: ignore[assignment]

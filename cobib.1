@@ -424,27 +424,25 @@ The following section summarizes the syntax and all possibly settings, for
 completeness.
 .TP
 .BR Configuration " " Syntax
-Internally, coBib's configuration is nothing but a (nested) Python dictionary.
+Internally, coBib's configuration is nothing but a (nested) Python dataclass.
 Thus, after importing the config with
 .in +4n
     \fIfrom cobib.config import config\fR
 .in -4n
 it is very straight forward to change any setting by simply changing the value
-stored in the dictionary. For example:
-.in +4n
-    \fIconfig['database']['git'] = True\fR
-.in -4n
-However, for ease of use, all of the fields are also exposed as attributes. This
-means, the same can be achieved via:
+of an attribute. For example:
 .in +4n
     \fIconfig.database.git = True\fR
 .in -4n
 .PP
 .BR LOGGING
 .TP
+.IR config.logging.cache = '~/.cache/cobib/cache'
+This settings sets the path to the default cache file.
+.TP
 .IR config.logging.logfile = '~/.cache/cobib/cobib.log'
-This setting sets the path to the default logfile. This logfile can be
-overwritten using the \fI--logfile\fR command-line argument.
+This setting sets the path to the default logfile. This setting can be
+overwritten at runtime using the \fI--logfile\fR command-line argument.
 .TP
 .IR config.logging.version = '~/.cache/cobib/version'
 In this file, the last run version of coBib gets cached. After an update, coBib
@@ -462,8 +460,18 @@ This setting can be used to overwrite the external editor used for manual
 editing of database entries. It defaults to the environment variable
 \fI$EDITOR\fR and falls back to \fIvim\fR if that is not set either.
 .TP
+.IR config.commands.list_.default_columns = ['label',\ 'title']
+Specifies the default columns displayed during the \fIlist\fR command.
+.TP
+.IR config.commands.list_.ignore_case = False
+Specifies whether filter matching should be performed case-insensitive.
+.TP
 .IR config.commands.open.command = 'xdg-open' " (on Linux); " 'open' " (on Mac OS)"
 Specifies the program used to open associated files.
+.TP
+.IR config.commands.open.fields = ['file',\ 'url']
+Specifies the names of the data fields which are to be checked for openable
+URLs.
 .TP
 .IR config.commands.search.grep = 'grep'
 Specifies the program used to search in associated files.
@@ -473,6 +481,14 @@ Allows the specification of additional arguments for the \fIgrep\fR command.
 .TP
 .IR config.commands.search.ignore_case = False
 This boolean setting indicates whether search defaults to be case-insensitive.
+.TP
+.IR config.commands.search.highlights.label = 'blue'
+Specifies the color used to highlight the entry labels when displaying search
+rsults.
+.TP
+.IR config.commands.search.highlights.label = 'red'
+Specifies the color used to highlight the query matches when displaying search
+rsults.
 .PP
 .BR DATABASE
 .TP
@@ -526,10 +542,6 @@ This boolean setting indicates whether to use the C-based implementation of the
 YAML parser. For this to work, additional packages may need to be installed.
 Read https://yaml.readthedocs.io/en/latest/install.html#optional-requirements
 for more details.
-.PP
-.BR TUI
-.TP
-\fBThe TUI is undergoing a major rewrite... stay tuned!\fR
 .PP
 .BR UTILS
 .TP

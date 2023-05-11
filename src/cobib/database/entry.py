@@ -236,11 +236,8 @@ class Entry:
         data = {}
         data["label"] = self.label
         for field, value in self.data.items():
-            if (
-                isinstance(value, list)
-                and field in config["database"]["stringify"]["list_separator"].keys()
-            ):
-                data[field] = config["database"]["stringify"]["list_separator"][field].join(value)
+            if isinstance(value, list) and hasattr(config.database.stringify.list_separator, field):
+                data[field] = getattr(config.database.stringify.list_separator, field).join(value)
             else:
                 data[field] = str(value)
         return data

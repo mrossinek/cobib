@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### **Breaking Changes**
+- Configuration settings can no longer be set by item access and instead must
+  use attribute syntax. For example you need to change:
+  ```python
+  config["database"]["git"] = True
+  ```
+  to
+  ```python
+  config.database.git = True
+  ```
+  - the `config.commands.list` section had to be renamed to `config.commands.list_`
+  - the `config.tui` section has been entirely removed
+- The function signature of all command-related events has changed! Please refer to the
+  [online documentation](https://cobib.gitlab.io/cobib/cobib/config/event.html)
+  for more details.
+
 ### Added
 - Python 3.11 is now officially tested and supported
 - Full rewrite of all commands to use `rich` for a nicer CLI (#78,!51)
@@ -18,6 +34,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - the new default value of `config.parsers.yaml.use_c_lib_yaml` is now `True` as announced in version [3.4.0]
+- refactored the entire config as a dataclass (!63)
+  - this implies that settings can only be set via attributes
+  - but as a benefit the maintainability and documentation have improved significantly
+- The function signature of all command-related events has changed! Please refer to the
+  [online documentation](https://cobib.gitlab.io/cobib/cobib/config/event.html)
+  for more details. (!63)
 
 ### Deprecated
 - the `--update` argument of the `add` command is deprecated in favor of `--disambiguation update`

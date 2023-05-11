@@ -4,12 +4,10 @@ Since version 3.0 coBib is configured through a Python file.
 For documentation purposes this example configuration lists all possible settings with their default
 values and detailed explanations.
 
-Internally, coBib's configuration is nothing but a (nested) Python dictionary. However, for ease of
-usage all of its fields are also exposed as attributes. This means, that the following two lines are
-equivalent:
+Internally, coBib's configuration is nothing but a (nested) Python dataclass. This means, you can
+simply change any setting via an attribute like so:
 
 ```python
-config['database']['git'] = True
 config.database.git = True
 ```
 """
@@ -41,13 +39,13 @@ config.commands.edit.default_entry_type = "article"
 
 # You can specify the editor program.
 config.commands.edit.editor = os.environ.get("EDITOR", "vim")
-# Note, that this default will respect your `$EDITOR` environment setting and fallback to `vim` if
+# Note, that this default will respect your `$EDITOR` environment setting and fall back to `vim` if
 # that variable is not set.
 
 # You can configure the default columns displayed during the list command.
-config.commands.list.default_columns = ["label", "title"]
+config.commands.list_.default_columns = ["label", "title"]
 # You can specify whether filter matching should be performed case-insensitive.
-config.commands.list.ignore_case = False
+config.commands.list_.ignore_case = False
 
 # You can specify a custom command which will be used to `open` files associated with your entries.
 config.commands.open.command = "xdg-open" if sys.platform.lower() == "linux" else "open"
@@ -66,7 +64,7 @@ config.commands.search.grep_args = []
 # You can specify whether searches should be performed case-insensitive.
 config.commands.search.ignore_case = False
 
-# **TEMPORARY** You can configure the search label and query highlights.
+# You can configure the search label and query highlights.
 config.commands.search.highlights.label = "blue"
 config.commands.search.highlights.query = "red"
 
