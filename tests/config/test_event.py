@@ -18,7 +18,6 @@ def setup() -> Generator[Any, None, None]:
     """
     config.load(get_resource("debug.py"))
     yield setup
-    config.clear()
     config.defaults()
 
 

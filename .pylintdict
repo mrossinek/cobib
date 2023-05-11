@@ -18,11 +18,14 @@ caplog
 capsys
 changelog
 cli
+cmd
 cobib
 config
 configfile
 configpath
 dat
+dataclass
+dataclasses
 deepcopied
 disambiguated
 docstring
