@@ -30,10 +30,11 @@ cobib add --doi <some DOI> --label "MyLabel"
 ```
 
 .. note::
-   Since this command adds new entries to the database, its outcome can be affected by your choices
-   of the various `database`-related settings in your `cobib.config`. In particular, pay attention
-   to the "stringify" settings which affect how entries are converted to/from strings. In
-   particular, the following setting will affect how multiple files are split into a list of files:
+   Since this command adds new entries to the database, its outcome can be affected by your
+   `cobib.config.config.DatabaseConfig` settings. In particular, pay attention to the
+   `cobib.config.config.EntryStringifyConfig` settings which affect how entries are converted
+   to/from strings. In particular, the following setting will affect how multiple files are split
+   into a list of files:
    ```
    config.database.stringify.list_separator.file = ", "
    ```
@@ -66,8 +67,8 @@ cobib add --doi <some DOI> -- tag1 "multi-word tag2" ...
 
 Since v3.2.0 coBib attempts to download PDF files for newly added entries (if the corresponding
 parser supports this feature). The default location where this file will be stored can be configured
-via `config.utils.file_downloader.default_location`, but it can be changed at runtime using the
-`--path` argument like so:
+via `cobib.config.config.FileDownloaderConfig.default_location`, but it can be changed at runtime
+using the `--path` argument like so:
 ```
 cobib add --path <some custom path> --arxiv <some arXiv ID>
 ```
@@ -100,11 +101,12 @@ a label already exists in your database, you have various choices how to handle 
       will be removed in a future version.
 
 4. you can `disambiguate` the entries. This will be done based on the
-   `config.database.format.label_suffix` setting. It defaults to appending `_a`, `_b`, etc. to the
-   label in order to differentiate (disambiguate) it from the already existing one.
+   `cobib.config.config.DatabaseFormatConfig.label_suffix` setting. It defaults to appending `_a`,
+   `_b`, etc. to the label in order to differentiate (disambiguate) it from the already existing
+   one.
 
 When running into such a case, coBib will generate a side-by-side comparison of the existing and new
-entry and give you the choice of how to proceed. The default choice is to _cancel_ the addition
+entry and give you the choice of how to proceed. The default choice is to *cancel* the addition
 (i.e. `keep`) in order to prevent data loss.
 
 If you already know that you will run into this case, you can bypass the prompt via the
@@ -128,15 +130,15 @@ from __future__ import annotations
 import argparse
 import inspect
 import logging
-import sys
 from collections import OrderedDict
 from functools import wraps
-from typing import Callable, Dict, List, cast
+from typing import Callable, Dict, Type, cast
 
 from rich.console import Console
 from rich.prompt import InvalidResponse, Prompt, PromptBase, PromptType
 from textual.app import App
 from textual.widget import Widget
+from typing_extensions import override
 
 from cobib import parsers
 from cobib.config import Event, config
@@ -154,25 +156,50 @@ LOGGER = logging.getLogger(__name__)
 
 
 class AddCommand(Command):
-    """The Add Command."""
+    """The Add Command.
+
+    This command can parse the following arguments:
+
+        * `-l`, `--label`: the label to give to the new entry.
+        * `-d`, `--disambiguation`: hard-codes the reply to be used if a disambiguation prompt would
+          occur.
+        * `-f`, `--file`: one or multiple files to associate with this entry. This data will be
+          stored in the `cobib.database.Entry.file` property.
+        * `-p`, `--path`: the path to store the downloaded associated file in. This can be used to
+          overwrite the `cobib.config.config.FileDownloaderConfig.default_location`.
+        * `--skip-download`: skips the automatic download of an associated file.
+        * `--skip-existing`: **DEPRECATED** use `--disambiguation keep` instead!
+        * `-u`, `--update`: **DEPRECATED** use `--disambiguation update` instead!
+        * in addition to the options above, a *mutually exclusive group* of keyword arguments for
+          all available `cobib.parsers` are registered at runtime. Please check the output of
+          `cobib add --help` for the exact list.
+        * any *positional* arguments (i.e. those, not preceded by a keyword) are interpreted as tags
+          and will be stored in the `cobib.database.Entry.tags` property.
+    """
 
     name = "add"
 
-    file_action = "extend" if sys.version_info[1] >= 8 else "append"
-
-    avail_parsers = {
+    _avail_parsers = {
         cls.name: cls for _, cls in inspect.getmembers(parsers) if inspect.isclass(cls)
     }
+    """The available parsers."""
 
-    def __init__(self, args: List[str]) -> None:
-        """TODO."""
-        super().__init__(args)
+    @override
+    def __init__(
+        self,
+        *args: str,
+        console: Console | App[None] | None = None,
+        prompt: Type[PromptBase[str]] | None = None,
+    ) -> None:
+        super().__init__(*args, console=console, prompt=prompt)
 
         self.new_entries: Dict[str, Entry] = OrderedDict()
+        """An `OrderedDict` mapping labels to `cobib.database.Entry` instances which were added by
+        this command."""
 
+    @override
     @classmethod
     def init_argparser(cls) -> None:
-        """TODO."""
         parser = ArgumentParser(prog="add", description="Add subcommand parser.")
         parser.add_argument("-l", "--label", type=str, help="the label for the new database entry")
         parser.add_argument(
@@ -180,7 +207,7 @@ class AddCommand(Command):
             "--file",
             type=str,
             nargs="+",
-            action=cls.file_action,
+            action="extend",
             help="files associated with this entry",
         )
         parser.add_argument("-p", "--path", type=str, help="the path for the downloaded file")
@@ -207,7 +234,7 @@ class AddCommand(Command):
             help="DEPRECATED: use '--disambiguation update' instead!",
         )
         group_add = parser.add_mutually_exclusive_group()
-        for name in cls.avail_parsers.keys():
+        for name in cls._avail_parsers.keys():
             try:
                 group_add.add_argument(
                     f"-{name[0]}", f"--{name}", type=str, help=f"{name} object identfier"
@@ -227,8 +254,7 @@ class AddCommand(Command):
         cls.argparser = parser
 
     @classmethod
-    def _parse_args(cls, args: List[str]) -> argparse.Namespace:
-        """TODO."""
+    def _parse_args(cls, args: tuple[str, ...]) -> argparse.Namespace:
         largs = super()._parse_args(args)
 
         if largs.skip_existing:
@@ -250,42 +276,14 @@ class AddCommand(Command):
         return largs
 
     # pylint: disable=invalid-overridden-method,too-many-statements,too-many-branches
+    @override
     async def execute(self) -> None:  # type: ignore[override]
-        """Adds a new entry.
-
-        Depending on the `args`, if a keyword for one of the available `cobib.parsers` was used
-        together with a matching input, that parser will be used to create the new entry.
-        Otherwise, the command is only valid if the `--label` option was used to specify a new entry
-        label, in which case this command will trigger the `cobib.commands.edit.EditCommand` for a
-        manual entry addition.
-
-        Args:
-            args: a sequence of additional arguments used for the execution. The following values
-                are allowed for this command:
-                    * `-l`, `--label`: the label to give to the new entry.
-                    * `-d`, `--disambiguation`: hard-codes the reply to be used if a disambiguation
-                        prompt would occur.
-                    * `-f`, `--file`: one or multiple files to associate with this entry. This data
-                      will be stored in the `cobib.database.Entry.file` property.
-                    * `-p`, `--path`: the path to store the downloaded associated file in. This can
-                      be used to overwrite the `config.utils.file_downloader.default_location`.
-                    * `--skip-download`: skips the automatic download of an associated file.
-                    * `--skip-existing`: **DEPRECATED** use `--disambiguation keep` instead!
-                    * `-u`, `--update`: **DEPRECATED** use `--disambiguation update` instead!
-                    * in addition to the options above, a *mutually exclusive group* of keyword
-                      arguments for all available `cobib.parsers` are registered at runtime. Please
-                      check the output of `cobib add --help` for the exact list.
-                    * any *positional* arguments (i.e. those, not preceded by a keyword) are
-                      interpreted as tags and will be stored in the `cobib.database.Entry.tags`
-                      property.
-            out: the output IO stream. This defaults to `sys.stdout`.
-        """
         LOGGER.debug("Starting Add command.")
 
         Event.PreAddCommand.fire(self)
 
         edit_entries = False
-        for name, cls in AddCommand.avail_parsers.items():
+        for name, cls in AddCommand._avail_parsers.items():
             string = getattr(self.largs, name, None)
             if string is None:
                 continue
@@ -328,12 +326,6 @@ class AddCommand(Command):
             self.new_entries = formatted_entries
 
         if self.largs.file is not None:
-            if AddCommand.file_action == "append":
-                # We need to flatten the potentially nested list.
-                # pylint: disable=import-outside-toplevel
-                from itertools import chain
-
-                self.largs.file = list(chain.from_iterable(self.largs.file))
             assert len(self.new_entries.values()) == 1
             for value in self.new_entries.values():
                 # logging done by cobib/database/entry.py
@@ -377,18 +369,12 @@ class AddCommand(Command):
                     diff.compute()
                     table = diff.render("bibtex")
 
-                    if self.console is None:
-                        self.console = Console()
-
                     # pylint: disable=assignment-from-no-return
                     popup = self.console.print(table)  # type: ignore[union-attr]
 
                     prompt_text = "How would you like to handle this conflict?"
                     choices = ["keep", "replace", "update", "disambiguate", "help"]
                     default = "keep"
-
-                    if self.prompt is None:
-                        self.prompt = Prompt
 
                     # pylint: disable=line-too-long
                     self.prompt.process_response = self._wrap_prompt_process_response(  # type: ignore[method-assign]
@@ -462,7 +448,7 @@ class AddCommand(Command):
 
         bib.update(self.new_entries)
         if edit_entries:
-            EditCommand([self.largs.label]).execute()
+            EditCommand(self.largs.label).execute()
 
         bib.save()
 
@@ -476,11 +462,21 @@ class AddCommand(Command):
     def _wrap_prompt_process_response(
         func: Callable[[PromptBase[PromptType], str], PromptType]
     ) -> Callable[[PromptBase[PromptType], str], PromptType]:
-        """TODO."""
+        """A method to wrap a `PromptBase.process_response` method.
 
+        This method wraps a `PromptBase.process_response` method in order to handle a user's request
+        for additional help.
+
+        Args:
+            func: the `PromptBase.process_response` method to be wrapped.
+
+        Returns:
+            The wrapped `PromptBase.process_response` method.
+        """
+
+        @override
         @wraps(func)
         def process_response(prompt: PromptBase[PromptType], value: str) -> PromptType:
-            """TODO."""
             return_value: PromptType = func(prompt, value)
 
             if return_value == "help":

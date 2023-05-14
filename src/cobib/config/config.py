@@ -20,6 +20,8 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable, Optional, TextIO, Union
 
+from typing_extensions import override
+
 from cobib.utils.rel_path import RelPath
 
 if TYPE_CHECKING:
@@ -48,7 +50,6 @@ class _ConfigBase:
 
     @abstractmethod
     def validate(self) -> None:
-        # noqa: D102
         """Validates the configuration at runtime.
 
         Raises:
@@ -77,8 +78,8 @@ class LoggingConfig(_ConfigBase):
     """Specifies the location for the cached version number based on which coBib shows the latest
     changes. Set this to `None` to disable this functionality entirely."""
 
+    @override
     def validate(self) -> None:
-        # noqa: D102
         LOGGER.debug("Validating the LOGGING configuration section.")
         self._assert(
             isinstance(self.cache, (str, Path)), "config.logging.cache should be a string."
@@ -102,8 +103,8 @@ class EditCommandConfig(_ConfigBase):
     """Specifies the editor program. Note, that this default will respect your `$EDITOR`
     environment setting and fall back to `vim` if that variable is not set."""
 
+    @override
     def validate(self) -> None:
-        # noqa: D102
         LOGGER.debug("Validating the COMMANDS.EDIT configuration section.")
         self._assert(
             isinstance(self.default_entry_type, str),
@@ -124,8 +125,8 @@ class ListCommandConfig(_ConfigBase):
     ignore_case: bool = False
     """Specifies whether filter matching should be performed case-insensitive."""
 
+    @override
     def validate(self) -> None:
-        # noqa: D102
         LOGGER.debug("Validating the COMMANDS.LIST configuration section.")
         self._assert(
             isinstance(self.default_columns, list),
@@ -146,8 +147,8 @@ class OpenCommandConfig(_ConfigBase):
     fields: list[str] = field(default_factory=lambda: ["file", "url"])
     """Specifies the entry fields which are to be checked for openable URLs."""
 
+    @override
     def validate(self) -> None:
-        # noqa: D102
         LOGGER.debug("Validating the COMMANDS.OPEN configuration section.")
         self._assert(
             isinstance(self.command, str),
@@ -168,8 +169,8 @@ class SearchHighlightConfig(_ConfigBase):
     query: str = "red"
     """Specifies the color with which to highlight the query matches of a search."""
 
+    @override
     def validate(self) -> None:
-        # noqa: D102
         LOGGER.debug("Validating the COMMANDS.SEARCH.HIGHLIGHTS configuration section.")
         self._assert(
             isinstance(self.label, str),
@@ -197,8 +198,8 @@ class SearchCommandConfig(_ConfigBase):
     highlights: SearchHighlightConfig = field(default_factory=lambda: SearchHighlightConfig())
     """The nested section for highlights used when displaying search results."""
 
+    @override
     def validate(self) -> None:
-        # noqa: D102
         LOGGER.debug("Validating the COMMANDS.SEARCH configuration section.")
         self._assert(
             isinstance(self.grep, str),
@@ -229,8 +230,8 @@ class CommandConfig(_ConfigBase):
     search: SearchCommandConfig = field(default_factory=lambda: SearchCommandConfig())
     """The nested section for settings related to the `search` command."""
 
+    @override
     def validate(self) -> None:
-        # noqa: D102
         LOGGER.debug("Validating the COMMANDS configuration section.")
         self.edit.validate()
         self.list_.validate()
@@ -272,8 +273,8 @@ class DatabaseFormatConfig(_ConfigBase):
     characters. This is a simple option which gets passed on to the internally used `pylatexenc`
     library."""
 
+    @override
     def validate(self) -> None:
-        # noqa: D102
         LOGGER.debug("Validating the DATABASE.FORMAT configuration section.")
         self._assert(
             isinstance(self.label_default, str),
@@ -313,8 +314,8 @@ class EntryListSeparatorConfig(_ConfigBase):
     url: str = ", "
     """Specifies the string used to join the list of URLs into a single string representation."""
 
+    @override
     def validate(self) -> None:
-        # noqa: D102
         LOGGER.debug("Validating the DATABASE.STRINGIFY.LIST_SEPARATOR configuration section.")
         self._assert(
             isinstance(self.file, str),
@@ -339,8 +340,8 @@ class EntryStringifyConfig(_ConfigBase):
     )
     """The nested section for list separator values."""
 
+    @override
     def validate(self) -> None:
-        # noqa: D102
         LOGGER.debug("Validating the DATABASE.STRINGIFY configuration section.")
         self.list_separator.validate()
 
@@ -365,8 +366,8 @@ class DatabaseConfig(_ConfigBase):
     stringify: EntryStringifyConfig = field(default_factory=lambda: EntryStringifyConfig())
     """The nested section for database string-formatting settings."""
 
+    @override
     def validate(self) -> None:
-        # noqa: D102
         LOGGER.debug("Validating the DATABASE configuration section.")
         self._assert(isinstance(self.file, str), "config.database.file should be a string.")
         self._assert(isinstance(self.git, bool), "config.database.git should be a boolean.")
@@ -381,8 +382,8 @@ class BibtexParserConfig(_ConfigBase):
     ignore_non_standard_types: bool = False
     """Specifies whether the BibTeX-parser should ignore non-standard BibTeX entry types."""
 
+    @override
     def validate(self) -> None:
-        # noqa: D102
         LOGGER.debug("Validating the PARSERS.BIBTEX configuration section.")
         self._assert(
             isinstance(self.ignore_non_standard_types, bool),
@@ -403,8 +404,8 @@ class YAMLParserConfig(_ConfigBase):
        https://yaml.readthedocs.io/en/latest/install.html#optional-requirements
     """
 
+    @override
     def validate(self) -> None:
-        # noqa: D102
         LOGGER.debug("Validating the PARSERS.YAML configuration section.")
         self._assert(
             isinstance(self.use_c_lib_yaml, bool),
@@ -421,8 +422,8 @@ class ParserConfig(_ConfigBase):
     yaml: YAMLParserConfig = field(default_factory=lambda: YAMLParserConfig())
     """The nested section for the YAML parser settings."""
 
+    @override
     def validate(self) -> None:
-        # noqa: D102
         LOGGER.debug("Validating the PARSERS configuration section.")
         self.bibtex.validate()
         self.yaml.validate()
@@ -451,8 +452,8 @@ class FileDownloaderConfig(_ConfigBase):
 
     Make sure to use raw Python strings to ensure proper backslash-escaping."""
 
+    @override
     def validate(self) -> None:
-        # noqa: D102
         LOGGER.debug("Validating the UTILS.FILE_DOWNLOADER configuration section.")
         self._assert(
             isinstance(self.default_location, str),
@@ -480,8 +481,8 @@ class UtilsConfig(_ConfigBase):
     the form: `(full journal name, abbreviation)`. The abbreviation should include any necessary
     punctuation which can be excluded upon export (see also `cobib export --help`)."""
 
+    @override
     def validate(self) -> None:
-        # noqa: D102
         LOGGER.debug("Validating the UTILS configuration section.")
         self.file_downloader.validate()
         self._assert(
@@ -534,8 +535,8 @@ class Config(_ConfigBase):
     )
     """The XDG-based standard configuration location."""
 
+    @override
     def validate(self) -> None:
-        # noqa: D102
         LOGGER.info("Validating the runtime configuration.")
         self.logging.validate()
         self.commands.validate()

@@ -6,6 +6,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Type
 
 import pytest
+from typing_extensions import override
 
 from cobib.commands import ImportCommand
 from cobib.config import Event
@@ -19,14 +20,14 @@ if TYPE_CHECKING:
 class TestImportCommand(CommandTest):
     """Tests for coBib's ImportCommand."""
 
+    @override
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        # noqa: D102
         return ImportCommand
 
     def test_command(self) -> None:
         """Test the command itself."""
         with pytest.raises(SystemExit):
-            ImportCommand(["-h"]).execute()
+            ImportCommand("-h").execute()
 
     @pytest.mark.asyncio
     async def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -48,7 +49,7 @@ class TestImportCommand(CommandTest):
 
         assert Event.PreImportCommand.validate()
 
-        ImportCommand(["--zotero"]).execute()
+        ImportCommand("--zotero").execute()
 
     def test_event_post_import_command(self, setup: Any) -> None:
         """Tests the PostImportCommand event."""
@@ -63,4 +64,4 @@ class TestImportCommand(CommandTest):
         def aux_hook(command: ImportCommand) -> None:
             command.largs.zotero = False
 
-        ImportCommand(["--zotero"]).execute()
+        ImportCommand("--zotero").execute()

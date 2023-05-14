@@ -5,10 +5,11 @@ To get started, simply type:
 ```
 cobib edit <label>
 ```
-which will open the YAML-formatted version of the specified Entry for editing.
+which will open the YAML-formatted version of the specified `cobib.database.Entry` for editing.
 
-You can configure which editor will be used via the `config.commands.edit.editor` setting which will
-default to using your `$EDITOR` environment setting (and fall back to `vim` if that is not set).
+You can configure which editor will be used via the `cobib.config.config.EditCommandConfig.editor`
+setting which will default to using your `$EDITOR` environment setting (and fall back to `vim` if
+that is not set).
 
 You can even add entirely new entries to the database by specifying an unused entry label *and*
 adding the `--add` command-line argument:
@@ -16,7 +17,16 @@ adding the `--add` command-line argument:
 cobib edit --add <new label>
 ```
 This entry will be entirely empty except for the one field which is always present:
-* `ENTRYTYPE`: set to the default value configured via `config.commands.edit.default_entry_type`.
+    * `ENTRYTYPE`: set to the default value configured via
+      `cobib.config.config.EditCommandConfig.default_entry_type`.
+
+If you change the label of the entry during editing and you do *not* want your associated files to
+automatically be renamed, you can provide the `--preserve-files` argument like so:
+```
+cobib edit --preserve-files <label>
+```
+
+### TUI
 
 You can also trigger this command from the `cobib.ui.tui.TUI`.
 By default, it is bound to the `e` key.
@@ -33,7 +43,12 @@ import logging
 import os
 import tempfile
 from pathlib import Path
-from typing import List
+from typing import Type
+
+from rich.console import Console
+from rich.prompt import PromptBase
+from textual.app import App
+from typing_extensions import override
 
 from cobib.config import Event, config
 from cobib.database import Database, Entry
@@ -46,19 +61,35 @@ LOGGER = logging.getLogger(__name__)
 
 
 class EditCommand(Command):
-    """The Edit Command."""
+    """The Edit Command.
+
+    This command can parse the following arguments:
+
+        * `label`: the label of the entry to edit.
+        * `-a`, `--add`: if specified, allows adding a new entry for a non-existent label. The
+          default entry type of this new entry can be configured via
+          `cobib.config.config.EditCommandConfig.default_entry_type`.
+        * `--preserve-files`: skips the renaming of any associated files in case you manually rename
+            the entry label during editing.
+    """
 
     name = "edit"
 
-    def __init__(self, args: List[str]) -> None:
-        """TODO."""
-        super().__init__(args)
+    @override
+    def __init__(
+        self,
+        *args: str,
+        console: Console | App[None] | None = None,
+        prompt: Type[PromptBase[str]] | None = None,
+    ) -> None:
+        super().__init__(*args, console=console, prompt=prompt)
 
         self.new_entry: Entry
+        """A `cobib.database.Entry` instance edited by this command."""
 
+    @override
     @classmethod
     def init_argparser(cls) -> None:
-        """TODO."""
         parser = ArgumentParser(prog="edit", description="Edit subcommand parser.")
         parser.add_argument("label", type=str, help="label of the entry")
         parser.add_argument(
@@ -72,23 +103,8 @@ class EditCommand(Command):
         )
         cls.argparser = parser
 
+    @override
     def execute(self) -> None:
-        """Opens an entry for manual editing.
-
-        This command opens an `cobib.database.Entry` in YAML format for manual editing.
-        The editor program can be configured via `config.commands.edit.editor`.
-        By default, this setting will respect your `$EDITOR` environment variable, but fall back to
-        using `vim` if that variable is not set.
-
-        Args:
-            args: a sequence of additional arguments used for the execution. The following values
-                are allowed for this command:
-                    * `label`: the label of the entry to edit.
-                    * `-a`, `--add`: if specified, allows adding new entries for non-existent
-                      labels. The default entry type of this new entry can be configured via
-                      `config.commands.edit.default_entry_type`.
-            out: the output IO stream. This defaults to `sys.stdout`.
-        """
         LOGGER.debug("Starting Edit command.")
 
         Event.PreEditCommand.fire(self)

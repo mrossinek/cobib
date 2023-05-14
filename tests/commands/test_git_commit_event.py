@@ -5,9 +5,13 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type
+from typing import TYPE_CHECKING, Any, Dict, Optional, Type
 
 import pytest
+from rich.console import Console
+from rich.prompt import PromptBase
+from textual.app import App
+from typing_extensions import override
 
 from cobib.commands.base_command import Command
 from cobib.config import Event, config
@@ -24,13 +28,20 @@ class DummyCommand(Command):
 
     name = "dummy"
 
-    def __init__(self, args: List[str]) -> None:  # pylint: disable=super-init-not-called
-        """TODO."""
+    @override
+    def __init__(
+        self,
+        *args: str,
+        console: Console | App[None] | None = None,
+        prompt: Type[PromptBase[str]] | None = None,
+    ) -> None:
+        # pylint: disable=super-init-not-called
         self.largs = argparse.Namespace()
 
+    @override
     @classmethod
     def init_argparser(cls) -> None:
-        """TODO."""
+        pass
 
     def execute(self) -> None:
         """Does nothing but generate a dummy git commit.
@@ -48,16 +59,16 @@ class DummyCommand(Command):
 class TestGitCommitEvent(CommandTest):
     """Tests for the automatic git-commit related events."""
 
+    @override
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        # noqa: D102
         return DummyCommand
 
+    @override
     def test_command(self) -> None:
-        # noqa: D102
         pytest.skip("The dummy command has no actual command.")
 
+    @override
     def test_handle_argument_error(self, caplog: pytest.LogCaptureFixture) -> None:
-        # noqa: D102
         pytest.skip("The dummy command has no argument parser.")
 
     @pytest.mark.parametrize("setup", [{"git": True}], indirect=["setup"])
@@ -74,7 +85,7 @@ class TestGitCommitEvent(CommandTest):
 
         assert Event.PreGitCommit.validate()
 
-        DummyCommand([]).execute()
+        DummyCommand().execute()
 
         self.assert_git_commit_message("dummy", msg="Hello world!\n")
 
@@ -92,6 +103,6 @@ class TestGitCommitEvent(CommandTest):
 
         assert Event.PostGitCommit.validate()
 
-        DummyCommand([]).execute()
+        DummyCommand().execute()
 
         assert not RelPath(config.database.file).path.exists()

@@ -17,11 +17,11 @@ class Importer(ABC):
     `cobib.commands.import_.ImportCommand`."""
 
     @abstractmethod
-    def fetch(self, args: List[str], skip_download: bool = False) -> List[Entry]:
+    def fetch(self, *args: str, skip_download: bool = False) -> List[Entry]:
         """Fetches a list of entries.
 
         Args:
-            args: a sequence of additional arguments used during execution. The available arguments
+            *args: a sequence of additional arguments used during execution. The available arguments
                 depend on the actual importer in use.
             skip_download: whether or not to skip downloading of additional files such as attached
                 PDF files or notes.

@@ -27,7 +27,7 @@ class CLI(UI):
         """TODO."""
         self.parser.add_argument("--version", action="version", version=f"%(prog)s v{__version__}")
 
-        subcommands = [cmd.split(":")[0] for cmd in shell_helper.list_commands([])]
+        subcommands = [cmd.split(":")[0] for cmd in shell_helper.list_commands()]
         self.parser.add_argument(
             "command", help="subcommand to be called", choices=subcommands, nargs="?"
         )
@@ -60,7 +60,7 @@ class CLI(UI):
         if arguments.command == "init":
             # the database file may not exist yet, thus we ensure to execute the command before
             # trying to read the database file
-            subcmd = getattr(commands, "InitCommand")(arguments.args)
+            subcmd = getattr(commands, "InitCommand")(*arguments.args)
             subcmd.execute()
             return
 
@@ -72,7 +72,7 @@ class CLI(UI):
             await task
             sys.exit()
         else:
-            subcmd = getattr(commands, arguments.command.title() + "Command")(arguments.args)
+            subcmd = getattr(commands, arguments.command.title() + "Command")(*arguments.args)
             if iscoroutinefunction(subcmd.execute):
                 await subcmd.execute()
             else:

@@ -40,6 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The function signature of all command-related events has changed! Please refer to the
   [online documentation](https://cobib.gitlab.io/cobib/cobib/config/event.html)
   for more details. (!63)
+- the API of the `cobib.commands` and `cobib.importers` module has been improved (!64)
+  - this should not have any end-user facing effects
 
 ### Deprecated
 - the `--update` argument of the `add` command is deprecated in favor of `--disambiguation update`

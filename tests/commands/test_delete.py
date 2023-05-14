@@ -9,6 +9,7 @@ from io import StringIO
 from typing import TYPE_CHECKING, Any, List, Type
 
 import pytest
+from typing_extensions import override
 
 from cobib.commands import DeleteCommand
 from cobib.config import Event, config
@@ -25,8 +26,8 @@ if TYPE_CHECKING:
 class TestDeleteCommand(CommandTest):
     """Tests for coBib's DeleteCommand."""
 
+    @override
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        # noqa: D102
         return DeleteCommand
 
     def _assert(self, labels: List[str]) -> None:
@@ -77,7 +78,7 @@ class TestDeleteCommand(CommandTest):
         git = setup.get("git", False)
 
         # delete some data (for testing simplicity we delete the entries from the end)
-        DeleteCommand(labels).execute()
+        DeleteCommand(*labels).execute()
         self._assert(labels)
 
         if git and not skip_commit:
@@ -101,7 +102,7 @@ class TestDeleteCommand(CommandTest):
             args = ["knuthwebsite"]
             if preserve_files:
                 args += ["--preserve-files"]
-            DeleteCommand(args).execute()
+            DeleteCommand(*args).execute()
 
             assert path.path.exists() is preserve_files
 
@@ -118,7 +119,7 @@ class TestDeleteCommand(CommandTest):
         """
         config.database.git = True
 
-        DeleteCommand(["knuthwebsite"]).execute()
+        DeleteCommand("knuthwebsite").execute()
         self._assert(["knuthwebsite"])
 
         assert (
@@ -159,7 +160,7 @@ class TestDeleteCommand(CommandTest):
 
         assert Event.PreDeleteCommand.validate()
 
-        DeleteCommand(["knuthwebsite"]).execute()
+        DeleteCommand("knuthwebsite").execute()
 
         assert "einstein" not in Database().keys()
         assert "knuthwebsite" in Database().keys()
@@ -173,7 +174,7 @@ class TestDeleteCommand(CommandTest):
                 print(f"WARNING: deleted entry '{label}'")
 
         with contextlib.redirect_stdout(StringIO()) as out:
-            DeleteCommand(["knuthwebsite"]).execute()
+            DeleteCommand("knuthwebsite").execute()
 
         assert Event.PostDeleteCommand.validate()
 

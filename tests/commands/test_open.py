@@ -7,6 +7,7 @@ import sys
 from typing import TYPE_CHECKING, Any, Dict, Generator, List, Optional, Tuple, Type
 
 import pytest
+from typing_extensions import override
 
 from cobib.commands import OpenCommand
 from cobib.config import Event, config
@@ -29,8 +30,8 @@ class TestOpenCommand(CommandTest):
     TMP_FILE_A = "/tmp/a.txt"
     TMP_FILE_B = "/tmp/b.txt"
 
+    @override
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        # noqa: D102
         return OpenCommand
 
     @pytest.fixture
@@ -181,7 +182,7 @@ class TestOpenCommand(CommandTest):
             capsys: the built-in pytest fixture.
             args: the arguments to pass to the command.
         """
-        await OpenCommand(args).execute()
+        await OpenCommand(*args).execute()
 
         true_log = [rec for rec in caplog.record_tuples if rec[0] == "cobib.commands.open"]
         true_out = capsys.readouterr().out.split("\n")
@@ -198,7 +199,7 @@ class TestOpenCommand(CommandTest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        await OpenCommand(["dummy"]).execute()
+        await OpenCommand("dummy").execute()
         assert (
             "cobib.commands.open",
             30,
@@ -215,7 +216,7 @@ class TestOpenCommand(CommandTest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        await OpenCommand(["einstein"]).execute()
+        await OpenCommand("einstein").execute()
         assert (
             "cobib.commands.open",
             30,
@@ -252,7 +253,7 @@ class TestOpenCommand(CommandTest):
 
         monkeypatch.setattr("sys.stdin", MockStdin(["cancel"]))
 
-        await OpenCommand(["example_multi_file_entry"]).execute()
+        await OpenCommand("example_multi_file_entry").execute()
 
         true_out = capsys.readouterr().out.split("\n")
 
@@ -298,7 +299,7 @@ class TestOpenCommand(CommandTest):
 
         monkeypatch.setattr("sys.stdin", MockStdin())
 
-        await OpenCommand(["example_multi_file_entry"]).execute()
+        await OpenCommand("example_multi_file_entry").execute()
 
         true_log = [rec for rec in caplog.record_tuples if rec[0] == "cobib.commands.open"]
 
@@ -362,7 +363,7 @@ class TestOpenCommand(CommandTest):
 
         assert Event.PreOpenCommand.validate()
 
-        await OpenCommand(["einstein"]).execute()
+        await OpenCommand("einstein").execute()
 
         true_log = [rec for rec in caplog.record_tuples if rec[0] == "cobib.commands.open"]
         true_out = capsys.readouterr().out.split("\n")
@@ -385,7 +386,7 @@ class TestOpenCommand(CommandTest):
 
         assert Event.PostOpenCommand.validate()
 
-        await OpenCommand(["knuthwebsite"]).execute()
+        await OpenCommand("knuthwebsite").execute()
 
         true_log = [rec for rec in caplog.record_tuples if rec[0] == "cobib.commands.open"]
         outerr = capsys.readouterr()

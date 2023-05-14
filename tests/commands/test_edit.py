@@ -7,6 +7,7 @@ import tempfile
 from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Type
 
 import pytest
+from typing_extensions import override
 
 from cobib.commands import EditCommand
 from cobib.config import Event, config
@@ -30,8 +31,8 @@ class TestEditCommand(CommandTest):
     keyword argument is being used.
     """
 
+    @override
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        # noqa: D102
         return EditCommand
 
     @staticmethod
@@ -88,7 +89,7 @@ class TestEditCommand(CommandTest):
         """
         git = setup.get("git", False)
 
-        EditCommand(args).execute()
+        EditCommand(*args).execute()
 
         true_log = [rec for rec in caplog.record_tuples if rec[0] == "cobib.commands.edit"]
 
@@ -116,7 +117,7 @@ class TestEditCommand(CommandTest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        EditCommand(["-a", "einstein"]).execute()
+        EditCommand("-a", "einstein").execute()
         assert (
             "cobib.commands.edit",
             30,
@@ -145,7 +146,7 @@ class TestEditCommand(CommandTest):
                 args = ["einstein"]
                 if preserve_files:
                     args.insert(2, "--preserve-files")
-                EditCommand(args).execute()
+                EditCommand(*args).execute()
                 assert "dummy" in Database().keys()
 
                 target = RelPath(tmpdirname + "/dummy.pdf")
@@ -163,7 +164,7 @@ class TestEditCommand(CommandTest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        EditCommand(["dummy"]).execute()
+        EditCommand("dummy").execute()
         assert (
             "cobib.commands.edit",
             40,
@@ -199,7 +200,7 @@ class TestEditCommand(CommandTest):
 
         assert Event.PreEditCommand.validate()
 
-        EditCommand(["einstein"]).execute()
+        EditCommand("einstein").execute()
 
         self._assert(changes=True)
 
@@ -212,6 +213,6 @@ class TestEditCommand(CommandTest):
 
         assert Event.PostEditCommand.validate()
 
-        EditCommand(["-a", "dummy"]).execute()
+        EditCommand("-a", "dummy").execute()
 
         assert Database()["dummy"].data["tags"] == "test"

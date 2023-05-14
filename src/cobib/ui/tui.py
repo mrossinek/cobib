@@ -358,7 +358,7 @@ class TUI(UI, App[None]):
         yield Header()
         yield Footer()  # TODO: adapt to make more useful with so many key bindings as here
 
-        command = commands.ListCommand(self._list_args)
+        command = commands.ListCommand(*self._list_args)
         command.execute()
         table = command.render_textual()
         main.mount(table)
@@ -426,7 +426,7 @@ class TUI(UI, App[None]):
     def _show_entry(self) -> None:
         """TODO."""
         label = self._get_current_label()
-        show_cmd = commands.ShowCommand([label])
+        show_cmd = commands.ShowCommand(label)
         show_cmd.execute()
         entry = self.query_one(EntryView)
         entry.string = show_cmd.render_rich(
@@ -475,7 +475,7 @@ class TUI(UI, App[None]):
         """TODO."""
         label = self._get_current_label()
         with self.suspend():
-            commands.EditCommand([label]).execute()
+            commands.EditCommand(label).execute()
         self.refresh(layout=True)
 
     async def action_edit(self) -> None:
@@ -491,9 +491,7 @@ class TUI(UI, App[None]):
         else:
             labels = [self._get_current_label()]
 
-        open_cmd = commands.OpenCommand(labels)
-        open_cmd.prompt = TextualPrompt
-        open_cmd.console = self
+        open_cmd = commands.OpenCommand(*labels, prompt=TextualPrompt, console=self)
         task = asyncio.create_task(open_cmd.execute())
         self._background_tasks.add(task)
         task.add_done_callback(self._background_tasks.discard)
@@ -511,7 +509,7 @@ class TUI(UI, App[None]):
         else:
             labels = [self._get_current_label()]
 
-        commands.DeleteCommand(labels).execute()
+        commands.DeleteCommand(*labels).execute()
         self._update_table()
 
     def on_mount(self) -> None:
@@ -567,7 +565,7 @@ class TUI(UI, App[None]):
             elif command[0].lower() == "search":
                 main = self.query_one(MainView)
                 main.clear()
-                subcmd = commands.SearchCommand(command[1:])
+                subcmd = commands.SearchCommand(*command[1:])
                 subcmd.execute()
                 tree = subcmd.render_textual()
                 main.mount(tree)
@@ -576,12 +574,12 @@ class TUI(UI, App[None]):
                 with redirect_stdout(io.StringIO()) as stdout:
                     with redirect_stderr(io.StringIO()) as stderr:
                         try:
-                            subcmd = getattr(commands, command[0].title() + "Command")(command[1:])
-                            subcmd.prompt = TextualPrompt
-                            subcmd.console = self
+                            subcmd = getattr(commands, command[0].title() + "Command")(
+                                *command[1:], prompt=TextualPrompt, console=self
+                            )
 
-                            task = asyncio.create_task(
-                                subcmd.execute()  # type: ignore[func-returns-value]
+                            task = asyncio.create_task(  # type: ignore[var-annotated]
+                                subcmd.execute()  # type: ignore[arg-type]
                             )
                             self._background_tasks.add(task)
                             task.add_done_callback(self._background_tasks.discard)
@@ -654,7 +652,7 @@ class TUI(UI, App[None]):
         # TODO: retain scroll position
         main = self.query_one(MainView)
         main.clear()
-        command = commands.ListCommand(self._list_args)
+        command = commands.ListCommand(*self._list_args)
         command.execute()
         table = command.render_textual()
         main.mount(table)

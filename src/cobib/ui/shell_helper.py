@@ -33,5 +33,5 @@ class ShellHelper(UI):
 
         helper = getattr(shell_helper, arguments.helper.strip("_"))
         # any shell helper function will return a list of the requested items
-        for item in helper(arguments.args):
+        for item in helper(*arguments.args):
             print(item)

@@ -14,10 +14,11 @@ cobib import --zotero
 ```
 
 .. note::
-   Since this command adds new entries to the database, its outcome can be affected by your choices
-   of the various `database`-related settings in your `cobib.config`. In particular, pay attention
-   to the "stringify" settings which affect how entries are converted to/from strings. In
-   particular, the following setting will affect how multiple files are split into a list of files:
+   Since this command adds new entries to the database, its outcome can be affected by your
+   `cobib.config.config.DatabaseConfig` settings. In particular, pay attention to the
+   `cobib.config.config.EntryStringifyConfig` settings which affect how entries are converted
+   to/from strings. In particular, the following setting will affect how multiple files are split
+   into a list of files:
    ```
    config.database.stringify.list_separator.file = ", "
    ```
@@ -51,7 +52,12 @@ import argparse
 import inspect
 import logging
 from collections import OrderedDict
-from typing import Dict, List
+from typing import Dict, List, Type
+
+from rich.console import Console
+from rich.prompt import PromptBase
+from textual.app import App
+from typing_extensions import override
 
 from cobib import importers
 from cobib.config import Event
@@ -63,23 +69,42 @@ LOGGER = logging.getLogger(__name__)
 
 
 class ImportCommand(Command):
-    """The ImportCommand."""
+    """The ImportCommand.
+
+    This command can parse the following arguments:
+
+        * `--skip-download`: skips the automatic download of attached files (like PDFs).
+        * in addition to the options above, a *mutually exclusive group* of keyword arguments for
+          all available `cobib.importers` are registered at runtime. Please check the output of
+          `cobib import --help` for the exact list.
+        * finally, you can add another set of positional arguments (preceded by `--`) which will be
+          passed on to the chosen importer. For more details see for example
+          `cobib import --zotero -- --help`.
+    """
 
     name = "import"
 
-    avail_parsers = {
+    _avail_importers = {
         cls.name: cls for _, cls in inspect.getmembers(importers) if inspect.isclass(cls)
     }
+    """The available importers."""
 
-    def __init__(self, args: List[str]) -> None:
-        """TODO."""
-        super().__init__(args)
+    @override
+    def __init__(
+        self,
+        *args: str,
+        console: Console | App[None] | None = None,
+        prompt: Type[PromptBase[str]] | None = None,
+    ) -> None:
+        super().__init__(*args, console=console, prompt=prompt)
 
         self.new_entries: Dict[str, Entry] = OrderedDict()
+        """An `OrderedDict` mapping labels to `cobib.database.Entry` instances which were imported
+        by this command."""
 
+    @override
     @classmethod
     def init_argparser(cls) -> None:
-        """TODO."""
         parser = ArgumentParser(prog="import", description="Import subcommand parser.")
         parser.add_argument(
             "--skip-download",
@@ -93,38 +118,22 @@ class ImportCommand(Command):
             " expected you should add the pseudo-argument '--' before the remaining arguments.",
         )
         group_import = parser.add_mutually_exclusive_group()
-        for name in cls.avail_parsers.keys():
+        for name in cls._avail_importers.keys():
             try:
                 group_import.add_argument(f"--{name}", action="store_true", help=f"{name} importer")
             except argparse.ArgumentError:
                 continue
         cls.argparser = parser
 
+    @override
     def execute(self) -> None:
-        """Imports new entries from another bibliography manager.
-
-        The source from which to import new entries is configured via the `args`. The available
-        importers are provided by the `cobib.importers` module.
-
-        Args:
-            args: a sequence of additional arguments used for the execution. The following values
-                are allowed for this command:
-                    * `--skip-download`: skips the automatic download of attached files (like PDFs).
-                    * in addition to the options above, a *mutually exclusive group* of keyword
-                      arguments for all available `cobib.importers` are registered at runtime.
-                      Please check the output of `cobib import --help` for the exact list.
-                    * finally, you can add another set of positional arguments (preceded by `--`)
-                      which will be passed on to the chosen importer. For more details see for
-                      example `cobib import --zotero -- --help`.
-            out: the output IO stream. This defaults to `sys.stdout`.
-        """
         LOGGER.debug("Starting Import command.")
 
         Event.PreImportCommand.fire(self)
 
         imported_entries: List[Entry] = []
 
-        for name, cls in ImportCommand.avail_parsers.items():
+        for name, cls in ImportCommand._avail_importers.items():
             enabled = getattr(self.largs, name, False)
             if not enabled:
                 continue

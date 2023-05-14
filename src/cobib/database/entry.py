@@ -352,7 +352,7 @@ class Entry:
         `query` and will interpret these as regex patterns.
         If a `file` is associated with this entry, the search will try its best to recursively query
         its contents, too. However, the success of this depends highly on the configured search
-        tool, `config.commands.search.grep`.
+        tool, `cobib.config.config.SearchCommandConfig.grep`.
 
         Args:
             query: the list of regex patterns to search for.

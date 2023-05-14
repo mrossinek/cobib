@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any, List, Set, Type
 
 import pytest
 from rich.table import Table
+from typing_extensions import override
 
 from cobib.commands import ListCommand
 from cobib.config import Event, config
@@ -27,8 +28,8 @@ if TYPE_CHECKING:
 class TestListCommand(CommandTest):
     """Tests for coBib's ListCommand."""
 
+    @override
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        # noqa: D102
         return ListCommand
 
     @pytest.mark.parametrize(
@@ -53,7 +54,7 @@ class TestListCommand(CommandTest):
             args: the arguments to pass to the command.
             expected_labels: the expected list of labels.
         """
-        cmd = ListCommand(args)
+        cmd = ListCommand(*args)
         cmd.execute()
         assert [entry.label for entry in cmd.entries] == expected_labels
 
@@ -75,8 +76,15 @@ class TestListCommand(CommandTest):
     def test_filter_entries(
         self, setup: Any, args: List[str], expected_labels: List[str], expected_keys: Set[str]
     ) -> None:
-        """TODO."""
-        filtered_entries, filtered_keys = ListCommand(args).filter_entries()
+        """Tests the filtering methods.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            args: the arguments to pass to the command.
+            expected_labels: the expected list of labels which match the filter.
+            expected_keys: the expected keys which were filtered on.
+        """
+        filtered_entries, filtered_keys = ListCommand(*args).filter_entries()
         assert filtered_keys == expected_keys
         assert [entry.label for entry in filtered_entries] == expected_labels
 
@@ -89,7 +97,7 @@ class TestListCommand(CommandTest):
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
         """
-        filtered_entries, filtered_keys = ListCommand(["++year", "1905"]).filter_entries()
+        filtered_entries, filtered_keys = ListCommand("++year", "1905").filter_entries()
         assert [entry.label for entry in filtered_entries] == ["einstein"]
         assert filtered_keys == {"year"}
 
@@ -166,7 +174,7 @@ class TestListCommand(CommandTest):
             expected_cols: the expected list of columns.
             expected_rows: the expected list of row entries.
         """
-        cmd = ListCommand(args)
+        cmd = ListCommand(*args)
         cmd.execute()
         renderable = cmd.render_rich()
 
@@ -213,7 +221,7 @@ class TestListCommand(CommandTest):
 
         assert Event.PreListCommand.validate()
 
-        cmd = ListCommand(["++author", "Einstein"])
+        cmd = ListCommand("++author", "Einstein")
         cmd.execute()
 
         assert [entry.label for entry in cmd.entries] == [
@@ -232,7 +240,7 @@ class TestListCommand(CommandTest):
         assert Event.PostListCommand.validate()
 
         with contextlib.redirect_stdout(StringIO()) as out:
-            cmd = ListCommand([])
+            cmd = ListCommand()
             cmd.execute()
 
             assert (

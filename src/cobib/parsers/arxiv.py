@@ -4,7 +4,8 @@ This parser is capable of generating `cobib.database.Entry` instances from a giv
 It gathers the BibTex-encoded data from the arXiv API and parses the raw XML data.
 
 Since v3.2.0 coBib will also automatically download the PDF version of the new entry. You can
-configure the default download location via `config.utils.file_downloader.default_location`.
+configure the default download location via
+`cobib.config.config.FileDownloaderConfig.default_location`.
 
 Since v3.3.0 this parser even supports URLs from which an arXiv ID can be extracted directly.
 
@@ -22,6 +23,7 @@ from typing import Any, Dict
 
 import requests
 from bs4 import BeautifulSoup
+from typing_extensions import override
 
 from cobib.config import Event
 from cobib.database import Entry
@@ -41,10 +43,8 @@ class ArxivParser(Parser):
 
     name = "arxiv"
 
+    @override
     def parse(self, string: str) -> Dict[str, Entry]:
-        # pdoc will inherit the docstring from the base class
-        # noqa: D102
-
         string = Event.PreArxivParse.fire(string) or string
 
         try:

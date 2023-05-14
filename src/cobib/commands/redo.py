@@ -1,6 +1,7 @@
 """coBib's Redo command.
 
-This command can be used to re-apply the changes *of a previously undone* command:
+This command can be used to re-apply the changes *of a previously undone* command (see
+`cobib.commands.undo`):
 ```
 cobib redo
 ```
@@ -8,9 +9,11 @@ This command takes *no* additional arguments!
 
 Note, that if you have not used `cobib undo` previously, this command will have no effect!
 
-Furthermore, this command is *only* available if coBib's git-integration has been enabled and
-initialized.
-Refer to the documentation of `cobib.commands.init.InitCommand` for more details on that topic.
+.. warning::
+   This command is *only* available if coBib's git-integration has been enabled via
+   `cobib.config.config.DatabaseConfig.git` *and* initialized properly (see `cobib.commands.init`).
+
+### TUI
 
 You can also trigger this command from the `cobib.ui.tui.TUI`.
 By default, it is bound to the `r` key.
@@ -22,7 +25,12 @@ import logging
 import subprocess
 import sys
 from pathlib import Path
-from typing import List
+from typing import Type
+
+from rich.console import Console
+from rich.prompt import PromptBase
+from textual.app import App
+from typing_extensions import override
 
 from cobib.config import Event, config
 from cobib.database import Database
@@ -34,37 +42,36 @@ LOGGER = logging.getLogger(__name__)
 
 
 class RedoCommand(Command):
-    """The Redo Command."""
+    """The Redo Command.
+
+    This command does not parse any additional arguments.
+    """
 
     name = "redo"
 
-    def __init__(self, args: List[str]) -> None:
-        """TODO."""
-        super().__init__(args)
+    @override
+    def __init__(
+        self,
+        *args: str,
+        console: Console | App[None] | None = None,
+        prompt: Type[PromptBase[str]] | None = None,
+    ) -> None:
+        super().__init__(*args, console=console, prompt=prompt)
 
         self.root: Path
-        self.sha: str
+        """The path to the root of the git repository tracking the database."""
 
+        self.sha: str
+        """The git commit SHA which was reverted by this command."""
+
+    @override
     @classmethod
     def init_argparser(cls) -> None:
-        """TODO."""
         parser = ArgumentParser(prog="redo", description="Redo subcommand parser.")
         cls.argparser = parser
 
+    @override
     def execute(self) -> None:
-        """Redoes the last undone change.
-
-        This command is *only* available if coBib's git-integration has been enabled via
-        `config.database.git` *and* initialized properly (see `cobib.commands.init.InitCommand`).
-        If that is the case, this command will re-apply the changes *of a previously undone* command
-        (see `cobib.commands.undo.UndoCommand`).
-
-        Args:
-            args: a sequence of additional arguments used for the execution. The following values
-                are allowed for this command:
-                    * **no** additional arguments are required for this subcommand!
-            out: the output IO stream. This defaults to `sys.stdout`.
-        """
         git_tracked = config.database.git
         if not git_tracked:
             msg = (
