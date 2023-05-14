@@ -4,7 +4,8 @@ This command allows you to perform bulk modification to multiple entries.
 Thus, it provides faster means to apply simple edits to many entries at once, without having to open
 each entry for editing one-by-one or having to edit the database file manually.
 
-A simple example is the following:
+It takes a modification in the form `<field>:<value>` and will overwrite the `field` of all matching
+entries with the new `value`. A simple example is the following:
 ```
 cobib modify tags:private --selection -- Label1 Label2 ...
 ```
@@ -33,6 +34,13 @@ cobib modify "pages:{pages.replace('--', '-')}" -- ...
 cobib modify "label:{author.split()[1]}{year}" -- ...
 ```
 
+In case you are applying a modification to your entry labels, but you want to avoid renaming all of
+your associated files, you can use the `--preserve-files` argument, like so:
+```
+# Rename an entry according to the first author's surname and year, but preserve the original file
+cobib modify "label:{author.split()[1]}{year}" --preserve-files -- ...
+```
+
 In combination with the regex-support for filters added during the same release, you can even unify
 your database's label convention:
 ```
@@ -55,6 +63,8 @@ cobib modify --dry <modification> -- ...
 This is useful if you want to test large bulk modifications before running them in order to prevent
 mistakes.
 
+### TUI
+
 You can also trigger this command from the `cobib.ui.tui.TUI`.
 By default, it is bound to the `m` key which will drop you into the prompt where you can type out a
 normal command-line command:
@@ -69,7 +79,12 @@ from __future__ import annotations
 
 import ast
 import logging
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type
+
+from rich.console import Console
+from rich.prompt import PromptBase
+from textual.app import App
+from typing_extensions import override
 
 from cobib.config import Event
 from cobib.database import Database, Entry
@@ -82,81 +97,40 @@ from .list import ListCommand
 LOGGER = logging.getLogger(__name__)
 
 
-def evaluate_ast_node(node: ast.expr, locals_: Optional[Dict[str, Any]] = None) -> str:
-    """Evaluates an AST node representing an f-string.
-
-    Args:
-        node: the AST expression extracted from an f-string.
-        locals_: the dictionary of local variables to be used as context for the expression
-            evaluation.
-
-    Returns:
-        The evaluated AST node expression.
-    """
-    try:
-        # pylint: disable=eval-used
-        return eval(  # type: ignore
-            compile(ast.Expression(node), filename="<string>", mode="eval"), locals_
-        )
-    except NameError as err:
-        LOGGER.warning("You tried use an undefined variable. Falling back to an empty string.")
-        LOGGER.error(err)
-        return ""
-
-
-def evaluate_as_f_string(value: str, locals_: Optional[Dict[str, Any]] = None) -> str:
-    """Evaluates a string as if it were a literal f-string.
-
-    Args:
-        value: the string to be evaluated.
-        locals_: the dictionary of local variables to be used as context for the expression
-            evaluation.
-
-    Returns:
-        The evaluated f-string.
-
-    Raises:
-        ValueError: if an unexpected AST component type is encountered.
-
-    References:
-        <https://stackoverflow.com/a/61190684>
-    """
-    result: List[str] = []
-    for part in ast.parse(f"f'''{value}'''").body[0].value.values:  # type: ignore
-        typ = type(part)
-
-        if typ is ast.Constant:
-            result.append(part.value)
-
-        elif typ is ast.FormattedValue:
-            value = evaluate_ast_node(part.value, locals_)
-
-            if part.conversion >= 0:
-                conversions: Dict[str, Callable[[Any], str]] = {"a": ascii, "r": repr, "s": str}
-                value = conversions[chr(part.conversion)](value)
-
-            if part.format_spec:
-                value = format(value, evaluate_ast_node(part.format_spec))
-
-            result.append(str(value))
-
-        else:
-            LOGGER.warning("Unexpected AST node expression type '%s' for an f-string.", typ)
-            raise ValueError
-
-    return "".join(result)
-
-
 class ModifyCommand(Command):
-    """The Modify Command."""
+    """The Modify Command.
+
+    This command can parse the following arguments:
+
+        * `modification`: a string conforming to `<field>:<value>` indicating the modification that
+          should be applied to all matching entries. By default, the modification will overwrite any
+          existing data in the specified `field` with the new `value`. For more information about
+          formatting options of `<value>` refer to the module documentation or the man-page.
+        * `--dry`: run in "dry"-mode which lists modifications without applying them.
+        * `-a`, `--add`: when specified, the modification's value will be added to the entry's field
+          rather than overwrite it. If the field in question is numeric, the numbers will be added.
+        * `--preserve-files`: skips the renaming of any associated files in case the applied
+            modification acted on the entry labels.
+        * `-s`, `--selection`: when specified, the positional arguments will *not* be interpreted as
+          filters but rather as a direct list of entry labels. This can be used on the command-line
+          but is mainly meant for the TUIs visual selection interface (hence the name).
+        * in addition to the above, you can add `filters` to specify a subset of your database for
+          exporting. For more information refer to `cobib.commands.list`.
+    """
 
     name = "modify"
 
-    def __init__(self, args: List[str]) -> None:
-        """TODO."""
-        super().__init__(args)
+    @override
+    def __init__(
+        self,
+        *args: str,
+        console: Console | App[None] | None = None,
+        prompt: Type[PromptBase[str]] | None = None,
+    ) -> None:
+        super().__init__(*args, console=console, prompt=prompt)
 
         self.modified_entries: List[Entry] = []
+        """A list of `cobib.database.Entry` objects which were modified by this command."""
 
     @staticmethod
     def field_value_pair(string: str) -> Tuple[str, str]:
@@ -168,6 +142,9 @@ class ModifyCommand(Command):
 
         Args:
             string: the argument string to check.
+
+        Returns:
+            The pair of strings: `field` and `value`.
         """
         # try splitting the string into field and value, any errors will be handled by argparse
         field, *value = string.split(":")
@@ -175,9 +152,9 @@ class ModifyCommand(Command):
         # specifications
         return (field, ":".join(value))
 
+    @override
     @classmethod
     def init_argparser(cls) -> None:
-        """TODO."""
         parser = ArgumentParser(prog="modify", description="Modify subcommand parser.")
         parser.add_argument(
             "modification",
@@ -200,6 +177,9 @@ class ModifyCommand(Command):
             help="Adds to the modified field rather than overwriting it.",
         )
         parser.add_argument(
+            "--preserve-files", action="store_true", help="do not rename associated files"
+        )
+        parser.add_argument(
             "-s",
             "--selection",
             action="store_true",
@@ -214,41 +194,11 @@ class ModifyCommand(Command):
             "pseudo-argument '--' before the list of filters. See also `list --help` for more "
             "information.",
         )
-        parser.add_argument(
-            "--preserve-files", action="store_true", help="do not rename associated files"
-        )
         cls.argparser = parser
 
     # pylint: disable=too-many-branches
+    @override
     def execute(self) -> None:
-        """Modifies multiple entries in bulk.
-
-        This command allows bulk modification of multiple entries.
-        It takes a modification in the form `<field>:<value>` and will overwrite the `field` of all
-        matching entries with the new `value`.
-        The entries can be specified as a manual selection (when using `--selection` or the visual
-        selection of the TUI) or through filters (see also `cobib.commands.list`).
-
-        Args:
-            args: a sequence of additional arguments used for the execution. The following values
-                are allowed for this command:
-                    * `modification`: a string conforming to `<field>:<value>` indicating the
-                      modification that should be applied to all matching entries. By default, the
-                      modification will overwrite any existing data in the specified `field` with
-                      the new `value`. For more information about formatting options of `<value>`
-                      refer to the module documentation or the man-page.
-                    * `--dry`: run in "dry"-mode which lists modifications without applying them.
-                    * `-a`, `--add`: when specified, the modification's value will be added to the
-                      entry's field rather than overwrite it. If the field in question is numeric,
-                      the numbers will be added.
-                    * `-s`, `--selection`: when specified, the positional arguments will *not* be
-                      interpreted as filters but rather as a direct list of entry labels. This can
-                      be used on the command-line but is mainly meant for the TUIs visual selection
-                      interface (hence the name).
-                    * in addition to the above, you can add `filters` to specify a subset of your
-                      database for exporting. For more information refer to `cobib.commands.list`.
-            out: the output IO stream. This defaults to `sys.stdout`.
-        """
         LOGGER.debug("Starting Modify command.")
 
         Event.PreModifyCommand.fire(self)
@@ -271,7 +221,7 @@ class ModifyCommand(Command):
             labels = self.largs.filter
         else:
             LOGGER.debug("Gathering filtered list of entries to be modified.")
-            filtered_entries, _ = ListCommand(self.largs.filter).filter_entries()
+            filtered_entries, _ = ListCommand(*self.largs.filter).filter_entries()
             labels = [entry.label for entry in filtered_entries]
 
         field, value = self.largs.modification
@@ -396,3 +346,68 @@ class ModifyCommand(Command):
         else:
             bib.save()
             self.git()
+
+
+def evaluate_ast_node(node: ast.expr, locals_: Optional[Dict[str, Any]] = None) -> str:
+    """Evaluates an AST node representing an f-string.
+
+    Args:
+        node: the AST expression extracted from an f-string.
+        locals_: the dictionary of local variables to be used as context for the expression
+            evaluation.
+
+    Returns:
+        The evaluated AST node expression.
+    """
+    try:
+        # pylint: disable=eval-used
+        return eval(  # type: ignore
+            compile(ast.Expression(node), filename="<string>", mode="eval"), locals_
+        )
+    except NameError as err:
+        LOGGER.warning("You tried use an undefined variable. Falling back to an empty string.")
+        LOGGER.error(err)
+        return ""
+
+
+def evaluate_as_f_string(value: str, locals_: Optional[Dict[str, Any]] = None) -> str:
+    """Evaluates a string as if it were a literal f-string.
+
+    Args:
+        value: the string to be evaluated.
+        locals_: the dictionary of local variables to be used as context for the expression
+            evaluation.
+
+    Returns:
+        The evaluated f-string.
+
+    Raises:
+        ValueError: if an unexpected AST component type is encountered.
+
+    References:
+        <https://stackoverflow.com/a/61190684>
+    """
+    result: List[str] = []
+    for part in ast.parse(f"f'''{value}'''").body[0].value.values:  # type: ignore
+        typ = type(part)
+
+        if typ is ast.Constant:
+            result.append(part.value)
+
+        elif typ is ast.FormattedValue:
+            value = evaluate_ast_node(part.value, locals_)
+
+            if part.conversion >= 0:
+                conversions: Dict[str, Callable[[Any], str]] = {"a": ascii, "r": repr, "s": str}
+                value = conversions[chr(part.conversion)](value)
+
+            if part.format_spec:
+                value = format(value, evaluate_ast_node(part.format_spec))
+
+            result.append(str(value))
+
+        else:
+            LOGGER.warning("Unexpected AST node expression type '%s' for an f-string.", typ)
+            raise ValueError
+
+    return "".join(result)

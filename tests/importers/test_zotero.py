@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import pytest
+from typing_extensions import override
 
 from cobib.config import Event, config
 from cobib.database import Entry
@@ -24,9 +25,9 @@ EXPECTED_DATABASE = get_resource("zotero_database.yaml", "importers")
 class MockZoteroImporter(ZoteroImporter):
     """This class mocks the `ZoteroImporter` by providing fake OAuth authentication tokens."""
 
+    @override
     @staticmethod
     def _get_authentication_tokens(no_cache: bool = False) -> Dict[str, str]:
-        # noqa: D102
         return {
             # NOTE: we are relying on the publicly accessible user `cobib` for testing purposes
             "UserID": "8608002",
@@ -61,20 +62,20 @@ class TestZoteroImporter(ImporterTest):
         importer = MockZoteroImporter()
         # NOTE: even though attachments are not accessible via public libraries, we explicitly skip
         # downloading them, just to be sure.
-        imported_entries = importer.fetch([], skip_download=False)
+        imported_entries = importer.fetch(skip_download=False)
 
         self._assert_results(imported_entries)
 
     def test_fetch_custom_user_id(self) -> None:
         """Test fetching with custom user ID."""
-        imported_entries = ZoteroImporter().fetch(["--user-id", "8608002", "--no-cache"])
+        imported_entries = ZoteroImporter().fetch("--user-id", "8608002", "--no-cache")
         self._assert_results(imported_entries)
 
     def test_cache(self) -> None:
         """Test caching behavior."""
         try:
             config.logging.cache = str(Path(tempfile.gettempdir()) / "cache")
-            imported_entries = ZoteroImporter().fetch(["--user-id", "8608002"], skip_download=True)
+            imported_entries = ZoteroImporter().fetch("--user-id", "8608002", skip_download=True)
             self._assert_results(imported_entries)
 
             with open(config.logging.cache, "r", encoding="utf-8") as cache:
@@ -91,7 +92,7 @@ class TestZoteroImporter(ImporterTest):
         Args:
             caplog: the built-in pytest fixture.
         """
-        ZoteroImporter().fetch(["--dummy"])
+        ZoteroImporter().fetch("--dummy")
         for source, level, message in caplog.record_tuples:
             if ("cobib.importers.zotero", logging.ERROR) == (
                 source,
@@ -112,7 +113,7 @@ class TestZoteroImporter(ImporterTest):
 
         assert Event.PreZoteroImport.validate()
 
-        imported_entries = ZoteroImporter().fetch(["--user-id", "test", "--no-cache"])
+        imported_entries = ZoteroImporter().fetch("--user-id", "test", "--no-cache")
 
         self._assert_results(imported_entries)
 
@@ -125,5 +126,5 @@ class TestZoteroImporter(ImporterTest):
 
         assert Event.PostZoteroImport.validate()
 
-        imported_entries = MockZoteroImporter().fetch(["--no-cache"])
+        imported_entries = MockZoteroImporter().fetch("--no-cache")
         assert imported_entries == []

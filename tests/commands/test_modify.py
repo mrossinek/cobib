@@ -9,6 +9,7 @@ from io import StringIO
 from typing import TYPE_CHECKING, Any, List, Type
 
 import pytest
+from typing_extensions import override
 
 from cobib.commands import ModifyCommand
 from cobib.config import Event
@@ -24,8 +25,8 @@ if TYPE_CHECKING:
 class TestModifyCommand(CommandTest):
     """Tests for coBib's ModifyCommand."""
 
+    @override
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        # noqa: D102
         return ModifyCommand
 
     @pytest.mark.parametrize(
@@ -75,14 +76,14 @@ class TestModifyCommand(CommandTest):
 
         if add:
             # first insert something to add to
-            ModifyCommand(["tags:dummy", "++label", "einstein"]).execute()
+            ModifyCommand("tags:dummy", "++label", "einstein").execute()
             args = ["-a"] + args
             expected = ["dummy"] + expected
 
         if dry:
             args.insert(0, "--dry")
 
-        ModifyCommand(args).execute()
+        ModifyCommand(*args).execute()
 
         if dry:
             if add:
@@ -101,9 +102,9 @@ class TestModifyCommand(CommandTest):
                         "modification": modification.split(":"),
                         "dry": False,
                         "add": add,
+                        "preserve_files": False,
                         "selection": selection,
                         "filter": filters,
-                        "preserve_files": False,
                     },
                 )
             except AssertionError:
@@ -131,7 +132,7 @@ class TestModifyCommand(CommandTest):
 
         field, _ = modification.split(":")
 
-        ModifyCommand(args).execute()
+        ModifyCommand(*args).execute()
 
         assert Database()["einstein"].data[field] == expected
 
@@ -159,7 +160,7 @@ class TestModifyCommand(CommandTest):
 
         field, *_ = modification.split(":")
 
-        ModifyCommand(args).execute()
+        ModifyCommand(*args).execute()
 
         if field != "label":
             assert Database()["einstein"].data[field] == expected
@@ -185,7 +186,7 @@ class TestModifyCommand(CommandTest):
             args = ["label:dummy", "-s", "--", "knuthwebsite"]
             if preserve_files:
                 args.insert(2, "--preserve-files")
-            ModifyCommand(args).execute()
+            ModifyCommand(*args).execute()
             assert "dummy" in Database().keys()
 
             target = RelPath(tmpdirname + "/dummy.pdf")
@@ -203,7 +204,7 @@ class TestModifyCommand(CommandTest):
         """
         # Note: when using a filter, no non-existent label can occur
         args = ["-s", "tags:test", "--", "dummy"]
-        ModifyCommand(args).execute()
+        ModifyCommand(*args).execute()
         assert (
             "cobib.commands.modify",
             30,
@@ -248,7 +249,7 @@ class TestModifyCommand(CommandTest):
 
         assert Event.PreModifyCommand.validate()
 
-        ModifyCommand(["-a", "number:3", "++label", "einstein"]).execute()
+        ModifyCommand("-a", "number:3", "++label", "einstein").execute()
 
         assert Database()["einstein"].data["number"] == 12
 
@@ -262,5 +263,5 @@ class TestModifyCommand(CommandTest):
         assert Event.PostModifyCommand.validate()
 
         with contextlib.redirect_stdout(StringIO()) as out:
-            ModifyCommand(["-a", "number:3", "++label", "einstein"]).execute()
+            ModifyCommand("-a", "number:3", "++label", "einstein").execute()
             assert out.getvalue() == "['einstein']\n"

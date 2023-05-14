@@ -8,11 +8,16 @@ For obvious reasons, this will only undo commands which had an effect on the con
 database file.
 Moreover, as a safety measure, this command will only undo those changes, which have been committed
 by coBib *automatically*.
-You can disable this be setting the `--force` argument which *always* undoes the last commit.
+You can disable this be setting the `--force` argument which *always* undoes the last commit:
+```
+cobib undo --force
+```
 
-Furthermore, this command is *only* available if coBib's git-integration has been enabled and
-initialized.
-Refer to the documentation of `cobib.commands.init.InitCommand` for more details on that topic.
+.. warning::
+   This command is *only* available if coBib's git-integration has been enabled via
+   `cobib.config.config.DatabaseConfig.git` *and* initialized properly (see `cobib.commands.init`).
+
+### TUI
 
 You can also trigger this command from the `cobib.ui.tui.TUI`.
 By default, it is bound to the `u` key.
@@ -24,7 +29,12 @@ import logging
 import subprocess
 import sys
 from pathlib import Path
-from typing import List
+from typing import Type
+
+from rich.console import Console
+from rich.prompt import PromptBase
+from textual.app import App
+from typing_extensions import override
 
 from cobib.config import Event, config
 from cobib.database import Database
@@ -36,43 +46,42 @@ LOGGER = logging.getLogger(__name__)
 
 
 class UndoCommand(Command):
-    """The Undo Command."""
+    """The Undo Command.
+
+    This command can parse the following arguments:
+
+        * `-f`, `--force`: if specified, this will also revert changes which have *not* been
+          auto-committed by coBib.
+    """
 
     name = "undo"
 
-    def __init__(self, args: List[str]) -> None:
-        """TODO."""
-        super().__init__(args)
+    @override
+    def __init__(
+        self,
+        *args: str,
+        console: Console | App[None] | None = None,
+        prompt: Type[PromptBase[str]] | None = None,
+    ) -> None:
+        super().__init__(*args, console=console, prompt=prompt)
 
         self.root: Path
-        self.sha: str
+        """The path to the root of the git repository tracking the database."""
 
+        self.sha: str
+        """The git commit SHA which was reverted by this command."""
+
+    @override
     @classmethod
     def init_argparser(cls) -> None:
-        """TODO."""
         parser = ArgumentParser(prog="undo", description="Undo subcommand parser.")
         parser.add_argument(
             "-f", "--force", action="store_true", help="allow undoing non auto-committed changes"
         )
         cls.argparser = parser
 
+    @override
     def execute(self) -> None:
-        """Undoes the last change.
-
-        This command is *only* available if coBib's git-integration has been enabled via
-        `config.database.git` *and* initialized properly (see `cobib.commands.init.InitCommand`).
-        If that is the case, this command will undo the changes of a previous command.
-        Note, that this *only* applies to commands whose changes have been committed by coBib
-        *automatically*.
-        This is a safety measure which you can disable by setting the `--force` argument.
-
-        Args:
-            args: a sequence of additional arguments used for the execution. The following values
-                are allowed for this command:
-                    * `-f`, `--force`: if specified, this will also revert changes which have *not*
-                      been auto-committed by coBib.
-            out: the output IO stream. This defaults to `sys.stdout`.
-        """
         git_tracked = config.database.git
         if not git_tracked:
             msg = (

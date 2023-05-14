@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, List, Type
 
 import pytest
 from rich.syntax import Syntax
+from typing_extensions import override
 
 from cobib.commands import ShowCommand
 from cobib.config import Event
@@ -22,8 +23,8 @@ if TYPE_CHECKING:
 class TestShowCommand(CommandTest):
     """Tests for coBib's ShowCommand."""
 
+    @override
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        # noqa: D102
         return ShowCommand
 
     def _assert(self, output: List[str]) -> None:
@@ -45,20 +46,28 @@ class TestShowCommand(CommandTest):
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
         """
-        cmd = ShowCommand(["einstein"])
+        cmd = ShowCommand("einstein")
         cmd.execute()
         self._assert(cmd.entry_str.split("\n"))
 
     def test_render_porcelain(self, setup: Any) -> None:
-        """TODO."""
-        cmd = ShowCommand(["einstein"])
+        """Test the porcelain rendering.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+        """
+        cmd = ShowCommand("einstein")
         cmd.execute()
         out = cmd.render_porcelain()
         self._assert(out)
 
     def test_render_rich(self, setup: Any) -> None:
-        """TODO."""
-        cmd = ShowCommand(["einstein"])
+        """Test the rich rendering.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+        """
+        cmd = ShowCommand("einstein")
         cmd.execute()
         renderable = cmd.render_rich()
         assert isinstance(renderable, Syntax)
@@ -73,7 +82,7 @@ class TestShowCommand(CommandTest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        ShowCommand(["dummy"]).execute()
+        ShowCommand("dummy").execute()
         assert (
             "cobib.commands.show",
             40,
@@ -103,7 +112,7 @@ class TestShowCommand(CommandTest):
 
         assert Event.PreShowCommand.validate()
 
-        cmd = ShowCommand(["knuthwebsite"])
+        cmd = ShowCommand("knuthwebsite")
         cmd.execute()
         out = cmd.render_porcelain()
         self._assert(out)
@@ -117,7 +126,7 @@ class TestShowCommand(CommandTest):
 
         assert Event.PostShowCommand.validate()
 
-        cmd = ShowCommand(["knuthwebsite"])
+        cmd = ShowCommand("knuthwebsite")
         cmd.execute()
         out = cmd.render_porcelain()
         assert out == ["Hello world!"]

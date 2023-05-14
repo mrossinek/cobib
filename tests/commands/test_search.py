@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any, List, Type
 import pytest
 from rich.console import Console
 from rich.tree import Tree
+from typing_extensions import override
 
 from cobib.commands import SearchCommand
 from cobib.config import Event, config
@@ -24,8 +25,8 @@ if TYPE_CHECKING:
 class TestSearchCommand(CommandTest):
     """Tests for coBib's SearchCommand."""
 
+    @override
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        # noqa: D102
         return SearchCommand
 
     def _assert(self, output: List[str], expected: List[str]) -> None:
@@ -120,14 +121,18 @@ class TestSearchCommand(CommandTest):
         """
         config.commands.search.ignore_case = config_overwrite
 
-        cmd = SearchCommand(args)
+        cmd = SearchCommand(*args)
         cmd.execute()
         output = cmd.render_porcelain()
         self._assert(output, expected)
 
     def test_render_rich(self, setup: Any) -> None:
-        """TODO."""
-        cmd = SearchCommand(["einstein", "-i"])
+        """Test the rich rendering.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+        """
+        cmd = SearchCommand("einstein", "-i")
         cmd.execute()
         renderable = cmd.render_rich()
 
@@ -180,7 +185,7 @@ class TestSearchCommand(CommandTest):
 
         expected = ["einstein::1", "1::@article{einstein,", "1::author = {Albert Einstein},"]
 
-        cmd = SearchCommand(["knuthwebsite"])
+        cmd = SearchCommand("knuthwebsite")
         cmd.execute()
         output = cmd.render_porcelain()
         self._assert(output, expected)
@@ -195,6 +200,6 @@ class TestSearchCommand(CommandTest):
         assert Event.PostSearchCommand.validate()
 
         with contextlib.redirect_stdout(StringIO()) as file:
-            cmd = SearchCommand(["einstein"])
+            cmd = SearchCommand("einstein")
             cmd.execute()
             assert file.getvalue().strip() == "1 ['einstein']"

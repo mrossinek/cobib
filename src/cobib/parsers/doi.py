@@ -5,13 +5,14 @@ It gathers the BibTex-encoded data from https://doi.org/ and parses it directly 
 `cobib.parsers.bibtex.BibtexParser`.
 
 Since v3.2.0 coBib will also attempt to download the PDF version of the new entry. You can
-configure the default download location via `config.utils.file_downloader.default_location`.
+configure the default download location via
+`cobib.config.config.FileDownloaderConfig.default_location`.
 Since in general the PDF may not be freely available, your mileage with this feature may vary. Until
 coBib supports internal proxy configurations, make sure you are logged in to a VPN for the smoothest
 experience with closed-source journals.
-Furthermore, you should look into the `config.utils.file_downloader.url_map` setting, through which
-you tell coBib how to map from journal landing page URLs to the corresponding PDF URLs. For more
-information check out `cobib.config.example` and the man-page.
+Furthermore, you should look into the `cobib.config.config.FileDownloaderConfig.url_map` setting,
+through which you tell coBib how to map from journal landing page URLs to the corresponding PDF
+URLs. For more information check out `cobib.config.example` and the man-page.
 
 Since v3.3.0 this parser even supports URLs from which a DOI can be extracted directly.
 
@@ -28,6 +29,7 @@ from collections import OrderedDict
 from typing import Dict
 
 import requests
+from typing_extensions import override
 
 from cobib.config import Event
 from cobib.database import Entry
@@ -50,10 +52,8 @@ class DOIParser(Parser):
 
     name = "doi"
 
+    @override
     def parse(self, string: str) -> Dict[str, Entry]:
-        # pdoc will inherit the docstring from the base class
-        # noqa: D102
-
         string = Event.PreDOIParse.fire(string) or string
 
         try:

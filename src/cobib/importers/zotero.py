@@ -3,7 +3,7 @@
 This importer handles migrating from [Zotero][1] to coBib.
 Normally, you would only need to trigger this migration once, but for convenience, coBib will store
 the OAuth authentication tokens provided by the Zotero API in its cache (whose location is
-configurable via `config.logging.cache`).
+configurable via `cobib.config.config.LoggingConfig.cache`).
 
 The importer is registered under the `--zotero` command-line argument of the
 `cobib.commands.import_.ImportCommand`. Thus, you can trigger it like so:
@@ -49,6 +49,7 @@ from typing import Dict, List
 
 import requests
 from requests_oauthlib import OAuth1Session
+from typing_extensions import override
 
 from cobib.commands.base_command import ArgumentParser
 from cobib.config import Event, config
@@ -63,7 +64,18 @@ LOGGER = logging.getLogger(__name__)
 
 
 class ZoteroImporter(Importer):
-    """The Zotero Importer."""
+    """The Zotero Importer.
+
+    This importer can parse the following arguments:
+        * `--no-cache`: disables the use of any cached OAuth tokens.
+        * `--user-id`: the Zotero user ID used for API calls. You can find your user ID at
+          <https://www.zotero.org/settings/keys>. Unless you also specify `--no-cache`, this value
+          will be stored in coBib's internal cache. If you do not also provide an `--api-key`, you
+          can only read publicly available Zotero databases.
+        * `--api-key`: overwrites the user-specific Zotero API key for the coBib application. Unless
+          you also specify `--no-cache`, this value will be stored in coBib's internal cache. This
+          argument only takes effect if `--user-id` is also provided.
+    """
 
     name = "zotero"
 
@@ -190,28 +202,8 @@ class ZoteroImporter(Importer):
 
         return authentication
 
-    def fetch(self, args: List[str], skip_download: bool = False) -> List[Entry]:
-        """Fetches a list of entries from Zotero.
-
-        Args:
-            args: a sequence of additional arguments used during execution. The following values are
-                allowed for this importer:
-                    * `--no-cache`: disables the use of any cached OAuth tokens.
-                    * `--user-id`: the Zotero user ID used for API calls. You can find your user ID
-                        at <https://www.zotero.org/settings/keys>. Unless you also specify
-                        `--no-cache`, this value will be stored in coBib's internal cache. If you do
-                        not also provide an `--api-key`, you can only read publicly available Zotero
-                        databases.
-                    * `--api-key`: overwrites the user-specific Zotero API key for the coBib
-                        application. Unless you also specify `--no-cache`, this value will be stored
-                        in coBib's internal cache. This argument only takes effect if `--user-id` is
-                        also provided.
-            skip_download: whether or not to skip downloading of additional files such as attached
-                PDF files or notes.
-
-        Returns:
-            A list of entries.
-        """
+    @override
+    def fetch(self, *args: str, skip_download: bool = False) -> List[Entry]:
         LOGGER.debug("Starting Zotero fetching.")
         arg_parser = ArgumentParser(prog="zotero", description="Zotero migration parser.")
         arg_parser.add_argument(

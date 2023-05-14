@@ -23,6 +23,7 @@ from collections import OrderedDict
 from typing import Dict
 
 import requests
+from typing_extensions import override
 
 from cobib.config import Event
 from cobib.database import Entry
@@ -45,10 +46,8 @@ class ISBNParser(Parser):
 
     name = "isbn"
 
+    @override
     def parse(self, string: str) -> Dict[str, Entry]:
-        # pdoc will inherit the docstring from the base class
-        # noqa: D102
-
         string = Event.PreISBNParse.fire(string) or string
 
         try:

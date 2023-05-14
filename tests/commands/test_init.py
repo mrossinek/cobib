@@ -9,6 +9,7 @@ from shutil import rmtree
 from typing import TYPE_CHECKING, Any, Type
 
 import pytest
+from typing_extensions import override
 
 from cobib.commands import InitCommand
 from cobib.config import Event, config
@@ -22,8 +23,8 @@ if TYPE_CHECKING:
 class TestInitCommand(CommandTest):
     """Tests for coBib's InitCommand."""
 
+    @override
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        # noqa: D102
         return InitCommand
 
     @pytest.mark.parametrize(
@@ -50,7 +51,10 @@ class TestInitCommand(CommandTest):
         # store current time
         now = float(datetime.now().timestamp())
         # try running init
-        InitCommand(["--git"] if setup["git"] else []).execute()
+        if setup["git"]:
+            InitCommand("--git").execute()
+        else:
+            InitCommand().execute()
         if safe:
             # check database file still contains 'test'
             with open(config.database.file, "r", encoding="utf-8") as file:
@@ -88,7 +92,7 @@ class TestInitCommand(CommandTest):
             # store current time
             now = float(datetime.now().timestamp())
             # try running init
-            InitCommand(["--git"]).execute()
+            InitCommand("--git").execute()
 
             # assert warning is printed
             assert (
@@ -151,7 +155,7 @@ class TestInitCommand(CommandTest):
 
         assert Event.PreInitCommand.validate()
 
-        InitCommand([]).execute()
+        InitCommand().execute()
 
         self.assert_git_commit_message("init", {"git": True})
 
@@ -164,6 +168,6 @@ class TestInitCommand(CommandTest):
 
         assert Event.PostInitCommand.validate()
 
-        InitCommand([]).execute()
+        InitCommand().execute()
 
         assert not os.path.exists(self.COBIB_TEST_DIR_GIT / "literature.yaml")

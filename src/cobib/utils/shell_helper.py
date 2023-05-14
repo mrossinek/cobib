@@ -4,17 +4,23 @@ This module provides a variety of shell helper utilities.
 """
 # pylint: disable=unused-argument
 
+from __future__ import annotations
+
 import argparse
 import contextlib
 import inspect
 import logging
 from io import StringIO
-from typing import List, Set
+from typing import List, Set, Type
+
+from rich.console import Console
+from rich.prompt import PromptBase
+from textual.app import App
 
 from .rel_path import RelPath
 
 
-def list_commands(args: List[str]) -> List[str]:
+def list_commands(*args: str) -> List[str]:
     """Lists all available subcommands.
 
     Args:
@@ -29,7 +35,7 @@ def list_commands(args: List[str]) -> List[str]:
     return [cls.name for _, cls in inspect.getmembers(commands) if inspect.isclass(cls)]
 
 
-def list_labels(args: List[str]) -> List[str]:
+def list_labels(*args: str) -> List[str]:
     """List all available labels in the database.
 
     Args:
@@ -45,7 +51,7 @@ def list_labels(args: List[str]) -> List[str]:
     return labels
 
 
-def list_filters(args: List[str]) -> Set[str]:
+def list_filters(*args: str) -> Set[str]:
     """Lists all field names available for filtering.
 
     Args:
@@ -63,7 +69,7 @@ def list_filters(args: List[str]) -> Set[str]:
     return filters
 
 
-def example_config(args: List[str]) -> List[str]:
+def example_config(*args: str) -> List[str]:
     """Shows the (well-commented) example configuration.
 
     Args:
@@ -122,7 +128,7 @@ class LintFormatter(logging.Formatter):
             return ""
 
 
-def lint_database(args: List[str]) -> List[str]:
+def lint_database(*args: str) -> List[str]:
     """Lints the users database.
 
     Args:
@@ -190,7 +196,13 @@ def lint_database(args: List[str]) -> List[str]:
 
             name = "lint"
 
-            def __init__(self, args: List[str]) -> None:  # pylint: disable=super-init-not-called
+            def __init__(
+                self,
+                *args: str,
+                console: Console | App[None] | None = None,
+                prompt: Type[PromptBase[str]] | None = None,
+            ) -> None:
+                # pylint: disable=super-init-not-called
                 self.largs = largs
 
             @classmethod
@@ -200,14 +212,14 @@ def lint_database(args: List[str]) -> List[str]:
             def execute(self):  # type: ignore
                 pass
 
-        LintCommand([]).git()
+        LintCommand().git()
 
         return ["The following lint messages have successfully been resolved:"] + lint_messages
 
     return lint_messages
 
 
-def unify_labels(args: List[str]) -> List[str]:
+def unify_labels(*args: str) -> List[str]:
     """Unifies all labels of the database according to `config.database.format.label_default`.
 
     Without the `--apply` argument this will only print the modification which would be performed!
@@ -245,7 +257,7 @@ def unify_labels(args: List[str]) -> List[str]:
         modify_args = modify_args[1:]
 
     with contextlib.redirect_stderr(StringIO()) as out:
-        cmd = ModifyCommand(modify_args)
+        cmd = ModifyCommand(*modify_args)
         cmd.execute()
 
     return out.getvalue().strip().split("\n")

@@ -19,6 +19,7 @@ from collections import Counter, OrderedDict
 from typing import Dict
 
 import requests
+from typing_extensions import override
 
 from cobib.config import Event
 from cobib.database import Entry
@@ -37,10 +38,8 @@ class URLParser(Parser):
 
     name = "url"
 
+    @override
     def parse(self, string: str) -> Dict[str, Entry]:
-        # pdoc will inherit the docstring from the base class
-        # noqa: D102
-
         string = Event.PreURLParse.fire(string) or string
 
         if re.search(ARXIV_REGEX, string):

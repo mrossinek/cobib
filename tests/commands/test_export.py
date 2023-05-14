@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any, List, Type
 from zipfile import ZipFile
 
 import pytest
+from typing_extensions import override
 
 from cobib.commands import ExportCommand
 from cobib.config import Event, config
@@ -27,8 +28,8 @@ if TYPE_CHECKING:
 class TestExportCommand(CommandTest):
     """Tests for coBib's ExportCommand."""
 
+    @override
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        # noqa: D102
         return ExportCommand
 
     def _assert(self, args: List[str]) -> None:
@@ -111,7 +112,7 @@ class TestExportCommand(CommandTest):
             # add a dummy file to the `einstein` entry
             entry = Database()["einstein"]
             entry.file = get_resource("debug.py")
-        ExportCommand(args).execute()
+        ExportCommand(*args).execute()
         self._assert(args)
 
     @pytest.mark.parametrize("dotless", [False, True])
@@ -126,7 +127,7 @@ class TestExportCommand(CommandTest):
         args = ["-a", "-b", str(TMPDIR / "cobib_test_export.bib"), "-s", "--", "einstein"]
         if dotless:
             args.insert(1, "--dotless")
-        ExportCommand(args).execute()
+        ExportCommand(*args).execute()
         self._assert_journal_abbreviation(dotless)
 
     def _assert_journal_abbreviation(self, dotless: bool) -> None:
@@ -154,7 +155,7 @@ class TestExportCommand(CommandTest):
             caplog: the built-in pytest fixture.
         """
         args = ["-b", str(TMPDIR / "cobib_test_export.bib"), "-s", "--", "dummy"]
-        ExportCommand(args).execute()
+        ExportCommand(*args).execute()
         assert (
             "cobib.commands.export",
             30,
@@ -169,7 +170,7 @@ class TestExportCommand(CommandTest):
             caplog: the built-in pytest fixture.
         """
         args = ["-s", "--", "einstein"]
-        ExportCommand(args).execute()
+        ExportCommand(*args).execute()
         assert ("cobib.commands.export", 40, "No output file specified!") in caplog.record_tuples
 
     @pytest.mark.asyncio
@@ -204,7 +205,7 @@ class TestExportCommand(CommandTest):
 
         assert Event.PreExportCommand.validate()
 
-        ExportCommand(args).execute()
+        ExportCommand(*args).execute()
 
         self._assert_bib(["-s"] + args + ["--", "einstein"])
 
@@ -218,6 +219,6 @@ class TestExportCommand(CommandTest):
 
         assert Event.PostExportCommand.validate()
 
-        ExportCommand(args).execute()
+        ExportCommand(*args).execute()
 
         assert not os.path.exists(str(TMPDIR / "cobib_test_export.bib"))

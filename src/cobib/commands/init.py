@@ -9,15 +9,20 @@ To get started with coBib you must run:
 ```
 cobib init
 ```
-This will initialize the database in the location specified by `config.database.file`.
+This will initialize the database in the location specified by
+`cobib.config.config.DatabaseConfig.file`.
 
-If you enabled the automatic git-integration of coBib via `config.database.git`, you must initialize
-this separately via:
+If you enabled the automatic git-integration of coBib via `cobib.config.config.DatabaseConfig.git`,
+you must initialize this separately via:
 ```
 cobib init --git
 ```
 If you have not run the first command yet, you can directly initialize the database *and* the
 git-integration by only running the second command.
+
+.. warning::
+   You can**not** run this command from the TUI, because the database must have already been
+   initialized *before* you can start the TUI in the first place.
 """
 
 from __future__ import annotations
@@ -26,7 +31,12 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import List
+from typing import Type
+
+from rich.console import Console
+from rich.prompt import PromptBase
+from textual.app import App
+from typing_extensions import override
 
 from cobib.config import Event, config
 from cobib.utils.rel_path import RelPath
@@ -37,37 +47,40 @@ LOGGER = logging.getLogger(__name__)
 
 
 class InitCommand(Command):
-    """The Init Command."""
+    """The Init Command.
+
+    This command can parse the following arguments:
+
+        * `-g`, `--git`: initializes the git-integration.
+    """
 
     name = "init"
 
-    def __init__(self, args: List[str]) -> None:
-        """TODO."""
-        super().__init__(args)
+    @override
+    def __init__(
+        self,
+        *args: str,
+        console: Console | App[None] | None = None,
+        prompt: Type[PromptBase[str]] | None = None,
+    ) -> None:
+        super().__init__(*args, console=console, prompt=prompt)
 
         self.file: Path
-        self.root: Path
+        """The path to the database file."""
 
+        self.root: Path
+        """The parent directory where the database file resides. This is where the git repository
+        gets initialized (if the git integration was enabled)."""
+
+    @override
     @classmethod
     def init_argparser(cls) -> None:
-        """TODO."""
         parser = ArgumentParser(prog="init", description="Init subcommand parser.")
         parser.add_argument("-g", "--git", action="store_true", help="initialize git repository")
         cls.argparser = parser
 
+    @override
     def execute(self) -> None:
-        """Initializes the database.
-
-        Initializes the YAML database in the location specified by `config.database.file`.
-        If you enabled `config.database.git` *and* you specify the `--git` command-line argument,
-        the git-integration will be initialized, too.
-
-        Args:
-            args: a sequence of additional arguments used for the execution. The following values
-                are allowed for this command:
-                    * `-g`, `--git`: initializes the git-integration.
-            out: the output IO stream. This defaults to `sys.stdout`.
-        """
         LOGGER.debug("Starting Init command.")
 
         Event.PreInitCommand.fire(self)

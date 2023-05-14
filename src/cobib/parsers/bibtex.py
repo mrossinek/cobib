@@ -4,7 +4,7 @@ This parser leverages the [`bibtexparser`](https://pypi.org/project/bibtexparser
 convert between `cobib.database.Entry` instances and raw BibTex strings.
 
 Non-standard BibTex types can be configured to be ignored via
-`config.parsers.bibtex.ignore_non_standard_types`.
+`cobib.config.config.BibtexParserConfig.ignore_non_standard_types`.
 
 The parser is registered under the `-b` and `--bibtex` command-line arguments of the
 `cobib.commands.add.AddCommand`.
@@ -18,6 +18,7 @@ from collections import OrderedDict
 from typing import Dict
 
 import bibtexparser
+from typing_extensions import override
 
 from cobib.config import Event, config
 from cobib.database import Entry
@@ -32,10 +33,8 @@ class BibtexParser(Parser):
 
     name = "bibtex"
 
+    @override
     def parse(self, string: str) -> Dict[str, Entry]:
-        # pdoc will inherit the docstring from the base class
-        # noqa: D102
-
         string = Event.PreBibtexParse.fire(string) or string
 
         bparser = bibtexparser.bparser.BibTexParser()
@@ -62,10 +61,8 @@ class BibtexParser(Parser):
 
         return bib
 
+    @override
     def dump(self, entry: Entry) -> str:
-        # pdoc will inherit the docstring from the base class
-        # noqa: D102
-
         Event.PreBibtexDump.fire(entry)
 
         database = bibtexparser.bibdatabase.BibDatabase()

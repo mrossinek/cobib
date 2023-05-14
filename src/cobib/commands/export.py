@@ -18,25 +18,32 @@ your entire file system.
 With this command you can gather them in a neat package for sharing or transferring.
 
 You can also limit the export to a subset of your database in one of two ways:
+
 1. through filters:
-```
-cobib export --bibtex my_private_database.bib -- ++tags private
-```
-2. through a custom selection (using `--selection`)
-```
-cobib export --selection --bibtex some_other_database.bib -- Label1 Label2
-```
-While this latter case is usable via the command-line interface it is more a side-effect of the TUI
-integration which provides a visual selection (defaults to the `v` key).
-The proper and arguably more useful case is the first case using filters.
+   ```
+   cobib export --bibtex my_private_database.bib -- ++tags private
+   ```
+
+2. through a custom selection (using `--selection` or the short-hand option `-s`)
+   ```
+   cobib export --selection --bibtex some_other_database.bib -- Label1 Label2
+   ```
+
+.. note::
+   While this latter case is usable via the command-line interface it is more a side-effect of the
+   TUI integration which provides a visual selection (defaults to the `v` key).
+   The proper and arguably more useful case is the first case using filters.
 
 Since v3.2.0, coBib supports automatic Journal abbreviations. After configuring them as explained in
-`config.utils.journal_abbreviations` you can leverage them during exporting like so:
+`cobib.config.config.UtilsConfig.journal_abbreviations` you can leverage them during exporting like
+so:
 ```
 cobib export --abbreviate --bibtex my_database.bib
 # or
 cobib export --abbreviate --dotless --bibtex my_database.bib
 ```
+
+### TUI
 
 You can also trigger this command from the `cobib.ui.tui.TUI`.
 By default, it is bound to the `x` key which will drop you into the prompt where you can type out a
@@ -44,14 +51,23 @@ normal command-line command:
 ```
 :export <arguments go here>
 ```
+
+.. note::
+   If you have already selected one or more entries, the `--selection` argument will automatically
+   be added.
 """
 
 from __future__ import annotations
 
 import argparse
 import logging
-from typing import List
+from typing import List, Type
 from zipfile import ZipFile
+
+from rich.console import Console
+from rich.prompt import PromptBase
+from textual.app import App
+from typing_extensions import override
 
 from cobib.config import Event
 from cobib.database import Database, Entry
@@ -66,19 +82,40 @@ LOGGER = logging.getLogger(__name__)
 
 
 class ExportCommand(Command):
-    """The Export Command."""
+    """The Export Command.
+
+    This command can parse the following arguments:
+
+        * `-b`, `--bibtex`: specifies a BibLaTex filename into which to export.
+        * `-z`, `--zip`: specifies a Zip-filename into which to export associated files.
+        * `-a`, `--abbreviate`: abbreviate the Journal names before exporting. See also
+          `cobib.config.config.UtilsConfig.journal_abbreviations`.
+        * `--dotless`: remove punctuation from the Journal abbreviations.
+        * `-s`, `--selection`: when specified, the positional arguments will *not* be
+          interpreted as filters but rather as a direct list of entry labels. This can
+          be used on the command-line but is mainly meant for the TUIs visual selection
+          interface (hence the name).
+        * in addition to the above, you can add `filters` to specify a subset of your
+          database for exporting. For more information refer to `cobib.commands.list`.
+    """
 
     name = "export"
 
-    def __init__(self, args: List[str]) -> None:
-        """TODO."""
-        super().__init__(args)
+    @override
+    def __init__(
+        self,
+        *args: str,
+        console: Console | App[None] | None = None,
+        prompt: Type[PromptBase[str]] | None = None,
+    ) -> None:
+        super().__init__(*args, console=console, prompt=prompt)
 
         self.exported_entries: List[Entry] = []
+        """A list of `cobib.database.Entry` objects which were exported by this command."""
 
+    @override
     @classmethod
     def init_argparser(cls) -> None:
-        """TODO."""
         parser = ArgumentParser(prog="export", description="Export subcommand parser.")
         parser.add_argument(
             "-b", "--bibtex", type=argparse.FileType("a"), help="BibLaTeX output file"
@@ -107,30 +144,8 @@ class ExportCommand(Command):
         )
         cls.argparser = parser
 
+    @override
     def execute(self) -> None:
-        """Exports the database.
-
-        This command exports the database (or a selected subset of entries).
-        You can choose the exported formats from the following list:
-        * BibLaTex (via the `--bibtex` argument)
-        * Zip archive (via the `--zip` argument)
-
-        Args:
-            args: a sequence of additional arguments used for the execution. The following values
-                are allowed for this command:
-                    * `-b`, `--bibtex`: specifies a BibLaTex filename into which to export.
-                    * `-z`, `--zip`: specifies a Zip-filename into which to export associated files.
-                    * `-a`, `--abbreviate`: abbreviate the Journal names before exporting. See also
-                      `config.utils.journal_abbreviations`.
-                    * `--dotless`: remove punctuation from the Journal abbreviations.
-                    * `-s`, `--selection`: when specified, the positional arguments will *not* be
-                      interpreted as filters but rather as a direct list of entry labels. This can
-                      be used on the command-line but is mainly meant for the TUIs visual selection
-                      interface (hence the name).
-                    * in addition to the above, you can add `filters` to specify a subset of your
-                      database for exporting. For more information refer to `cobib.commands.list`.
-            out: the output IO stream. This defaults to `sys.stdout`.
-        """
         LOGGER.debug("Starting Export command.")
 
         Event.PreExportCommand.fire(self)
@@ -156,7 +171,7 @@ class ExportCommand(Command):
                     LOGGER.warning(msg)
         else:
             LOGGER.debug("Gathering filtered list of entries to be exported.")
-            self.exported_entries, _ = ListCommand(self.largs.filter).filter_entries()
+            self.exported_entries, _ = ListCommand(*self.largs.filter).filter_entries()
 
         bibtex_parser = BibtexParser()
 

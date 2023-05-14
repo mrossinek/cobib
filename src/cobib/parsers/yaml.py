@@ -22,6 +22,7 @@ from typing import IO, Dict, Optional, Union
 from rich.console import Console
 from rich.progress import track
 from ruamel import yaml
+from typing_extensions import override
 
 from cobib.config import Event, config
 from cobib.database.entry import Entry
@@ -47,10 +48,8 @@ class YAMLParser(Parser):
             YAMLParser._yaml.explicit_end = True  # type: ignore[assignment]
             YAMLParser._yaml.default_flow_style = False
 
+    @override
     def parse(self, string: Union[str, Path]) -> Dict[str, Entry]:
-        # pdoc will inherit the docstring from the base class
-        # noqa: D102
-
         string = Event.PreYAMLParse.fire(string) or string
 
         bib = OrderedDict()
@@ -76,10 +75,8 @@ class YAMLParser(Parser):
 
         return bib
 
+    @override
     def dump(self, entry: Entry) -> Optional[str]:
-        # pdoc will inherit the docstring from the base class
-        # noqa: D102
-
         Event.PreYAMLDump.fire(entry)
 
         LOGGER.debug("Converting entry %s to YAML format.", entry.label)

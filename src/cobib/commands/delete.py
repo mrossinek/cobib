@@ -5,6 +5,14 @@ This command can be used to deleted entries from the database.
 cobib delete <label 1> [<label 2> ...]
 ```
 
+If you want to preserve the files associated with the deleted entries, you can provide the
+`--preserve-files` argument like so:
+```
+cobib delete --preserve-files <label 1> [<label 2> ...]
+```
+
+### TUI
+
 You can also trigger this command from the `cobib.ui.tui.TUI`.
 By default, it is bound to the `d` key.
 """
@@ -13,7 +21,12 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import List, Set
+from typing import Set, Type
+
+from rich.console import Console
+from rich.prompt import PromptBase
+from textual.app import App
+from typing_extensions import override
 
 from cobib.config import Event
 from cobib.database import Database
@@ -25,19 +38,31 @@ LOGGER = logging.getLogger(__name__)
 
 
 class DeleteCommand(Command):
-    """The Delete Command."""
+    """The Delete Command.
+
+    This command can parse the following arguments:
+
+        * `labels`: one (or multiple) labels of the entries to be deleted.
+        * `--preserve-files`: skips the deletion of any associated files.
+    """
 
     name = "delete"
 
-    def __init__(self, args: List[str]) -> None:
-        """TODO."""
-        super().__init__(args)
+    @override
+    def __init__(
+        self,
+        *args: str,
+        console: Console | App[None] | None = None,
+        prompt: Type[PromptBase[str]] | None = None,
+    ) -> None:
+        super().__init__(*args, console=console, prompt=prompt)
 
         self.deleted_entries: Set[str] = set()
+        """A set of labels which were deleted by this command."""
 
+    @override
     @classmethod
     def init_argparser(cls) -> None:
-        """TODO."""
         parser = ArgumentParser(prog="delete", description="Delete subcommand parser.")
         parser.add_argument("labels", type=str, nargs="+", help="labels of the entries")
         parser.add_argument(
@@ -45,17 +70,8 @@ class DeleteCommand(Command):
         )
         cls.argparser = parser
 
+    @override
     def execute(self) -> None:
-        """Deletes an entry.
-
-        This command deletes one (or multiple) entries from the database.
-
-        Args:
-            args: a sequence of additional arguments used for the execution. The following values
-                are allowed for this command:
-                    * `labels`: one (or multiple) labels of the entries to be deleted.
-            out: the output IO stream. This defaults to `sys.stdout`.
-        """
         LOGGER.debug("Starting Delete command.")
 
         Event.PreDeleteCommand.fire(self)

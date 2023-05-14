@@ -12,6 +12,7 @@ from shutil import rmtree
 from typing import TYPE_CHECKING, Any, Type
 
 import pytest
+from typing_extensions import override
 
 from cobib.commands import AddCommand, UndoCommand
 from cobib.config import Event, config
@@ -29,8 +30,8 @@ if TYPE_CHECKING:
 class TestUndoCommand(CommandTest):
     """Tests for coBib's UndoCommand."""
 
+    @override
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        # noqa: D102
         return UndoCommand
 
     def _assert(self) -> None:
@@ -72,7 +73,7 @@ class TestUndoCommand(CommandTest):
         git = setup.get("git", False)
 
         if not git:
-            UndoCommand([]).execute()
+            UndoCommand().execute()
             for source, level, message in caplog.record_tuples:
                 if ("cobib.commands.undo", logging.ERROR) == (
                     source,
@@ -84,7 +85,7 @@ class TestUndoCommand(CommandTest):
         elif expected_exit:
             # Regression test related to #65
             with pytest.raises(SystemExit):
-                UndoCommand([]).execute()
+                UndoCommand().execute()
             for source, level, message in caplog.record_tuples:
                 if ("cobib.commands.undo", logging.WARNING) == (
                     source,
@@ -94,8 +95,8 @@ class TestUndoCommand(CommandTest):
             else:
                 pytest.fail("No Error logged from UndoCommand.")
         else:
-            await AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
-            UndoCommand([]).execute()
+            await AddCommand("-b", EXAMPLE_MULTI_FILE_ENTRY_BIB).execute()
+            UndoCommand().execute()
 
             self._assert()
 
@@ -116,12 +117,12 @@ class TestUndoCommand(CommandTest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        await AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
-        await AddCommand(["-b", get_resource("example_entry.bib")]).execute()
-        UndoCommand([]).execute()
+        await AddCommand("-b", EXAMPLE_MULTI_FILE_ENTRY_BIB).execute()
+        await AddCommand("-b", get_resource("example_entry.bib")).execute()
+        UndoCommand().execute()
         caplog.clear()
 
-        UndoCommand([]).execute()
+        UndoCommand().execute()
         self._assert()
         assert "Storing undone commit" in caplog.record_tuples[4][2]
         assert "Skipping" in caplog.record_tuples[6][2]
@@ -141,7 +142,7 @@ class TestUndoCommand(CommandTest):
             caplog: the built-in pytest fixture.
         """
         rmtree(self.COBIB_TEST_DIR_GIT)
-        UndoCommand([]).execute()
+        UndoCommand().execute()
         for source, level, message in caplog.record_tuples:
             if ("cobib.commands.undo", logging.ERROR) == (
                 source,
@@ -170,7 +171,7 @@ class TestUndoCommand(CommandTest):
             monkeypatch: the built-in pytest fixture.
             caplog: the built-in pytest fixture.
         """
-        await AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
+        await AddCommand("-b", EXAMPLE_MULTI_FILE_ENTRY_BIB).execute()
         await self.run_module(monkeypatch, "main", ["cobib", "undo"])
 
         self._assert()
@@ -213,7 +214,7 @@ class TestUndoCommand(CommandTest):
 
         with contextlib.redirect_stdout(StringIO()) as out:
             with pytest.raises(SystemExit):
-                UndoCommand([]).execute()
+                UndoCommand().execute()
 
             assert out.getvalue() == "Hello world!\n"
 
@@ -229,8 +230,8 @@ class TestUndoCommand(CommandTest):
         assert Event.PostUndoCommand.validate()
 
         with contextlib.redirect_stdout(StringIO()) as out:
-            await AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
-            UndoCommand([]).execute()
+            await AddCommand("-b", EXAMPLE_MULTI_FILE_ENTRY_BIB).execute()
+            UndoCommand().execute()
 
             self._assert()
 

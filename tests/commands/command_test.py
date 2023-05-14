@@ -157,7 +157,7 @@ class CommandTest(CmdLineTest):
         """
         command_cls = self.get_command()
         try:
-            command_cls(["--dummy"]).execute()
+            command_cls("--dummy").execute()
         except SystemExit:
             pass
         name = command_cls.name

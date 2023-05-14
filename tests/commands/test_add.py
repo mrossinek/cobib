@@ -10,6 +10,7 @@ from itertools import zip_longest
 from typing import TYPE_CHECKING, Any, Dict, Generator, List, Optional, Type
 
 import pytest
+from typing_extensions import override
 
 from cobib.commands import AddCommand
 from cobib.config import Event, config
@@ -34,8 +35,8 @@ if TYPE_CHECKING:
 class TestAddCommand(CommandTest):
     """Tests for coBib's AddCommand."""
 
+    @override
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        # noqa: D102
         return AddCommand
 
     @pytest.fixture
@@ -129,7 +130,7 @@ class TestAddCommand(CommandTest):
             label = "example_multi_file_entry"
         args = ["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB] + more_args
 
-        await AddCommand(args).execute()
+        await AddCommand(*args).execute()
 
         assert Database()[label]
 
@@ -152,7 +153,7 @@ class TestAddCommand(CommandTest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        await AddCommand(["-l", "dummy"]).execute()
+        await AddCommand("-l", "dummy").execute()
         assert (
             "cobib.commands.add",
             30,
@@ -195,7 +196,7 @@ class TestAddCommand(CommandTest):
             if folder:
                 args += ["-p", folder]
 
-            await AddCommand(args).execute()
+            await AddCommand(*args).execute()
 
             if (
                 "cobib.parsers.arxiv",
@@ -229,7 +230,7 @@ class TestAddCommand(CommandTest):
         try:
             args = ["-a", "1812.09976", "--skip-download"]
 
-            await AddCommand(args).execute()
+            await AddCommand(*args).execute()
 
             if (
                 "cobib.parsers.arxiv",
@@ -271,7 +272,7 @@ class TestAddCommand(CommandTest):
             caplog: the built-in pytest fixture.
         """
         git = setup.get("git", False)
-        await AddCommand(["-a", "1812.09976", "--skip-download"]).execute()
+        await AddCommand("-a", "1812.09976", "--skip-download").execute()
 
         if (
             "cobib.parsers.arxiv",
@@ -309,7 +310,7 @@ class TestAddCommand(CommandTest):
             args += ["--update"]
         else:
             args += ["--disambiguation", "update"]
-        await AddCommand(args).execute()
+        await AddCommand(*args).execute()
 
         if (
             "cobib.parsers.doi",
@@ -359,7 +360,7 @@ class TestAddCommand(CommandTest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        await AddCommand(["-l", "einstein"]).execute()
+        await AddCommand("-l", "einstein").execute()
         assert (
             "cobib.commands.add",
             30,
@@ -393,7 +394,7 @@ class TestAddCommand(CommandTest):
                 args += ["--skip-existing"]
             else:
                 args += ["--disambiguation", "keep"]
-            await AddCommand(args).execute()
+            await AddCommand(*args).execute()
         assert (
             "cobib.commands.add",
             20,
@@ -423,7 +424,7 @@ class TestAddCommand(CommandTest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        await AddCommand([""]).execute()
+        await AddCommand().execute()
         assert (
             "cobib.commands.add",
             40,
@@ -453,7 +454,7 @@ class TestAddCommand(CommandTest):
         git = setup.get("git", False)
         # add potentially duplicate entry
         await AddCommand(
-            ["-b", EXAMPLE_DUPLICATE_ENTRY_BIB, "--label", "duplicate_resolver"]
+            "-b", EXAMPLE_DUPLICATE_ENTRY_BIB, "--label", "duplicate_resolver"
         ).execute()
 
         assert Database()["duplicate_resolver"]
@@ -482,7 +483,7 @@ class TestAddCommand(CommandTest):
         config.database.format.label_default = "{author.split()[1]}{year}"
         git = setup.get("git", False)
 
-        await AddCommand(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB]).execute()
+        await AddCommand("-b", EXAMPLE_DUPLICATE_ENTRY_BIB).execute()
 
         assert Database()["Einstein1905"]
 
@@ -514,7 +515,7 @@ class TestAddCommand(CommandTest):
         """
         git = setup.get("git", False)
 
-        await AddCommand(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB] + args).execute()
+        await AddCommand("-b", EXAMPLE_DUPLICATE_ENTRY_BIB, *args).execute()
 
         assert (
             "cobib.commands.add",
@@ -571,7 +572,7 @@ class TestAddCommand(CommandTest):
                     pass
 
                 # by repeatedly calling the same add command, we trigger the label disambiguation
-                await AddCommand(["-a", "1812.09976"]).execute()
+                await AddCommand("-a", "1812.09976").execute()
 
                 if (
                     "cobib.parsers.arxiv",
@@ -630,7 +631,7 @@ class TestAddCommand(CommandTest):
 
         assert Event.PreAddCommand.validate()
 
-        await AddCommand(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB]).execute()
+        await AddCommand("-b", EXAMPLE_DUPLICATE_ENTRY_BIB).execute()
 
         assert "dummy" in Database().keys()
 
@@ -651,7 +652,7 @@ class TestAddCommand(CommandTest):
 
         assert Event.PostAddCommand.validate()
 
-        await AddCommand(["-b", EXAMPLE_DUPLICATE_ENTRY_BIB]).execute()
+        await AddCommand("-b", EXAMPLE_DUPLICATE_ENTRY_BIB).execute()
 
         assert "dummy" in Database().keys()
 
@@ -687,7 +688,7 @@ class TestAddCommand(CommandTest):
         """
         args = ["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB] + args
 
-        await AddCommand(args).execute()
+        await AddCommand(*args).execute()
 
         for source, level, msg in caplog.record_tuples:
             if source == "cobib.commands.add" and level == 30:

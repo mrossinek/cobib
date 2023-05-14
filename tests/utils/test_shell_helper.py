@@ -56,8 +56,7 @@ class ShellHelperTest(CmdLineTest):
 
     def test_method(self) -> None:
         """Test the shell_helper method itself."""
-        args: List[str] = []
-        cmds = getattr(shell_helper, str(self.COMMAND))(args)
+        cmds = getattr(shell_helper, str(self.COMMAND))()
         self._assert("\n".join(cmds))
 
     @pytest.mark.asyncio
@@ -198,8 +197,7 @@ class TestLintDatabase(ShellHelperTest):
     def test_no_lint_warnings(self) -> None:
         """Test the case of no raised lint warnings."""
         config.load(get_resource("debug.py"))
-        args: List[str] = []
-        lint_messages = shell_helper.lint_database(args)
+        lint_messages = shell_helper.lint_database()
         for msg, exp in zip_longest(
             lint_messages, ["Congratulations! Your database triggers no lint messages."]
         ):
@@ -235,8 +233,7 @@ class TestLintDatabase(ShellHelperTest):
 
         try:
             # apply linting with formatting and check for the expected lint messages
-            args: List[str] = ["--format"]
-            pre_lint_messages = shell_helper.lint_database(args)
+            pre_lint_messages = shell_helper.lint_database("--format")
             expected_messages = [
                 "The following lint messages have successfully been resolved:"
             ] + self.EXPECTED
@@ -275,7 +272,7 @@ class TestLintDatabase(ShellHelperTest):
                     assert "Auto-commit: LintCommand" in split_msg[0]
 
             # recheck linting and assert no lint messages
-            post_lint_messages = shell_helper.lint_database([])
+            post_lint_messages = shell_helper.lint_database()
             for msg, exp in zip_longest(
                 post_lint_messages, ["Congratulations! Your database triggers no lint messages."]
             ):
@@ -348,7 +345,7 @@ class TestUnifyLabels(ShellHelperTest):
 
         try:
             # apply label unification
-            shell_helper.unify_labels(["--apply"])
+            shell_helper.unify_labels("--apply")
 
             # assert unified database
             with open(database_file.path, "r", encoding="utf-8") as file:

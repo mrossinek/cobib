@@ -1,29 +1,29 @@
 """coBib's Open command.
 
-This command can be used to open associated files of an entry.
+This command can be used to open associated file(s) of one (or multiple) entries.
 ```
 cobib open <label 1> [<label 2> ...]
 ```
 
 The keys of `cobib.database.Entry.data` which are queried for paths or URL strings can be configured
-via the `config.commands.open.fields` setting (defaulting to `["file", "url"]`).
+via the `cobib.config.config.OpenCommandConfig.fields` setting (defaulting to `["file", "url"]`).
 If one such string is found, it is automatically opened with the program configured by
-`config.commands.open.command`.
+`cobib.config.config.OpenCommandConfig.command`.
 If multiple matches are found, the user will be presented with a menu to choose one or multiple
 matches.
 
 This menu will look similar to the following after querying for `help`:
 ```
-You can specify one of the following options:
-  1. a url number
-  2. a field name provided in '[...]'
-  3. or simply 'all'
-  4. ENTER will abort the command
+Multiple targets were found. You may select the following:
+  1. an individual URL number
+  2. a target type (provided in '[...]')
+  3. 'all'
+  4. or 'cancel' to abort the command
 
   1: [file] /path/to/a/file.pdf
   2: [file] /path/to/another/file.pdf
   3: [url] https://example.org/
-Entry to open [Type 'help' for more info]:
+[all,help,cancel]:
 ```
 
 With the above options, here is what will happen depending on the users choice:
@@ -31,7 +31,9 @@ With the above options, here is what will happen depending on the users choice:
 * `file` or `url`: will open the respective group.
 * `all`: will open all matches.
 * `help`: will print the detailed help-menu again.
-* `ENTER`: will abort the command.
+* `cancel`: will abort the command.
+
+### TUI
 
 You can also trigger this command from the `cobib.ui.tui.TUI`.
 By default, it is bound to the `o` key.
@@ -52,6 +54,7 @@ from rich.console import Console
 from rich.prompt import InvalidResponse, Prompt, PromptBase, PromptType
 from rich.text import Text
 from textual.app import App
+from typing_extensions import override
 
 from cobib.config import Event, config
 from cobib.database import Database
@@ -63,35 +66,26 @@ LOGGER = logging.getLogger(__name__)
 
 
 class OpenCommand(Command):
-    """The Open Command."""
+    """The Open Command.
+
+    This command can parse the following arguments:
+
+        * `labels`: one (or multiple) labels of the entries to be opened.
+    """
 
     name = "open"
 
+    @override
     @classmethod
     def init_argparser(cls) -> None:
-        """TODO."""
         parser = ArgumentParser(prog="open", description="Open subcommand parser.")
         parser.add_argument("labels", type=str, nargs="+", help="labels of the entries")
         cls.argparser = parser
 
     # TODO: can we make the implementation cleaner and avoid the type ignore comment below?
+    @override
     async def execute(self) -> None:  # type: ignore[override]
         # pylint: disable=invalid-overridden-method
-        """Opens associated files of an entry.
-
-        This command opens the associated file(s) of one (or multiple) entries.
-        It does so by querying the `file` and `url` fields of `cobib.database.Entry.data`.
-        If multiple such files are found, the user is presented with a menu allowing him to choose
-        one or multiple files to be opened.
-
-        The command for opening can be configured via `config.commands.open.command`.
-
-        Args:
-            args: a sequence of additional arguments used for the execution. The following values
-                are allowed for this command:
-                    * `labels`: one (or multiple) labels of the entries to be opened.
-            out: the output IO stream. This defaults to `sys.stdout`.
-        """
         LOGGER.debug("Starting Open command.")
 
         Event.PreOpenCommand.fire(self)
@@ -147,9 +141,6 @@ class OpenCommand(Command):
                         prompt_text.append(f"] {url.geturl()}\n")
                 prompt_text.append("[all,help,cancel]", "prompt.choices")
 
-                if self.prompt is None:
-                    self.prompt = Prompt
-
                 # pylint: disable=line-too-long
                 self.prompt.process_response = self._wrap_prompt_process_response(  # type: ignore[method-assign]
                     self.prompt.process_response  # type: ignore[assignment]
@@ -191,7 +182,11 @@ class OpenCommand(Command):
 
     @staticmethod
     def _open_url(url: ParseResult) -> None:
-        """Opens a URL."""
+        """Opens a URL.
+
+        Args:
+            url: the URL to be opened.
+        """
         opener = config.commands.open.command
         try:
             url_str: str = url.geturl() if url.scheme else str(RelPath(url.geturl()).path)
@@ -213,11 +208,21 @@ class OpenCommand(Command):
     def _wrap_prompt_process_response(
         func: Callable[[PromptBase[PromptType], str], PromptType]
     ) -> Callable[[PromptBase[PromptType], str], PromptType]:
-        """TODO."""
+        """A method to wrap a `PromptBase.process_response` method.
 
+        This method wraps a `PromptBase.process_response` method in order to handle a user's request
+        for additional help.
+
+        Args:
+            func: the `PromptBase.process_response` method to be wrapped.
+
+        Returns:
+            The wrapped `PromptBase.process_response` method.
+        """
+
+        @override
         @wraps(func)
         def process_response(prompt: PromptBase[PromptType], value: str) -> PromptType:
-            """TODO."""
             return_value: PromptType = func(prompt, value)
 
             if return_value == "help":

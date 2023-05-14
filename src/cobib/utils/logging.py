@@ -14,6 +14,7 @@ from rich.console import ConsoleRenderable, Group
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.text import Text
+from typing_extensions import override
 
 from .rel_path import RelPath
 
@@ -26,9 +27,8 @@ class _StderrHandler(logging.StreamHandler):  # type: ignore[type-arg]
     be achieved by a runtime check of the stream during the `emit` method.
     """
 
+    @override
     def emit(self, record: logging.LogRecord) -> None:
-        # pdoc will inherit the docstring from the base class
-        # noqa: D102
         self.stream = sys.stderr
         super().emit(record)
 

@@ -12,6 +12,7 @@ from shutil import rmtree
 from typing import TYPE_CHECKING, Any, Type
 
 import pytest
+from typing_extensions import override
 
 from cobib.commands import AddCommand, RedoCommand, UndoCommand
 from cobib.config import Event, config
@@ -29,8 +30,8 @@ if TYPE_CHECKING:
 class TestRedoCommand(CommandTest):
     """Tests for coBib's RedoCommand."""
 
+    @override
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
-        # noqa: D102
         return RedoCommand
 
     def _assert(self) -> None:
@@ -72,7 +73,7 @@ class TestRedoCommand(CommandTest):
         git = setup.get("git", False)
 
         if not git:
-            RedoCommand([]).execute()
+            RedoCommand().execute()
             for source, level, message in caplog.record_tuples:
                 if ("cobib.commands.redo", logging.ERROR) == (
                     source,
@@ -83,9 +84,9 @@ class TestRedoCommand(CommandTest):
                 pytest.fail("No Error logged from RedoCommand.")
         elif expected_exit:
             # Regression test against #65
-            await AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
+            await AddCommand("-b", EXAMPLE_MULTI_FILE_ENTRY_BIB).execute()
             with pytest.raises(SystemExit):
-                RedoCommand([]).execute()
+                RedoCommand().execute()
             for source, level, message in caplog.record_tuples:
                 if ("cobib.commands.redo", logging.WARNING) == (
                     source,
@@ -95,13 +96,13 @@ class TestRedoCommand(CommandTest):
             else:
                 pytest.fail("No Error logged from UndoCommand.")
         else:
-            await AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
-            UndoCommand([]).execute()
+            await AddCommand("-b", EXAMPLE_MULTI_FILE_ENTRY_BIB).execute()
+            UndoCommand().execute()
 
             if Database().get("example_multi_file_entry", None) is not None:
                 pytest.skip("UndoCommand failed. No point in attempting Redo.")
 
-            RedoCommand([]).execute()
+            RedoCommand().execute()
 
             self._assert()
 
@@ -122,14 +123,14 @@ class TestRedoCommand(CommandTest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        await AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
-        await AddCommand(["-b", get_resource("example_entry.bib")]).execute()
-        UndoCommand([]).execute()
-        UndoCommand([]).execute()
-        RedoCommand([]).execute()
+        await AddCommand("-b", EXAMPLE_MULTI_FILE_ENTRY_BIB).execute()
+        await AddCommand("-b", get_resource("example_entry.bib")).execute()
+        UndoCommand().execute()
+        UndoCommand().execute()
+        RedoCommand().execute()
         caplog.clear()
 
-        RedoCommand([]).execute()
+        RedoCommand().execute()
         self._assert()
         assert "Storing redone commit" in caplog.record_tuples[4][2]
         assert "Skipping" in caplog.record_tuples[6][2]
@@ -149,7 +150,7 @@ class TestRedoCommand(CommandTest):
             caplog: the built-in pytest fixture.
         """
         rmtree(self.COBIB_TEST_DIR_GIT)
-        RedoCommand([]).execute()
+        RedoCommand().execute()
         for source, level, message in caplog.record_tuples:
             if ("cobib.commands.redo", logging.ERROR) == (
                 source,
@@ -178,8 +179,8 @@ class TestRedoCommand(CommandTest):
             monkeypatch: the built-in pytest fixture.
             caplog: the built-in pytest fixture.
         """
-        await AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
-        UndoCommand([]).execute()
+        await AddCommand("-b", EXAMPLE_MULTI_FILE_ENTRY_BIB).execute()
+        UndoCommand().execute()
 
         if Database().get("example_multi_file_entry", None) is not None:
             pytest.skip("UndoCommand failed. No point in attempting Redo.")
@@ -226,7 +227,7 @@ class TestRedoCommand(CommandTest):
 
         with contextlib.redirect_stdout(StringIO()) as out:
             with pytest.raises(SystemExit):
-                RedoCommand([]).execute()
+                RedoCommand().execute()
 
             assert out.getvalue() == "Hello world!\n"
 
@@ -242,13 +243,13 @@ class TestRedoCommand(CommandTest):
         assert Event.PostRedoCommand.validate()
 
         with contextlib.redirect_stdout(StringIO()) as out:
-            await AddCommand(["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB]).execute()
-            UndoCommand([]).execute()
+            await AddCommand("-b", EXAMPLE_MULTI_FILE_ENTRY_BIB).execute()
+            UndoCommand().execute()
 
             if Database().get("example_multi_file_entry", None) is not None:
                 pytest.skip("UndoCommand failed. No point in attempting Redo.")
 
-            RedoCommand([]).execute()
+            RedoCommand().execute()
 
             self._assert()
 
