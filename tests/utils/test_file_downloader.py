@@ -41,7 +41,8 @@ def test_downloader_singleton() -> None:
     assert f_d is f_d2
 
 
-def test_download(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.asyncio
+async def test_download(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test the FileDownloader.download method.
 
     Args:
@@ -55,7 +56,7 @@ def test_download(monkeypatch: pytest.MonkeyPatch) -> None:
             pass
         # disable the PDF assertion method
         monkeypatch.setattr(FileDownloader, "_assert_pdf", lambda _: True)
-        path = FileDownloader().download(
+        path = await FileDownloader().download(
             "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
             "dummy",
             tmpdirname,
@@ -67,6 +68,7 @@ def test_download(monkeypatch: pytest.MonkeyPatch) -> None:
                 assert expected.read() == truth.read()
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     ["setup_remove_content_length"],
     [
@@ -76,7 +78,7 @@ def test_download(monkeypatch: pytest.MonkeyPatch) -> None:
     indirect=["setup_remove_content_length"],
 )
 # pylint: disable=unused-argument,redefined-outer-name
-def test_skip_download_if_no_pdf(setup_remove_content_length: Any) -> None:
+async def test_skip_download_if_no_pdf(setup_remove_content_length: Any) -> None:
     """Test that download is skipped when file is not a PDF.
 
     Args:
@@ -84,7 +86,7 @@ def test_skip_download_if_no_pdf(setup_remove_content_length: Any) -> None:
     """
     with tempfile.TemporaryDirectory() as tmpdirname:
         assert (
-            FileDownloader().download(
+            await FileDownloader().download(
                 "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
                 "dummy",
                 tmpdirname,
@@ -93,8 +95,9 @@ def test_skip_download_if_no_pdf(setup_remove_content_length: Any) -> None:
         )
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize("overwrite", [False, True])
-def test_skip_download_if_exists(caplog: pytest.LogCaptureFixture, overwrite: bool) -> None:
+async def test_skip_download_if_exists(caplog: pytest.LogCaptureFixture, overwrite: bool) -> None:
     """Test that download is skipped when file already exists.
 
     Args:
@@ -105,7 +108,7 @@ def test_skip_download_if_exists(caplog: pytest.LogCaptureFixture, overwrite: bo
         open(  # pylint: disable=consider-using-with
             tmpdirname + "/dummy.pdf", "w", encoding="utf-8"
         ).close()
-        FileDownloader().download(
+        await FileDownloader().download(
             "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
             "dummy",
             folder=tmpdirname,
@@ -124,6 +127,7 @@ def test_skip_download_if_exists(caplog: pytest.LogCaptureFixture, overwrite: bo
         assert not overwrite, "This statement should only be reached when overwrite is disabled!"
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     ["setup_remove_content_length"],
     [
@@ -133,7 +137,7 @@ def test_skip_download_if_exists(caplog: pytest.LogCaptureFixture, overwrite: bo
     indirect=["setup_remove_content_length"],
 )
 # pylint: disable=unused-argument,redefined-outer-name
-def test_download_with_url_map(setup_remove_content_length: Any) -> None:
+async def test_download_with_url_map(setup_remove_content_length: Any) -> None:
     """Test the `config.utils.file_downloader.url_map` usage.
 
     We use a Quantum Journal article because they are open-source and, thus, do not require a Proxy
@@ -150,7 +154,7 @@ def test_download_with_url_map(setup_remove_content_length: Any) -> None:
                 remove(tmpdirname + "/dummy.pdf")
             except FileNotFoundError:
                 pass
-            path = FileDownloader().download(
+            path = await FileDownloader().download(
                 "https://quantum-journal.org/papers/q-2021-06-17-479/",
                 "dummy",
                 tmpdirname,
@@ -164,7 +168,8 @@ def test_download_with_url_map(setup_remove_content_length: Any) -> None:
         config.defaults()
 
 
-def test_gracefully_fail_download(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.asyncio
+async def test_gracefully_fail_download(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test gracefully failing downloads.
 
     Args:
@@ -179,7 +184,7 @@ def test_gracefully_fail_download(monkeypatch: pytest.MonkeyPatch) -> None:
 
     with tempfile.TemporaryDirectory() as tmpdirname:
         assert (
-            FileDownloader().download(
+            await FileDownloader().download(
                 "https://quantum-journal.org/papers/q-2021-06-17-479/",
                 "dummy",
                 tmpdirname,
@@ -188,7 +193,8 @@ def test_gracefully_fail_download(monkeypatch: pytest.MonkeyPatch) -> None:
         )
 
 
-def test_event_pre_download(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.asyncio
+async def test_event_pre_download(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test the PreFileDownload event.
 
     Args:
@@ -212,7 +218,7 @@ def test_event_pre_download(monkeypatch: pytest.MonkeyPatch) -> None:
             pass
         # disable the PDF assertion method
         monkeypatch.setattr(FileDownloader, "_assert_pdf", lambda _: True)
-        path = FileDownloader().download(
+        path = await FileDownloader().download(
             "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
             "dummy",
             tmpdirname,
@@ -224,7 +230,8 @@ def test_event_pre_download(monkeypatch: pytest.MonkeyPatch) -> None:
                 assert expected.read() == truth.read()
 
 
-def test_event_post_download(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.asyncio
+async def test_event_post_download(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test the PostFileDownload event.
 
     Args:
@@ -245,7 +252,7 @@ def test_event_post_download(monkeypatch: pytest.MonkeyPatch) -> None:
             pass
         # disable the PDF assertion method
         monkeypatch.setattr(FileDownloader, "_assert_pdf", lambda _: True)
-        path = FileDownloader().download(
+        path = await FileDownloader().download(
             "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
             "dummy",
             tmpdirname,

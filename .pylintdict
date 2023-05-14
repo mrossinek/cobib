@@ -27,6 +27,7 @@ dat
 dataclass
 dataclasses
 deepcopied
+diff
 disambiguated
 docstring
 doi
@@ -46,6 +47,7 @@ isbn
 json
 kwargs
 largs
+lexing
 logfile
 md
 monkeypatch
@@ -73,6 +75,7 @@ py
 pypi
 pytest
 readme
+renderable
 renderer
 ripgrep
 rossmannek

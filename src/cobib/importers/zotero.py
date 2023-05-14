@@ -203,7 +203,10 @@ class ZoteroImporter(Importer):
         return authentication
 
     @override
-    def fetch(self, *args: str, skip_download: bool = False) -> List[Entry]:
+    async def fetch(  # type: ignore[override]
+        self, *args: str, skip_download: bool = False
+    ) -> List[Entry]:
+        # pylint: disable=invalid-overridden-method
         LOGGER.debug("Starting Zotero fetching.")
         arg_parser = ArgumentParser(prog="zotero", description="Zotero migration parser.")
         arg_parser.add_argument(
@@ -300,7 +303,7 @@ class ZoteroImporter(Importer):
             url = encountered_attachments[key]["href"]
             filename = encountered_attachments[key]["title"]
 
-            path = FileDownloader().download(url, filename, headers=authentication)
+            path = await FileDownloader().download(url, filename, headers=authentication)
             if path is not None:
                 entry.data["file"] = str(path)
 
