@@ -139,9 +139,9 @@ class ImportCommand(Command):
             if not enabled:
                 continue
             LOGGER.debug("Importing entries from %s.", name)
-            imported_entries = await cls().fetch(
-                self.largs.importer_arguments, skip_download=self.largs.skip_download
-            )
+            imported_entries = await cls(
+                *self.largs.importer_arguments, skip_download=self.largs.skip_download
+            ).fetch()
             break
 
         bib = Database()

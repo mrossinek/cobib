@@ -39,7 +39,8 @@ cobib import --zotero -- --user-id <user ID> --api-key <API key>
 [1]: https://www.zotero.org/
 """
 
-import argparse
+from __future__ import annotations
+
 import json
 import logging
 import os
@@ -67,6 +68,7 @@ class ZoteroImporter(Importer):
     """The Zotero Importer.
 
     This importer can parse the following arguments:
+
         * `--no-cache`: disables the use of any cached OAuth tokens.
         * `--user-id`: the Zotero user ID used for API calls. You can find your user ID at
           <https://www.zotero.org/settings/keys>. Unless you also specify `--no-cache`, this value
@@ -90,6 +92,122 @@ class ZoteroImporter(Importer):
     """The URL from which to fetch generated OAuth authentication token."""
     OAUTH_AUTHORIZE_URL = "https://www.zotero.org/oauth/authorize"
     """The URL where the user must be redirected in order to authenticate the coBib appliation."""
+
+    @override
+    def __init__(self, *args: str, skip_download: bool = False) -> None:
+        super().__init__(*args, skip_download=skip_download)
+
+        self.authentication: dict[str, str] = {}
+        """The authentication dictionary used as a header during the `GET` request of the Zotero
+        API."""
+
+        self.protected_url: str = ""
+        """The protected URL via which the Zotero API gets accessed."""
+
+        self.imported_entries: list[Entry] = []
+        """A list of `cobib.database.Entry` objects which were imported by this importer."""
+
+    @override
+    @classmethod
+    def init_argparser(cls) -> None:
+        parser = ArgumentParser(prog="zotero", description="Zotero migration parser.")
+        parser.add_argument(
+            "--no-cache", action="store_true", help="disable use of cached OAuth tokens"
+        )
+        parser.add_argument(
+            "--api-key", type=str, help="the user-specific Zotero API key for the coBib application"
+        )
+        parser.add_argument("--user-id", type=str, help="the Zotero user ID used for API calls")
+
+        cls.argparser = parser
+
+    @override
+    async def fetch(self) -> List[Entry]:  # type: ignore[override]
+        # pylint: disable=invalid-overridden-method
+        LOGGER.debug("Starting Zotero fetching.")
+
+        if self.largs.user_id is not None:
+            self.authentication["UserID"] = self.largs.user_id
+            if self.largs.api_key is not None:
+                self.authentication["Zotero-API-Key"] = self.largs.api_key
+
+            if not self.largs.no_cache:
+                self._store_oauth_tokens(self.authentication)
+        else:
+            self.authentication = self._get_authentication_tokens(self.largs.no_cache)
+
+        user_id = self.authentication.pop("UserID")
+
+        LOGGER.info("Requesting items from Zotero user via API v3.")
+        self.protected_url = f"https://api.zotero.org/users/{user_id}/items?include=biblatex&v=3"
+
+        Event.PreZoteroImport.fire(self)
+
+        raw_result = requests.get(self.protected_url, headers=self.authentication, timeout=30)
+
+        bibtex_parser = BibtexParser()
+
+        results = json.loads(raw_result.content)
+
+        encountered_attachments: Dict[str, Dict[str, str]] = {}
+
+        for res in results:
+            biblatex = res.get("biblatex", "").strip()
+            if not bool(biblatex):
+                # check if this is an attachment
+                try:
+                    attachment_enclosure = res.get("links", {}).get("enclosure", {})
+                    LOGGER.info("Storing encountered attachment: %s", res["key"])
+                    encountered_attachments[res["key"]] = {
+                        "href": attachment_enclosure["href"],
+                        "title": attachment_enclosure["title"],
+                    }
+                except KeyError:
+                    pass
+                continue
+
+            LOGGER.info("Parsing encountered BibLaTeX entry: %s", res["key"])
+            # biblatex contains exactly one entry so we can pop it from the OrderedDict
+            _, new_entry = bibtex_parser.parse(biblatex).popitem()
+
+            # Zotero-specific `journal` keyword handling
+            new_entry.data.pop("shortjournal")
+            new_entry.data["journal"] = new_entry.data.pop("journaltitle")
+
+            # check attachment
+            try:
+                attachment = res.get("links", {}).get("attachment", {})
+            except KeyError:
+                pass
+
+            if attachment.get("attachmentType", None) == "application/pdf":
+                LOGGER.info("Queuing associated attachment for download.")
+                new_entry.data["_download"] = attachment["href"].split("/")[-1]
+
+            self.imported_entries.append(new_entry)
+
+        for entry in self.imported_entries:  # pragma: no cover
+            if "_download" not in entry.data.keys():
+                continue
+
+            key = entry.data.pop("_download")
+            if self.skip_download:
+                LOGGER.info("Skipping attachment download.")
+                continue
+            if key not in encountered_attachments:
+                LOGGER.warning("Skipping unknown attachment: %s", key)
+                continue
+
+            url = encountered_attachments[key]["href"]
+            filename = encountered_attachments[key]["title"]
+
+            path = await FileDownloader().download(url, filename, headers=self.authentication)
+            if path is not None:
+                entry.data["file"] = str(path)
+
+        Event.PostZoteroImport.fire(self)
+
+        return self.imported_entries
 
     @staticmethod
     def _get_fresh_oauth_tokens() -> Dict[str, str]:  # pragma: no cover
@@ -201,114 +319,3 @@ class ZoteroImporter(Importer):
                 ZoteroImporter._store_oauth_tokens(authentication)
 
         return authentication
-
-    @override
-    async def fetch(  # type: ignore[override]
-        self, *args: str, skip_download: bool = False
-    ) -> List[Entry]:
-        # pylint: disable=invalid-overridden-method
-        LOGGER.debug("Starting Zotero fetching.")
-        arg_parser = ArgumentParser(prog="zotero", description="Zotero migration parser.")
-        arg_parser.add_argument(
-            "--no-cache", action="store_true", help="disable use of cached OAuth tokens"
-        )
-        arg_parser.add_argument(
-            "--api-key", type=str, help="the user-specific Zotero API key for the coBib application"
-        )
-        arg_parser.add_argument("--user-id", type=str, help="the Zotero user ID used for API calls")
-
-        try:
-            largs = arg_parser.parse_args(args)
-        except argparse.ArgumentError as exc:
-            LOGGER.error(exc.message)
-            return []
-
-        authentication: Dict[str, str] = {}
-        if largs.user_id is not None:
-            authentication["UserID"] = largs.user_id
-            if largs.api_key is not None:
-                authentication["Zotero-API-Key"] = largs.api_key
-
-            if not largs.no_cache:
-                self._store_oauth_tokens(authentication)
-        else:
-            authentication = self._get_authentication_tokens(largs.no_cache)
-
-        user_id = authentication.pop("UserID")
-
-        LOGGER.info("Requesting items from Zotero user via API v3.")
-        protected_url = f"https://api.zotero.org/users/{user_id}/items?include=biblatex&v=3"
-
-        pre_hook_result = Event.PreZoteroImport.fire(protected_url, authentication)
-        if pre_hook_result is not None:
-            protected_url, authentication = pre_hook_result
-
-        raw_result = requests.get(protected_url, headers=authentication, timeout=30)
-
-        bibtex_parser = BibtexParser()
-
-        results = json.loads(raw_result.content)
-
-        imported_entries: List[Entry] = []
-
-        encountered_attachments: Dict[str, Dict[str, str]] = {}
-
-        for res in results:
-            biblatex = res.get("biblatex", "").strip()
-            if not bool(biblatex):
-                # check if this is an attachment
-                try:
-                    attachment_enclosure = res.get("links", {}).get("enclosure", {})
-                    LOGGER.info("Storing encountered attachment: %s", res["key"])
-                    encountered_attachments[res["key"]] = {
-                        "href": attachment_enclosure["href"],
-                        "title": attachment_enclosure["title"],
-                    }
-                except KeyError:
-                    pass
-                continue
-
-            LOGGER.info("Parsing encountered BibLaTeX entry: %s", res["key"])
-            # biblatex contains exactly one entry so we can pop it from the OrderedDict
-            _, new_entry = bibtex_parser.parse(biblatex).popitem()
-
-            # Zotero-specific `journal` keyword handling
-            new_entry.data.pop("shortjournal")
-            new_entry.data["journal"] = new_entry.data.pop("journaltitle")
-
-            # check attachment
-            try:
-                attachment = res.get("links", {}).get("attachment", {})
-            except KeyError:
-                pass
-
-            if attachment.get("attachmentType", None) == "application/pdf":
-                LOGGER.info("Queuing associated attachment for download.")
-                new_entry.data["_download"] = attachment["href"].split("/")[-1]
-
-            imported_entries.append(new_entry)
-
-        for entry in imported_entries:  # pragma: no cover
-            if "_download" not in entry.data.keys():
-                continue
-
-            key = entry.data.pop("_download")
-            if skip_download:
-                LOGGER.info("Skipping attachment download.")
-                continue
-            if key not in encountered_attachments:
-                LOGGER.warning("Skipping unknown attachment: %s", key)
-                continue
-
-            url = encountered_attachments[key]["href"]
-            filename = encountered_attachments[key]["title"]
-
-            path = await FileDownloader().download(url, filename, headers=authentication)
-            if path is not None:
-                entry.data["file"] = str(path)
-
-        post_hook_result = Event.PostZoteroImport.fire(imported_entries)
-        if post_hook_result is not None:
-            imported_entries = post_hook_result
-
-        return imported_entries

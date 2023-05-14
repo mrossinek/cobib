@@ -18,9 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ```
   - the `config.commands.list` section had to be renamed to `config.commands.list_`
   - the `config.tui` section has been entirely removed
-- The function signature of all command-related events has changed! Please refer to the
-  [online documentation](https://cobib.gitlab.io/cobib/cobib/config/event.html)
-  for more details.
+- The function signature of all command- and importer-related events has changed!
+  For more details please refer to the
+  [online documentation](https://cobib.gitlab.io/cobib/cobib/config/event.html).
 
 ### Added
 - Python 3.11 is now officially tested and supported
@@ -40,6 +40,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The function signature of all command-related events has changed! Please refer to the
   [online documentation](https://cobib.gitlab.io/cobib/cobib/config/event.html)
   for more details. (!63)
+- The function signature of all importer-related events has changed! Please refer to the
+  [online documentation](https://cobib.gitlab.io/cobib/cobib/config/event.html)
+  for more details. (!66)
 - the API of the `cobib.commands` and `cobib.importers` module has been improved (!64)
   - this should not have any end-user facing effects
 
