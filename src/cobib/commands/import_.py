@@ -126,7 +126,8 @@ class ImportCommand(Command):
         cls.argparser = parser
 
     @override
-    def execute(self) -> None:
+    async def execute(self) -> None:  # type: ignore[override]
+        # pylint: disable=invalid-overridden-method
         LOGGER.debug("Starting Import command.")
 
         Event.PreImportCommand.fire(self)
@@ -138,7 +139,7 @@ class ImportCommand(Command):
             if not enabled:
                 continue
             LOGGER.debug("Importing entries from %s.", name)
-            imported_entries = cls().fetch(
+            imported_entries = await cls().fetch(
                 self.largs.importer_arguments, skip_download=self.largs.skip_download
             )
             break

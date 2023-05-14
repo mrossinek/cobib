@@ -128,16 +128,17 @@ normal command-line command:
 from __future__ import annotations
 
 import argparse
+import asyncio
 import inspect
 import logging
 from collections import OrderedDict
 from functools import wraps
-from typing import Callable, Dict, Type, cast
+from typing import Callable, Dict, Tuple, Type, cast
 
 from rich.console import Console
 from rich.prompt import InvalidResponse, Prompt, PromptBase, PromptType
 from textual.app import App
-from textual.widget import Widget
+from textual.widget import AwaitMount, Widget
 from typing_extensions import override
 
 from cobib import parsers
@@ -370,7 +371,7 @@ class AddCommand(Command):
                     table = diff.render("bibtex")
 
                     # pylint: disable=assignment-from-no-return
-                    popup = self.console.print(table)  # type: ignore[union-attr]
+                    print_ret = self.console.print(table)  # type: ignore[union-attr]
 
                     prompt_text = "How would you like to handle this conflict?"
                     choices = ["keep", "replace", "update", "disambiguate", "help"]
@@ -388,7 +389,8 @@ class AddCommand(Command):
                             default=default,
                             console=cast(App[None], self.console),
                         )
-                        cast(Widget, popup).remove()
+                        popup, _ = cast(Tuple[Widget, AwaitMount], print_ret)
+                        popup.remove()
                     else:
                         res = self.prompt.ask(
                             prompt_text,
@@ -432,12 +434,15 @@ class AddCommand(Command):
                 if self.largs.skip_download:
                     entry.data.pop("_download")
                 else:
-                    path = FileDownloader().download(
-                        entry.data.pop("_download"),
-                        entry.label,
-                        folder=self.largs.path,
-                        overwrite=overwrite_file,
+                    task = asyncio.create_task(
+                        FileDownloader().download(
+                            entry.data.pop("_download"),
+                            entry.label,
+                            folder=self.largs.path,
+                            overwrite=overwrite_file,
+                        )
                     )
+                    path = await task
                     if path is not None:
                         entry.data["file"] = str(path)
             # check journal abbreviation

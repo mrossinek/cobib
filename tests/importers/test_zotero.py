@@ -57,25 +57,30 @@ class TestZoteroImporter(ImporterTest):
             ):
                 assert line == truth
 
-    def test_fetch(self) -> None:
+    @pytest.mark.asyncio
+    async def test_fetch(self) -> None:
         """Test fetching entries from the Zotero API."""
         importer = MockZoteroImporter()
         # NOTE: even though attachments are not accessible via public libraries, we explicitly skip
         # downloading them, just to be sure.
-        imported_entries = importer.fetch(skip_download=False)
+        imported_entries = await importer.fetch(skip_download=False)
 
         self._assert_results(imported_entries)
 
-    def test_fetch_custom_user_id(self) -> None:
+    @pytest.mark.asyncio
+    async def test_fetch_custom_user_id(self) -> None:
         """Test fetching with custom user ID."""
-        imported_entries = ZoteroImporter().fetch("--user-id", "8608002", "--no-cache")
+        imported_entries = await ZoteroImporter().fetch("--user-id", "8608002", "--no-cache")
         self._assert_results(imported_entries)
 
-    def test_cache(self) -> None:
+    @pytest.mark.asyncio
+    async def test_cache(self) -> None:
         """Test caching behavior."""
         try:
             config.logging.cache = str(Path(tempfile.gettempdir()) / "cache")
-            imported_entries = ZoteroImporter().fetch("--user-id", "8608002", skip_download=True)
+            imported_entries = await ZoteroImporter().fetch(
+                "--user-id", "8608002", skip_download=True
+            )
             self._assert_results(imported_entries)
 
             with open(config.logging.cache, "r", encoding="utf-8") as cache:
@@ -86,13 +91,14 @@ class TestZoteroImporter(ImporterTest):
         finally:
             config.defaults()
 
-    def test_handle_argument_error(self, caplog: pytest.LogCaptureFixture) -> None:
+    @pytest.mark.asyncio
+    async def test_handle_argument_error(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test handling of ArgumentError.
 
         Args:
             caplog: the built-in pytest fixture.
         """
-        ZoteroImporter().fetch("--dummy")
+        await ZoteroImporter().fetch("--dummy")
         for source, level, message in caplog.record_tuples:
             if ("cobib.importers.zotero", logging.ERROR) == (
                 source,
@@ -102,7 +108,8 @@ class TestZoteroImporter(ImporterTest):
         else:
             pytest.fail("No Error logged from ArgumentParser.")
 
-    def test_event_pre_zotero_import(self) -> None:
+    @pytest.mark.asyncio
+    async def test_event_pre_zotero_import(self) -> None:
         """Tests the PreZoteroImport event."""
 
         @Event.PreZoteroImport.subscribe
@@ -113,11 +120,12 @@ class TestZoteroImporter(ImporterTest):
 
         assert Event.PreZoteroImport.validate()
 
-        imported_entries = ZoteroImporter().fetch("--user-id", "test", "--no-cache")
+        imported_entries = await ZoteroImporter().fetch("--user-id", "test", "--no-cache")
 
         self._assert_results(imported_entries)
 
-    def test_event_post_zotero_import(self) -> None:
+    @pytest.mark.asyncio
+    async def test_event_post_zotero_import(self) -> None:
         """Tests the PostZoteroImport event."""
 
         @Event.PostZoteroImport.subscribe
@@ -126,5 +134,5 @@ class TestZoteroImporter(ImporterTest):
 
         assert Event.PostZoteroImport.validate()
 
-        imported_entries = MockZoteroImporter().fetch("--no-cache")
+        imported_entries = await MockZoteroImporter().fetch("--no-cache")
         assert imported_entries == []

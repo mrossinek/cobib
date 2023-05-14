@@ -24,13 +24,14 @@ from textual.coordinate import Coordinate
 from textual.css.query import NoMatches
 from textual.filter import LineFilter
 from textual.reactive import reactive
-from textual.widget import Widget
+from textual.widget import AwaitMount, Widget
 from textual.widgets import DataTable, Footer, Header
 from textual.widgets import Input as _Input
-from textual.widgets import Label, Static, Tree
+from textual.widgets import Label, ProgressBar, Static, Tree
 
 from cobib import commands
 from cobib.ui.ui import UI
+from cobib.utils.file_downloader import FileDownloader
 
 
 class Input(_Input):
@@ -220,6 +221,14 @@ class PopupLoggingHandler(logging.Handler):
         self.app.print(Popup(self.format(record), level=record.levelno))
 
 
+class Progress(ProgressBar):
+    """TODO."""
+
+    console: TUI
+
+    # TODO: add proper styling and figure out why this does not refresh properly
+
+
 class TextualPrompt(PromptBase[str]):
     """TODO."""
 
@@ -342,6 +351,8 @@ class TUI(UI, App[None]):
         self._filter: SelectionFilter = SelectionFilter()
         self._background_tasks: set[asyncio.Task] = set()  # type: ignore[type-arg]
         PopupLoggingHandler(self, level=logging.INFO)
+        Progress.console = self
+        FileDownloader.progress = Progress
 
     def compose(self) -> ComposeResult:
         """TODO."""
@@ -594,16 +605,16 @@ class TUI(UI, App[None]):
                     self.print(Popup(stderr_val, level=logging.CRITICAL))
                 self._update_table()
 
-    def print(self, renderable: RenderableType | Popup) -> Popup:
+    def print(self, renderable: RenderableType | Widget) -> tuple[Widget, AwaitMount]:
         """TODO."""
-        if not isinstance(renderable, Popup):
-            popup = Popup(renderable, level=0, timer=None)
-        else:
+        if isinstance(renderable, Widget):
             popup = renderable
+        else:
+            popup = Popup(renderable, level=0, timer=None)
 
-        self.query_one(PopupPanel).mount(popup)
+        await_mount = self.query_one(PopupPanel).mount(popup)
 
-        return popup
+        return popup, await_mount
 
     async def action_search(self) -> None:
         """TODO."""

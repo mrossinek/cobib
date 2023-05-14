@@ -5,11 +5,14 @@ from __future__ import annotations
 import logging
 import re
 import tempfile
+from functools import partial
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Callable, Dict, Optional, Type
 
 import requests
+from rich.console import Console
 from rich.progress import DownloadColumn, Progress, SpinnerColumn, TimeElapsedColumn
+from textual.widgets import ProgressBar
 
 from cobib.config import Event, config
 
@@ -21,8 +24,7 @@ LOGGER = logging.getLogger(__name__)
 class FileDownloader:
     """The file downloader singleton.
 
-    This utility centralizes the downloading of associated files. It implements the singleton
-    pattern to allow simple log method replacement (via `set_logger`).
+    This utility centralizes the downloading of associated files.
     """
 
     _instance: Optional[FileDownloader] = None
@@ -38,7 +40,8 @@ class FileDownloader:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    # TODO: re-integrate internal logger as a rich.console (?)
+    progress: Type[Progress] | Type[ProgressBar] = Progress
+    """The type of progress bar to use when displaying the downloading progress."""
 
     _PDF_MARKER = bytes("%PDF", "utf-8")
     """A marker which the downloaded file's beginning is checked against, to determine that it is
@@ -52,7 +55,7 @@ class FileDownloader:
             content: the string of bytes to check.
 
         Returns:
-            Whether the`content` matches.
+            Whether the `content` matches.
         """
         if not content.startswith(FileDownloader._PDF_MARKER):
             LOGGER.warning("The URL did not provide a PDF file. Aborting download!")
@@ -69,17 +72,18 @@ class FileDownloader:
         path.path.unlink(missing_ok=True)
 
     @staticmethod
-    def download(
+    async def download(
         url: str,
         label: str,
         folder: Optional[str] = None,
         overwrite: bool = False,
         headers: Optional[Dict[str, str]] = None,
     ) -> Optional[RelPath]:
+        # pylint: disable=too-many-function-args,unexpected-keyword-arg,no-member
         """Downloads a file.
 
         The path of the downloaded file is `folder/label.pdf`. The path can be configured via
-        `cobib.config.commands.add.download_location`.
+        `cobib.config.config.FileDownloaderConfig.default_location`.
 
         Args:
             url: the link to the file to be downloaded.
@@ -126,29 +130,51 @@ class FileDownloader:
                 FileDownloader._recover(path, backup)
                 return None
 
-            with Progress(
-                SpinnerColumn(),
-                *Progress.get_default_columns(),
-                TimeElapsedColumn(),
-                DownloadColumn(),
-                transient=False,
-            ) as progress:
-                task = progress.add_task("Downloading...", total=total_length)
-                accumulated_length = 0
+            advance: Callable[[int], None]
+            progress_bar: Progress | ProgressBar
+            if issubclass(FileDownloader.progress, ProgressBar):
+                progress_bar = FileDownloader.progress(total_length)
+                _, await_mount = progress_bar.console.print(  # type: ignore[attr-defined]
+                    progress_bar
+                )
+                await await_mount
+                advance = progress_bar.advance
+            else:
+                progress_bar = FileDownloader.progress(
+                    SpinnerColumn(),
+                    *Progress.get_default_columns(),
+                    TimeElapsedColumn(),
+                    DownloadColumn(),
+                    transient=False,
+                    # TODO: the unittests fail when this remains `None` because it appears as though
+                    # too many Live sessions are opened at once. How can we deal with this properly?
+                    # Can we simply assume the user is not going to do this in parallel?
+                    console=Console(),
+                )
+                progress_bar.start()
+                task = progress_bar.add_task("Downloading...", total=total_length)
+                advance = partial(progress_bar.advance, task)
 
-                if total_length is None:
-                    if not FileDownloader._assert_pdf(response.content):
+            accumulated_length = 0
+
+            if total_length is None:
+                if not FileDownloader._assert_pdf(response.content):
+                    FileDownloader._recover(path, backup)
+                    return None
+                file.write(response.content)
+            else:
+                for data in response.iter_content(chunk_size=4096):
+                    if accumulated_length == 0 and not FileDownloader._assert_pdf(data):
                         FileDownloader._recover(path, backup)
                         return None
-                    file.write(response.content)
-                else:
-                    for data in response.iter_content(chunk_size=4096):
-                        if accumulated_length == 0 and not FileDownloader._assert_pdf(data):
-                            FileDownloader._recover(path, backup)
-                            return None
-                        accumulated_length += len(data)
-                        progress.update(task, advance=len(data))
-                        file.write(data)
+                    accumulated_length += len(data)
+                    advance(len(data))
+                    file.write(data)
+
+            if isinstance(progress_bar, ProgressBar):
+                progress_bar.set_timer(5.0, progress_bar.remove)
+            else:
+                progress_bar.stop()
 
             msg = f"Successfully downloaded {path}"
             print(msg)
@@ -159,18 +185,15 @@ class FileDownloader:
             return path
 
     @staticmethod
-    # pylint: disable=unsubscriptable-object
-    def _backup_file(path: RelPath) -> tempfile._TemporaryFileWrapper[bytes]:
-        """TODO."""
-        # we make a copy of the existing file in case downloading a new one fails
-        backup = tempfile.NamedTemporaryFile(delete=False)  # pylint: disable=consider-using-with
-        backup.write(path.path.read_bytes())
-        backup.seek(0)
-        return backup
-
-    @staticmethod
     def _map_url(url: str) -> str:
-        """TODO."""
+        """Maps a URL according to `cobib.config.config.FileDownloaderConfig.url_map`.
+
+        Args:
+            url: the URL to be mapped.
+
+        Returns:
+            The mapped URL.
+        """
         for pattern_url, repl_url in config.utils.file_downloader.url_map.items():
             if re.match(pattern_url, url):
                 new_url: str = re.sub(pattern_url, repl_url, url)
@@ -184,8 +207,33 @@ class FileDownloader:
 
     @staticmethod
     # pylint: disable=unsubscriptable-object
+    def _backup_file(path: RelPath) -> tempfile._TemporaryFileWrapper[bytes]:
+        """Create a backup of an existing file.
+
+        Args:
+            path: the path to the file to be backed up.
+
+        Returns:
+            The temporary backup file.
+        """
+        # we make a copy of the existing file in case downloading a new one fails
+        backup = tempfile.NamedTemporaryFile(delete=False)  # pylint: disable=consider-using-with
+        backup.write(path.path.read_bytes())
+        backup.seek(0)
+        return backup
+
+    @staticmethod
+    # pylint: disable=unsubscriptable-object
     def _recover(path: RelPath, backup: Optional[tempfile._TemporaryFileWrapper[bytes]]) -> None:
-        """TODO."""
+        """Recovers from a backup file.
+
+        If not `backup` exists, the file location which was supposed to be recovered is properly
+        removed.
+
+        Args:
+            path: the path to the file to be recovered.
+            backup: the temporary backup file.
+        """
         FileDownloader._unlink(path)
         if backup is not None:
             path.path.write_bytes(backup.read())
