@@ -10,6 +10,13 @@ There are various kinds of event types:
       Database gets written to file, allowing final touch-ups and modifications to take place.
       Just like the `Pre*Command` events, the input will be an instance of the command through which
       a user can modify the command data at runtime.
+    - Pre*Import: these fire before an importer gets executed. Hooks subscribing to these events
+      are passed an instance of the importer which will be populated with the original command-line
+      arguments as well as the resulting `argparse.Namespace`.
+    - Post*Import: these fire after an importer got executed but (generally) **before** the
+      Database gets written to file, allowing final touch-ups and modifications to take place.
+      Just like the `Pre*Import` events, the input will be an instance of the importer through which
+      a user can modify the command data at runtime.
     - Pre*Parse: just like the Pre-Command events, these fire before a parser runs. As an input
       they generally get the driver input.
     - Post*Parse: these fire after a parser ran. They again allow final touch-ups of the
@@ -89,7 +96,7 @@ from .config import config
 
 _FORWARD_REFS: Dict[str, str] = {}
 if TYPE_CHECKING:
-    from cobib import commands
+    from cobib import commands, importers
     from cobib.database import Entry
 else:
     _FORWARD_REFS = {
@@ -107,6 +114,7 @@ else:
         "ForwardRef('commands.SearchCommand')": "cobib.commands.search.SearchCommand",
         "ForwardRef('commands.ShowCommand')": "cobib.commands.show.ShowCommand",
         "ForwardRef('commands.UndoCommand')": "cobib.commands.undo.UndoCommand",
+        "ForwardRef('importers.ZoteroImporter')": "cobib.importers.zotero.ZoteroImporter",
     }
 
 LOGGER = logging.getLogger(__name__)
@@ -672,39 +680,33 @@ class Event(Enum):
     """
 
     PreZoteroImport: Event = Callable[  # type: ignore[assignment]
-        [str, Dict[str, str]], Optional[Tuple[str, Dict[str, str]]]
+        ["importers.ZoteroImporter"], None
     ]
     """
     Fires:
         Before starting `cobib.importers.zotero.ZoteroImporter.fetch`.
 
     Arguments:
-        - `url`: the URL from which to fetch the Zotero library.
-        - `authentication`: the authentication dictionary header for the GET request.
+        - `cobib.importers.zotero.ZoteroImporter`: the importer instance that is about to run.
 
     Returns:
-        This can optionally return a tuple overwriting the input arguments.
-
-    Note:
-        If a registered hook returns a new tuple of arguments, no subsequent hooks will be run!
+        Nothing. But the importer attributes can be modified, affecting the execution.
     """
-
     PostZoteroImport: Event = Callable[  # type: ignore[assignment]
-        [List["Entry"]], Optional[List["Entry"]]
+        ["importers.ZoteroImporter"], None
     ]
     """
     Fires:
         Before finishing `cobib.importers.zotero.ZoteroImporter.fetch`.
 
     Arguments:
-        - `imported_entries`: the list of entries to be imported.
+        - `cobib.importers.zotero.ZoteroImporter`: the importer instance that is about to run.
 
     Returns:
-        This can optionally return an updated list of imported entries.
+        Nothing. But the importer attributes can be modified, affecting the execution.
 
     Note:
         - The entry labels will not have been mapped or disambiguated at this point.
-        - If a registered hook returns a new tuple of arguments, no subsequent hooks will be run!
     """
 
     PreFileDownload: Event = Callable[  # type: ignore[assignment]

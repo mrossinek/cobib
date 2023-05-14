@@ -6,7 +6,7 @@ import logging
 import tempfile
 from itertools import zip_longest
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List
 
 import pytest
 from typing_extensions import override
@@ -60,17 +60,17 @@ class TestZoteroImporter(ImporterTest):
     @pytest.mark.asyncio
     async def test_fetch(self) -> None:
         """Test fetching entries from the Zotero API."""
-        importer = MockZoteroImporter()
+        importer = MockZoteroImporter(skip_download=False)
         # NOTE: even though attachments are not accessible via public libraries, we explicitly skip
         # downloading them, just to be sure.
-        imported_entries = await importer.fetch(skip_download=False)
+        imported_entries = await importer.fetch()
 
         self._assert_results(imported_entries)
 
     @pytest.mark.asyncio
     async def test_fetch_custom_user_id(self) -> None:
         """Test fetching with custom user ID."""
-        imported_entries = await ZoteroImporter().fetch("--user-id", "8608002", "--no-cache")
+        imported_entries = await ZoteroImporter("--user-id", "8608002", "--no-cache").fetch()
         self._assert_results(imported_entries)
 
     @pytest.mark.asyncio
@@ -78,9 +78,9 @@ class TestZoteroImporter(ImporterTest):
         """Test caching behavior."""
         try:
             config.logging.cache = str(Path(tempfile.gettempdir()) / "cache")
-            imported_entries = await ZoteroImporter().fetch(
+            imported_entries = await ZoteroImporter(
                 "--user-id", "8608002", skip_download=True
-            )
+            ).fetch()
             self._assert_results(imported_entries)
 
             with open(config.logging.cache, "r", encoding="utf-8") as cache:
@@ -98,9 +98,12 @@ class TestZoteroImporter(ImporterTest):
         Args:
             caplog: the built-in pytest fixture.
         """
-        await ZoteroImporter().fetch("--dummy")
+        try:
+            await ZoteroImporter("--dummy").fetch()
+        except SystemExit:
+            pass
         for source, level, message in caplog.record_tuples:
-            if ("cobib.importers.zotero", logging.ERROR) == (
+            if ("cobib.importers.base_importer", logging.ERROR) == (
                 source,
                 level,
             ) and "Error: zotero: error:" in message:
@@ -113,14 +116,12 @@ class TestZoteroImporter(ImporterTest):
         """Tests the PreZoteroImport event."""
 
         @Event.PreZoteroImport.subscribe
-        def hook(
-            protected_url: str, authentication: Dict[str, str]
-        ) -> Optional[Tuple[str, Dict[str, str]]]:
-            return (protected_url.replace("test", "8608002"), {})
+        def hook(importer: ZoteroImporter) -> None:
+            importer.protected_url = importer.protected_url.replace("test", "8608002")
 
         assert Event.PreZoteroImport.validate()
 
-        imported_entries = await ZoteroImporter().fetch("--user-id", "test", "--no-cache")
+        imported_entries = await ZoteroImporter("--user-id", "test", "--no-cache").fetch()
 
         self._assert_results(imported_entries)
 
@@ -129,10 +130,10 @@ class TestZoteroImporter(ImporterTest):
         """Tests the PostZoteroImport event."""
 
         @Event.PostZoteroImport.subscribe
-        def hook(imported_entries: List[Entry]) -> Optional[List[Entry]]:
-            return []
+        def hook(importer: ZoteroImporter) -> None:
+            importer.imported_entries = []
 
         assert Event.PostZoteroImport.validate()
 
-        imported_entries = await MockZoteroImporter().fetch("--no-cache")
+        imported_entries = await MockZoteroImporter("--no-cache").fetch()
         assert imported_entries == []

@@ -98,7 +98,7 @@ class Command(ABC):
         """Parses the provided command arguments.
 
         Args:
-            args: the sequence of command additional command arguments provided to the command upon
+            args: the sequence of additional command arguments provided to the command upon
                 initialization.
 
         Returns:
