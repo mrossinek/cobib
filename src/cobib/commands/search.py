@@ -64,7 +64,7 @@ from cobib.config import Event, config
 from cobib.database import Entry
 
 from .base_command import ArgumentParser, Command
-from .list import ListCommand
+from .list_ import ListCommand
 
 LOGGER = logging.getLogger(__name__)
 
@@ -83,7 +83,7 @@ class SearchCommand(Command):
           lines before and after the actual match to be included in the output. This is similar to
           the `-C` option of `grep`.
         * in addition to the above, you can add `filters` to narrow the search down to a subset of
-          your database. For more information refer to `cobib.commands.list`.
+          your database. For more information refer to `cobib.commands.list_`.
     """
 
     name = "search"

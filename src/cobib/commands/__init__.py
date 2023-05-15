@@ -11,7 +11,7 @@ from .edit import EditCommand as EditCommand
 from .export import ExportCommand as ExportCommand
 from .import_ import ImportCommand as ImportCommand
 from .init import InitCommand as InitCommand
-from .list import ListCommand as ListCommand
+from .list_ import ListCommand as ListCommand
 from .modify import ModifyCommand as ModifyCommand
 from .open import OpenCommand as OpenCommand
 from .redo import RedoCommand as RedoCommand

@@ -76,7 +76,7 @@ from cobib.utils.journal_abbreviations import JournalAbbreviations
 from cobib.utils.rel_path import RelPath
 
 from .base_command import ArgumentParser, Command
-from .list import ListCommand
+from .list_ import ListCommand
 
 LOGGER = logging.getLogger(__name__)
 
@@ -96,7 +96,7 @@ class ExportCommand(Command):
           be used on the command-line but is mainly meant for the TUIs visual selection
           interface (hence the name).
         * in addition to the above, you can add `filters` to specify a subset of your
-          database for exporting. For more information refer to `cobib.commands.list`.
+          database for exporting. For more information refer to `cobib.commands.list_`.
     """
 
     name = "export"

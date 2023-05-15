@@ -15,7 +15,7 @@ You can use the `--add` option to not overwrite but append to existing values of
 fields will be concatenated with*out* any spaces, lists will be appended, and numeric fields will be
 added. Any other kind of field will be converted to a `str`.
 
-As with other commands, you can also use filters (see also `cobib.commands.list`) rather than a
+As with other commands, you can also use filters (see also `cobib.commands.list_`) rather than a
 manual selection to specify the entries which to modify:
 ```
 cobib modify tags:first_author -- ++author Rossmannek
@@ -92,7 +92,7 @@ from cobib.utils.logging import get_stream_handler
 from cobib.utils.rel_path import RelPath
 
 from .base_command import ArgumentParser, Command
-from .list import ListCommand
+from .list_ import ListCommand
 
 LOGGER = logging.getLogger(__name__)
 
@@ -115,7 +115,7 @@ class ModifyCommand(Command):
           filters but rather as a direct list of entry labels. This can be used on the command-line
           but is mainly meant for the TUIs visual selection interface (hence the name).
         * in addition to the above, you can add `filters` to specify a subset of your database for
-          exporting. For more information refer to `cobib.commands.list`.
+          exporting. For more information refer to `cobib.commands.list_`.
     """
 
     name = "modify"

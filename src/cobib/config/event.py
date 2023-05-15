@@ -107,7 +107,7 @@ else:
         "ForwardRef('commands.ExportCommand')": "cobib.commands.export.ExportCommand",
         "ForwardRef('commands.ImportCommand')": "cobib.commands.import_.ImportCommand",
         "ForwardRef('commands.InitCommand')": "cobib.commands.init.InitCommand",
-        "ForwardRef('commands.ListCommand')": "cobib.commands.list.ListCommand",
+        "ForwardRef('commands.ListCommand')": "cobib.commands.list_.ListCommand",
         "ForwardRef('commands.ModifyCommand')": "cobib.commands.modify.ModifyCommand",
         "ForwardRef('commands.OpenCommand')": "cobib.commands.open.OpenCommand",
         "ForwardRef('commands.RedoCommand')": "cobib.commands.redo.RedoCommand",
@@ -303,10 +303,10 @@ class Event(Enum):
     PreListCommand: Event = Callable[["commands.ListCommand"], None]  # type: ignore[assignment]
     """
     Fires:
-        Before starting the `cobib.commands.list.ListCommand`.
+        Before starting the `cobib.commands.list_.ListCommand`.
 
     Arguments:
-        - `cobib.commands.list.ListCommand`: the command instance that is about to run.
+        - `cobib.commands.list_.ListCommand`: the command instance that is about to run.
 
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
@@ -314,10 +314,10 @@ class Event(Enum):
     PostListCommand: Event = Callable[["commands.ListCommand"], None]  # type: ignore[assignment]
     """
     Fires:
-        Before finishing the `cobib.commands.list.ListCommand`.
+        Before finishing the `cobib.commands.list_.ListCommand`.
 
     Arguments:
-        - `cobib.commands.list.ListCommand`: the command instance that just ran.
+        - `cobib.commands.list_.ListCommand`: the command instance that just ran.
 
     Returns:
         Nothing.

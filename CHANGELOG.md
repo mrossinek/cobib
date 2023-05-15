@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ```
   - the `config.commands.list` section had to be renamed to `config.commands.list_`
   - the `config.tui` section has been entirely removed
+- The `cobib.commands.list` module was moved to `cobib.commands.list_`.
 - The function signature of all command- and importer-related events has changed!
   For more details please refer to the
   [online documentation](https://cobib.gitlab.io/cobib/cobib/config/event.html).
@@ -28,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Full rewrite of the TUI based on `textual` (#78,!51)
 - the `--disambiguation` argument of the `add` command (#99,!58)
 - the `--ignore-case` argument of the `list` command (#105)
-  - this also comes with the new `config.commands.list.ignore_case` setting
+  - this also comes with the new `config.commands.list_.ignore_case` setting
 - the `search` command now accepts multiple query strings at once which will be
   searched over independently (#106)
 
@@ -45,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   for more details. (!66)
 - the API of the `cobib.commands` and `cobib.importers` module has been improved (!64)
   - this should not have any end-user facing effects
+- the `cobib.commands.list` module was moved to `cobib.commands.list_`
 
 ### Deprecated
 - the `--update` argument of the `add` command is deprecated in favor of `--disambiguation update`

@@ -122,7 +122,7 @@ cobib add --isbn <some ISBN>
 
 ### Viewing your database and entries
 
-You can view the contents of your database with (see also `cobib.commands.list`):
+You can view the contents of your database with (see also `cobib.commands.list_`):
 
 ```
 cobib list
