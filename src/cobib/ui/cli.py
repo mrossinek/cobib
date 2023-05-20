@@ -1,4 +1,9 @@
-"""TODO."""
+"""coBib's command-line interface.
+
+This class provides the main entry point to coBib. It exposes all the commands implemented in
+`cobib.commands` to the end-user and leverages [`rich`](https://github.com/textualize/rich) to
+produce beautiful output.
+"""
 
 import argparse
 import asyncio
@@ -8,6 +13,7 @@ from inspect import iscoroutinefunction
 from typing import Any
 
 from rich.console import Console
+from typing_extensions import override
 
 from cobib import __version__, commands
 from cobib.config import config
@@ -21,10 +27,17 @@ LOGGER = logging.getLogger(__name__)
 
 
 class CLI(UI):
-    """TODO."""
+    """The CLI class.
 
+    In addition to the global arguments documented by the base class, the following are supported:
+
+      * `--version`: prints the coBib version and quits.
+      * `command`: a single positional argument indicating the name of the command to run. When this
+        is omitted, the `cobib.ui.tui.TUI` gets started.
+    """
+
+    @override
     def add_extra_parser_arguments(self) -> None:
-        """TODO."""
         self.parser.add_argument("--version", action="version", version=f"%(prog)s v{__version__}")
 
         subcommands = [cmd.split(":")[0] for cmd in shell_helper.list_commands()]
@@ -33,8 +46,8 @@ class CLI(UI):
         )
         self.parser.add_argument("args", nargs=argparse.REMAINDER)
 
+    @override
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """TODO."""
         super().__init__(*args, **kwargs)
 
         self.init_argument_parser(
@@ -45,8 +58,9 @@ class CLI(UI):
             ),
         )
 
-    async def run(self) -> None:
-        """TODO."""
+    # pylint: disable=invalid-overridden-method
+    @override
+    async def run(self) -> None:  # type: ignore[override]
         arguments = self.parse_args()
 
         console = Console()
@@ -68,7 +82,7 @@ class CLI(UI):
         Database()
 
         if not arguments.command:
-            task = asyncio.create_task(TUI().run_async())
+            task = asyncio.create_task(TUI().run_async())  # type: ignore[abstract]
             await task
             sys.exit()
         else:

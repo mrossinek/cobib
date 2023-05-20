@@ -1,33 +1,65 @@
-"""TODO."""
+"""coBib's UI base class.
+
+This class handles the global command-line options which are available across all commands,
+including the TUI.
+"""
 
 import argparse
 import logging
+from abc import abstractmethod
 from typing import Any
 
 from cobib.config import config
-from cobib.ui.argument_parser import ArgumentParser
+from cobib.ui.components import ArgumentParser
 from cobib.utils.logging import get_file_handler, get_stream_handler
 
 LOGGER = logging.getLogger(__name__)
 
 
 class UI:
-    """TODO."""
+    """The UI base class.
+
+    The following global arguments can be parsed:
+
+        * `-v`, `--verbose`: increase the logging verbosity for every time this argument is given.
+        * `-p`, `--porcelain`: switches the output to porcelain mode.
+        * `-l`, `--logfile`: provides the path to an alternative logging file, overwriting the
+            `cobib.config.config.LoggingConfig.logfile` setting.
+        * `-c`, `--config`: provides the path to an alternative configuration file.
+    """
 
     parser: ArgumentParser
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """TODO."""
-        # initialize logging
+        """Initializes a UI object.
+
+        The function signature is left purposefully vague to allow arbitrarily complex UI subclasses
+        built on top of this.
+
+        Args:
+            *args: arbitrary positional arguments.
+            **kwargs: arbitrary keyword arguments.
+        """
         self.root_logger = logging.getLogger()
+        """Provides unified access to the root `logging.Logger`."""
+
+        self._stream_handler = get_stream_handler()
+
         self.root_logger.setLevel("DEBUG")
-        self.stream_handler = get_stream_handler()
-        self.root_logger.addHandler(self.stream_handler)
+        self.root_logger.addHandler(self._stream_handler)
 
         super().__init__(*args, **kwargs)
 
     def init_argument_parser(self, **kwargs: Any) -> None:
-        """TODO."""
+        """Initializes the `argparse.ArgumentParser` for global command-line arguments.
+
+        This method needs to called by a subclass manually (preferably) during its `__init__`. The
+        keyword arguments can be used to add additional information to the `ArgumentParser`, which
+        can be used to inject information into the `--help` output.
+
+        Args:
+            **kwargs: arbitrary keyword arguments passed on to the `ArgumentParser` constructor.
+        """
         self.parser = ArgumentParser(**kwargs)
         self.parser.add_argument("-v", "--verbose", action="count", default=0)
         self.parser.add_argument(
@@ -45,10 +77,21 @@ class UI:
         self.add_extra_parser_arguments()
 
     def add_extra_parser_arguments(self) -> None:
-        """TODO."""
+        """A hook to register additional command-line arguments.
+
+        Subclasses can overwrite this method to add additional arguments to the `ArgumentParser`.
+        This method is internally called during `init_argument_parser`.
+        """
 
     def parse_args(self) -> argparse.Namespace:
-        """TODO."""
+        """Parses the provided command-line arguments.
+
+        This method does not take any arguments because it directly gathers them from the
+        command-line.
+
+        Returns:
+            The parsed arguments.
+        """
         arguments = self.parser.parse_args()
 
         if arguments.logfile:
@@ -60,13 +103,17 @@ class UI:
 
         # set logging verbosity level
         if arguments.verbose == 1:
-            self.stream_handler.setLevel(logging.INFO)
+            self._stream_handler.setLevel(logging.INFO)
             LOGGER.info("Logging level set to INFO.")
         elif arguments.verbose > 1:
-            self.stream_handler.setLevel(logging.DEBUG)
+            self._stream_handler.setLevel(logging.DEBUG)
             LOGGER.info("Logging level set to DEBUG.")
 
         # load configuration
         config.load(arguments.config)
 
         return arguments
+
+    @abstractmethod
+    def run(self) -> None:
+        """Runs the actual UI instance."""

@@ -1,4 +1,14 @@
-"""TODO."""
+"""coBib's ArgumentParser.
+
+This is merely a simple wrapper around the builtin `argparse.ArgumentParser` in order to bring the
+[`exit_on_error`](https://docs.python.org/3/library/argparse.html#exit-on-error) behavior to Python
+versions lower than 3.9.
+
+.. warning::
+
+   Since this is merely a utility to support Python 3.8, once support for that will be dropped, this
+   class will be removed without further notice.
+"""
 
 import argparse
 from typing import NoReturn, Optional

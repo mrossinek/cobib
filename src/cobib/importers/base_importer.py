@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from typing import List
 
 from cobib.database import Entry
-from cobib.ui.argument_parser import ArgumentParser as ArgumentParser
+from cobib.ui.components import ArgumentParser as ArgumentParser
 
 LOGGER = logging.getLogger(__name__)
 
