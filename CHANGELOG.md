@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [4.0.0] - 2023-05-20
 
-Pypi: https://pypi.org/project/cobib/3.5.5/
+Pypi: https://pypi.org/project/cobib/4.0.0/
 
 ### **Breaking Changes**
 - Configuration settings can no longer be set by item access and instead must
