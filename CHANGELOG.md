@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [4.0.0] - 2023-05-20
+
+Pypi: https://pypi.org/project/cobib/3.5.5/
+
 ### **Breaking Changes**
 - Configuration settings can no longer be set by item access and instead must
   use attribute syntax. For example you need to change:
@@ -59,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - the warning triggered upon setting `config.database.format.month` which got removed in [3.1.0]
 - Python 3.7 is no longer supported
+
 
 ## [3.5.5] - 2023-04-11
 
@@ -704,7 +710,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v3.5.5...master
+[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v4.0.0...master
+[4.0.0]: https://gitlab.com/cobib/cobib/-/compare/v4.0.0
 [3.5.5]: https://gitlab.com/cobib/cobib/-/compare/v3.5.5
 [3.5.4]: https://gitlab.com/cobib/cobib/-/compare/v3.5.4
 [3.5.3]: https://gitlab.com/cobib/cobib/-/compare/v3.5.3
