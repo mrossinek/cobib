@@ -392,8 +392,11 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         else:
             labels = [self._get_current_label()]
 
-        commands.DeleteCommand(*labels).execute()
-        self._update_table()
+        cmd = commands.DeleteCommand(*labels, prompt=Prompt, console=self)
+        task = asyncio.create_task(cmd.execute())
+        self._background_tasks.add(task)
+        task.add_done_callback(self._background_tasks.discard)
+        task.add_done_callback(lambda _: self._update_table)
 
     async def action_edit(self) -> None:
         """The edit action.

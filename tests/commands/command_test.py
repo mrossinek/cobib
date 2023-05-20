@@ -72,6 +72,7 @@ class CommandTest(CmdLineTest):
             request.param = {"git": False, "database": True}
 
         # use temporary config
+        config.commands.delete.confirm = False
         config.commands.edit.editor = "cat"
         config.commands.open.command = "cat"
         config.database.file = str(self.COBIB_TEST_DIR / "database.yaml")

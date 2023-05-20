@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, Dict, Optional, Type
 
 import pytest
 from rich.console import Console
-from rich.prompt import PromptBase
+from rich.prompt import PromptBase, PromptType
 from textual.app import App
 from typing_extensions import override
 
@@ -33,7 +33,7 @@ class DummyCommand(Command):
         self,
         *args: str,
         console: Console | App[None] | None = None,
-        prompt: Type[PromptBase[str]] | None = None,
+        prompt: Type[PromptBase[PromptType]] | None = None,
     ) -> None:
         # pylint: disable=super-init-not-called
         self.largs = argparse.Namespace()

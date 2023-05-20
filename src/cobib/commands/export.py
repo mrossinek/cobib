@@ -65,7 +65,7 @@ from typing import List, Type
 from zipfile import ZipFile
 
 from rich.console import Console
-from rich.prompt import PromptBase
+from rich.prompt import PromptBase, PromptType
 from textual.app import App
 from typing_extensions import override
 
@@ -106,7 +106,7 @@ class ExportCommand(Command):
         self,
         *args: str,
         console: Console | App[None] | None = None,
-        prompt: Type[PromptBase[str]] | None = None,
+        prompt: Type[PromptBase[PromptType]] | None = None,
     ) -> None:
         super().__init__(*args, console=console, prompt=prompt)
 

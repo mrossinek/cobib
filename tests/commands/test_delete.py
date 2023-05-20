@@ -6,7 +6,7 @@ from __future__ import annotations
 import contextlib
 import tempfile
 from io import StringIO
-from typing import TYPE_CHECKING, Any, List, Type
+from typing import TYPE_CHECKING, Any, Dict, Generator, List, Type
 
 import pytest
 from typing_extensions import override
@@ -16,10 +16,12 @@ from cobib.config import Event, config
 from cobib.database import Database
 from cobib.utils.rel_path import RelPath
 
-from .. import get_resource
+from .. import MockStdin, get_resource
 from .command_test import CommandTest
 
 if TYPE_CHECKING:
+    import _pytest.fixtures
+
     import cobib.commands
 
 
@@ -29,6 +31,27 @@ class TestDeleteCommand(CommandTest):
     @override
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
         return DeleteCommand
+
+    @pytest.fixture
+    def post_setup(
+        self, monkeypatch: pytest.MonkeyPatch, request: _pytest.fixtures.SubRequest
+    ) -> Generator[Dict[str, Any], None, None]:
+        """Additional setup instructions.
+
+        Args:
+            monkeypatch: the built-in pytest fixture.
+            request: a pytest sub-request providing access to nested parameters.
+
+        Yields:
+            The internally used parameters for potential later re-use during the actual test.
+        """
+        if not hasattr(request, "param"):
+            # use default settings
+            request.param = {"stdin_list": None}
+
+        monkeypatch.setattr("sys.stdin", MockStdin(request.param.get("stdin_list", None)))
+
+        yield request.param
 
     def _assert(self, labels: List[str]) -> None:
         """Common assertion utility method.
@@ -49,11 +72,12 @@ class TestDeleteCommand(CommandTest):
                 with pytest.raises(StopIteration):
                     next(file)
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        ["setup"],
+        "setup",
         [
-            [{"git": False}],
-            [{"git": True}],
+            {"git": False},
+            {"git": True},
         ],
         indirect=["setup"],
     )
@@ -67,7 +91,8 @@ class TestDeleteCommand(CommandTest):
             [["dummy", "knuthwebsite"], False],
         ],
     )
-    def test_command(self, setup: Any, labels: List[str], skip_commit: bool) -> None:
+    async def test_command(self, setup: Any, labels: List[str], skip_commit: bool) -> None:
+        # pylint: disable=invalid-overridden-method
         """Test the command itself.
 
         Args:
@@ -78,16 +103,52 @@ class TestDeleteCommand(CommandTest):
         git = setup.get("git", False)
 
         # delete some data (for testing simplicity we delete the entries from the end)
-        DeleteCommand(*labels).execute()
+        await DeleteCommand(*labels).execute()
         self._assert(labels)
 
         if git and not skip_commit:
             # assert the git commit message
             self.assert_git_commit_message("delete", {"labels": labels, "preserve_files": False})
 
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ["labels", "post_setup"],
+        [
+            [["knuthwebsite"], {"stdin_list": ["y"]}],
+            [["knuthwebsite"], {"stdin_list": ["n"]}],
+            [["knuthwebsite", "latexcompanion"], {"stdin_list": ["y", "y"]}],
+            [["knuthwebsite", "latexcompanion"], {"stdin_list": ["n", "n"]}],
+            [["knuthwebsite", "latexcompanion"], {"stdin_list": ["y", "n"]}],
+            [["knuthwebsite", "latexcompanion"], {"stdin_list": ["n", "y"]}],
+        ],
+        indirect=["post_setup"],
+    )
+    async def test_confirmation_prompt(
+        self, setup: Any, post_setup: Any, labels: List[str]
+    ) -> None:
+        """TODO."""
+        config.commands.delete.confirm = True
+
+        choices = post_setup.get("stdin_list", False)
+
+        await DeleteCommand(*labels).execute()
+
+        if "n" in choices:
+            bib = Database()
+
+            for label, choice in zip(labels, choices):
+                entry = bib.get(label, None)
+                if choice == "y":
+                    assert entry is None
+                else:
+                    assert entry is not None
+        else:
+            self._assert(labels)
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize("preserve_files", [True, False])
     @pytest.mark.parametrize("config_overwrite", [True, False])
-    def test_remove_associated_file(
+    async def test_remove_associated_file(
         self, setup: Any, preserve_files: bool, config_overwrite: bool
     ) -> None:
         """Test removing associated files.
@@ -108,12 +169,19 @@ class TestDeleteCommand(CommandTest):
             args = ["knuthwebsite"]
             if preserve_files:
                 args += ["--preserve-files"]
-            DeleteCommand(*args).execute()
+            await DeleteCommand(*args).execute()
 
             assert path.path.exists() is (preserve_files or config_overwrite)
 
-    @pytest.mark.parametrize(["setup"], [[{"git": False}]], indirect=["setup"])
-    def test_base_cmd_insufficient_git(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "setup",
+        [{"git": False}],
+        indirect=["setup"],
+    )
+    async def test_base_cmd_insufficient_git(
+        self, setup: Any, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """Test warning is raised by BaseCommand during insufficient git-configuration.
 
         While this is technically not related to the DeleteCommand, this is one of the faster
@@ -125,7 +193,7 @@ class TestDeleteCommand(CommandTest):
         """
         config.database.git = True
 
-        DeleteCommand("knuthwebsite").execute()
+        await DeleteCommand("knuthwebsite").execute()
         self._assert(["knuthwebsite"])
 
         assert (
@@ -157,7 +225,8 @@ class TestDeleteCommand(CommandTest):
         await self.run_module(monkeypatch, "main", ["cobib", "delete"] + labels)
         self._assert(labels)
 
-    def test_event_pre_delete_command(self, setup: Any) -> None:
+    @pytest.mark.asyncio
+    async def test_event_pre_delete_command(self, setup: Any) -> None:
         """Tests the PreDeleteCommand event."""
 
         @Event.PreDeleteCommand.subscribe
@@ -166,12 +235,13 @@ class TestDeleteCommand(CommandTest):
 
         assert Event.PreDeleteCommand.validate()
 
-        DeleteCommand("knuthwebsite").execute()
+        await DeleteCommand("knuthwebsite").execute()
 
         assert "einstein" not in Database().keys()
         assert "knuthwebsite" in Database().keys()
 
-    def test_event_post_delete_command(self, setup: Any) -> None:
+    @pytest.mark.asyncio
+    async def test_event_post_delete_command(self, setup: Any) -> None:
         """Tests the PostDeleteCommand event."""
 
         @Event.PostDeleteCommand.subscribe
@@ -180,7 +250,7 @@ class TestDeleteCommand(CommandTest):
                 print(f"WARNING: deleted entry '{label}'")
 
         with contextlib.redirect_stdout(StringIO()) as out:
-            DeleteCommand("knuthwebsite").execute()
+            await DeleteCommand("knuthwebsite").execute()
 
         assert Event.PostDeleteCommand.validate()
 

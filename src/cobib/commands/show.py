@@ -17,7 +17,7 @@ import logging
 from typing import List, Type
 
 from rich.console import Console, ConsoleRenderable
-from rich.prompt import PromptBase
+from rich.prompt import PromptBase, PromptType
 from rich.syntax import Syntax
 from textual.app import App
 from typing_extensions import override
@@ -47,7 +47,7 @@ class ShowCommand(Command):
         self,
         *args: str,
         console: Console | App[None] | None = None,
-        prompt: Type[PromptBase[str]] | None = None,
+        prompt: Type[PromptBase[PromptType]] | None = None,
     ) -> None:
         super().__init__(*args, console=console, prompt=prompt)
 

@@ -12,7 +12,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional, Type
 
 from rich.console import Console, ConsoleRenderable
-from rich.prompt import Prompt, PromptBase
+from rich.prompt import Prompt, PromptBase, PromptType
 from textual.app import App
 from textual.widget import Widget
 
@@ -42,7 +42,7 @@ class Command(ABC):
         self,
         *args: str,
         console: Console | App[None] | None = None,
-        prompt: Type[PromptBase[str]] | None = None,
+        prompt: Type[PromptBase[PromptType]] | None = None,
     ) -> None:
         """Initializes a command instance.
 
@@ -65,7 +65,7 @@ class Command(ABC):
         self.console: Console | App[None] = console if console is not None else Console()
         """The object via which to print output to the user during runtime execution."""
 
-        self.prompt: Type[PromptBase[str]] = prompt if prompt is not None else Prompt
+        self.prompt: Type[PromptBase[PromptType]] = prompt if prompt is not None else Prompt
         """The object via which to prompt the user for input during runtime execution."""
 
     @classmethod

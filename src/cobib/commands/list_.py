@@ -92,7 +92,7 @@ from collections import defaultdict
 from typing import Any, Dict, List, Optional, Set, Tuple, Type
 
 from rich.console import Console, ConsoleRenderable
-from rich.prompt import PromptBase
+from rich.prompt import PromptBase, PromptType
 from rich.table import Table
 from rich.text import Text
 from textual.app import App
@@ -137,7 +137,7 @@ class ListCommand(Command):
         self,
         *args: str,
         console: Console | App[None] | None = None,
-        prompt: Type[PromptBase[str]] | None = None,
+        prompt: Type[PromptBase[PromptType]] | None = None,
     ) -> None:
         super().__init__(*args, console=console, prompt=prompt)
 

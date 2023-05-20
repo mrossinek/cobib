@@ -82,7 +82,7 @@ import logging
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type
 
 from rich.console import Console
-from rich.prompt import PromptBase
+from rich.prompt import PromptBase, PromptType
 from textual.app import App
 from typing_extensions import override
 
@@ -125,7 +125,7 @@ class ModifyCommand(Command):
         self,
         *args: str,
         console: Console | App[None] | None = None,
-        prompt: Type[PromptBase[str]] | None = None,
+        prompt: Type[PromptBase[PromptType]] | None = None,
     ) -> None:
         super().__init__(*args, console=console, prompt=prompt)
 

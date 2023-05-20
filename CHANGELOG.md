@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `config.commands.delete.preserve_files`
   - `config.commands.edit.preserve_files`
   - `config.commands.modify.preserve_files`
+- added a confirmation prompt before deleting an entry (#110)
+  - this prompt can be disabled by setting `config.commands.delete.confirm` to `False`
 
 
 ## [4.0.0] - 2023-05-20
