@@ -49,6 +49,11 @@ class TestSearchCommand(CommandTest):
                 False,
             ],
             [
+                ["einstein", "--", "--label", "einstein"],
+                [],
+                False,
+            ],
+            [
                 ["einstein", "-i"],
                 [
                     "einstein::2",
@@ -104,6 +109,11 @@ class TestSearchCommand(CommandTest):
                     r"2::title = {Zur Elektrodynamik bewegter K{\"o}rper},",
                     "2::volume = {322},",
                 ],
+                False,
+            ],
+            [
+                ["einstein", "Elektro", "--", "--label", "einstein"],
+                [],
                 False,
             ],
         ],

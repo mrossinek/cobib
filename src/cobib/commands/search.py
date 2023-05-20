@@ -48,6 +48,7 @@ By default, it is bound to the `/` key.
 
 from __future__ import annotations
 
+import argparse
 import logging
 from typing import List, Type
 
@@ -133,6 +134,25 @@ class SearchCommand(Command):
             "information.",
         )
         cls.argparser = parser
+
+    @override
+    @classmethod
+    def _parse_args(cls, args: tuple[str, ...]) -> argparse.Namespace:
+        search_args = []
+        filter_args = []
+        found_sep = False
+        for arg in args:
+            if arg == "--":
+                found_sep = True
+                continue
+            if found_sep:
+                filter_args.append(arg)
+            else:
+                search_args.append(arg)
+
+        largs = super()._parse_args(tuple(search_args))
+        largs.filter = filter_args
+        return largs
 
     @override
     def execute(self) -> None:
