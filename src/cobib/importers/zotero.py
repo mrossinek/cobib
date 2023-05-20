@@ -52,14 +52,13 @@ import requests
 from requests_oauthlib import OAuth1Session
 from typing_extensions import override
 
-from cobib.commands.base_command import ArgumentParser
 from cobib.config import Event, config
 from cobib.database import Entry
 from cobib.parsers import BibtexParser
 from cobib.utils.file_downloader import FileDownloader
 from cobib.utils.rel_path import RelPath
 
-from .base_importer import Importer
+from .base_importer import ArgumentParser, Importer
 
 LOGGER = logging.getLogger(__name__)
 

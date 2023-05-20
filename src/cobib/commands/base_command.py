@@ -17,7 +17,7 @@ from textual.app import App
 from textual.widget import Widget
 
 from cobib.config import Event, config
-from cobib.ui.argument_parser import ArgumentParser as ArgumentParser
+from cobib.ui.components import ArgumentParser as ArgumentParser
 from cobib.utils.rel_path import RelPath
 
 LOGGER = logging.getLogger(__name__)

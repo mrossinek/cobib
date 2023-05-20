@@ -15,7 +15,7 @@ async def main() -> None:
     """
     if len(sys.argv) > 1 and any(a[0] == "_" for a in sys.argv):
         # shell helper function called
-        ShellHelper()
+        ShellHelper().run()
     else:
         await CLI().run()
 

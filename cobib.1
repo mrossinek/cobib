@@ -402,7 +402,77 @@ Lists only entries with the `quantum` tag from the year 2019.
 .B cobib list -x ++year 2019 ++year 2020
 Lists only entries published in 2019 or 2020.
 .SH TUI
-\fBThe TUI is undergoing a major rewrite... stay tuned!\fR
+The textual-based TUI is started automatically when no other subcommand is
+supplied, i.e. by simply running \fBcobib\fR.
+By default, it lists all entries of the database in a scrollable view and
+displays the bibtex-representation of the entry under the cursor in a side
+panel. You can scroll using vim-like keybindings \fIh,j,k,l\fR or the arrow
+keys.
+The following key bindings are available:
+.TP
+.BR q " " quit
+Quits the TUI.
+.TP
+.BR ? " " help
+Opens a small window providing help for the key bindings.
+.TP
+.BR _ " " layout
+Toggles between a horizontally and vertically split layout.
+.TP
+.BR SPACE " " folds
+When displaying search results, toggles the visibility of any tree node.
+.TP
+.BR : " " prompt
+Opens a command prompt allowing the user to execute an arbitrary coBib CLI
+command.
+.TP
+.BR v " " select
+Adds the current label to the \fIselection\fR.
+.TP
+.BR / " " search
+Opens a search prompt and views the results in an interactive tree structure.
+.TP
+.BR a " " add
+Opens a command prompt which allows running the \fBadd\fR command as if outside
+of the TUI.
+.TP
+.BR d " " delete
+Deletes the current (or \fIselected\fR) label(s).
+.TP
+.BR e " " edit
+Opens the current label in an external editor.
+.TP
+.BR f " " filter
+Allows adding filters to the list of displayed entries.
+.TP
+.BR i " " import
+Opens a command prompt which allows running the \fBimport\fR command as if
+outside of the TUI.
+.TP
+.BR m " " modify
+Opens a command prompt which allows running the \fBmodify\fR command as if
+outside of the TUI. If a \fIselection\fR is present, the \fI-s\fR argument will
+be set automatically.
+.TP
+.BR o " " open
+Opens the current (or \fIselected\fR) label(s).
+.TP
+.BR r " " redo
+Reapplies the last undone change.
+This requires the git-integration (since v2.6.0) to be enabled!
+.TP
+.BR s " " sort
+Allows sorting the list view.
+.TP
+.BR u " " undo
+Undoes the last auto-committed change to the database file.
+This requires the git-integration (since v2.6.0) to be enabled!
+.TP
+.BR x " " export
+Opens a command prompt which allows running the \fBexport\fR command as if
+outside of the TUI. If a \fIselection\fR is present, the \fI-s\fR argument will
+be set automatically.
+Opens a small window providing help for the key bindings.
 .SH CONFIGURATION
 Since version 3.0, coBib can be configured directly via \fIPython\fR. To do so,
 you must place the configuration file at \fI$HOME/.config/cobib/config.py\fR.

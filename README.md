@@ -16,21 +16,9 @@ As such it follows some basic design goals:
   database file in a centralized fashion but allows you to spread the actual contents of your
   library across the entire file system (this is the major different to
   [papis](https://papis.readthedocs.io/en/latest/library_structure.html)).
+* **command-line and TUI support**: all features are available through the command-line as well as a
+  [textual](https://textual.textualize.io/)-based TUI
 
-
-### **News:** coBib v4.0 will come with a new UI!
-The plan is to switch to [rich][rich] and [textual][textual] instead of the current curses TUI.
-This will open up some great possibilities for a much more modern UI.
-
-However, this change will require some *major* refactoring including breaking changes of the API
-and some of the user configuration options. It will also be a rather drastic change in style.
-Thus, I will attempt to support v3.5 with bugfix releases until 1.1.2023
-
-It will likely take a few months until v4.0 gets released but I am starting development on it now.
-You can follow the progress here: <https://gitlab.com/cobib/cobib/-/issues/78>
-
-[rich]: https://github.com/Textualize/rich
-[textual]: https://github.com/Textualize/textual
 
 ## Installation
 
@@ -59,10 +47,9 @@ coBib is packaged in the AUR.
 
 ### Windows
 
-Windows is **only partially** supported!
-You cannot run coBib's _TUI_ on Windows.
-However, if you are using Windows 10 you should be able to install and use coBib's full
-functionality within the Linux subsystem.
+coBib _should_ mostly work on Windows as is, but it is not being tested so no guarantees are given.
+If you are using Windows 10 or later and are running into issues, you should be able to install and
+use coBib's full functionality within the Linux subsystem.
 
 
 ## Getting started
@@ -202,7 +189,19 @@ man cobib
 
 ### TUI
 
-⚠️ The TUI is undergoing a major rewrite... Stay tuned!
+Finally, you can also use coBib's TUI for a more interactive experience (see also `cobib.ui.tui`),
+by simply typing
+```
+cobib
+```
+
+Here is an example screenshot of the TUI when listing the entires in your database:
+
+![coBib TUI List](https://gitlab.com/cobib/cobib/-/raw/master/html/cobib_tui_list.svg)
+
+And here is an example screenshot for listing search results:
+
+![coBib TUI Search](https://gitlab.com/cobib/cobib/-/raw/master/html/cobib_tui_search.svg)
 
 
 ## Configuration
