@@ -159,9 +159,14 @@ class EditCommand(Command):
             return
 
         bib.update({self.new_entry.label: self.new_entry})
+
+        preserve_files = config.commands.edit.preserve_files or self.largs.preserve_files
+        if preserve_files:
+            LOGGER.info("Associated files will be preserved.")
+
         if self.new_entry.label != self.largs.label:
             bib.rename(self.largs.label, self.new_entry.label)
-            if not self.largs.preserve_files:
+            if not preserve_files:
                 new_files = []
                 for file in self.new_entry.file:
                     path = RelPath(file)

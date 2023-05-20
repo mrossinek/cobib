@@ -28,7 +28,7 @@ from rich.prompt import PromptBase
 from textual.app import App
 from typing_extensions import override
 
-from cobib.config import Event
+from cobib.config import Event, config
 from cobib.database import Database
 from cobib.utils.rel_path import RelPath
 
@@ -76,12 +76,16 @@ class DeleteCommand(Command):
 
         Event.PreDeleteCommand.fire(self)
 
+        preserve_files = config.commands.delete.preserve_files or self.largs.preserve_files
+        if preserve_files:
+            LOGGER.info("Associated files will be preserved.")
+
         bib = Database()
         for label in self.largs.labels:
             try:
                 LOGGER.debug("Attempting to delete entry '%s'.", label)
                 entry = bib.pop(label)
-                if not self.largs.preserve_files:
+                if not preserve_files:
                     for file in entry.file:
                         path = RelPath(file)
                         try:

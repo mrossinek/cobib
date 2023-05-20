@@ -34,18 +34,24 @@ config.logging.version = "~/.cache/cobib/version"
 # COMMANDS
 # These settings affect some command specific behavior.
 
+# You can specify whether associated files should be preserved during entry deletion.
+config.commands.delete.preserve_files = False
+
 # You can specify the default bibtex entry type.
 config.commands.edit.default_entry_type = "article"
-
-# You can specify the editor program.
+# You can specify the editor program. Note, that this default will respect your `$EDITOR`
+# environment setting and fall back to `vim` if that variable is not set.
 config.commands.edit.editor = os.environ.get("EDITOR", "vim")
-# Note, that this default will respect your `$EDITOR` environment setting and fall back to `vim` if
-# that variable is not set.
+# You can specify whether associated files should be preserved when renaming during editing.
+config.commands.edit.preserve_files = False
 
 # You can configure the default columns displayed during the list command.
 config.commands.list_.default_columns = ["label", "title"]
 # You can specify whether filter matching should be performed case-insensitive.
 config.commands.list_.ignore_case = False
+
+# You can specify whether associated files should be preserved when renaming during modifying.
+config.commands.modify.preserve_files = False
 
 # You can specify a custom command which will be used to `open` files associated with your entries.
 config.commands.open.command = "xdg-open" if sys.platform.lower() == "linux" else "open"

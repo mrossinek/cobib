@@ -125,13 +125,19 @@ class TestEditCommand(CommandTest):
         ) in caplog.record_tuples
 
     @pytest.mark.parametrize("preserve_files", [True, False])
-    def test_rename_associated_file(self, setup: Any, preserve_files: bool) -> None:
+    @pytest.mark.parametrize("config_overwrite", [True, False])
+    def test_rename_associated_file(
+        self, setup: Any, preserve_files: bool, config_overwrite: bool
+    ) -> None:
         """Test removing associated files.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
-            preserve_files: argument to `DeleteCommand`.
+            preserve_files: argument to `EditCommand`.
+            config_overwrite: what to overwrite `config.commands.edit.preserve_files` with.
         """
+        config.commands.edit.preserve_files = config_overwrite
+
         try:
             config.commands.edit.editor = "sed -i 's/einstein:/dummy:/'"
 
@@ -150,7 +156,7 @@ class TestEditCommand(CommandTest):
                 assert "dummy" in Database().keys()
 
                 target = RelPath(tmpdirname + "/dummy.pdf")
-                if preserve_files:
+                if preserve_files or config_overwrite:
                     assert path.path.exists()
                 else:
                     assert target.path.exists()

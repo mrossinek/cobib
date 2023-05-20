@@ -86,13 +86,19 @@ class TestDeleteCommand(CommandTest):
             self.assert_git_commit_message("delete", {"labels": labels, "preserve_files": False})
 
     @pytest.mark.parametrize("preserve_files", [True, False])
-    def test_remove_associated_file(self, setup: Any, preserve_files: bool) -> None:
+    @pytest.mark.parametrize("config_overwrite", [True, False])
+    def test_remove_associated_file(
+        self, setup: Any, preserve_files: bool, config_overwrite: bool
+    ) -> None:
         """Test removing associated files.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             preserve_files: argument to `DeleteCommand`.
+            config_overwrite: what to overwrite `config.commands.delete.preserve_files` with.
         """
+        config.commands.delete.preserve_files = config_overwrite
+
         with tempfile.TemporaryDirectory() as tmpdirname:
             path = RelPath(tmpdirname + "/dummy.pdf")
             open(path.path, "w", encoding="utf-8").close()  # pylint: disable=consider-using-with
@@ -104,7 +110,7 @@ class TestDeleteCommand(CommandTest):
                 args += ["--preserve-files"]
             DeleteCommand(*args).execute()
 
-            assert path.path.exists() is preserve_files
+            assert path.path.exists() is (preserve_files or config_overwrite)
 
     @pytest.mark.parametrize(["setup"], [[{"git": False}]], indirect=["setup"])
     def test_base_cmd_insufficient_git(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:

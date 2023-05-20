@@ -521,6 +521,9 @@ functionality entirely, set this option to \fINone\fR.
 .PP
 .BR COMMANDS
 .TP
+.IR config.commands.delete.preserve_files = False
+Specifies whether associates files should be preserved during deletion.
+.TP
 .IR config.commands.edit.default_entry_type = 'article'
 This setting indicates the default entry type which will be used for manually
 entered entries.
@@ -530,11 +533,17 @@ This setting can be used to overwrite the external editor used for manual
 editing of database entries. It defaults to the environment variable
 \fI$EDITOR\fR and falls back to \fIvim\fR if that is not set either.
 .TP
+.IR config.commands.edit.preserve_files = False
+Specifies whether associates files should be preserved during renaming.
+.TP
 .IR config.commands.list_.default_columns = ['label',\ 'title']
 Specifies the default columns displayed during the \fIlist\fR command.
 .TP
 .IR config.commands.list_.ignore_case = False
 Specifies whether filter matching should be performed case-insensitive.
+.TP
+.IR config.commands.modify.preserve_files = False
+Specifies whether associates files should be preserved during renaming.
 .TP
 .IR config.commands.open.command = 'xdg-open' " (on Linux); " 'open' " (on Mac OS)"
 Specifies the program used to open associated files.

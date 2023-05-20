@@ -94,6 +94,22 @@ class LoggingConfig(_ConfigBase):
 
 
 @dataclass
+class DeleteCommandConfig(_ConfigBase):
+    """The `config.commands.delete` section."""
+
+    preserve_files: bool = False
+    """Specifies whether associated files should be preserved when deleting an entry."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the COMMANDS.DELETE configuration section.")
+        self._assert(
+            isinstance(self.preserve_files, bool),
+            "config.commands.delete.preserve_files should be a boolean.",
+        )
+
+
+@dataclass
 class EditCommandConfig(_ConfigBase):
     """The `config.commands.edit` section."""
 
@@ -102,6 +118,9 @@ class EditCommandConfig(_ConfigBase):
     editor: str = os.environ.get("EDITOR", "vim")
     """Specifies the editor program. Note, that this default will respect your `$EDITOR`
     environment setting and fall back to `vim` if that variable is not set."""
+    preserve_files: bool = False
+    """Specifies whether associated files should be preserved when renaming an entry during
+    editing."""
 
     @override
     def validate(self) -> None:
@@ -113,6 +132,10 @@ class EditCommandConfig(_ConfigBase):
         self._assert(
             isinstance(self.editor, str),
             "config.commands.edit.editor should be a string.",
+        )
+        self._assert(
+            isinstance(self.preserve_files, bool),
+            "config.commands.edit.preserve_files should be a boolean.",
         )
 
 
@@ -135,6 +158,23 @@ class ListCommandConfig(_ConfigBase):
         self._assert(
             isinstance(self.ignore_case, bool),
             "config.commands.list_.ignore_case should be a boolean.",
+        )
+
+
+@dataclass
+class ModifyCommandConfig(_ConfigBase):
+    """The `config.commands.modify` section."""
+
+    preserve_files: bool = False
+    """Specifies whether associated files should be preserved when renaming an entry during
+    modifying."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the COMMANDS.MODIFY configuration section.")
+        self._assert(
+            isinstance(self.preserve_files, bool),
+            "config.commands.modify.preserve_files should be a boolean.",
         )
 
 
@@ -220,11 +260,15 @@ class SearchCommandConfig(_ConfigBase):
 class CommandConfig(_ConfigBase):
     """The `config.commands` section."""
 
+    delete: DeleteCommandConfig = field(default_factory=lambda: DeleteCommandConfig())
+    """The nested section for settings related to the `delete` command."""
     edit: EditCommandConfig = field(default_factory=lambda: EditCommandConfig())
     """The nested section for settings related to the `edit` command."""
     list_: ListCommandConfig = field(default_factory=lambda: ListCommandConfig())
     """The nested section for settings related to the `list` command. Note the trailing underscore
     of its name, since this attribute would otherwise clash with the builtin `list` keyword."""
+    modify: ModifyCommandConfig = field(default_factory=lambda: ModifyCommandConfig())
+    """The nested section for settings related to the `modify` command."""
     open: OpenCommandConfig = field(default_factory=lambda: OpenCommandConfig())
     """The nested section for settings related to the `open` command."""
     search: SearchCommandConfig = field(default_factory=lambda: SearchCommandConfig())

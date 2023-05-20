@@ -86,7 +86,7 @@ from rich.prompt import PromptBase
 from textual.app import App
 from typing_extensions import override
 
-from cobib.config import Event
+from cobib.config import Event, config
 from cobib.database import Database, Entry
 from cobib.utils.logging import get_stream_handler
 from cobib.utils.rel_path import RelPath
@@ -226,6 +226,10 @@ class ModifyCommand(Command):
 
         field, value = self.largs.modification
 
+        preserve_files = config.commands.modify.preserve_files or self.largs.preserve_files
+        if preserve_files:
+            LOGGER.info("Associated files will be preserved.")
+
         bib = Database()
 
         for label in labels:  # pylint: disable=too-many-nested-blocks
@@ -301,7 +305,7 @@ class ModifyCommand(Command):
 
                 if entry.label != label:
                     bib.rename(label, entry.label)
-                    if not self.largs.preserve_files:
+                    if not preserve_files:
                         new_files = []
                         for file in entry.file:
                             path = RelPath(file)

@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- added the following settings which specify whether or not to preserve
+  associated files during the respective commands being run:
+  - `config.commands.delete.preserve_files`
+  - `config.commands.edit.preserve_files`
+  - `config.commands.modify.preserve_files`
+
 
 ## [4.0.0] - 2023-05-20
 
