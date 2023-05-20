@@ -97,12 +97,19 @@ class LoggingConfig(_ConfigBase):
 class DeleteCommandConfig(_ConfigBase):
     """The `config.commands.delete` section."""
 
+    confirm: bool = True
+    """Whether or not to confirm before deleting an entry."""
+
     preserve_files: bool = False
     """Specifies whether associated files should be preserved when deleting an entry."""
 
     @override
     def validate(self) -> None:
         LOGGER.debug("Validating the COMMANDS.DELETE configuration section.")
+        self._assert(
+            isinstance(self.confirm, bool),
+            "config.commands.delete.confirm should be a boolean.",
+        )
         self._assert(
             isinstance(self.preserve_files, bool),
             "config.commands.delete.preserve_files should be a boolean.",

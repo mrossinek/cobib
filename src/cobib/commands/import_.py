@@ -55,7 +55,7 @@ from collections import OrderedDict
 from typing import Dict, List, Type
 
 from rich.console import Console
-from rich.prompt import PromptBase
+from rich.prompt import PromptBase, PromptType
 from textual.app import App
 from typing_extensions import override
 
@@ -94,7 +94,7 @@ class ImportCommand(Command):
         self,
         *args: str,
         console: Console | App[None] | None = None,
-        prompt: Type[PromptBase[str]] | None = None,
+        prompt: Type[PromptBase[PromptType]] | None = None,
     ) -> None:
         super().__init__(*args, console=console, prompt=prompt)
 

@@ -14,7 +14,7 @@ from io import StringIO
 from typing import List, Set, Type
 
 from rich.console import Console
-from rich.prompt import PromptBase
+from rich.prompt import PromptBase, PromptType
 from textual.app import App
 
 from .rel_path import RelPath
@@ -200,7 +200,7 @@ def lint_database(*args: str) -> List[str]:
                 self,
                 *args: str,
                 console: Console | App[None] | None = None,
-                prompt: Type[PromptBase[str]] | None = None,
+                prompt: Type[PromptBase[PromptType]] | None = None,
             ) -> None:
                 # pylint: disable=super-init-not-called
                 self.largs = largs
