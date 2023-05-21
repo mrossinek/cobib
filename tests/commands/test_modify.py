@@ -102,7 +102,7 @@ class TestModifyCommand(CommandTest):
                         "modification": modification.split(":"),
                         "dry": False,
                         "add": add,
-                        "preserve_files": False,
+                        "preserve_files": None,
                         "selection": selection,
                         "filter": filters,
                     },
@@ -169,7 +169,7 @@ class TestModifyCommand(CommandTest):
             assert expected in Database().keys()
             assert Database()[expected].label == expected
 
-    @pytest.mark.parametrize("preserve_files", [True, False])
+    @pytest.mark.parametrize("preserve_files", [None, True, False])
     @pytest.mark.parametrize("config_overwrite", [True, False])
     def test_rename_associated_file(
         self, setup: Any, preserve_files: bool, config_overwrite: bool
@@ -183,6 +183,10 @@ class TestModifyCommand(CommandTest):
         """
         config.commands.modify.preserve_files = config_overwrite
 
+        should_preserve = config_overwrite
+        if preserve_files is not None:
+            should_preserve = preserve_files
+
         with tempfile.TemporaryDirectory() as tmpdirname:
             path = RelPath(tmpdirname + "/knuthwebsite.pdf")
             open(path.path, "w", encoding="utf-8").close()  # pylint: disable=consider-using-with
@@ -190,13 +194,13 @@ class TestModifyCommand(CommandTest):
             Database()["knuthwebsite"].file = str(path)
 
             args = ["label:dummy", "-s", "--", "knuthwebsite"]
-            if preserve_files:
-                args.insert(2, "--preserve-files")
+            if preserve_files is not None:
+                args.insert(2, f"--{'' if preserve_files else 'no-'}preserve-files")
             ModifyCommand(*args).execute()
             assert "dummy" in Database().keys()
 
             target = RelPath(tmpdirname + "/dummy.pdf")
-            if preserve_files or config_overwrite:
+            if should_preserve:
                 assert path.path.exists()
             else:
                 assert target.path.exists()

@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `config.commands.modify.preserve_files`
 - added a confirmation prompt before deleting an entry (#110)
   - this prompt can be disabled by setting `config.commands.delete.confirm` to `False`
+- added the `--no-ignore-case` (`-I` for short) command line options to the
+  `list` and `search` command (#116)
+- added the `--no-preserve-files` command line options to the `delete`, `edit`
+  and `modify` command (#116)
 
 
 ## [4.0.0] - 2023-05-20

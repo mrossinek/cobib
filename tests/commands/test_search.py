@@ -116,6 +116,11 @@ class TestSearchCommand(CommandTest):
                 [],
                 False,
             ],
+            [
+                ["einstein", "-I"],
+                ["einstein::1", "1::@article{einstein,", "1::author = {Albert Einstein},"],
+                True,
+            ],
         ],
     )
     def test_command(

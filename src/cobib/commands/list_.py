@@ -71,14 +71,20 @@ cobib list ++label "\D+_\d+"
 ```
 This will list all entries whose labels are formatted as `"<non-digit characters>_<digits>"`.
 
-As of version v4.0.0, you can provide the `--ignore-case` (or `-i`) argument to perform the filter
-matching case-**in**sensitive.
+As of version v4.0.0, you can make the filter matching case-**in**sensitive via the
+`cobib.config.config.ListCommandConfig.ignore_case` setting which defaults to being `False`.
+Besides this setting, you can always overwrite its value on the command line with the
+`--ignore-case` (`-i` for short) and `--no-ignore-case` (`-I` for short; since v4.1.0) options.
+Providing these options takes precedence over your configuration value.
+Thus, the following will *always* still match entries where `Rossmannek` is contained in the author
+field:
 ```
 cobib list --ignore-case ++author rossmannek
 ```
-This will still match entries where `Rossmannek` is contained in the author field.
-You can even enable this behavior by default using the
-`cobib.config.config.ListCommandConfig.ignore_case` setting.
+And the following will *always* be sensitive to case:
+```
+cobib list --no-ignore-case ++author rossmannek
+```
 
 .. note::
    For more information on the filtering mechanisms see also `cobib.database.Entry.matches`.
@@ -120,9 +126,10 @@ class ListCommand(Command):
           added entries at the top of the window. When using the command-line interface it is
           disabled by default, because this puts the last added entries at the bottom, just above
           the new command-line prompt.
-        * `-i`, `--ignore-case`: if specified, the entry matching will be case **in**sensitive. You
-          can enable this setting permanently via the
-          `cobib.config.config.ListCommandConfig.ignore_case` setting.
+        * `-i`, `--ignore-case`: if specified, the entry matching will be case-**in**sensitive. This
+          overwrites the `cobib.config.config.ListCommandConfig.ignore_case` setting.
+        * `-I`, `--no-ignore-case`: if specified, the entry matching will be case-sensitive. This
+          overwrites the `cobib.config.config.ListCommandConfig.ignore_case` setting.
         * `-x`, `--or`: if specified, multiple filters will be combined with logical OR rather than
           the default logical AND.
         * in addition to the options above, [Filter keyword arguments](#filters) are registered at
@@ -157,8 +164,21 @@ class ListCommand(Command):
         parser.add_argument(
             "-r", "--reverse", action="store_true", help="reverses the listing order"
         )
-        parser.add_argument(
-            "-i", "--ignore-case", action="store_true", help="ignore case for entry matching"
+        ignore_case_group = parser.add_mutually_exclusive_group()
+        ignore_case_group.add_argument(
+            "-i",
+            "--ignore-case",
+            action="store_true",
+            default=None,
+            help="ignore case for entry matching",
+        )
+        ignore_case_group.add_argument(
+            "-I",
+            "--no-ignore-case",
+            dest="ignore_case",
+            action="store_false",
+            default=None,
+            help="do NOT ignore case for entry matching",
         )
         parser.add_argument(
             "-x",
@@ -251,7 +271,12 @@ class ListCommand(Command):
         if self.largs.OR:
             LOGGER.debug("Filters are combined with logical ORs!")
 
-        ignore_case = config.commands.list_.ignore_case or self.largs.ignore_case
+        ignore_case = config.commands.list_.ignore_case
+        if self.largs.ignore_case is not None:
+            ignore_case = self.largs.ignore_case
+        LOGGER.debug(
+            "The entry matching will be performed case %ssensitive", "in" if ignore_case else ""
+        )
 
         for key, entry in Database().items():
             if entry.matches(_filter, self.largs.OR, ignore_case):

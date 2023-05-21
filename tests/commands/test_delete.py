@@ -108,7 +108,7 @@ class TestDeleteCommand(CommandTest):
 
         if git and not skip_commit:
             # assert the git commit message
-            self.assert_git_commit_message("delete", {"labels": labels, "preserve_files": False})
+            self.assert_git_commit_message("delete", {"labels": labels, "preserve_files": None})
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -146,7 +146,7 @@ class TestDeleteCommand(CommandTest):
             self._assert(labels)
 
     @pytest.mark.asyncio
-    @pytest.mark.parametrize("preserve_files", [True, False])
+    @pytest.mark.parametrize("preserve_files", [None, True, False])
     @pytest.mark.parametrize("config_overwrite", [True, False])
     async def test_remove_associated_file(
         self, setup: Any, preserve_files: bool, config_overwrite: bool
@@ -160,6 +160,10 @@ class TestDeleteCommand(CommandTest):
         """
         config.commands.delete.preserve_files = config_overwrite
 
+        should_preserve = config_overwrite
+        if preserve_files is not None:
+            should_preserve = preserve_files
+
         with tempfile.TemporaryDirectory() as tmpdirname:
             path = RelPath(tmpdirname + "/dummy.pdf")
             open(path.path, "w", encoding="utf-8").close()  # pylint: disable=consider-using-with
@@ -167,11 +171,11 @@ class TestDeleteCommand(CommandTest):
             Database()["knuthwebsite"].file = str(path)
 
             args = ["knuthwebsite"]
-            if preserve_files:
-                args += ["--preserve-files"]
+            if preserve_files is not None:
+                args += [f"--{'' if preserve_files else 'no-'}preserve-files"]
             await DeleteCommand(*args).execute()
 
-            assert path.path.exists() is (preserve_files or config_overwrite)
+            assert path.path.exists() is should_preserve
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
