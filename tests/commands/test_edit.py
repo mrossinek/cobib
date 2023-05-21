@@ -107,7 +107,7 @@ class TestEditCommand(CommandTest):
         if git and changes:
             # assert the git commit message
             self.assert_git_commit_message(
-                "edit", {"label": args[-1], "add": "-a" in args, "preserve_files": False}
+                "edit", {"label": args[-1], "add": "-a" in args, "preserve_files": None}
             )
 
     def test_ignore_add_if_label_exists(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
@@ -124,7 +124,7 @@ class TestEditCommand(CommandTest):
             "Entry 'einstein' already exists! Ignoring the `--add` argument.",
         ) in caplog.record_tuples
 
-    @pytest.mark.parametrize("preserve_files", [True, False])
+    @pytest.mark.parametrize("preserve_files", [None, True, False])
     @pytest.mark.parametrize("config_overwrite", [True, False])
     def test_rename_associated_file(
         self, setup: Any, preserve_files: bool, config_overwrite: bool
@@ -138,6 +138,10 @@ class TestEditCommand(CommandTest):
         """
         config.commands.edit.preserve_files = config_overwrite
 
+        should_preserve = config_overwrite
+        if preserve_files is not None:
+            should_preserve = preserve_files
+
         try:
             config.commands.edit.editor = "sed -i 's/einstein:/dummy:/'"
 
@@ -150,13 +154,14 @@ class TestEditCommand(CommandTest):
                 Database()["einstein"].file = str(path)
 
                 args = ["einstein"]
-                if preserve_files:
-                    args.insert(2, "--preserve-files")
+                if preserve_files is not None:
+                    args.insert(2, f"--{'' if preserve_files else 'no-'}preserve-files")
                 EditCommand(*args).execute()
                 assert "dummy" in Database().keys()
 
                 target = RelPath(tmpdirname + "/dummy.pdf")
-                if preserve_files or config_overwrite:
+
+                if should_preserve:
                     assert path.path.exists()
                 else:
                     assert target.path.exists()

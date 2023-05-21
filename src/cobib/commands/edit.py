@@ -20,10 +20,18 @@ This entry will be entirely empty except for the one field which is always prese
     * `ENTRYTYPE`: set to the default value configured via
       `cobib.config.config.EditCommandConfig.default_entry_type`.
 
-If you change the label of the entry during editing and you do *not* want your associated files to
-automatically be renamed, you can provide the `--preserve-files` argument like so:
+If you change the label of the entry during editing, the value of the
+`cobib.config.config.EditCommandConfig.preserve_files` setting (added in v4.1.0) determines whether
+the associated files will be renamed automatically. This defaults to `False`, meaning that they
+*will* be renamed. You can overwrite the value of this setting at runtime with the
+`--preserve-files` and `--no-preserve-files` arguments, respectively.
+I.e. the following will **not** rename your files:
 ```
 cobib edit --preserve-files <label>
+```
+While this command will always rename them:
+```
+cobib edit --no-preserve-files <label>
 ```
 
 ### TUI
@@ -70,7 +78,11 @@ class EditCommand(Command):
           default entry type of this new entry can be configured via
           `cobib.config.config.EditCommandConfig.default_entry_type`.
         * `--preserve-files`: skips the renaming of any associated files in case you manually rename
-            the entry label during editing.
+          the entry label during editing. This overwrites the
+          `cobib.config.config.EditCommandConfig.preserve_files` setting.
+        * `--no-preserve-files`: does NOT skip the renaming of any associated files in case you
+          manually rename the entry label during editing. This overwrites the
+          `cobib.config.config.EditCommandConfig.preserve_files` setting.
     """
 
     name = "edit"
@@ -98,8 +110,19 @@ class EditCommand(Command):
             action="store_true",
             help="if specified, will add a new entry for unknown labels",
         )
-        parser.add_argument(
-            "--preserve-files", action="store_true", help="do not rename associated files"
+        preserve_files_group = parser.add_mutually_exclusive_group()
+        preserve_files_group.add_argument(
+            "--preserve-files",
+            action="store_true",
+            default=None,
+            help="do NOT rename associated files",
+        )
+        preserve_files_group.add_argument(
+            "--no-preserve-files",
+            dest="preserve_files",
+            action="store_false",
+            default=None,
+            help="rename associated files",
         )
         cls.argparser = parser
 
@@ -160,9 +183,10 @@ class EditCommand(Command):
 
         bib.update({self.new_entry.label: self.new_entry})
 
-        preserve_files = config.commands.edit.preserve_files or self.largs.preserve_files
-        if preserve_files:
-            LOGGER.info("Associated files will be preserved.")
+        preserve_files = config.commands.edit.preserve_files
+        if self.largs.preserve_files is not None:
+            preserve_files = self.largs.preserve_files
+        LOGGER.info("Associated files will%s be preserved.", "" if preserve_files else " not")
 
         if self.new_entry.label != self.largs.label:
             bib.rename(self.largs.label, self.new_entry.label)

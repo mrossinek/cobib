@@ -290,6 +290,7 @@ class TestUnifyLabels(ShellHelperTest):
     COMMAND = "unify_labels"
     REL_PATH = RelPath(get_resource("unifying_database.yaml", "utils"))
     EXPECTED: List[str] = [
+        "[INFO] Associated files will not be preserved.",
         "[INFO] einstein: changing field 'label' from einstein to Einstein1905_a",
         "[INFO] latexcompanion: changing field 'label' from latexcompanion to Goossens1993",
         "[INFO] knuthwebsite: changing field 'label' from knuthwebsite to Knuth",

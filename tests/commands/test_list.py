@@ -33,48 +33,65 @@ class TestListCommand(CommandTest):
         return ListCommand
 
     @pytest.mark.parametrize(
-        ["args", "expected_labels"],
+        ["args", "expected_labels", "config_overwrite"],
         [
-            [[], ["einstein", "latexcompanion", "knuthwebsite"]],
-            [["-r"], ["knuthwebsite", "latexcompanion", "einstein"]],
-            [["-s", "year"], ["knuthwebsite", "einstein", "latexcompanion"]],
-            [["-r", "-s", "year"], ["latexcompanion", "einstein", "knuthwebsite"]],
-            [["++author", "Einstein"], ["einstein"]],
-            [["++author", "einstein", "--ignore-case"], ["einstein"]],
-            [["--author", "Einstein"], ["latexcompanion", "knuthwebsite"]],
-            [["++author", "Einstein", "++author", "Knuth"], []],
-            [["-x", "++author", "Einstein", "++author", "Knuth"], ["einstein", "knuthwebsite"]],
+            [[], ["einstein", "latexcompanion", "knuthwebsite"], False],
+            [["-r"], ["knuthwebsite", "latexcompanion", "einstein"], False],
+            [["-s", "year"], ["knuthwebsite", "einstein", "latexcompanion"], False],
+            [["-r", "-s", "year"], ["latexcompanion", "einstein", "knuthwebsite"], False],
+            [["++author", "Einstein"], ["einstein"], False],
+            [["++author", "einstein", "-i"], ["einstein"], False],
+            [["++author", "einstein", "-I"], [], True],
+            [["--author", "Einstein"], ["latexcompanion", "knuthwebsite"], False],
+            [["++author", "Einstein", "++author", "Knuth"], [], False],
+            [
+                ["-x", "++author", "Einstein", "++author", "Knuth"],
+                ["einstein", "knuthwebsite"],
+                False,
+            ],
         ],
     )
-    def test_command(self, setup: Any, args: List[str], expected_labels: List[str]) -> None:
+    def test_command(
+        self, setup: Any, args: List[str], expected_labels: List[str], config_overwrite: bool
+    ) -> None:
         """Test the command itself.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             args: the arguments to pass to the command.
             expected_labels: the expected list of labels.
+            config_overwrite: what to overwrite `config.commands.list_.ignore_case` with.
         """
+        config.commands.list_.ignore_case = config_overwrite
+
         cmd = ListCommand(*args)
         cmd.execute()
         assert [entry.label for entry in cmd.entries] == expected_labels
 
     @pytest.mark.parametrize(
-        ["args", "expected_labels", "expected_keys"],
+        ["args", "expected_labels", "expected_keys", "config_overwrite"],
         [
-            [[], ["einstein", "latexcompanion", "knuthwebsite"], set()],
-            [["++author", "Einstein"], ["einstein"], {"author"}],
-            [["++author", "einstein", "--ignore-case"], ["einstein"], {"author"}],
-            [["--author", "Einstein"], ["latexcompanion", "knuthwebsite"], {"author"}],
-            [["++author", "Einstein", "++author", "Knuth"], [], {"author"}],
+            [[], ["einstein", "latexcompanion", "knuthwebsite"], set(), False],
+            [["++author", "Einstein"], ["einstein"], {"author"}, False],
+            [["++author", "einstein", "-i"], ["einstein"], {"author"}, False],
+            [["++author", "einstein", "-I"], [], {"author"}, True],
+            [["--author", "Einstein"], ["latexcompanion", "knuthwebsite"], {"author"}, False],
+            [["++author", "Einstein", "++author", "Knuth"], [], {"author"}, False],
             [
                 ["-x", "++author", "Einstein", "++author", "Knuth"],
                 ["einstein", "knuthwebsite"],
                 {"author"},
+                False,
             ],
         ],
     )
     def test_filter_entries(
-        self, setup: Any, args: List[str], expected_labels: List[str], expected_keys: Set[str]
+        self,
+        setup: Any,
+        args: List[str],
+        expected_labels: List[str],
+        expected_keys: Set[str],
+        config_overwrite: bool,
     ) -> None:
         """Tests the filtering methods.
 
@@ -83,7 +100,10 @@ class TestListCommand(CommandTest):
             args: the arguments to pass to the command.
             expected_labels: the expected list of labels which match the filter.
             expected_keys: the expected keys which were filtered on.
+            config_overwrite: what to overwrite `config.commands.list_.ignore_case` with.
         """
+        config.commands.list_.ignore_case = config_overwrite
+
         filtered_entries, filtered_keys = ListCommand(*args).filter_entries()
         assert filtered_keys == expected_keys
         assert [entry.label for entry in filtered_entries] == expected_labels

@@ -34,11 +34,20 @@ cobib modify "pages:{pages.replace('--', '-')}" -- ...
 cobib modify "label:{author.split()[1]}{year}" -- ...
 ```
 
-In case you are applying a modification to your entry labels, but you want to avoid renaming all of
-your associated files, you can use the `--preserve-files` argument, like so:
+In case you are applying a modification to your entry labels, the value of the
+`cobib.config.config.ModifyCommandConfig.preserve_files` setting (added in v4.1.0) determines
+whether all of your associated files will be renamed accordingly. This defaults to `False`, meaning
+that they *will* be renamed. You can overwrite the value of this setting at runtime with the
+`--preserve-files` and `--no-preserve-files` arguments, respectively.
+I.e. the following will **not** rename your files:
 ```
 # Rename an entry according to the first author's surname and year, but preserve the original file
 cobib modify "label:{author.split()[1]}{year}" --preserve-files -- ...
+```
+While this command will always rename them:
+```
+# Rename an entry according to the first author's surname and year, and rename the original file
+cobib modify "label:{author.split()[1]}{year}" --no-preserve-files -- ...
 ```
 
 In combination with the regex-support for filters added during the same release, you can even unify
@@ -110,7 +119,11 @@ class ModifyCommand(Command):
         * `-a`, `--add`: when specified, the modification's value will be added to the entry's field
           rather than overwrite it. If the field in question is numeric, the numbers will be added.
         * `--preserve-files`: skips the renaming of any associated files in case the applied
-            modification acted on the entry labels.
+          modification acted on the entry labels. This overwrites the
+          `cobib.config.config.ModifyCommandConfig.preserve_files` setting.
+        * `--no-preserve-files`: does NOT skip the renaming of any associated files in case the
+          applied modification acted on the entry labels. This overwrites the
+          `cobib.config.config.ModifyCommandConfig.preserve_files` setting.
         * `-s`, `--selection`: when specified, the positional arguments will *not* be interpreted as
           filters but rather as a direct list of entry labels. This can be used on the command-line
           but is mainly meant for the TUIs visual selection interface (hence the name).
@@ -176,8 +189,19 @@ class ModifyCommand(Command):
             action="store_true",
             help="Adds to the modified field rather than overwriting it.",
         )
-        parser.add_argument(
-            "--preserve-files", action="store_true", help="do not rename associated files"
+        preserve_files_group = parser.add_mutually_exclusive_group()
+        preserve_files_group.add_argument(
+            "--preserve-files",
+            action="store_true",
+            default=None,
+            help="do NOT rename associated files",
+        )
+        preserve_files_group.add_argument(
+            "--no-preserve-files",
+            dest="preserve_files",
+            action="store_false",
+            default=None,
+            help="rename associated files",
         )
         parser.add_argument(
             "-s",
@@ -226,9 +250,10 @@ class ModifyCommand(Command):
 
         field, value = self.largs.modification
 
-        preserve_files = config.commands.modify.preserve_files or self.largs.preserve_files
-        if preserve_files:
-            LOGGER.info("Associated files will be preserved.")
+        preserve_files = config.commands.modify.preserve_files
+        if self.largs.preserve_files is not None:
+            preserve_files = self.largs.preserve_files
+        LOGGER.info("Associated files will%s be preserved.", "" if preserve_files else " not")
 
         bib = Database()
 

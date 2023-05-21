@@ -8,13 +8,19 @@ As a simple example, you can query for a simple author name like so:
 ```
 cobib search Einstein
 ```
-You can make the search case *in*sensitive in two ways:
-
-1. By enabling `cobib.config.config.SearchCommandConfig.ignore_case`.
-
-2. By providing the `--ignore-case` command-line argument:
+You can also control whether the search is performed case *in*sensitive.
+This is done via the `cobib.config.config.SearchCommandConfig.ignore_case` setting which defaults to
+being `False`.
+Besides this setting, you can always overwrite its value on the command line with the
+`--ignore-case` (`-i` for short) and `--no-ignore-case` (`-I` for short; since v4.1.0) options.
+Providing these options takes precedence over your configuration value.
+Thus, the following is *always* case *in*sensitive, irrespective of your configuration.
 ```
 cobib search --ignore-case Einstein
+```
+And the following is *always* sensitive to case:
+```
+cobib search --no-ignore-case Einstein
 ```
 
 By default, the search command will provide you with 1 line of context above and below the actual
@@ -78,8 +84,10 @@ class SearchCommand(Command):
         * `query`: the required positional argument corresponds to the regex-interpreted text which
           will be searched for. You may provide multiple separate queries which will be searched for
           independently.
-        * `-i`, `--ignore-case`: if specified, the search will be case *in*sensitive. You can enable
-          this setting permanently with `cobib.config.config.SearchCommandConfig.ignore_case`.
+        * `-i`, `--ignore-case`: if specified, the search will be case-**in**sensitive. This
+          overwrites the `cobib.config.config.SearchCommandConfig.ignore_case` setting.
+        * `-I`, `--no-ignore-case`: if specified, the search will be case-sensitive. This
+          overwrites the `cobib.config.config.SearchCommandConfig.ignore_case` setting.
         * `-c`, `--context`: you can specify the number of lines of "context" which is the number of
           lines before and after the actual match to be included in the output. This is similar to
           the `-C` option of `grep`.
@@ -115,8 +123,21 @@ class SearchCommand(Command):
     def init_argparser(cls) -> None:
         parser = ArgumentParser(prog="search", description="Search subcommand parser.")
         parser.add_argument("query", type=str, nargs="+", help="text to search for")
-        parser.add_argument(
-            "-i", "--ignore-case", action="store_true", help="ignore case for searching"
+        ignore_case_group = parser.add_mutually_exclusive_group()
+        ignore_case_group.add_argument(
+            "-i",
+            "--ignore-case",
+            action="store_true",
+            default=None,
+            help="ignore case for searching",
+        )
+        ignore_case_group.add_argument(
+            "-I",
+            "--no-ignore-case",
+            dest="ignore_case",
+            action="store_false",
+            default=None,
+            help="do NOT ignore case for searching",
         )
         parser.add_argument(
             "-c",
@@ -162,7 +183,9 @@ class SearchCommand(Command):
 
         self.entries, _ = ListCommand(*self.largs.filter).filter_entries()
 
-        ignore_case = config.commands.search.ignore_case or self.largs.ignore_case
+        ignore_case = config.commands.search.ignore_case
+        if self.largs.ignore_case is not None:
+            ignore_case = self.largs.ignore_case
         LOGGER.debug("The search will be performed case %ssensitive", "in" if ignore_case else "")
 
         for entry in self.entries.copy():
@@ -193,7 +216,9 @@ class SearchCommand(Command):
 
     @override
     def render_rich(self) -> ConsoleRenderable:
-        ignore_case = config.commands.search.ignore_case or self.largs.ignore_case
+        ignore_case = config.commands.search.ignore_case
+        if self.largs.ignore_case is not None:
+            ignore_case = self.largs.ignore_case
 
         tree = RichTree(".", hide_root=True)
         for entry, matches in zip(self.entries, self.matches):
@@ -219,7 +244,9 @@ class SearchCommand(Command):
 
     @override
     def render_textual(self) -> TextualTree[Text]:
-        ignore_case = config.commands.search.ignore_case or self.largs.ignore_case
+        ignore_case = config.commands.search.ignore_case
+        if self.largs.ignore_case is not None:
+            ignore_case = self.largs.ignore_case
 
         # TODO: figure out how to deal with multi-line tree node contents
         tree: TextualTree[Text] = TextualTree(".")

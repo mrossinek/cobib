@@ -143,7 +143,16 @@ Deletes the entry with the given \fIlabel\fR.
 .in +8n
 .BR \-\-preserve\-files
 .in +4n
-Only if this is set, associated files will be preserved and \fInot\fR deleted.
+If specified, associated files will be preserved and \fInot\fR deleted.
+This takes precedence over the \fIconfig.commands.delete.preserve_files\fR
+setting.
+.PP
+.in +8n
+.BR \-\-no\-preserve\-files
+.in +4n
+If specified, associated files will \fInot\fR be preserved.
+This takes precedence over the \fIconfig.commands.delete.preserve_files\fR
+setting.
 .TP
 .B cobib edit \fI<label>\fR
 Opens the entry with the given \fIlabel\fR in an external editor.
@@ -160,8 +169,16 @@ Allows editing a non-existing label to manually add it to the database.
 .in +8n
 .BR \-\-preserve\-files
 .in +4n
-Only if this is set, associated files will be preserved and \fInot\fR renamed if
-the edit happens to rename the entry.
+If specified, associated files will be preserved and \fInot\fR be renamed if the
+edit happens to rename the entry. This takes precedence over the
+\fIconfig.commands.edit.preserve_files\fR setting.
+.PP
+.in +8n
+.BR \-\-no\-preserve\-files
+.in +4n
+If specified, associated files will \fInot\fR be preserved and be renamed if the
+edit happens to rename the entry. This takes precedence over the
+\fIconfig.commands.edit.preserve_files\fR setting.
 .TP
 .B cobib modify \fI<modification>\fR \fI<args>\fR ...
 Applies a modification to multiple entries at once.
@@ -209,8 +226,16 @@ argument is a result of the TUI's selection interface.
 .in +8n
 .BR \-\-preserve\-files
 .in +4n
-Only if this is set, associated files will be preserved and \fInot\fR renamed if
-the modification happens to rename the entry.
+If specified, associated files will be preserved and \fInot\fR be renamed if
+the modification happens to rename the entry. This takes precedence over the
+\fIconfig.commands.modify.preserve_files\fR setting.
+.PP
+.in +8n
+.BR \-\-no\-preserve\-files
+.in +4n
+If specified, associated files will \fInot\fR be preserved and be renamed if
+the modification happens to rename the entry. This takes precedence over the
+\fIconfig.commands.modify.preserve_files\fR setting.
 .TP
 .B cobib undo \fI<args>\fR
 If you enabled the git-integration of coBib (available since v2.6.0) you can
@@ -259,9 +284,16 @@ Specify the entry field to use as the \fIsorting column\fR of the table.
 Reverses the sorting order.
 .PP
 .in +8n
-.BR \-i ", " \-\-ignore-case
+.BR \-i ", " \-\-ignore\-case
 .in +4n
 Makes the entry matching case-insensitive.
+This takes precedence over the \fIconfig.commands.list_.ignore_case\fR setting.
+.PP
+.in +8n
+.BR \-I ", " \-\-no\-ignore\-case
+.in +4n
+Makes the entry matching case-sensitive.
+This takes precedence over the \fIconfig.commands.list_.ignore_case\fR setting.
 .PP
 .in +8n
 .BR \-x ", " \-\-or
@@ -283,9 +315,16 @@ Specify the number of context lines to provide for each match.
 This values defaults to 1.
 .PP
 .in +8n
-.BR \-i ", " \-\-ignore-case
+.BR \-i ", " \-\-ignore\-case
 .in +4n
 Makes the search case-insensitive.
+This takes precedence over the \fIconfig.commands.search.ignore_case\fR setting.
+.PP
+.in +8n
+.BR \-I ", " \-\-no\-ignore\-case
+.in +4n
+Makes the search case-insensitive.
+This takes precedence over the \fIconfig.commands.list_.ignore_case\fR setting.
 .TP
 .B cobib export \fI<args>\fR ...
 Exports the database.

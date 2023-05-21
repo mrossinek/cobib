@@ -5,10 +5,17 @@ This command can be used to deleted entries from the database.
 cobib delete <label 1> [<label 2> ...]
 ```
 
-If you want to preserve the files associated with the deleted entries, you can provide the
-`--preserve-files` argument like so:
+When you delete an entry, the value of `cobib.config.config.DeleteCommandConfig.preserve_files`
+setting (added in v4.1.0) determines whether the associated files will be deleted, too. This
+defaults to `False`, meaning that they *will* be deleted. You can overwrite the value of this
+setting at runtime with the `--preserve-files` and `--no-preserve-files` arguments, respectively.
+I.e. the following will **not** delete your files:
 ```
 cobib delete --preserve-files <label 1> [<label 2> ...]
+```
+While this command will always delete them:
+```
+cobib delete --no-preserve-files <label 1> [<label 2> ...]
 ```
 
 As of coBib v4.1.0, the user will be asked to confirm the deletion via an interactive prompt. This
@@ -47,7 +54,10 @@ class DeleteCommand(Command):
     This command can parse the following arguments:
 
         * `labels`: one (or multiple) labels of the entries to be deleted.
-        * `--preserve-files`: skips the deletion of any associated files.
+        * `--preserve-files`: skips the deletion of any associated files. This overwrites the
+          `cobib.config.config.DeleteCommandConfig.preserve_files` setting.
+        * `--no-preserve-files`: does NOT skip the deletion of any associated files. This overwrites
+          the `cobib.config.config.DeleteCommandConfig.preserve_files` setting.
     """
 
     name = "delete"
@@ -72,8 +82,19 @@ class DeleteCommand(Command):
     def init_argparser(cls) -> None:
         parser = ArgumentParser(prog="delete", description="Delete subcommand parser.")
         parser.add_argument("labels", type=str, nargs="+", help="labels of the entries")
-        parser.add_argument(
-            "--preserve-files", action="store_true", help="do not delete associated files"
+        preserve_files_group = parser.add_mutually_exclusive_group()
+        preserve_files_group.add_argument(
+            "--preserve-files",
+            action="store_true",
+            default=None,
+            help="do not delete associated files",
+        )
+        preserve_files_group.add_argument(
+            "--no-preserve-files",
+            dest="preserve_files",
+            action="store_false",
+            default=None,
+            help="delete associated files",
         )
         cls.argparser = parser
 
@@ -84,9 +105,10 @@ class DeleteCommand(Command):
 
         Event.PreDeleteCommand.fire(self)
 
-        preserve_files = config.commands.delete.preserve_files or self.largs.preserve_files
-        if preserve_files:
-            LOGGER.info("Associated files will be preserved.")
+        preserve_files = config.commands.delete.preserve_files
+        if self.largs.preserve_files is not None:
+            preserve_files = self.largs.preserve_files
+        LOGGER.info("Associated files will%s be preserved.", "" if preserve_files else " not")
 
         # pylint: disable=line-too-long
         self.prompt.process_response = self._wrap_prompt_process_response(  # type: ignore[method-assign]
