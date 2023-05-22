@@ -94,6 +94,22 @@ class LoggingConfig(_ConfigBase):
 
 
 @dataclass
+class AddCommandConfig(_ConfigBase):
+    """The `config.commands.add` section."""
+
+    skip_download: bool = False
+    """Specifies whether to skip the attempt of downloading PDF files of added entries."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the COMMANDS.ADD configuration section.")
+        self._assert(
+            isinstance(self.skip_download, bool),
+            "config.commands.add.skip_download should be a boolean.",
+        )
+
+
+@dataclass
 class DeleteCommandConfig(_ConfigBase):
     """The `config.commands.delete` section."""
 
@@ -143,6 +159,22 @@ class EditCommandConfig(_ConfigBase):
         self._assert(
             isinstance(self.preserve_files, bool),
             "config.commands.edit.preserve_files should be a boolean.",
+        )
+
+
+@dataclass
+class ImportCommandConfig(_ConfigBase):
+    """The `config.commands.import` section."""
+
+    skip_download: bool = False
+    """Specifies whether to skip the attempt of downloading PDF files of imported entries."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the COMMANDS.IMPORT configuration section.")
+        self._assert(
+            isinstance(self.skip_download, bool),
+            "config.commands.import.skip_download should be a boolean.",
         )
 
 
@@ -274,10 +306,15 @@ class SearchCommandConfig(_ConfigBase):
 class CommandConfig(_ConfigBase):
     """The `config.commands` section."""
 
+    add: AddCommandConfig = field(default_factory=lambda: AddCommandConfig())
+    """The nested section for settings related to the `add` command."""
     delete: DeleteCommandConfig = field(default_factory=lambda: DeleteCommandConfig())
     """The nested section for settings related to the `delete` command."""
     edit: EditCommandConfig = field(default_factory=lambda: EditCommandConfig())
     """The nested section for settings related to the `edit` command."""
+    import_: ImportCommandConfig = field(default_factory=lambda: ImportCommandConfig())
+    """The nested section for settings related to the `import` command. Note the trailing underscore
+    of its name, since this attribute would otherwise clash with the builtin `import` keyword."""
     list_: ListCommandConfig = field(default_factory=lambda: ListCommandConfig())
     """The nested section for settings related to the `list` command. Note the trailing underscore
     of its name, since this attribute would otherwise clash with the builtin `list` keyword."""
@@ -291,8 +328,12 @@ class CommandConfig(_ConfigBase):
     @override
     def validate(self) -> None:
         LOGGER.debug("Validating the COMMANDS configuration section.")
+        self.add.validate()
+        self.delete.validate()
         self.edit.validate()
+        self.import_.validate()
         self.list_.validate()
+        self.modify.validate()
         self.open.validate()
         self.search.validate()
 

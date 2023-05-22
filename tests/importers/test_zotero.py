@@ -60,7 +60,7 @@ class TestZoteroImporter(ImporterTest):
     @pytest.mark.asyncio
     async def test_fetch(self) -> None:
         """Test fetching entries from the Zotero API."""
-        importer = MockZoteroImporter(skip_download=False)
+        importer = MockZoteroImporter(skip_download=True)
         # NOTE: even though attachments are not accessible via public libraries, we explicitly skip
         # downloading them, just to be sure.
         imported_entries = await importer.fetch()

@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and `modify` command (#116)
 - added the `config.commands.search.context` setting which configures the
   default number of context lines to be provided for search query matches
+- added more options to configure the automatic download behavior:
+  - the new `config.commands.add.skip_download` setting
+  - the new `--force-download` option of the `add` command
+  - the new `config.commands.import_.skip_download` setting
+  - the new `--force-download` option of the `import` command
 
 
 ## [4.0.0] - 2023-05-20

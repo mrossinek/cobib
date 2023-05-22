@@ -27,10 +27,18 @@ cobib import --zotero
 
 ### Additional Options
 
-If you want to suppress the automatic download of attachments, specify the `--skip-download`
-argument like so:
+Since v4.1.0 you can suppress the automatic download of attachments via the
+`cobib.config.config.ImportCommandConfig.skip_download` setting. It defaults to `False` meaning that
+the attachments will be downloaded
+If you want to manually overwrite the configuration setting you can do so with the `--skip-download`
+and `--force-download` arguments, respectively.
+I.e. the following will **not** download attachments:
 ```
 cobib import --skip-download --zotero
+```
+While the next command will always download attachments:
+```
+cobib import --force-download --zotero
 ```
 
 The various importers may take even more command line arguments. Please check out their
@@ -60,7 +68,7 @@ from textual.app import App
 from typing_extensions import override
 
 from cobib import importers
-from cobib.config import Event
+from cobib.config import Event, config
 from cobib.database import Database, Entry
 
 from .base_command import ArgumentParser, Command
@@ -74,6 +82,7 @@ class ImportCommand(Command):
     This command can parse the following arguments:
 
         * `--skip-download`: skips the automatic download of attached files (like PDFs).
+        * `--force-download`: forces the automatic download of attached files (like PDFs).
         * in addition to the options above, a *mutually exclusive group* of keyword arguments for
           all available `cobib.importers` are registered at runtime. Please check the output of
           `cobib import --help` for the exact list.
@@ -106,10 +115,19 @@ class ImportCommand(Command):
     @classmethod
     def init_argparser(cls) -> None:
         parser = ArgumentParser(prog="import", description="Import subcommand parser.")
-        parser.add_argument(
+        skip_download_group = parser.add_mutually_exclusive_group()
+        skip_download_group.add_argument(
             "--skip-download",
             action="store_true",
+            default=None,
             help="skip the automatic download of encountered PDF attachments",
+        )
+        skip_download_group.add_argument(
+            "--force-download",
+            dest="skip_download",
+            action="store_false",
+            default=None,
+            help="force the automatic download of encountered PDF attachments",
         )
         parser.add_argument(
             "importer_arguments",
@@ -134,13 +152,21 @@ class ImportCommand(Command):
 
         imported_entries: List[Entry] = []
 
+        skip_download = config.commands.import_.skip_download
+        if self.largs.skip_download is not None:
+            skip_download = self.largs.skip_download
+        LOGGER.info(
+            "Associated files will%s be downloaded from the imported library.",
+            "" if skip_download else " not",
+        )
+
         for name, cls in ImportCommand._avail_importers.items():
             enabled = getattr(self.largs, name, False)
             if not enabled:
                 continue
             LOGGER.debug("Importing entries from %s.", name)
             imported_entries = await cls(
-                *self.largs.importer_arguments, skip_download=self.largs.skip_download
+                *self.largs.importer_arguments, skip_download=skip_download
             ).fetch()
             break
 

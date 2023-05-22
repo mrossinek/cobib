@@ -72,9 +72,18 @@ using the `--path` argument like so:
 ```
 cobib add --path <some custom path> --arxiv <some arXiv ID>
 ```
-If you want to manually suppress the automatic download, specify the `--skip-download` argument:
+Since v4.1.0 you can suppress the automatic download via the
+`cobib.config.config.AddCommandConfig.skip_download` setting. It defaults to `False` meaning that
+the download will be attempted.
+If you want to manually overwrite the configuration setting you can do so with the `--skip-download`
+and `--force-download` arguments, respectively.
+I.e. the following will **not** attempt the automatic download:
 ```
 cobib add --skip-download --arxiv <some arXiv ID>
+```
+While the next command will always attempt the automatic download:
+```
+cobib add --force-download --arxiv <some arXiv ID>
 ```
 
 Since v4.0.0 coBib will ask you what to do when encountering a conflict at runtime. That means, when
@@ -169,6 +178,7 @@ class AddCommand(Command):
         * `-p`, `--path`: the path to store the downloaded associated file in. This can be used to
           overwrite the `cobib.config.config.FileDownloaderConfig.default_location`.
         * `--skip-download`: skips the automatic download of an associated file.
+        * `--force-download`: forces the automatic download of an associated file.
         * `--skip-existing`: **DEPRECATED** use `--disambiguation keep` instead!
         * `-u`, `--update`: **DEPRECATED** use `--disambiguation update` instead!
         * in addition to the options above, a *mutually exclusive group* of keyword arguments for
@@ -218,10 +228,19 @@ class AddCommand(Command):
             choices=["keep", "replace", "update", "disambiguate"],
             help="the reply in case of a disambiguation prompt",
         )
-        parser.add_argument(
+        skip_download_group = parser.add_mutually_exclusive_group()
+        skip_download_group.add_argument(
             "--skip-download",
             action="store_true",
+            default=None,
             help="skip the automatic download of an associated file",
+        )
+        skip_download_group.add_argument(
+            "--force-download",
+            dest="skip_download",
+            action="store_false",
+            default=None,
+            help="force the automatic download of an associated file",
         )
         parser.add_argument(
             "--skip-existing",
@@ -276,7 +295,7 @@ class AddCommand(Command):
 
         return largs
 
-    # pylint: disable=invalid-overridden-method,too-many-statements,too-many-branches
+    # pylint: disable=invalid-overridden-method,too-many-statements,too-many-branches,too-many-locals
     @override
     async def execute(self) -> None:  # type: ignore[override]
         LOGGER.debug("Starting Add command.")
@@ -337,6 +356,11 @@ class AddCommand(Command):
             for value in self.new_entries.values():
                 # logging done by cobib/database/entry.py
                 value.tags = self.largs.tags
+
+        skip_download = config.commands.add.skip_download
+        if self.largs.skip_download is not None:
+            skip_download = self.largs.skip_download
+        LOGGER.info("Automatic file download will%s be attempted.", "" if skip_download else " not")
 
         bib = Database()
         existing_labels = set(bib.keys())
@@ -431,7 +455,7 @@ class AddCommand(Command):
 
             # download associated file (if requested)
             if "_download" in entry.data.keys():
-                if self.largs.skip_download:
+                if skip_download:
                     entry.data.pop("_download")
                 else:
                     task = asyncio.create_task(

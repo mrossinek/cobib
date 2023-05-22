@@ -142,6 +142,13 @@ to disambiguate the new label from the existing one by adding a label suffix
 .BR \-\-skip\-download
 .in +4n
 Skips attempting to automatically download an associated file for the entry.
+This takes precedence over the \fIconfig.commands.add.skip_download\fR setting.
+.PP
+.in +8n
+.BR \-\-force\-download
+.in +4n
+Forces attempting to automatically download an associated file for the entry.
+This takes precedence over the \fIconfig.commands.add.skip_download\fR setting.
 .TP
 .B cobib delete \fI<label>\fR
 Deletes the entry with the given \fIlabel\fR.
@@ -375,6 +382,15 @@ The \fI<args>\fR may be any of the following:
 .BR \-\-skip\-download
 .in +4n
 Skips downloading of attachments encountered during the library import.
+This takes precedence over the \fIconfig.commands.import_.skip_download\fR
+setting.
+.PP
+.in +8n
+.BR \-\-force\-download
+.in +4n
+Forces downloading of attachments encountered during the library import.
+This takes precedence over the \fIconfig.commands.import_.skip_download\fR
+setting.
 .PP
 .in +8n
 Furthermore you can specify one of the following sources from which to import
@@ -561,6 +577,9 @@ functionality entirely, set this option to \fINone\fR.
 .PP
 .BR COMMANDS
 .TP
+.IR config.commands.add.skip_download = False
+Specifies whether to skip the attempt of downloading PDF files of added entries.
+.TP
 .IR config.commands.delete.confirm = True
 Specifies whether or not to prompt for confirmation before deleting an entry.
 .TP
@@ -578,6 +597,10 @@ editing of database entries. It defaults to the environment variable
 .TP
 .IR config.commands.edit.preserve_files = False
 Specifies whether associates files should be preserved during renaming.
+.TP
+.IR config.commands.import_.skip_download = False
+Specifies whether to skip downloading of attachments encountered during the
+library import.
 .TP
 .IR config.commands.list_.default_columns = ['label',\ 'title']
 Specifies the default columns displayed during the \fIlist\fR command.

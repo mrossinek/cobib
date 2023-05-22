@@ -170,21 +170,33 @@ class TestAddCommand(CommandTest):
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("folder", [None, "."])
+    @pytest.mark.parametrize("skip_download", [None, True, False])
+    @pytest.mark.parametrize("config_overwrite", [True, False])
     async def test_add_with_download(
         self,
-        folder: Optional[str],
         setup: Any,
+        folder: Optional[str],
+        skip_download: Optional[bool],
+        config_overwrite: bool,
         capsys: pytest.CaptureFixture[str],
         caplog: pytest.LogCaptureFixture,
     ) -> None:
-        """Test adding a new entry with an associated file automatically downloaded.
+        """Test adding a new entry with possibly an associated file automatically downloaded.
 
         Args:
-            folder: the folder for the downloaded file.
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            folder: the folder for the downloaded file.
+            skip_download: argument to `AddCommand`.
+            config_overwrite: what to overwrite `config.commands.add.skip_download` with.
             capsys: the built-in pytest fixture.
             caplog: the built-in pytest fixture.
         """
+        config.commands.add.skip_download = config_overwrite
+
+        should_download = not config_overwrite
+        if skip_download is not None:
+            should_download = not skip_download
+
         path = RelPath(f"{'/tmp' if folder is None else folder}/Cao2018.pdf")
         try:
             # ensure file does not exist yet
@@ -195,6 +207,8 @@ class TestAddCommand(CommandTest):
             args = ["-a", "1812.09976"]
             if folder:
                 args += ["-p", folder]
+            if skip_download is not None:
+                args.append(f"--{'skip' if skip_download else 'force'}-download")
 
             await AddCommand(*args).execute()
 
@@ -210,41 +224,12 @@ class TestAddCommand(CommandTest):
             assert entry.data["archivePrefix"] == "arXiv"
             assert entry.data["arxivid"].startswith("1812.09976")
             assert "_download" not in entry.data.keys()
-            assert f"Successfully downloaded {path}" in capsys.readouterr().out
-            assert os.path.exists(path.path)
-        finally:
-            try:
-                os.remove(path.path)
-            except FileNotFoundError:
-                pass
 
-    @pytest.mark.asyncio
-    async def test_add_skip_download(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
-        """Test adding a new entry and skipping the automatic download.
-
-        Args:
-            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
-            caplog: the built-in pytest fixture.
-        """
-        path = RelPath("/tmp/Cao2018.pdf")
-        try:
-            args = ["-a", "1812.09976", "--skip-download"]
-
-            await AddCommand(*args).execute()
-
-            if (
-                "cobib.parsers.arxiv",
-                logging.ERROR,
-                "An Exception occurred while trying to query the arXiv ID: 1812.09976.",
-            ) in caplog.record_tuples:
-                pytest.skip("The requests API encountered an error. Skipping test.")
-
-            entry = Database()["Cao2018"]
-            assert entry.label == "Cao2018"
-            assert entry.data["archivePrefix"] == "arXiv"
-            assert entry.data["arxivid"].startswith("1812.09976")
-            assert "_download" not in entry.data.keys()
-            assert not os.path.exists(path.path)
+            if should_download:
+                assert f"Successfully downloaded {path}" in capsys.readouterr().out
+                assert os.path.exists(path.path)
+            else:
+                assert not os.path.exists(path.path)
         finally:
             try:
                 os.remove(path.path)

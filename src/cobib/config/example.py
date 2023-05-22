@@ -34,6 +34,9 @@ config.logging.version = "~/.cache/cobib/version"
 # COMMANDS
 # These settings affect some command specific behavior.
 
+# You can specify whether the automatic file download should be skipped during entry addition.
+config.commands.add.skip_download = False
+
 # You can specify whether associated files should be preserved during entry deletion.
 config.commands.delete.preserve_files = False
 
@@ -44,6 +47,9 @@ config.commands.edit.default_entry_type = "article"
 config.commands.edit.editor = os.environ.get("EDITOR", "vim")
 # You can specify whether associated files should be preserved when renaming during editing.
 config.commands.edit.preserve_files = False
+
+# You can specify whether downloading of attachments inside the imported library should be skipped.
+config.commands.import_.skip_download = False
 
 # You can configure the default columns displayed during the list command.
 config.commands.list_.default_columns = ["label", "title"]
