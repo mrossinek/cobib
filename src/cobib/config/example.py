@@ -37,6 +37,8 @@ config.logging.version = "~/.cache/cobib/version"
 # You can specify whether the automatic file download should be skipped during entry addition.
 config.commands.add.skip_download = False
 
+# You can specify whether you should be prompted for confirmation before deleting an entry.
+config.commands.delete.confirm = True
 # You can specify whether associated files should be preserved during entry deletion.
 config.commands.delete.preserve_files = False
 
