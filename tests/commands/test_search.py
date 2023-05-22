@@ -141,6 +141,33 @@ class TestSearchCommand(CommandTest):
         output = cmd.render_porcelain()
         self._assert(output, expected)
 
+    def test_context_configuration(self, setup: Any) -> None:
+        """Test the `config.commands.search.context` setting.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+        """
+        config.commands.search.context = 2
+
+        cmd = SearchCommand(
+            "einstein",
+            "-i",
+            "-c",
+            "2",
+        )
+        cmd.execute()
+        output = cmd.render_porcelain()
+        self._assert(
+            output,
+            [
+                "einstein::2",
+                "1::@article{einstein,",
+                "2::author = {Albert Einstein},",
+                "2::doi = {http://dx.doi.org/10.1002/andp.19053221004},",
+                "2::journal = {Annalen der Physik},",
+            ],
+        )
+
     def test_render_rich(self, setup: Any) -> None:
         """Test the rich rendering.
 

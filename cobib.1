@@ -312,7 +312,8 @@ Additionally, the following \fI<args>\fR are also allowed:
 .BR \-c ", " \-\-context " " \fI<int>\fI
 .in +4n
 Specify the number of context lines to provide for each match.
-This values defaults to 1.
+The default value is 1 but can be configured via
+\fIconfig.commands.search.context\fR.
 .PP
 .in +8n
 .BR \-i ", " \-\-ignore\-case
@@ -593,6 +594,10 @@ Specifies the program used to open associated files.
 .IR config.commands.open.fields = ['file',\ 'url']
 Specifies the names of the data fields which are to be checked for openable
 URLs.
+.TP
+.IR config.commands.search.context = 1
+Specifies the default number of context lines to provide for each search query
+match.
 .TP
 .IR config.commands.search.grep = 'grep'
 Specifies the program used to search in associated files.

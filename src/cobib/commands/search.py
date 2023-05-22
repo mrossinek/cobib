@@ -28,6 +28,8 @@ matches. You can change this number of lines by setting the `--context` option:
 ```
 cobib search --context 4 Einstein
 ```
+You can also permanently change the default value via the
+`cobib.config.config.SearchCommandConfig.context` setting.
 
 Finally, you can also combine the search with coBib's filtering mechanism to narrow your search down
 to a subset of your database:
@@ -90,7 +92,8 @@ class SearchCommand(Command):
           overwrites the `cobib.config.config.SearchCommandConfig.ignore_case` setting.
         * `-c`, `--context`: you can specify the number of lines of "context" which is the number of
           lines before and after the actual match to be included in the output. This is similar to
-          the `-C` option of `grep`.
+          the `-C` option of `grep`. You can configure the default value via the
+          `cobib.config.config.SearchCommandConfig.context` setting.
         * in addition to the above, you can add `filters` to narrow the search down to a subset of
           your database. For more information refer to `cobib.commands.list_`.
     """
@@ -143,7 +146,7 @@ class SearchCommand(Command):
             "-c",
             "--context",
             type=int,
-            default=1,
+            default=config.commands.search.context,
             help="number of context lines to provide for each match",
         )
         parser.add_argument(

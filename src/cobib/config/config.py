@@ -233,6 +233,9 @@ class SearchHighlightConfig(_ConfigBase):
 class SearchCommandConfig(_ConfigBase):
     """The `config.commands.search` section."""
 
+    context: int = 1
+    """Specifies the default number of context line to provide for each search query match. This is
+    similar to the `-C` option of `grep`."""
     grep: str = "grep"
     """Specifies the grep tool used for searching through your database and associated files. The
     default tool (`grep`) will not provide results for attached PDFs but other tools such as
@@ -248,6 +251,10 @@ class SearchCommandConfig(_ConfigBase):
     @override
     def validate(self) -> None:
         LOGGER.debug("Validating the COMMANDS.SEARCH configuration section.")
+        self._assert(
+            isinstance(self.context, int) and self.context >= 0,
+            "config.commands.search.context should be a non-negative integer.",
+        )
         self._assert(
             isinstance(self.grep, str),
             "config.commands.search.grep should be a string.",

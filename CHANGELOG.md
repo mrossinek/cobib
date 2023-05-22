@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `list` and `search` command (#116)
 - added the `--no-preserve-files` command line options to the `delete`, `edit`
   and `modify` command (#116)
+- added the `config.commands.search.context` setting which configures the
+  default number of context lines to be provided for search query matches
 
 
 ## [4.0.0] - 2023-05-20

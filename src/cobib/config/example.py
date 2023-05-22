@@ -58,6 +58,9 @@ config.commands.open.command = "xdg-open" if sys.platform.lower() == "linux" els
 # You can specify the names of the data fields which are to be checked for openable URLs.
 config.commands.open.fields = ["file", "url"]
 
+# You can specify the default number of context lines to be provided for each search query match.
+# This is similar to the `-C` option of `grep`.
+config.commands.search.context = 1
 # You can specify a custom grep tool which will be used to search through your database and any
 # associated files. The default tool (`grep`) will not provide results for attached PDFs but other
 # tools such as [ripgrep-all](https://github.com/phiresky/ripgrep-all) will.
