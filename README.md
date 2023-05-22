@@ -30,8 +30,8 @@ pip install cobib
 
 Note: Use `pip3` if you still have Python 2 installed.
 
-If you would also like to install the man-page and (crude!) Zsh completion,
-you need to download the source code and do the following:
+If you would also like to install the man-page, you need to download the source
+code and do the following:
 
 ```
 git clone https://gitlab.com/cobib/cobib

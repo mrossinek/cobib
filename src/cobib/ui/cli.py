@@ -7,6 +7,7 @@ produce beautiful output.
 
 import argparse
 import asyncio
+import inspect
 import logging
 import sys
 from inspect import iscoroutinefunction
@@ -20,7 +21,6 @@ from cobib.config import config
 from cobib.database import Database
 from cobib.ui.tui import TUI
 from cobib.ui.ui import UI
-from cobib.utils import shell_helper
 from cobib.utils.logging import print_changelog
 
 LOGGER = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ class CLI(UI):
     def add_extra_parser_arguments(self) -> None:
         self.parser.add_argument("--version", action="version", version=f"%(prog)s v{__version__}")
 
-        subcommands = [cmd.split(":")[0] for cmd in shell_helper.list_commands()]
+        subcommands = [cls.name for _, cls in inspect.getmembers(commands) if inspect.isclass(cls)]
         self.parser.add_argument(
             "command", help="subcommand to be called", choices=subcommands, nargs="?"
         )

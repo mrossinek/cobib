@@ -26,6 +26,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - the new `config.commands.import_.skip_download` setting
   - the new `--force-download` option of the `import` command
 
+### Deprecated
+- The following shell helpers are no longer used with the zsh completion being
+  removed. Thus, these methods will be removed in the future:
+  - `cobib _list_commands`
+  - `cobib _list_filters`
+  - `cobib _list_labels`
+  - If you see warnings because of this while you are using the CLI, you
+    probably still have the (now removed) zsh completion script installed. You
+    should remove the `_cobib` file which will be located in one of the
+    directories listed in your `$FPATH` environment variable.
+
+### Removed
+- the crude and very slow zsh completion script
+
 
 ## [4.0.0] - 2023-05-20
 

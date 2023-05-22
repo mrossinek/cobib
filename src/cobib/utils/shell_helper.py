@@ -19,6 +19,8 @@ from textual.app import App
 
 from .rel_path import RelPath
 
+LOGGER = logging.getLogger(__name__)
+
 
 def list_commands(*args: str) -> List[str]:
     """Lists all available subcommands.
@@ -29,6 +31,9 @@ def list_commands(*args: str) -> List[str]:
     Returns:
         The list of available commands.
     """
+    msg = "The _list_commands shell helper utility is deprecated and will be removed in the future!"
+    LOGGER.warning(msg)
+
     # pylint: disable=import-outside-toplevel
     from cobib import commands
 
@@ -44,6 +49,9 @@ def list_labels(*args: str) -> List[str]:
     Returns:
         The list of all labels.
     """
+    msg = "The _list_labels shell helper utility is deprecated and will be removed in the future!"
+    LOGGER.warning(msg)
+
     # pylint: disable=import-outside-toplevel
     from cobib.database import Database
 
@@ -60,6 +68,9 @@ def list_filters(*args: str) -> Set[str]:
     Returns:
         The list of all available filters.
     """
+    msg = "The _list_filters shell helper utility is deprecated and will be removed in the future!"
+    LOGGER.warning(msg)
+
     # pylint: disable=import-outside-toplevel
     from cobib.database import Database
 
