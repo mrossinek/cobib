@@ -77,7 +77,7 @@ class Prompt(PromptBase[str]):
         inp = Input()
         inp.catch = True
         inp.styles.layer = "overlay"
-        inp.styles.dock = "bottom"  # type: ignore[arg-type]
+        inp.styles.dock = "bottom"
         inp.styles.border = (None, None)
         inp.styles.padding = (0, 0)
         await console.mount(inp)

@@ -329,7 +329,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
 
         prompt = Input(value=value)
         prompt.styles.layer = "overlay"
-        prompt.styles.dock = "bottom"  # type: ignore[arg-type]
+        prompt.styles.dock = "bottom"
         prompt.styles.border = (None, None)
         prompt.styles.padding = (0, 0)
 
