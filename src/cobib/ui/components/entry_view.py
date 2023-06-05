@@ -1,7 +1,6 @@
 """coBib's entry viewer widget.
 
-This widget merely renders its reactive `EntryView.string` variable to the screen. It is intended to
-display the result of `cobib.commands.show.ShowCommand.render_textual`.
+This widget gets used to display the result of `cobib.commands.show.ShowCommand.render_textual`.
 
 .. warning::
 
@@ -10,25 +9,22 @@ display the result of `cobib.commands.show.ShowCommand.render_textual`.
 
 from __future__ import annotations
 
-from rich.console import RenderableType
-from textual.reactive import reactive
-from textual.widget import Widget
+from textual.app import ComposeResult
+from textual.containers import VerticalScroll
+from textual.widgets import Static
 from typing_extensions import override
 
 
-class EntryView(Widget, can_focus=False, can_focus_children=False):
+class EntryView(VerticalScroll):
     """coBib's entry viewer widget."""
 
     DEFAULT_CSS = """
         EntryView {
+            height: 1fr;
             width: 1fr;
         }
     """
 
-    string: reactive[RenderableType] = reactive("")
-    """The [reactive](https://textual.textualize.io/guide/reactivity/) string-representation of the
-    current entry."""
-
     @override
-    def render(self) -> RenderableType:
-        return self.string
+    def compose(self) -> ComposeResult:
+        yield Static()

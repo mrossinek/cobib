@@ -126,13 +126,13 @@ class DeleteCommand(Command):
                     if self.prompt is not Confirm:
                         res = await self.prompt.ask(  # type: ignore[call-overload]
                             prompt_text,
+                            choices=["y", "n"],
                             default="y",
                             console=cast(App[None], self.console),
                         )
                     else:
                         res = self.prompt.ask(
                             prompt_text,
-                            choices=["y", "n"],
                             default=True,
                             console=cast(Console, self.console),
                         )

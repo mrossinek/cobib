@@ -25,6 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - the new `--force-download` option of the `add` command
   - the new `config.commands.import_.skip_download` setting
   - the new `--force-download` option of the `import` command
+- the user is asked for confirmation when quitting the TUI (!71)
+
+### Changed
+- refactored the TUI by leveraging textual's `Screen` concept (#111,!71)
+  - this means the TUI will look slightly different but no real functional change has occurred
+  - the view of an `Entry` can now be scrolled when the output exceeds the available space
 
 ### Deprecated
 - The following shell helpers are no longer used with the zsh completion being

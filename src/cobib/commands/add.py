@@ -142,12 +142,11 @@ import inspect
 import logging
 from collections import OrderedDict
 from functools import wraps
-from typing import Callable, Dict, Tuple, Type, cast
+from typing import Callable, Dict, Type, cast
 
 from rich.console import Console
 from rich.prompt import InvalidResponse, Prompt, PromptBase, PromptType
 from textual.app import App
-from textual.widget import AwaitMount, Widget
 from typing_extensions import override
 
 from cobib import parsers
@@ -394,9 +393,6 @@ class AddCommand(Command):
                     diff.compute()
                     table = diff.render("bibtex")
 
-                    # pylint: disable=assignment-from-no-return
-                    print_ret = self.console.print(table)  # type: ignore[union-attr]
-
                     prompt_text = "How would you like to handle this conflict?"
                     choices = ["keep", "replace", "update", "disambiguate", "help"]
                     default = "keep"
@@ -407,15 +403,28 @@ class AddCommand(Command):
                     )
 
                     if self.prompt is not Prompt:
+
+                        @wraps(self.prompt.pre_prompt)
+                        def pre_prompt(_prompt: PromptBase[PromptType]) -> None:
+                            _prompt.console.push_screen("input")  # type: ignore[attr-defined]
+                            _prompt.console.print(table)  # pylint: disable=cell-var-from-loop
+
+                        # pylint: disable=line-too-long
+                        self.prompt.pre_prompt = pre_prompt  # type: ignore[assignment,method-assign]
+
                         res = await self.prompt.ask(  # type: ignore[call-overload]
                             prompt_text,
                             choices=choices,
                             default=default,
                             console=cast(App[None], self.console),
                         )
-                        popup, _ = cast(Tuple[Widget, AwaitMount], print_ret)
-                        popup.remove()
+
+                        self.prompt.pre_prompt = (  # type: ignore[method-assign]
+                            self.prompt.pre_prompt.__wrapped__  # type: ignore[attr-defined]
+                        )
                     else:
+                        self.console.print(table)  # type: ignore[union-attr]
+
                         res = self.prompt.ask(
                             prompt_text,
                             choices=choices,
