@@ -102,11 +102,11 @@ from rich.prompt import PromptBase, PromptType
 from rich.table import Table
 from rich.text import Text
 from textual.app import App
-from textual.widgets import DataTable
 from typing_extensions import override
 
 from cobib.config import Event, config
 from cobib.database import Database, Entry
+from cobib.ui.components import ListView
 
 from .base_command import ArgumentParser, Command
 
@@ -340,14 +340,8 @@ class ListCommand(Command):
         return rich_table
 
     @override
-    def render_textual(self) -> DataTable[Text]:
-        textual_table: DataTable[Text] = DataTable(id="cobib")
-        textual_table.cursor_type = "row"
-        textual_table.fixed_columns += 1
-        textual_table.zebra_stripes = True
-        # TODO: figure out why the following is necessary since the following commit:
-        # https://github.com/Textualize/textual/commit/a4252a5760539177f6db8231d4229e8eada923e7
-        textual_table.styles.height = "1fr"
+    def render_textual(self) -> ListView:
+        textual_table = ListView()
 
         for col in self.columns:
             textual_table.add_column(col, width=None)

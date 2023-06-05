@@ -63,14 +63,14 @@ from typing import List, Type
 from rich.console import Console, ConsoleRenderable
 from rich.prompt import PromptBase, PromptType
 from rich.text import Text
-from rich.tree import Tree as RichTree
+from rich.tree import Tree
 from textual.app import App
-from textual.widgets import Tree as TextualTree
 from typing_extensions import override
 
 from cobib import __version__
 from cobib.config import Event, config
 from cobib.database import Entry
+from cobib.ui.components import SearchView
 
 from .base_command import ArgumentParser, Command
 from .list_ import ListCommand
@@ -223,7 +223,7 @@ class SearchCommand(Command):
         if self.largs.ignore_case is not None:
             ignore_case = self.largs.ignore_case
 
-        tree = RichTree(".", hide_root=True)
+        tree = Tree(".", hide_root=True)
         for entry, matches in zip(self.entries, self.matches):
             subtree = tree.add(
                 Text.assemble(
@@ -246,14 +246,12 @@ class SearchCommand(Command):
         return tree
 
     @override
-    def render_textual(self) -> TextualTree[Text]:
+    def render_textual(self) -> SearchView:
         ignore_case = config.commands.search.ignore_case
         if self.largs.ignore_case is not None:
             ignore_case = self.largs.ignore_case
 
-        # TODO: figure out how to deal with multi-line tree node contents
-        tree: TextualTree[Text] = TextualTree(".")
-        tree.show_root = False
+        tree = SearchView(".")
         for entry, matches in zip(self.entries, self.matches):
             subtree = tree.root.add(
                 Text.assemble(

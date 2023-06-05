@@ -19,28 +19,29 @@ import logging
 import shlex
 import sys
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
-from typing import Any, Iterator
+from typing import Any, Iterator, cast
 
 from rich.console import RenderableType
 from textual.app import App, ComposeResult
-from textual.binding import Binding
-from textual.coordinate import Coordinate
-from textual.css.query import NoMatches
+from textual.keys import Keys
 from textual.widget import AwaitMount, Widget
-from textual.widgets import DataTable, Footer, Header, Tree
+from textual.widgets import Footer, Header, Input, Static
 from typing_extensions import override
 
 from cobib import commands
 from cobib.ui.components import (
     EntryView,
-    HelpPopup,
-    Input,
-    MainView,
+    HelpScreen,
+    InputScreen,
+    ListView,
+    MainContent,
+    MotionKey,
     Popup,
     PopupLoggingHandler,
     PopupPanel,
     Progress,
     Prompt,
+    SearchView,
     SelectionFilter,
 )
 from cobib.ui.ui import UI
@@ -70,18 +71,16 @@ class TUI(UI, App[None]):  # type: ignore[misc]
     """
 
     DEFAULT_CSS = """
-    Screen {
-        layers: default popup overlay;
-        align-vertical: bottom;
-    }
+        Screen {
+            layers: default popup overlay;
+            align-vertical: bottom;
+        }
     """
 
-    # TODO: extract key bindings to widgets where appropriate
     BINDINGS = [
         ("q", "quit", "Quit"),
-        ("question_mark", "toggle_help", "Help"),
+        ("question_mark", "push_screen('help')", "Help"),
         ("underscore", "toggle_layout", "Layout"),
-        ("space", "toggle_fold", "Fold"),
         ("colon", "prompt(':')", "Prompt"),
         ("v", "select", "Select"),
         ("slash", "prompt('/')", "Search"),
@@ -96,15 +95,34 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         ("s", "sort", "Sort"),
         ("u", "prompt('undo', True)", "Undo"),
         ("x", "prompt('export ', False, True)", "Export"),
-        Binding("j", "arrow_key('down')", "Down", show=False),
-        Binding("k", "arrow_key('up')", "Up", show=False),
-        Binding("h", "arrow_key('left')", "Left", show=False),
-        Binding("l", "arrow_key('right')", "Right", show=False),
-        Binding("down", "arrow_key('down')", "Down", show=False),
-        Binding("up", "arrow_key('up')", "Up", show=False),
-        Binding("left", "arrow_key('left')", "Left", show=False),
-        Binding("right", "arrow_key('right')", "Right", show=False),
     ]
+    """
+    | Key(s) | Description |
+    | :- | :- |
+    | q | Quit's coBib. |
+    | ? | Toggles the help screen. |
+    | _ | Toggles between the horizontal and vertical layout. |
+    | space | Toggles folding of a search result. |
+    | : | Starts the prompt for an arbitrary coBib command. |
+    | v | Selects the current entry. |
+    | / | Searches the database for the provided string. |
+    | a | Prompts for a new entry to be added to the database. |
+    | d | Deletes the current (or selected) entries. |
+    | e | Edits the current entry. |
+    | f | Allows filtering the table using `++/--` keywords. |
+    | i | Imports entries from another source. |
+    | m | Prompts for a modification (respects selection). |
+    | o | Opens the current (or selected) entries. |
+    | r | Redoes the last undone change. Requires git-tracking! |
+    | s | Prompts for the field to sort by (use -r to list in reverse). |
+    | u | Undes the last change. Requires git-tracking! |
+    | x | Exports the current (or selected) entries. |
+    """
+
+    SCREENS = {
+        "help": HelpScreen,
+        "input": InputScreen,
+    }
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initializes the TUI.
@@ -118,6 +136,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         self.sub_title = "The Console Bibliography Manager"
         self._list_args = ["-r"]
         self._filter: SelectionFilter = SelectionFilter()
+        self._filters.append(self._filter)
         self._background_tasks: set[asyncio.Task] = set()  # type: ignore[type-arg]
         PopupLoggingHandler(self, level=logging.INFO)
         Progress.console = self
@@ -125,23 +144,16 @@ class TUI(UI, App[None]):  # type: ignore[misc]
 
     @override
     def compose(self) -> ComposeResult:
-        yield HelpPopup(classes="-hidden")
+        with MainContent(initial=ListView.id):
+            yield ListView()
+            yield SearchView(".")
 
-        main = MainView()
-        yield main
-
-        entry = EntryView()
-        yield entry
+        yield EntryView()
 
         yield PopupPanel()
 
         yield Header()
         yield Footer()
-
-        command = commands.ListCommand(*self._list_args)
-        command.execute()
-        table = command.render_textual()
-        main.mount(table)
 
     # TODO: remove once https://github.com/Textualize/textual/pull/1541 is merged into Textual
     @contextmanager
@@ -178,13 +190,24 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         else:
             popup = Popup(renderable, level=0, timer=None)
 
-        await_mount = self.query_one(PopupPanel).mount(popup)
-
+        await_mount = self.screen.query_one(PopupPanel).mount(popup)
         return popup, await_mount
 
     # Event reaction methods
 
-    def on_mount(self) -> None:
+    def on_motion_key(self, event: MotionKey) -> None:
+        """Triggers on the custom `cobib.ui.components.motion_key.MotionKey` event.
+
+        This function will update the entry shown in the `cobib.ui.components.entry_view.EntryView`
+        widget. It only triggers on vertical motion keys.
+
+        Args:
+            event: the motion event.
+        """
+        if event.key in {Keys.Down, Keys.Up, Keys.PageDown, Keys.PageUp, Keys.Home, Keys.End}:
+            self._show_entry()
+
+    async def on_mount(self) -> None:
         """Triggers on the [`Mount`][1] event.
 
         This method takes care of initializing the desired layout and seeds the `EntryView` widget.
@@ -192,118 +215,45 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         [1]: https://textual.textualize.io/api/events/#textual.events.Mount
         """
         self.screen.styles.layout = "horizontal"
+        await self._update_table()
         self._show_entry()
-
-    def on_input_submitted(self, event: Input.Submitted) -> None:
-        """Triggers on the `cobib.ui.components.input.Input.Submitted` event.
-
-        This method parses the input value and extracts the command to be triggered as well as all
-        its arguments.
-
-        Args:
-            event: the triggering event.
-        """
-        event.input.remove()
-        if event.value[0] == "/":
-            event.value = "search " + event.value[1:]
-        elif event.value[0] == ":":
-            event.value = event.value[1:]
-
-        command = shlex.split(event.value)
-
-        if self._filter.active:
-            command += ["--"]
-            command.extend(list(self._filter.selection))
-            self._filter.active = False
-
-        if command and command[0]:
-            if command[0].lower() == "list":
-                self._list_args = command[1:]
-                self._update_table()
-            elif command[0].lower() == "search":
-                main = self.query_one(MainView)
-                main.clear()
-                subcmd = commands.SearchCommand(*command[1:])
-                subcmd.execute()
-                tree = subcmd.render_textual()
-                main.mount(tree)
-                self.refresh(layout=True)
-            else:
-                with redirect_stdout(io.StringIO()) as stdout:
-                    with redirect_stderr(io.StringIO()) as stderr:
-                        try:
-                            subcmd = getattr(commands, command[0].title() + "Command")(
-                                *command[1:], prompt=Prompt, console=self
-                            )
-
-                            task = asyncio.create_task(  # type: ignore[var-annotated]
-                                subcmd.execute()  # type: ignore[arg-type]
-                            )
-                            self._background_tasks.add(task)
-                            task.add_done_callback(self._background_tasks.discard)
-                            task.add_done_callback(lambda _: self._update_table)
-                        except SystemExit:
-                            pass
-                stdout_val = stdout.getvalue().strip()
-                if stdout_val:
-                    self.print(Popup(stdout_val, level=logging.INFO))
-                stderr_val = stderr.getvalue().strip()
-                if stderr_val:
-                    self.print(Popup(stderr_val, level=logging.CRITICAL))
-                self._update_table()
 
     # Action methods
 
-    def action_arrow_key(self, key_name: str) -> None:
-        """The movement action.
+    async def action_quit(self) -> None:
+        """Action to display the quit dialog."""
 
-        This method currently redirects to the widget mounted in the `MainView`.
-        The movement keys `h`, `j`, `k`, and `l` also redirect here.
+        async def _prompt_quit() -> None:
+            res = await Prompt.ask(  # type: ignore[call-overload]
+                "Are you sure you want to quit?",
+                choices=["y", "n"],
+                default="y",
+                console=self,
+            )
+            if res == "y":
+                self.exit()
 
-        .. warning::
-
-           This method is pending a refactoring during which the layouting will be redesigned in
-           favor of screens. Once that happens, the movement key bindings will be handled by the
-           widgets directly.
-
-           For more information refer to [this issue](https://gitlab.com/cobib/cobib/-/issues/111).
-
-        Args:
-            key_name: the name of the key triggering this action.
-        """
-        # TODO: handle scroll offset
-        main = self.query_one(MainView).children[0]
-        cursor_func = getattr(main, f"action_cursor_{key_name}", None)
-        if cursor_func is None:
-            return
-        cursor_func()
-        self._show_entry()
+        task = asyncio.create_task(_prompt_quit())
+        self._background_tasks.add(task)
+        task.add_done_callback(self._background_tasks.discard)
 
     def action_toggle_layout(self) -> None:
         """The layout toggling action.
 
         This action will toggle between a horizontal and vertical layout.
         """
-        # TODO: refactor how layout is done
         layout = self.screen.styles.layout
         if layout is None:
             return
+        main = self.query_one(MainContent)
         if layout.name.lower().startswith("horizontal"):
             self.screen.styles.layout = "vertical"
-            main = self.query_one(MainView)
             main.styles.height = "2fr"
             main.styles.width = "1fr"
-            entry = self.query_one(EntryView)
-            entry.styles.height = "1fr"
-            entry.styles.width = "1fr"
         elif layout.name.lower().startswith("vertical"):
             self.screen.styles.layout = "horizontal"
-            main = self.query_one(MainView)
             main.styles.width = "2fr"
             main.styles.height = "1fr"
-            entry = self.query_one(EntryView)
-            entry.styles.width = "1fr"
-            entry.styles.height = "1fr"
         self.refresh(layout=True)
 
     async def action_prompt(
@@ -327,76 +277,48 @@ class TUI(UI, App[None]):  # type: ignore[misc]
             self._filter.active = True
             value += "-s "
 
-        prompt = Input(value=value)
-        prompt.styles.layer = "overlay"
-        prompt.styles.dock = "bottom"
-        prompt.styles.border = (None, None)
-        prompt.styles.padding = (0, 0)
-
-        await self.mount(prompt)
         if submit:
-            await prompt.action_submit()
+            await self._process_input(value)
         else:
-            prompt.focus()
-
-    def action_toggle_help(self) -> None:
-        """The help action.
-
-        This action toggles a help popup. Once opened, the same keybind needs to be pressed to close
-        it.
-        """
-        help_sidebar = self.query_one(HelpPopup)
-        self.set_focus(None)
-        if help_sidebar.has_class("-hidden"):
-            help_sidebar.remove_class("-hidden")
-        else:
-            help_sidebar.add_class("-hidden")
+            await_mount = self.push_screen("input", self._process_input)
+            inp_screen = cast(InputScreen, self.get_screen("input"))
+            inp_screen.escape_enabled = True
+            await await_mount
+            inp = inp_screen.query_one(Input)
+            inp.value = value
+            inp.action_end()
 
     async def action_select(self) -> None:
         """The selection action.
 
         This action adds the entry currently under the cursor to the visual selection.
         """
-        self._select_entry()
+        main = self.query_one(MainContent)
+        label = main.get_current_label()
 
-    def action_toggle_fold(self) -> None:
-        """The folding action.
+        if label in self._filter.selection:
+            self._filter.selection.remove(label)
+        else:
+            self._filter.selection.add(label)
 
-        This action toggles the display of a node in the results tree of the
-        `cobib.commands.search.SearchCommand.render_textual`.
-
-        .. warning::
-
-           This method is pending a refactoring during which the layouting will be redesigned in
-           favor of screens. Once that happens, this action will be moved to the widget returned by
-            `cobib.commands.search.SearchCommand.render_textual`.
-
-           For more information refer to [this issue](https://gitlab.com/cobib/cobib/-/issues/111).
-        """
-        # TODO: provide more ways to fold (e.g. recursively)
-        try:
-            main = self.query_one(MainView).query_one(Tree)
-            main.action_toggle_node()
-        except NoMatches:
-            pass
+        main.notify_style_update()
+        main.refresh()
+        self.query_one(EntryView).query_one(Static).refresh()
 
     async def action_delete(self) -> None:
         """The delete action.
 
         This action triggers the `cobib.commands.delete.DeleteCommand`.
         """
+        main = self.query_one(MainContent)
         labels: list[str]
         if self._filter.selection:
             labels = list(self._filter.selection)
             self._filter.selection.clear()
         else:
-            labels = [self._get_current_label()]
+            labels = [main.get_current_label()]
 
-        cmd = commands.DeleteCommand(*labels, prompt=Prompt, console=self)
-        task = asyncio.create_task(cmd.execute())
-        self._background_tasks.add(task)
-        task.add_done_callback(self._background_tasks.discard)
-        task.add_done_callback(lambda _: self._update_table)
+        await self._run_command(["delete"] + labels)
 
     async def action_edit(self) -> None:
         """The edit action.
@@ -410,17 +332,15 @@ class TUI(UI, App[None]):  # type: ignore[misc]
 
         This action triggers the `cobib.commands.open.OpenCommand`.
         """
+        main = self.query_one(MainContent)
         labels: list[str]
         if self._filter.selection:
             labels = list(self._filter.selection)
             self._filter.selection.clear()
         else:
-            labels = [self._get_current_label()]
+            labels = [main.get_current_label()]
 
-        open_cmd = commands.OpenCommand(*labels, prompt=Prompt, console=self)
-        task = asyncio.create_task(open_cmd.execute())
-        self._background_tasks.add(task)
-        task.add_done_callback(self._background_tasks.discard)
+        await self._run_command(["open"] + labels)
 
     async def action_filter(self) -> None:
         """The filter action.
@@ -437,6 +357,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         allows the user to provide a field to be sorted by. This command is handled specially
         because it ensures that only a single sort argument can be given at a time.
         """
+        # TODO: there is a bug with the sorting columns remaining in successive searches
         try:
             # first, remove any previously used sort argument
             sort_arg_idx = self._list_args.index("-s")
@@ -456,100 +377,106 @@ class TUI(UI, App[None]):  # type: ignore[misc]
 
         This method takes care of suspending the application in favor of the editor.
         """
-        label = self._get_current_label()
+        main = self.query_one(MainContent)
+        label = main.get_current_label()
         with self.suspend():
             commands.EditCommand(label).execute()
         self.refresh(layout=True)
 
-    def _get_current_label(self) -> str:
-        """Gets the label of the entry currently under the cursor.
-
-        .. warning::
-
-           This method is pending a refactoring during which the layouting will be redesigned in
-           favor of screens. Once that happens, the responsibility of detecting the current label
-           will be delegated to the widget subclasses to be mounted on the respective screens.
-
-           For more information refer to [this issue](https://gitlab.com/cobib/cobib/-/issues/111).
-
-        Returns:
-            The label of the entry currently under the cursor.
-        """
-        label: str
-        try:
-            table = self.query_one(MainView).query_one(DataTable)
-            label = table.get_cell_at(Coordinate(table.cursor_row, 0)).plain
-        except NoMatches:
-            try:
-                tree = self.query_one(MainView).query_one(Tree)
-                previous_node, current_node = tree.cursor_node, tree.cursor_node
-                if current_node is None:
-                    raise NoMatches  # pylint: disable=raise-missing-from
-                while current_node.parent is not None:
-                    previous_node, current_node = current_node, current_node.parent
-                if previous_node is None:
-                    raise NoMatches  # pylint: disable=raise-missing-from
-                label = str(previous_node.label).split(" - ", maxsplit=1)[0]
-            except NoMatches as exc:
-                raise NoMatches from exc
-        return label
-
-    def _select_entry(self) -> None:
-        """Adds the entry currently under the cursor to the visual selection."""
-        try:
-            table = self.query_one(MainView).query_one(DataTable)
-            label = table.get_cell_at(Coordinate(table.cursor_row, 0)).plain
-            if label in self._filter.selection:
-                self._filter.selection.remove(label)
-            else:
-                self._filter.selection.add(label)
-            table.notify_style_update()
-            table.refresh()
-            self.query_one(EntryView).refresh()
-
-        except NoMatches:
-            try:
-                tree = self.query_one(MainView).query_one(Tree)
-                previous_node, current_node = tree.cursor_node, tree.cursor_node
-                if current_node is None:
-                    raise NoMatches  # pylint: disable=raise-missing-from
-                while current_node.parent is not None:
-                    previous_node, current_node = current_node, current_node.parent
-                if previous_node is None:
-                    raise NoMatches  # pylint: disable=raise-missing-from
-
-                label = str(previous_node.label).split(" - ", maxsplit=1)[0]
-
-                if label in self._filter.selection:
-                    self._filter.selection.remove(label)
-                else:
-                    self._filter.selection.add(label)
-
-                tree.notify_style_update()
-                tree.refresh()
-                self.query_one(EntryView).refresh()
-
-            except NoMatches as exc:
-                raise NoMatches from exc
-
     def _show_entry(self) -> None:
         """Renders the entry currently under the cursor in the `EntryView` widget."""
-        label = self._get_current_label()
+        main = self.query_one(MainContent)
+        label = main.get_current_label()
         show_cmd = commands.ShowCommand(label)
         show_cmd.execute()
         entry = self.query_one(EntryView)
-        entry.string = show_cmd.render_rich(
-            background_color=entry.background_colors[1].rich_color.name,
+        static = entry.query_one(Static)
+        static.update(
+            show_cmd.render_rich(
+                background_color=entry.background_colors[1].rich_color.name,
+            )
         )
 
-    def _update_table(self) -> None:
-        """Updates the list of entries displayed in the `MainView`."""
+    async def _update_table(self) -> None:
+        """Updates the list of entries displayed in the `MainContent`."""
         # TODO: retain scroll position
-        main = self.query_one(MainView)
-        main.clear()
         command = commands.ListCommand(*self._list_args)
         command.execute()
         table = command.render_textual()
-        main.mount(table)
-        main.focus()
+        main = self.query_one(MainContent)
+        await main.replace_widget(table)
+        table.focus()
         self.refresh(layout=True)
+
+    async def _update_tree(self, command: list[str]) -> None:
+        """Updates the tree of search results displayed in the `MainContent`."""
+        subcmd = commands.SearchCommand(*command)
+        subcmd.execute()
+        tree = subcmd.render_textual()
+        main = self.query_one(MainContent)
+        await main.replace_widget(tree)
+        tree.focus()
+        self.refresh(layout=True)
+
+    async def _process_input(self, value: str) -> None:
+        """Processes the input returned from the `cobib.ui.components.input_screen.InputScreen`.
+
+        Args:
+            value: the value put into the `Input` widget by the user.
+        """
+        if not value:
+            return
+
+        if value[0] == "/":
+            value = "search " + value[1:]
+        elif value[0] == ":":
+            value = value[1:]
+
+        command = shlex.split(value)
+
+        if self._filter.active:
+            command += ["--"]
+            command.extend(list(self._filter.selection))
+            self._filter.active = False
+
+        if command and command[0]:
+            if command[0].lower() == "list":
+                self._list_args = command[1:]
+                await self._update_table()
+            elif command[0].lower() == "search":
+                await self._update_tree(command[1:])
+            else:
+                await self._run_command(command)
+
+    async def _run_command(self, command: list[str]) -> None:
+        """Parses and executes a cobib command with its arguments.
+
+        This method also redirects `stdout` and `stderr` and captures their contents to be displayed
+        as popups in the TUI.
+
+        Args:
+            command: the list of command and its arguments.
+        """
+        with redirect_stdout(io.StringIO()) as stdout:
+            with redirect_stderr(io.StringIO()) as stderr:
+                try:
+                    subcmd = getattr(commands, command[0].title() + "Command")(
+                        *command[1:], prompt=Prompt, console=self
+                    )
+
+                    task = asyncio.create_task(subcmd.execute())
+                    self._background_tasks.add(task)
+                    task.add_done_callback(self._background_tasks.discard)
+                    task.add_done_callback(lambda _: self._update_table)
+                except SystemExit:
+                    pass
+
+        stdout_val = stdout.getvalue().strip()
+        if stdout_val:
+            self.print(Popup(stdout_val, level=logging.INFO))
+
+        stderr_val = stderr.getvalue().strip()
+        if stderr_val:
+            self.print(Popup(stderr_val, level=logging.CRITICAL))
+
+        await self._update_table()

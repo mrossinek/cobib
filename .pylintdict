@@ -75,6 +75,7 @@ postinitcommand
 postisbnparse
 pragma
 pre
+programmatically
 py
 pypi
 pytest

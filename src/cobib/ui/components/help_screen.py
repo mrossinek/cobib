@@ -1,6 +1,6 @@
-"""coBib's help popup.
+"""coBib's help screen.
 
-This widget renders a popup with the current key bindings and action descriptions.
+This screen renders a help information with the current key bindings and action descriptions.
 
 .. warning::
 
@@ -9,41 +9,48 @@ This widget renders a popup with the current key bindings and action description
 
 from __future__ import annotations
 
-from typing import cast
-
 from rich.table import Table
-from textual.app import App, ComposeResult
-from textual.containers import Container
+from textual.app import ComposeResult
+from textual.screen import ModalScreen
 from textual.widgets import Static
 from typing_extensions import override
 
 
-class HelpPopup(Container, can_focus=False, can_focus_children=False):
-    """coBib's help popup."""
+class HelpScreen(ModalScreen[None]):
+    """coBib's help screen."""
+
+    BINDINGS = [
+        ("question_mark", "toggle_help", "Help"),
+    ]
+    """
+    | Key(s) | Description |
+    | :- | :- |
+    | ? | Toggles the help screen. |
+    """
 
     DEFAULT_CSS = """
-        HelpPopup {
-            layer: overlay;
-            background: blue 25%;
-            height: auto;
-            width: 100%;
+        HelpScreen {
+            align: center middle;
         }
 
-        HelpPopup.-hidden {
-            offset-y: 100%;
+        #help {
+            padding: 1 2;
+            width: auto;
+            height: auto;
+            background: $surface;
         }
     """
 
     HELP_DESCRIPTIONS = [
         ("q", "Quit's coBib"),
-        ("question_mark", "Toggles the help page"),
+        ("question_mark", "Toggles the help screen"),
         ("underscore", "Toggles between the horizontal and vertical layout"),
         ("space", "Toggles folding of a search result"),
         ("colon", "Starts the prompt for an arbitrary coBib command"),
         ("v", "Selects the current entry"),
         ("slash", "Searches the database for the provided string"),
         ("a", "Prompts for a new entry to be added to the database"),
-        ("d", "Delete the current (or selected) entries"),
+        ("d", "Deletes the current (or selected) entries"),
         ("e", "Edits the current entry"),
         ("f", "Allows filtering the table using `++/--` keywords"),
         ("i", "Imports entries from another source"),
@@ -62,14 +69,18 @@ class HelpPopup(Container, can_focus=False, can_focus_children=False):
 
     @override
     def compose(self) -> ComposeResult:
-        help_table = Table(title="coBib TUI Help")
+        help_table = Table(title="coBib TUI Help", caption="Close this help by pressing '?'")
         help_table.add_column("Key")
         help_table.add_column("Description")
-        if self.parent is None:
-            raise KeyError
-        app = cast(App[None], self.parent.parent)
         for key, description in self.HELP_DESCRIPTIONS:
-            help_table.add_row(app.get_key_display(key), description)
-        static = Static(help_table)
+            help_table.add_row(self.app.get_key_display(key), description)
+        static = Static(help_table, id="help")
         static.styles.content_align = ("center", "middle")
         yield static
+
+    def action_toggle_help(self) -> None:
+        """Toggles the help information.
+
+        Since this is the action of the `HelpScreen`, it simply pops the screen.
+        """
+        self.app.pop_screen()
