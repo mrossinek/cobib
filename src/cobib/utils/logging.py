@@ -6,10 +6,10 @@ This module provides utility methods to set up logging to different handlers.
 import logging
 import logging.handlers
 import sys
+from importlib import metadata
 from pathlib import Path
 from typing import List, Optional, Union
 
-from pkg_resources import get_distribution
 from rich.console import ConsoleRenderable, Group
 from rich.markdown import Markdown
 from rich.panel import Panel
@@ -86,7 +86,7 @@ def get_file_handler(
 def print_changelog(version: str, cached_version_path: Optional[str]) -> Optional[Panel]:
     """Generates a `rich.Panel` to display the changelog since the last displayed version.
 
-    This function prints the contents of the CHANGELOG (extracted from the PKG-INFO metadata)
+    This function prints the contents of the CHANGELOG (extracted from the package metadata)
     between the current version (`version`) and the latest cached version (extracted from the
     provided file path).
 
@@ -131,26 +131,11 @@ def print_changelog(version: str, cached_version_path: Optional[str]) -> Optiona
         )
     )
 
-    metadata = ""
-    try:
-        metadata = get_distribution("cobib").get_metadata("METADATA")
-    except FileNotFoundError:
-        try:
-            metadata = get_distribution("cobib").get_metadata("PKG-INFO")
-        except FileNotFoundError:
-            groups.append(
-                Text(
-                    "I wanted to show you the new changes here but was unable to query them from "
-                    + "your installation. You can look them up yourself, here:\n"
-                    + "https://gitlab.com/coBib/cobib/-/blob/master/CHANGELOG.md",
-                    style="bold red",
-                )
-            )
-            return Panel(Group(*groups), width=80)
+    description = str(metadata.metadata("cobib").get("description"))
 
     lines: List[str] = []
     started = False
-    for line in metadata.splitlines():
+    for line in description.splitlines():
         line = line.strip()
         if line.startswith(f"## [{current_version}]"):
             started = True
