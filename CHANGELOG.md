@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - refactored the TUI by leveraging textual's `Screen` concept (#111,!71)
   - this means the TUI will look slightly different but no real functional change has occurred
   - the view of an `Entry` can now be scrolled when the output exceeds the available space
+- switched from the `BeautifulSoup` HTML parser to `lxml`
+  - this is supposed to give more accurate results but adds an extra dependency
 
 ### Deprecated
 - The following shell helpers are no longer used with the zsh completion being

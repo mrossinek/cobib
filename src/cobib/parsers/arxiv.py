@@ -63,7 +63,7 @@ class ArxivParser(Parser):
             LOGGER.error("An Exception occurred while trying to query the arXiv ID: %s.", arxiv_id)
             LOGGER.error(err)
             return OrderedDict()
-        xml = BeautifulSoup(page.text, features="html.parser")
+        xml = BeautifulSoup(page.text, features="xml")
         if xml.feed.entry.title.contents[0] == "Error":
             msg = (
                 "The arXiv API returned the following error: " + xml.feed.entry.summary.contents[0]
@@ -74,12 +74,12 @@ class ArxivParser(Parser):
         entry: Dict[str, Any] = {}
         entry["archivePrefix"] = "arXiv"
         for key in xml.feed.entry.findChildren(recursive=False):
-            if key.name == "arxiv:doi":
+            if "doi" in key.name:
                 entry["doi"] = str(key.contents[0])
             elif key.name == "id":
                 entry["arxivid"] = str(key.contents[0]).replace("http://arxiv.org/abs/", "")
                 entry["eprint"] = str(key.contents[0])
-            elif key.name == "arxiv:primary_category":
+            elif key.name == "primary_category":
                 entry["primaryClass"] = str(key.attrs["term"])
             elif key.name == "published":
                 # The year must also be stored as a string for compatibility reasons with
