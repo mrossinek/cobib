@@ -365,10 +365,12 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         allows the user to provide a field to be sorted by. This command is handled specially
         because it ensures that only a single sort argument can be given at a time.
         """
-        # TODO: there is a bug with the sorting columns remaining in successive searches
         try:
             # first, remove any previously used sort argument
             sort_arg_idx = self._list_args.index("-s")
+            # NOTE: we need to pop twice in order to remove both: the `-s` option and the key which
+            # was sorted by
+            self._list_args.pop(sort_arg_idx)
             self._list_args.pop(sort_arg_idx)
         except ValueError:
             pass

@@ -43,6 +43,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     should remove the `_cobib` file which will be located in one of the
     directories listed in your `$FPATH` environment variable.
 
+### Fixed
+- the proper pre-population of the TUI prompt during the sorting action (#117)
+- preserves the value of `config.commands.list_.default_columns` and
+  properly removes a field if it is no longer sorted by in the TUI (#117)
+
 ### Removed
 - the crude and very slow zsh completion script
 

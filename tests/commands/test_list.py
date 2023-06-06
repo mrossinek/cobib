@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import contextlib
 import os
+from copy import copy
 from io import StringIO
 from itertools import zip_longest
 from shutil import copyfile
@@ -63,10 +64,13 @@ class TestListCommand(CommandTest):
             config_overwrite: what to overwrite `config.commands.list_.ignore_case` with.
         """
         config.commands.list_.ignore_case = config_overwrite
+        original_default_columns = copy(config.commands.list_.default_columns)
 
         cmd = ListCommand(*args)
         cmd.execute()
         assert [entry.label for entry in cmd.entries] == expected_labels
+        # NOTE: this is a regression test against https://gitlab.com/cobib/cobib/-/issues/117
+        assert original_default_columns == config.commands.list_.default_columns
 
     @pytest.mark.parametrize(
         ["args", "expected_labels", "expected_keys", "config_overwrite"],

@@ -95,6 +95,7 @@ from __future__ import annotations
 import argparse
 import logging
 from collections import defaultdict
+from copy import copy
 from typing import Any, Dict, List, Optional, Set, Tuple, Type
 
 from rich.console import Console, ConsoleRenderable
@@ -219,11 +220,14 @@ class ListCommand(Command):
         self.entries = self._sort_entries(filtered_entries, self.largs.sort, self.largs.reverse)
 
         # construct list of columns to be displayed
-        self.columns = config.commands.list_.default_columns
+        self.columns = copy(config.commands.list_.default_columns)
+        LOGGER.debug("Listing the default columns: %s", str(self.columns))
         # display the column along which was sorted
         if self.largs.sort and self.largs.sort not in self.columns:
+            LOGGER.debug("Appending the column which is sorted by: %s", str(self.largs.sort))
             self.columns.append(self.largs.sort)
         # also display the keys which were used to filter
+        LOGGER.debug("Extendings the columns which are filtered by: %s", str(filtered_keys))
         self.columns.extend(col for col in filtered_keys if col not in self.columns)
 
         Event.PostListCommand.fire(self)
@@ -301,10 +305,15 @@ class ListCommand(Command):
         Returns:
             The sorted list of entries.
         """
+        if reverse:
+            LOGGER.debug("Reversing the entry order.")
+
         if sort is None:
             if reverse:
                 return entries[::-1]
             return entries
+
+        LOGGER.debug("Sorting entries by key '%s'.", sort)
 
         sorted_entries: List[Entry] = sorted(
             entries, reverse=reverse, key=lambda entry: entry.stringify().get(str(sort), "")
