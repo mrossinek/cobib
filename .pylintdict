@@ -24,6 +24,7 @@ cobib
 config
 configfile
 configpath
+coroutine
 dat
 dataclass
 dataclasses

@@ -19,7 +19,7 @@ import logging
 import shlex
 import sys
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
-from typing import Any, Iterator, cast
+from typing import Any, Awaitable, Callable, Coroutine, Iterator, cast
 
 from rich.console import RenderableType
 from textual.app import App, ComposeResult
@@ -313,7 +313,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         main.refresh()
         self.query_one(EntryView).query_one(Static).refresh()
 
-    async def action_delete(self) -> None:
+    def action_delete(self) -> None:
         """The delete action.
 
         This action triggers the `cobib.commands.delete.DeleteCommand`.
@@ -326,7 +326,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         else:
             labels = [main.get_current_label()]
 
-        await self._run_command(["delete"] + labels)
+        self._run_command(["delete"] + labels)
 
     async def action_edit(self) -> None:
         """The edit action.
@@ -335,7 +335,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         """
         self._edit_entry()
 
-    async def action_open(self) -> None:
+    def action_open(self) -> None:
         """The open action.
 
         This action triggers the `cobib.commands.open.OpenCommand`.
@@ -348,7 +348,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         else:
             labels = [main.get_current_label()]
 
-        await self._run_command(["open"] + labels)
+        self._run_command(["open"] + labels)
 
     async def action_filter(self) -> None:
         """The filter action.
@@ -456,9 +456,22 @@ class TUI(UI, App[None]):  # type: ignore[misc]
             elif command[0].lower() == "search":
                 await self._update_tree(command[1:])
             else:
-                await self._run_command(command)
+                self._run_command(command)
 
-    async def _run_command(self, command: list[str]) -> None:
+    @staticmethod
+    async def _async_done_callback(
+        task: Awaitable[None], async_callback: Callable[[], Coroutine[Any, Any, None]]
+    ) -> None:
+        """Adds an asynchronous callback for when the provided task is done.
+
+        Args:
+            task: the Task to await before running the next coroutine.
+            async_callback: the asynchronous callback to run after the `task` has completed.
+        """
+        await task
+        await async_callback()
+
+    def _run_command(self, command: list[str]) -> None:
         """Parses and executes a cobib command with its arguments.
 
         This method also redirects `stdout` and `stderr` and captures their contents to be displayed
@@ -474,10 +487,19 @@ class TUI(UI, App[None]):  # type: ignore[misc]
                         *command[1:], prompt=Prompt, console=self
                     )
 
-                    task = asyncio.create_task(subcmd.execute())
-                    self._background_tasks.add(task)
-                    task.add_done_callback(self._background_tasks.discard)
-                    task.add_done_callback(lambda _: self._update_table)
+                    # 1. create subcommand execution task
+                    task1 = asyncio.create_task(subcmd.execute())
+
+                    # 2. create another task which chains an asynchronous callback after the
+                    #    previous one
+                    task2 = asyncio.create_task(TUI._async_done_callback(task1, self._update_table))
+
+                    # 3. ensure proper clean-up of all created tasks
+                    self._background_tasks.add(task1)
+                    task1.add_done_callback(self._background_tasks.discard)
+                    self._background_tasks.add(task2)
+                    task2.add_done_callback(self._background_tasks.discard)
+
                 except SystemExit:
                     pass
 
@@ -488,5 +510,3 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         stderr_val = stderr.getvalue().strip()
         if stderr_val:
             self.print(Popup(stderr_val, level=logging.CRITICAL))
-
-        await self._update_table()
