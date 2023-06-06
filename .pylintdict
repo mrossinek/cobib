@@ -28,6 +28,7 @@ dat
 dataclass
 dataclasses
 deepcopied
+devtools
 diff
 disambiguated
 docstring

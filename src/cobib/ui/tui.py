@@ -24,6 +24,7 @@ from typing import Any, Iterator, cast
 from rich.console import RenderableType
 from textual.app import App, ComposeResult
 from textual.keys import Keys
+from textual.logging import TextualHandler
 from textual.widget import AwaitMount, Widget
 from textual.widgets import Footer, Header, Input, Static
 from typing_extensions import override
@@ -55,19 +56,25 @@ class TUI(UI, App[None]):  # type: ignore[misc]
 
     This class does not support any extra command-line arguments compared to the base class.
     However, it also extends the `textual.app.App` interface. It can be used with the debugging
-    tools of textual but starting it requires a little bit of care because it depends on some setup
-    being done during `cobib.ui.cli.CLI.run` (which is the method from which the TUI gets started
-    during normal operation).
+    tools of textual but starting it requires you to use the `-c` (a.k.a. `--command`) argument of
+    `textual run` since `cobib` is installed as a command-line script.
 
     In short, here is how you can start the TUI using textual:
     ```
-    textual run "src/cobib/__main__.py"
+    textual run -c cobib
     ```
     This assumes that you are at the root of the cobib development folder. You can include
-    additional command-line arguments within the quotes as you desire.
+    additional command-line arguments after `cobib`, but when doing so you will need to put the
+    entire command in quotes, like this:
+    ```
+    textual run -c "cobib -v"
+    ```
 
     Adding the `--dev` argument to `textual run` will connect it to the debugging console which you
     can start in a separate shell via `textual console`.
+
+    For more information on how to debug a textual app, please refer to
+    [their documentation](https://textual.textualize.io/guide/devtools/).
     """
 
     DEFAULT_CSS = """
@@ -132,6 +139,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
             **kwargs: any keyword arguments for textual's underlying `App` class.
         """
         super().__init__(*args, **kwargs)
+        self.root_logger.addHandler(TextualHandler())
         self.title = "coBib"
         self.sub_title = "The Console Bibliography Manager"
         self._list_args = ["-r"]
