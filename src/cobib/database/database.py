@@ -94,6 +94,11 @@ class Database(OrderedDict):  # type: ignore
         """
         LOGGER.debug("Renaming entry '%s' to '%s'.", old_label, new_label)
         Database._unsaved_entries[old_label] = new_label
+        if new_label != old_label:
+            # NOTE: this is not technically needed but the rename method is exploited during
+            # database linting with "fake" renames in order to register entries for re-writing
+            # during saving
+            super().pop(old_label)
 
     def disambiguate_label(self, label: str, entry: cobib.database.Entry) -> str:
         """Disambiguate a given label to ensure it becomes unique.

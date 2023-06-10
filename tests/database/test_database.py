@@ -49,6 +49,7 @@ def setup() -> Generator[Any, None, None]:
     config.load(get_resource("debug.py"))
     yield
     Database().clear()
+    Database().read()
     config.defaults()
 
 

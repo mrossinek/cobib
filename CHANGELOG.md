@@ -50,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - preserves the value of `config.commands.list_.default_columns` and
   properly removes a field if it is no longer sorted by in the TUI (#117)
 - properly updates the list of entries in the TUI after changing the database contents;
-  for example via `add` or `delete` (#113)
+  for example via `add` (#113) or `delete` (#113) or `edit` (#118)
 
 ### Removed
 - the crude and very slow zsh completion script

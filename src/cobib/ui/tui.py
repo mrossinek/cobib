@@ -334,6 +334,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         This action triggers the `cobib.commands.edit.EditCommand`.
         """
         self._edit_entry()
+        await self._update_table()
 
     def action_open(self) -> None:
         """The open action.
@@ -391,7 +392,6 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         label = main.get_current_label()
         with self.suspend():
             commands.EditCommand(label).execute()
-        self.refresh(layout=True)
 
     def _show_entry(self) -> None:
         """Renders the entry currently under the cursor in the `EntryView` widget."""
