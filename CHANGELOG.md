@@ -51,6 +51,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   properly removes a field if it is no longer sorted by in the TUI (#117)
 - properly updates the list of entries in the TUI after changing the database contents;
   for example via `add` (#113) or `delete` (#113) or `edit` (#118)
+- an issue where file-accessing operations performed on a newly added entry within
+  the same TUI session would fail because the path would not be iterated correctly
+- the live updating of the download progress bar inside the TUI (#112)
 
 ### Removed
 - the crude and very slow zsh completion script

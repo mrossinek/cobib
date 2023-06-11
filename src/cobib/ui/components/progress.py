@@ -1,16 +1,9 @@
-"""coBib's progress widget.
+"""coBib's Rich-Textual progress widget.
 
-This widget is a simple wrapper around textual's
-[`ProgressBar`](https://textual.textualize.io/widgets/progress_bar/) widget to ensure a more unified
-handling alongside rich's
-[`Progress`](https://rich.readthedocs.io/en/stable/reference/progress.html) interface.
-
-.. warning::
-
-   This widget (used by the `cobib.utils.file_downloader.FileDownloader`) is not on par with the
-   progress display of the CLI. Future improvements are imminent.
-
-   For more information refer to [this issue](https://gitlab.com/cobib/cobib/-/issues/112).
+This widget is a bit of a Frankenstein project as it wraps rich's `rich.progress.Progress` object
+and makes sure that upon advancing a task, the `textual.widgets.Static` widget used to display it in
+the TUI gets updated. This was favored over using textual's `textual.widgets.ProgressBar` to
+re-implement rich's more flexible `rich.progress.Progress` displaying capabilities.
 
 .. warning::
 
@@ -19,18 +12,59 @@ handling alongside rich's
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from threading import RLock
+from time import monotonic
 
-from textual.widgets import ProgressBar
+from rich.progress import Progress as RichProgress
+from rich.progress import ProgressColumn, Task, TaskID
+from textual.widgets import Static
+from typing_extensions import override
 
-if TYPE_CHECKING:
-    from ..tui import TUI
 
+class Progress(  # type: ignore[misc]
+    Static, RichProgress, can_focus=False, can_focus_children=False
+):
+    """coBib's Frankenstein Rich-Textual progress widget."""
 
-class Progress(ProgressBar, can_focus=False, can_focus_children=False):
-    """coBib's progress widget."""
+    DEFAULT_CSS = """
+        Progress {
+            layout: horizontal;
+            width: 100%;
+            height: 1;
+        }
+    """
 
-    console: TUI
-    """The running TUI instance."""
+    def __init__(
+        self,
+        *columns: str | ProgressColumn,
+    ) -> None:
+        """Initializes the Frankenstein Rich-Textual progress widget.
 
-    # TODO: add proper styling and figure out why this does not refresh properly
+        Args:
+            *columns: the columns to be reported. If this is empty, it will fall back to
+                `get_default_columns`.
+        """
+        super().__init__(id="live")
+
+        self.columns = columns or self.get_default_columns()
+
+        self._lock = RLock()
+        self._tasks: dict[TaskID, Task] = {}
+        self._task_index: TaskID = TaskID(0)
+
+        self.speed_estimate_period = 30.0
+        self.get_time = monotonic
+
+    @override
+    def advance(self, task_id: TaskID, advance: float = 1) -> None:
+        super().advance(task_id, advance)
+        self.renderable = self.make_tasks_table(self.tasks)
+        self.refresh()
+
+    @override
+    def start(self) -> None:
+        return
+
+    @override
+    def stop(self) -> None:
+        return

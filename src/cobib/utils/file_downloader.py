@@ -2,17 +2,17 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import re
 import tempfile
-from functools import partial
 from pathlib import Path
-from typing import Callable, Dict, Optional, Type
+from typing import Dict, Optional, Type
 
 import requests
 from rich.console import Console
 from rich.progress import DownloadColumn, Progress, SpinnerColumn, TimeElapsedColumn
-from textual.widgets import ProgressBar
+from textual.app import App
 
 from cobib.config import Event, config
 
@@ -40,8 +40,11 @@ class FileDownloader:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    progress: Type[Progress] | Type[ProgressBar] = Progress
+    progress: Type[Progress] = Progress
     """The type of progress bar to use when displaying the downloading progress."""
+
+    console: Console | App[None] = Console()
+    """The object via which to print output."""
 
     _PDF_MARKER = bytes("%PDF", "utf-8")
     """A marker which the downloaded file's beginning is checked against, to determine that it is
@@ -130,51 +133,45 @@ class FileDownloader:
                 FileDownloader._recover(path, backup)
                 return None
 
-            advance: Callable[[int], None]
-            progress_bar: Progress | ProgressBar
-            if issubclass(FileDownloader.progress, ProgressBar):
-                progress_bar = FileDownloader.progress(total_length)
-                _, await_mount = progress_bar.console.print(  # type: ignore[attr-defined]
+            progress_bar = FileDownloader.progress(
+                SpinnerColumn(),
+                *Progress.get_default_columns(),
+                TimeElapsedColumn(),
+                DownloadColumn(),
+            )
+            progress_bar.start()
+
+            if isinstance(FileDownloader.console, App):
+                # pylint: disable=assignment-from-no-return,unpacking-non-sequence
+                _, await_mount = FileDownloader.console.print(  # type: ignore[attr-defined]
                     progress_bar
                 )
                 await await_mount
-                advance = progress_bar.advance
-            else:
-                progress_bar = FileDownloader.progress(
-                    SpinnerColumn(),
-                    *Progress.get_default_columns(),
-                    TimeElapsedColumn(),
-                    DownloadColumn(),
-                    transient=False,
-                    # TODO: the unittests fail when this remains `None` because it appears as though
-                    # too many Live sessions are opened at once. How can we deal with this properly?
-                    # Can we simply assume the user is not going to do this in parallel?
-                    console=Console(),
-                )
-                progress_bar.start()
-                task = progress_bar.add_task("Downloading...", total=total_length)
-                advance = partial(progress_bar.advance, task)
+
+            task = progress_bar.add_task("Downloading...", total=total_length)
 
             accumulated_length = 0
 
             if total_length is None:
                 if not FileDownloader._assert_pdf(response.content):
                     FileDownloader._recover(path, backup)
+                    progress_bar.stop()
                     return None
                 file.write(response.content)
             else:
                 for data in response.iter_content(chunk_size=4096):
                     if accumulated_length == 0 and not FileDownloader._assert_pdf(data):
                         FileDownloader._recover(path, backup)
+                        progress_bar.stop()
                         return None
                     accumulated_length += len(data)
-                    advance(len(data))
+                    progress_bar.advance(task, len(data))
+                    await asyncio.sleep(0)
                     file.write(data)
 
-            if isinstance(progress_bar, ProgressBar):
-                progress_bar.set_timer(5.0, progress_bar.remove)
-            else:
-                progress_bar.stop()
+            progress_bar.stop()
+            if isinstance(FileDownloader.console, App):
+                progress_bar.set_timer(5.0, progress_bar.remove)  # type: ignore[attr-defined]
 
             msg = f"Successfully downloaded {path}"
             print(msg)
