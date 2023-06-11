@@ -529,6 +529,23 @@ class ParserConfig(_ConfigBase):
 
 
 @dataclass
+class TUIConfig(_ConfigBase):
+    """The `config.tui` section."""
+
+    scroll_offset: int = 2
+    """The minimum number of lines to keep above and below the cursor in the
+    `cobib.ui.tui.components.ListView`. This is similar to Vim's `scrolloff` setting."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the TUI configuration section.")
+        self._assert(
+            isinstance(self.scroll_offset, int),
+            "config.tui.scroll_offset should be an integer.",
+        )
+
+
+@dataclass
 class FileDownloaderConfig(_ConfigBase):
     """The `config.utils.file_downloader` section."""
 
@@ -625,6 +642,8 @@ class Config(_ConfigBase):
     """
     parsers: ParserConfig = field(default_factory=lambda: ParserConfig())
     """The nested section for the parsers settings."""
+    tui: TUIConfig = field(default_factory=lambda: TUIConfig())
+    """The nested section for the TUI settings."""
     utils: UtilsConfig = field(default_factory=lambda: UtilsConfig())
     """The nested section for the utils settings."""
 

@@ -148,6 +148,12 @@ config.parsers.bibtex.ignore_non_standard_types = False
 # https://yaml.readthedocs.io/en/latest/install.html#optional-requirements
 config.parsers.yaml.use_c_lib_yaml = True
 
+# TUI
+
+# You can configure the minimum number of lines to keep above and below the cursor in the TUI's list
+# view. This is similar to Vim's `scrolloff` setting.
+config.tui.scroll_offset = 2
+
 # UTILS
 
 # You can specify the default download location for associated files.

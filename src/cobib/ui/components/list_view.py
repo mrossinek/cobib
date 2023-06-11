@@ -15,9 +15,12 @@ from typing import Any
 from rich.text import Text
 from textual.binding import Binding
 from textual.coordinate import Coordinate
+from textual.geometry import Region, clamp
 from textual.reactive import reactive
 from textual.widgets import DataTable
 from typing_extensions import override
+
+from cobib.config import config
 
 from .motion_key import MotionKey
 
@@ -55,6 +58,22 @@ class ListView(DataTable[Text]):
             height: 1fr;
         }
     """
+
+    @property
+    @override
+    def scrollable_content_region(self) -> Region:
+        # we shrink the scroll-able content region by the scroll offset at the bottom
+        # NOTE: shrinking at the top does not seem to yield the intended result as it merely adds to
+        # the offset at the bottom
+        return super().scrollable_content_region.shrink((0, 0, config.tui.scroll_offset, 0))
+
+    @override
+    def validate_scroll_y(self, value: float) -> float:
+        # we implement the scroll offset at the top by forcing the scroll y value to be at
+        # least an offset away from the cursor row
+        if self.cursor_row - value < config.tui.scroll_offset:
+            value = self.cursor_row - config.tui.scroll_offset
+        return clamp(value, 0, self.row_count)
 
     @override
     def __init__(self, *args: Any, **kwargs: Any) -> None:

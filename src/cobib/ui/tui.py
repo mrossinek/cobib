@@ -416,13 +416,18 @@ class TUI(UI, App[None]):  # type: ignore[misc]
 
     async def _update_table(self) -> None:
         """Updates the list of entries displayed in the `MainContent`."""
-        # TODO: retain scroll position
+        main = self.query_one(MainContent)
+        old_table = main.query_one(ListView)
         command = commands.ListCommand(*self._list_args)
         command.execute()
         table = command.render_textual()
-        main = self.query_one(MainContent)
         await main.replace_widget(table)
         table.focus()
+        if old_table is not None:
+            table.cursor_coordinate = old_table.cursor_coordinate
+            table.scroll_x = old_table.scroll_x
+            table.scroll_y = old_table.scroll_y
+            del old_table
         self.refresh(layout=True)
 
     async def _update_tree(self, command: list[str]) -> None:
