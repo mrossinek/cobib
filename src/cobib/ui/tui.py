@@ -23,6 +23,7 @@ from typing import Any, Awaitable, Callable, Coroutine, Iterator, cast
 
 from rich.console import RenderableType
 from textual.app import App, ComposeResult
+from textual.css.query import NoMatches
 from textual.keys import Keys
 from textual.logging import TextualHandler
 from textual.widget import AwaitMount, Widget
@@ -147,7 +148,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         self._filters.append(self._filter)
         self._background_tasks: set[asyncio.Task] = set()  # type: ignore[type-arg]
         PopupLoggingHandler(self, level=logging.INFO)
-        Progress.console = self
+        FileDownloader.console = self
         FileDownloader.progress = Progress
 
     @override
@@ -198,7 +199,13 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         else:
             popup = Popup(renderable, level=0, timer=None)
 
-        await_mount = self.screen.query_one(PopupPanel).mount(popup)
+        panel = self.screen.query_one(PopupPanel)
+
+        try:
+            await_mount = panel.mount(popup, before="#live")
+        except NoMatches:
+            await_mount = panel.mount(popup)
+
         return popup, await_mount
 
     # Event reaction methods

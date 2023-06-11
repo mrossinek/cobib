@@ -202,7 +202,7 @@ class ZoteroImporter(Importer):
 
             path = await FileDownloader().download(url, filename, headers=self.authentication)
             if path is not None:
-                entry.data["file"] = str(path)
+                entry.file = str(path)  # type: ignore[assignment]
 
         Event.PostZoteroImport.fire(self)
 

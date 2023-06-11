@@ -359,7 +359,7 @@ class AddCommand(Command):
         skip_download = config.commands.add.skip_download
         if self.largs.skip_download is not None:
             skip_download = self.largs.skip_download
-        LOGGER.info("Automatic file download will%s be attempted.", "" if skip_download else " not")
+        LOGGER.info("Automatic file download will%s be attempted.", " not" if skip_download else "")
 
         bib = Database()
         existing_labels = set(bib.keys())
@@ -477,7 +477,7 @@ class AddCommand(Command):
                     )
                     path = await task
                     if path is not None:
-                        entry.data["file"] = str(path)
+                        entry.file = str(path)  # type: ignore[assignment]
             # check journal abbreviation
             if "journal" in entry.data.keys():
                 entry.data["journal"] = JournalAbbreviations.elongate(entry.data["journal"])
