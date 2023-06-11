@@ -13,8 +13,8 @@ from __future__ import annotations
 from rich.text import Text
 from textual.binding import Binding
 from textual.css.query import NoMatches
-from textual.reactive import reactive
 from textual.widgets import Tree
+from typing_extensions import override
 
 from .motion_key import MotionKey
 
@@ -23,8 +23,6 @@ class SearchView(Tree[Text]):
     """coBib's search results viewer widget."""
 
     id = "cobib-search-view"
-
-    show_root = reactive(False)
 
     BINDINGS = [
         Binding("j", "motion('down', 'cursor_down')", "Down", show=False),
@@ -46,6 +44,10 @@ class SearchView(Tree[Text]):
     | h, left | Moves to the left. |
     | l, right | Moves to the right. |
     """
+
+    @override
+    def on_mount(self) -> None:
+        self.show_root = False
 
     def action_motion(self, key: str, action: str) -> None:
         """Action to move the cursor.

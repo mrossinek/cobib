@@ -10,13 +10,10 @@ It subclasses textual's built-in `DataTable` widget.
 
 from __future__ import annotations
 
-from typing import Any
-
 from rich.text import Text
 from textual.binding import Binding
 from textual.coordinate import Coordinate
 from textual.geometry import Region, clamp
-from textual.reactive import reactive
 from textual.widgets import DataTable
 from typing_extensions import override
 
@@ -29,8 +26,6 @@ class ListView(DataTable[Text]):
     """coBib's list results viewer widget."""
 
     id = "cobib-list-view"
-
-    cursor_type = reactive("row")
 
     BINDINGS = [
         Binding("j", "motion('down', 'cursor_down')", "Down", show=False),
@@ -76,12 +71,10 @@ class ListView(DataTable[Text]):
         return clamp(value, 0, self.row_count)
 
     @override
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-
-        # TODO: revisit this based on the outcome of https://github.com/Textualize/textual/pull/2740
+    def on_mount(self) -> None:
         self.fixed_columns = 1
         self.zebra_stripes = True
+        self.cursor_type = "row"
 
     def action_motion(self, key: str, action: str) -> None:
         """Action to move the cursor.
