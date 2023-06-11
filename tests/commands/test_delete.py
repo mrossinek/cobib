@@ -126,7 +126,13 @@ class TestDeleteCommand(CommandTest):
     async def test_confirmation_prompt(
         self, setup: Any, post_setup: Any, labels: List[str]
     ) -> None:
-        """TODO."""
+        """Tests the interactive confirmation prompt.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            post_setup: an additional setup fixture.
+            labels: the list of labels to be deleted.
+        """
         config.commands.delete.confirm = True
 
         choices = post_setup.get("stdin_list", False)

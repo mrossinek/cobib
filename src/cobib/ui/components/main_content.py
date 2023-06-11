@@ -27,8 +27,6 @@ class MainContent(ContentSwitcher):
         }
     """
 
-    # TODO: add a validation hook to the mount method to prevent widgets of "wrong" type?
-
     def get_current_label(self) -> str:
         """Gets the label of the entry currently under the cursor.
 

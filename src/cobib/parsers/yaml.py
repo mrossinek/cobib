@@ -65,7 +65,7 @@ class YAMLParser(Parser):
             self._yaml.load_all(stream),  # type: ignore[union-attr]
             description="Reading database...",
             transient=True,
-            console=Console(file=sys.stderr),  # TODO: do not hard-code this
+            console=Console(file=sys.stderr),
         ):
             for label, data in entry.items():
                 bib[label] = Entry(label, data)
