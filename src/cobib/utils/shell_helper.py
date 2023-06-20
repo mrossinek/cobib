@@ -20,6 +20,7 @@ from textual.app import App
 from .rel_path import RelPath
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 def list_commands(*args: str) -> List[str]:

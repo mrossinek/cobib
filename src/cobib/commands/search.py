@@ -76,6 +76,7 @@ from .base_command import ArgumentParser, Command
 from .list_ import ListCommand
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 class SearchCommand(Command):

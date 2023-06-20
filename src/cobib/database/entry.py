@@ -12,10 +12,11 @@ from pylatexenc.latexencode import UnicodeToLatexEncoder
 from cobib.config import config
 from cobib.utils.rel_path import RelPath
 
-LOGGER = logging.getLogger(__name__)
-
 if TYPE_CHECKING:
     import cobib.parsers
+
+LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 class Entry:

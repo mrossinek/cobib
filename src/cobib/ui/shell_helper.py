@@ -16,6 +16,7 @@ from cobib.ui.ui import UI
 from cobib.utils import shell_helper
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 class ShellHelper(UI):

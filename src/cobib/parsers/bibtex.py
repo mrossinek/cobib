@@ -26,6 +26,7 @@ from cobib.database import Entry
 from .base_parser import Parser
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 class BibtexParser(Parser):

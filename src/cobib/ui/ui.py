@@ -14,6 +14,7 @@ from cobib.ui.components import ArgumentParser
 from cobib.utils.logging import get_file_handler, get_stream_handler
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 class UI:

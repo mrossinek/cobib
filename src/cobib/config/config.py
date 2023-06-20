@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from .event import Event
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 @dataclass

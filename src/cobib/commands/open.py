@@ -63,6 +63,7 @@ from cobib.utils.rel_path import RelPath
 from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 class OpenCommand(Command):

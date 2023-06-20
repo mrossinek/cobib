@@ -31,6 +31,7 @@ from cobib.database import Entry
 from .base_parser import Parser
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 ARXIV_URL = "https://export.arxiv.org/api/query?id_list="
 """arXiv exporting URL taken from [here](https://arxiv.org/help/oa)."""

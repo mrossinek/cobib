@@ -74,6 +74,7 @@ from cobib.database import Database, Entry
 from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 class ImportCommand(Command):

@@ -61,6 +61,7 @@ from cobib.utils.rel_path import RelPath
 from .base_importer import ArgumentParser, Importer
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 class ZoteroImporter(Importer):
