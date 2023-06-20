@@ -512,7 +512,7 @@ class AddCommand(Command):
             The wrapped `PromptBase.process_response` method.
         """
 
-        @override
+        @override  # type: ignore[misc]
         @wraps(func)
         def process_response(prompt: PromptBase[PromptType], value: str) -> PromptType:
             return_value: PromptType = func(prompt, value)
