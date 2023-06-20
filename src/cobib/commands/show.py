@@ -30,6 +30,7 @@ from cobib.parsers.bibtex import BibtexParser
 from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 class ShowCommand(Command):

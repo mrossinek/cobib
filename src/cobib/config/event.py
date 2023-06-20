@@ -118,6 +118,7 @@ else:
     }
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 class Event(Enum):

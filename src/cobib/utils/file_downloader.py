@@ -19,6 +19,7 @@ from cobib.config import Event, config
 from .rel_path import RelPath
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 class FileDownloader:

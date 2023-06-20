@@ -30,6 +30,7 @@ from .doi import DOI_REGEX, DOIParser
 from .isbn import ISBN_REGEX, ISBNParser
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 class URLParser(Parser):

@@ -12,6 +12,7 @@ from cobib.database import Entry
 from cobib.ui.components import ArgumentParser as ArgumentParser
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 class Importer(ABC):

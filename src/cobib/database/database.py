@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     import cobib.database
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 # TODO: once Python 3.9 becomes the default, OrderedDict can be properly sub-typed

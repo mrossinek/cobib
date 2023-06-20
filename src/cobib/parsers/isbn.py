@@ -31,6 +31,7 @@ from cobib.database import Entry
 from .base_parser import Parser
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 ISBN_URL = "https://openlibrary.org/api/books?bibkeys=ISBN:"
 """ISBN API URL taken from [here](https://openlibrary.org/dev/docs/api/books)."""

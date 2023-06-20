@@ -30,6 +30,7 @@ from cobib.database.entry import Entry
 from .base_parser import Parser
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 class YAMLParser(Parser):

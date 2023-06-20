@@ -24,6 +24,7 @@ from cobib.ui.ui import UI
 from cobib.utils.logging import print_changelog
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 class CLI(UI):

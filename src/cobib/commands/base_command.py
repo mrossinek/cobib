@@ -21,6 +21,7 @@ from cobib.ui.components import ArgumentParser as ArgumentParser
 from cobib.utils.rel_path import RelPath
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 class Command(ABC):

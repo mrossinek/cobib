@@ -162,6 +162,7 @@ from .edit import EditCommand
 from .modify import evaluate_as_f_string
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 class AddCommand(Command):

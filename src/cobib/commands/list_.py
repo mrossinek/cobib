@@ -112,6 +112,7 @@ from cobib.ui.components import ListView
 from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 class ListCommand(Command):

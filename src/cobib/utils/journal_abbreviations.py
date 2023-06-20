@@ -8,6 +8,7 @@ from typing import Callable, Dict, Optional
 from cobib.config import config
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 
 class JournalAbbreviations:

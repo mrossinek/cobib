@@ -38,6 +38,7 @@ from .base_parser import Parser
 from .bibtex import BibtexParser
 
 LOGGER = logging.getLogger(__name__)
+"""@private module logger."""
 
 DOI_URL = "https://doi.org/"
 """The DOI 'API' URL."""
