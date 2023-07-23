@@ -171,7 +171,7 @@ class AddCommand(Command):
     This command can parse the following arguments:
 
         * `-l`, `--label`: the label to give to the new entry.
-        * `-d`, `--disambiguation`: hard-codes the reply to be used if a disambiguation prompt would
+        * `--disambiguation`: hard-codes the reply to be used if a disambiguation prompt would
           occur.
         * `-f`, `--file`: one or multiple files to associate with this entry. This data will be
           stored in the `cobib.database.Entry.file` property.
