@@ -110,7 +110,8 @@ class ISBNParser(Parser):
         # set entry-type do 'book'
         entry["ENTRYTYPE"] = "book"
         bib = OrderedDict()
-        bib[label] = Entry(label, entry)
+        actual_entry = Entry(label, entry)
+        bib[actual_entry.label] = actual_entry
 
         Event.PostISBNParse.fire(bib)
 

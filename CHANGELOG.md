@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - added the `config.tui.scroll_offset` setting
 - added the `--field` command line option to the `open` command
+- added the `config.database.format.unidecode_labels` setting (#119)
+- (DEV) added a new `HINT` logging level which has value 35 and thus allows to
+  provide information to the user with a higher priority than `WARNING`
+
+### Changed
+- unicode symbols in entry labels will now be replaced with ascii ones (#119)
 
 ### Fixed
 - retain scroll position in the TUI's list view

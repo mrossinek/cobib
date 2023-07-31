@@ -8,3 +8,4 @@ rich
 ruamel.yaml
 textual>=0.14
 typing_extensions
+text-unidecode

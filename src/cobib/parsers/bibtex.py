@@ -56,7 +56,8 @@ class BibtexParser(Parser):
             ):
                 entry["month"] = entry["month"].expr[0].name
             label = entry.pop("ID")
-            bib[label] = Entry(label, entry)
+            actual_entry = Entry(label, entry)
+            bib[actual_entry.label] = actual_entry
 
         Event.PostBibtexParse.fire(bib)
 

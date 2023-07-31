@@ -126,6 +126,11 @@ config.database.format.label_suffix = ("_", LabelSuffix.ALPHA)
 # library.
 config.database.format.suppress_latex_warnings = True
 
+# You can specify whether the entry labels should undergo a "Unicode decoding". When enabled (the
+# default), this means the label will be passed through text-unidecode.
+# For more details refer to: https://pypi.org/project/text-unidecode/
+config.database.format.unidecode_labels = True
+
 # DATABASE.STRINGIFY
 # You can customize the functions which convert non-string fields.
 

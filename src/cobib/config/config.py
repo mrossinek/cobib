@@ -372,6 +372,10 @@ class DatabaseFormatConfig(_ConfigBase):
     """Specifies whether latex warnings should not be ignored during the escaping of special
     characters. This is a simple option which gets passed on to the internally used `pylatexenc`
     library."""
+    unidecode_labels: bool = True
+    """Specifies whether the label of a database entry should undergo a "Unicode decoding". When
+    enabled (the default), this means the label will be passed through
+    [text-unidecode](https://pypi.org/project/text-unidecode/)."""
 
     @override
     def validate(self) -> None:
@@ -395,6 +399,10 @@ class DatabaseFormatConfig(_ConfigBase):
         self._assert(
             isinstance(self.suppress_latex_warnings, bool),
             "config.database.format.suppress_latex_warnings should be a boolean.",
+        )
+        self._assert(
+            isinstance(self.unidecode_labels, bool),
+            "config.database.format.unidecode_labels should be a boolean.",
         )
 
 

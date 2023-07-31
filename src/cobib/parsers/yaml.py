@@ -69,7 +69,8 @@ class YAMLParser(Parser):
             console=Console(file=sys.stderr),
         ):
             for label, data in entry.items():
-                bib[label] = Entry(label, data)
+                actual_entry = Entry(label, data)
+                bib[actual_entry.label] = actual_entry
         stream.close()
 
         Event.PostYAMLParse.fire(bib)

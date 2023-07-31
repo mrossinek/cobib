@@ -495,7 +495,7 @@ class AddCommand(Command):
 
         for label in self.new_entries:
             msg = f"'{label}' was added to the database."
-            LOGGER.info(msg)
+            LOGGER.log(35, msg)
 
     @staticmethod
     def _wrap_prompt_process_response(

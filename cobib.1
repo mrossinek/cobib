@@ -676,6 +676,10 @@ from the disambiguator and the second one is one of the enumerators provided by
 This boolean field indicates whether latex warnings will be ignored during the
 escaping of special characters.
 .TP
+.IR config.database.format.unidecode_labels = True
+This boolean field indicates whether unicode symbols appearing in the label of
+entries should be decoded.
+.TP
 Some fields are internally stored as lists. Upon conversion to the BibTeX
 format, these need to be converted to a basic string. In this process the
 entries of the list will be joined using the separators configured by the

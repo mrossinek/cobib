@@ -18,6 +18,10 @@ from typing_extensions import override
 
 from .rel_path import RelPath
 
+# NOTE: we add a custom HINT level which has a higher priority than WARNING and, thus, can be used
+# to provide information to the user that might be useful to see at runtime.
+logging.addLevelName(35, "HINT")
+
 
 class _StderrHandler(logging.StreamHandler):  # type: ignore[type-arg]
     """A logging handler hard-coded to `sys.stderr`.

@@ -8,6 +8,7 @@ import subprocess
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 from pylatexenc.latexencode import UnicodeToLatexEncoder
+from text_unidecode import unidecode
 
 from cobib.config import config
 from cobib.utils.rel_path import RelPath
@@ -49,6 +50,14 @@ class Entry:
         LOGGER.debug("Initializing entry: %s", label)
 
         self._label: str = str(label)
+        if config.database.format.unidecode_labels:
+            new_label = unidecode(self._label)
+            if new_label != self._label:
+                LOGGER.info(
+                    "Unicode symbols in the label have been decoded resulting in the new label: %s",
+                    new_label,
+                )
+                self._label = new_label
 
         self.data: Dict[str, Any] = {}
         """The actual bibliographic data."""

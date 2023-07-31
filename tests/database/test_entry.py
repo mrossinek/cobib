@@ -1,9 +1,10 @@
 """Tests for coBib's Entry class."""
 
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, Generator, List, Tuple
 
 import pytest
 
+from cobib.config import config
 from cobib.database import Entry
 from cobib.parsers.bibtex import BibtexParser
 from cobib.utils.rel_path import RelPath
@@ -29,6 +30,17 @@ EXAMPLE_ENTRY_DICT = {
     "volume": 119,
     "year": 2019,
 }
+
+
+@pytest.fixture(autouse=True)
+def setup() -> Generator[Any, None, None]:
+    """Resets the configuration to its defaults after a test ran.
+
+    Yields:
+        Access to the local fixture variables.
+    """
+    yield
+    config.defaults()
 
 
 def test_init_logging(caplog: pytest.LogCaptureFixture) -> None:
@@ -412,7 +424,7 @@ def test_escape_special_chars() -> None:
     entry = list(entries.values())[0]
     entry.escape_special_chars()
     assert entry.data == reference
-    assert entry.label == "LaTeX_Einführung"
+    assert entry.label == "LaTeX_Einfuhrung"
 
 
 def test_save() -> None:
@@ -441,3 +453,13 @@ def test_stringify() -> None:
         "tags": "tag1, tag2",
     }
     assert entry.stringify() == expected
+
+
+def test_unidecode() -> None:
+    """Test the text-unidecode integration."""
+    config.database.format.unidecode_labels = False
+    entry = Entry("Pavošević2023", {})
+    assert entry.label == "Pavošević2023"
+    config.database.format.unidecode_labels = True
+    entry = Entry("Pavošević2023", {})
+    assert entry.label == "Pavosevic2023"

@@ -115,7 +115,8 @@ class ArxivParser(Parser):
         # strip last 'and' from author field
         entry["author"] = entry["author"][:-5]
         bib = OrderedDict()
-        bib[label] = Entry(label, entry)
+        actual_entry = Entry(label, entry)
+        bib[actual_entry.label] = actual_entry
 
         Event.PostArxivParse.fire(bib)
 
