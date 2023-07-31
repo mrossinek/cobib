@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - added the `config.tui.scroll_offset` setting
+- added the `--field` command line option to the `open` command
 
 ### Fixed
 - retain scroll position in the TUI's list view

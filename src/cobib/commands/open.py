@@ -33,6 +33,14 @@ With the above options, here is what will happen depending on the users choice:
 * `help`: will print the detailed help-menu again.
 * `cancel`: will abort the command.
 
+Since coBib v4.2.0 you can also bypass the above interactive prompt from the command-line using the
+optional `--field` argument. However, this only allows you to specify `all` or an openable field
+name (e.g. `file` or `url`) but *not* any of the numbers (since you would not know the order up
+front). Here is an example which will open all openable fields found in an entry:
+```
+cobib open <label 1> --field all
+```
+
 ### TUI
 
 You can also trigger this command from the `cobib.ui.tui.TUI`.
@@ -72,6 +80,7 @@ class OpenCommand(Command):
     This command can parse the following arguments:
 
         * `labels`: one (or multiple) labels of the entries to be opened.
+        * `--field`: specifies the field to be opened, bypassing the interactive prompt.
     """
 
     name = "open"
@@ -81,12 +90,18 @@ class OpenCommand(Command):
     def init_argparser(cls) -> None:
         parser = ArgumentParser(prog="open", description="Open subcommand parser.")
         parser.add_argument("labels", type=str, nargs="+", help="labels of the entries")
+        parser.add_argument(
+            "--field",
+            type=str,
+            choices=["all"] + config.commands.open.fields,
+            help="which field to open in case multiple are found",
+        )
         cls.argparser = parser
 
     # TODO: can we make the implementation cleaner and avoid the type ignore comment below?
     @override
     async def execute(self) -> None:  # type: ignore[override]
-        # pylint: disable=invalid-overridden-method
+        # pylint: disable=invalid-overridden-method,too-many-branches
         LOGGER.debug("Starting Open command.")
 
         Event.PreOpenCommand.fire(self)
@@ -123,6 +138,25 @@ class OpenCommand(Command):
             if count == 1:
                 # we found a single URL to open
                 self._open_url(list(things_to_open.values())[0][0])
+
+            elif self.largs.field is not None:
+                choice = self.largs.field
+                LOGGER.debug("User selected the %s set of urls from the CLI.", choice)
+
+                if choice == "all":
+                    for urls in things_to_open.values():
+                        for url in urls:
+                            self._open_url(url)
+
+                elif choice in things_to_open.keys():
+                    for url in things_to_open[choice]:
+                        self._open_url(url)
+
+                else:
+                    msg = f"The entry '{label}' has no field '{choice}' associated with it."
+                    LOGGER.warning(msg)
+                    continue
+
             else:
                 # we query the user what to do
                 idx = 0

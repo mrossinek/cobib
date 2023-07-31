@@ -320,6 +320,60 @@ class TestOpenCommand(CommandTest):
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
+        ["field", "post_setup"],
+        [
+            ["all", {"multi_file": True}],
+            ["file", {"multi_file": True}],
+            ["url", {"multi_file": True}],
+        ],
+        indirect=["post_setup"],
+    )
+    async def test_field_cmdline_switch(
+        self,
+        setup: Any,
+        post_setup: Any,
+        caplog: pytest.LogCaptureFixture,
+        capsys: pytest.CaptureFixture[str],
+        field: str,
+    ) -> None:
+        """Test the command itself.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            post_setup: an additional setup fixture.
+            caplog: the built-in pytest fixture.
+            capsys: the built-in pytest fixture.
+            field: the field to open via the command-line switch.
+        """
+        expected_log = [
+            ("cobib.commands.open", 10, "Starting Open command."),
+            ("cobib.commands.open", 10, 'Parsing "/tmp/a.txt" for URLs.'),
+            ("cobib.commands.open", 10, 'Parsing "/tmp/b.txt" for URLs.'),
+            ("cobib.commands.open", 10, 'Parsing "https://www.duckduckgo.com" for URLs.'),
+            ("cobib.commands.open", 10, 'Parsing "https://www.google.com" for URLs.'),
+            ("cobib.commands.open", 10, f"User selected the {field} set of urls from the CLI."),
+        ]
+        if field in ("all", "file"):
+            expected_log += [
+                ("cobib.commands.open", 10, 'Opening "/tmp/a.txt" with cat.'),
+                ("cobib.commands.open", 10, 'Opening "/tmp/b.txt" with cat.'),
+            ]
+        if field in ("all", "url"):
+            expected_log += [
+                ("cobib.commands.open", 10, 'Opening "https://www.duckduckgo.com" with cat.'),
+                ("cobib.commands.open", 10, 'Opening "https://www.google.com" with cat.'),
+            ]
+
+        await OpenCommand("example_multi_file_entry", "--field", field).execute()
+
+        true_log = [rec for rec in caplog.record_tuples if rec[0] == "cobib.commands.open"]
+        assert true_log == expected_log
+
+        true_out = capsys.readouterr().out.split("\n")
+        assert true_out == [""]
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
         ["post_setup"],
         [
             [{"multi_file": False}],

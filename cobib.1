@@ -271,6 +271,13 @@ reapply the last undone changes (see above). See also \fIDATABASE/git\fR in the
 Opens any associated \fIfile\fR of the entry with the given \fIlabel\fR.
 If multiple files are associated with the entry, the user can choose which
 file(s) to open through an interactive menu.
+.PP
+.in +8n
+.BR \-\-field " " \fI<choie>\fR
+.in +4n
+Specifies the field type to open. This bypasses the interactive prompt if
+multiple actionable fields are found. The choice can be either \fIall\fR or any
+of the values configured in \fIconfig.commands.open.fields\fR.
 .TP
 .B cobib show \fI<label>\fR
 Prints the entry with the given \fIlabel\fR in \fIBibLaTex\fR format to stdout.
