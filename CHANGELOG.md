@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - added the `--field` command line option to the `open` command
 - (DEV) added a new `HINT` logging level which has value 35 and thus allows to
   provide information to the user with a higher priority than `WARNING`
+- added the new `config.tui.preset_filters` (#114)
+  - preset filters can be selected from the TUI via the `p` key binding
+  - the first 9 filters can be selected directly by pressing the respective number
+  - pressing `0` resets any applied filter
 
 ### Changed
 - unicode symbols in entry labels will now be replaced with ascii ones (#119,#120)

@@ -155,6 +155,17 @@ config.parsers.yaml.use_c_lib_yaml = True
 # You can configure the minimum number of lines to keep above and below the cursor in the TUI's list
 # view. This is similar to Vim's `scrolloff` setting.
 config.tui.scroll_offset = 2
+# You can provide a list of preset filters. These can be interactively selected in the TUI by
+# pressing `p`. To specify these, simply provide a string with the filter arguments, for example:
+#
+#     config.tui.preset_filters = [
+#         "++tags READING",
+#         "++year 2023",
+#     ]
+#
+# The first 9 filters can be quickly accessed in the TUI by simply pressing the corresponding
+# number. You can also use 0 to reset any applied filter.
+config.tui.preset_filters = []
 
 # UTILS
 

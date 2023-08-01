@@ -31,6 +31,7 @@ from textual.widgets import Footer, Header, Input, Static
 from typing_extensions import override
 
 from cobib import commands
+from cobib.config import config
 from cobib.ui.components import (
     EntryView,
     HelpScreen,
@@ -41,6 +42,7 @@ from cobib.ui.components import (
     Popup,
     PopupLoggingHandler,
     PopupPanel,
+    PresetFilterScreen,
     Progress,
     Prompt,
     SearchView,
@@ -85,6 +87,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         }
     """
 
+    _PRESET_FILTER_BINDINGS = [(f"{i}", f"preset_filter({i})", f"Preset #{i}") for i in range(10)]
     BINDINGS = [
         ("q", "quit", "Quit"),
         ("question_mark", "push_screen('help')", "Help"),
@@ -99,10 +102,12 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         ("i", "prompt('import ')", "Import"),
         ("m", "prompt('modify ', False, True)", "Modify"),
         ("o", "open", "Open"),
+        ("p", "preset_filter()", "Preset"),
         ("r", "prompt('redo', True)", "Redo"),
         ("s", "sort", "Sort"),
         ("u", "prompt('undo', True)", "Undo"),
         ("x", "prompt('export ', False, True)", "Export"),
+        *_PRESET_FILTER_BINDINGS,
     ]
     """
     | Key(s) | Description |
@@ -110,10 +115,10 @@ class TUI(UI, App[None]):  # type: ignore[misc]
     | q | Quit's coBib. |
     | ? | Toggles the help screen. |
     | _ | Toggles between the horizontal and vertical layout. |
-    | space | Toggles folding of a search result. |
     | : | Starts the prompt for an arbitrary coBib command. |
     | v | Selects the current entry. |
     | / | Searches the database for the provided string. |
+    | digit | Immediately selects the preset filter given by that digit (0 = reset). |
     | a | Prompts for a new entry to be added to the database. |
     | d | Deletes the current (or selected) entries. |
     | e | Edits the current entry. |
@@ -121,6 +126,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
     | i | Imports entries from another source. |
     | m | Prompts for a modification (respects selection). |
     | o | Opens the current (or selected) entries. |
+    | p | Allows selecting a preset filter (see `config.tui.preset_filters`). |
     | r | Redoes the last undone change. Requires git-tracking! |
     | s | Prompts for the field to sort by (use -r to list in reverse). |
     | u | Undes the last change. Requires git-tracking! |
@@ -130,6 +136,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
     SCREENS = {
         "help": HelpScreen,
         "input": InputScreen,
+        "preset_filter": PresetFilterScreen,
     }
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -357,6 +364,25 @@ class TUI(UI, App[None]):  # type: ignore[misc]
             labels = [main.get_current_label()]
 
         self._run_command(["open"] + labels)
+
+    async def action_preset_filter(self, idx: int | None = None) -> None:
+        """The preset filter selection action.
+
+        This action selects (or prompts for) a preset filter from `config.tui.preset_filters`.
+
+        Args:
+            idx: the index of which preset filter to select. When this is `None`, the user will be
+                prompted interactively. When `0`, all filters will be reset.
+        """
+        if idx is None:
+            await_mount = self.push_screen("preset_filter", self._process_input)
+            await await_mount
+        else:
+            idx = int(idx)
+            if idx == 0:
+                await self._process_input("list -r")
+            elif idx <= len(config.tui.preset_filters):
+                await self._process_input(f"list {config.tui.preset_filters[idx-1]}")
 
     async def action_filter(self) -> None:
         """The filter action.

@@ -495,6 +495,9 @@ Adds the current label to the \fIselection\fR.
 .BR / " " search
 Opens a search prompt and views the results in an interactive tree structure.
 .TP
+.BR digit " " preset
+Immediately seledcts the preset filter given by that digit (0 = reset).
+.TP
 .BR a " " add
 Opens a command prompt which allows running the \fBadd\fR command as if outside
 of the TUI.
@@ -519,6 +522,9 @@ be set automatically.
 .TP
 .BR o " " open
 Opens the current (or \fIselected\fR) label(s).
+.TP
+.BR p " " preset
+Allows selecting a preset filter (see \fIconfig.tui.preset_filters\fR).
 .TP
 .BR r " " redo
 Reapplies the last undone change.
@@ -707,6 +713,19 @@ for more details.
 .IR config.tui.scroll_offset = 2
 The minimum number of lines to keep above and below the cursor in the TUI's list
 view. This is similar to Vim's \fIscrolloff\fR setting.
+.TP
+.IR config.tui.preset_filters = []
+You can provide a list of preset filters. These can be interactively selected in
+the TUI by pressing \fIp\fR. To specify these, simply provide a string with the
+filter arguments, for example:
+
+    config.tui.preset_filters = [
+        "++tags READING",
+        "++year 2023",
+    ]
+
+The first 9 filters can be quickly accessed in the TUI by simply pressing the
+corresponding number. You can also use \fI0\fR to reset any applied filter.
 .PP
 .BR UTILS
 .TP

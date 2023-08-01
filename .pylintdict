@@ -43,6 +43,7 @@ github
 gitlab
 html
 https
+idx
 init
 initializer
 io
@@ -64,6 +65,7 @@ namespace
 oauth
 openable
 openlibrary
+optionlist
 os
 parsers
 pathlib

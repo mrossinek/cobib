@@ -537,6 +537,19 @@ class TUIConfig(_ConfigBase):
     scroll_offset: int = 2
     """The minimum number of lines to keep above and below the cursor in the
     `cobib.ui.tui.components.ListView`. This is similar to Vim's `scrolloff` setting."""
+    preset_filters: list[str] = field(default_factory=list)
+    """Permits providing a list of preset filters. These can be interactively selected in the TUI by
+    pressing `p`. To specify these, simply provide a string with the filter arguments, for example:
+
+    ```python
+    config.tui.preset_filters = [
+        "++tags READING",
+        "++year 2023",
+    ]
+    ```
+
+    The first 9 filters can be quickly accessed in the TUI by simply pressing the corresponding
+    number. You can also use 0 to reset any applied filter."""
 
     @override
     def validate(self) -> None:
@@ -545,6 +558,15 @@ class TUIConfig(_ConfigBase):
             isinstance(self.scroll_offset, int),
             "config.tui.scroll_offset should be an integer.",
         )
+        self._assert(
+            isinstance(self.preset_filters, list),
+            "config.tui.preset_filters should be a list.",
+        )
+        for preset in self.preset_filters:
+            self._assert(
+                isinstance(preset, str),
+                "config.tui.preset_filters should be a list of strings.",
+            )
 
 
 @dataclass

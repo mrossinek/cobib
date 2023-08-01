@@ -20,6 +20,7 @@ from .motion_key import MotionKey as MotionKey
 from .popup import Popup as Popup
 from .popup_logging_handler import PopupLoggingHandler as PopupLoggingHandler
 from .popup_panel import PopupPanel as PopupPanel
+from .preset_filter_screen import PresetFilterScreen as PresetFilterScreen
 from .progress import Progress as Progress
 from .prompt import Prompt as Prompt
 from .search_view import SearchView as SearchView
