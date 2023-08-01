@@ -308,7 +308,7 @@ class TestUnifyLabels(ShellHelperTest):
         This fixture is automatically enabled for all tests in this class.
         """
         config.defaults()
-        config.database.format.label_default = "{author.split()[1]}{year}"
+        config.database.format.label_default = "{unidecode(author.split()[1])}{year}"
         config.database.file = str(TestUnifyLabels.REL_PATH)
 
     def _assert(self, out: str) -> None:

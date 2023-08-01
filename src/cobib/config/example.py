@@ -106,11 +106,13 @@ config.database.git = False
 # You can specify a default label format which will be used for the database entry keys. The format
 # of this option follows the f-string like formatting of modifications (see also the documentation
 # of the [ModifyCommand](https://cobib.gitlab.io/cobib/cobib/commands/modify.html)). The default
-# configuration value leaves the label unchanged compared to the metadata provided by the source
-# from which the entry gets added. A more useful example is
-#     `"{author.split(' and ')[0].split()[-1]}{year}"`
-# which takes the surname of the first author and immediately appends the publication year.
-config.database.format.label_default = "{label}"
+# configuration value passes the originally provided label through
+# [text-unidecode](https://pypi.org/project/text-unidecode/) which replaces all Unicode symbols with
+# pure ASCII ones. A more useful example is
+#     `"{unidecode(author.split(' and ')[0].split()[-1])}{year}"`
+# which takes the surname of the first author, replaces the Unicode characters and then immediately
+# appends the publication year.
+config.database.format.label_default = "{unidecode(label)}"
 
 # You can specify the suffix format which is used to disambiguate labels if a conflict would occur.
 # This option takes a tuple of length 2, where the first entry is the string separating the proposed
@@ -125,11 +127,6 @@ config.database.format.label_suffix = ("_", LabelSuffix.ALPHA)
 # characters. This is a simple option which gets passed on to the internally used `pylatexenc`
 # library.
 config.database.format.suppress_latex_warnings = True
-
-# You can specify whether the entry labels should undergo a "Unicode decoding". When enabled (the
-# default), this means the label will be passed through text-unidecode.
-# For more details refer to: https://pypi.org/project/text-unidecode/
-config.database.format.unidecode_labels = True
 
 # DATABASE.STRINGIFY
 # You can customize the functions which convert non-string fields.

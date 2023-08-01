@@ -660,11 +660,14 @@ you already have an existing database file, it will be preserved. Nonetheless,
 it is a good idea to make a backup before doing so, just in case.
 Also be sure to at least set a \fIname\fR and \fIemail\fR in the git config!
 .TP
-.IR config.database.format.label_default = '{label}'
+.IR config.database.format.label_default = '{unidecode(label)}'
 This field specifies the default label format in an f-string modification style
-as interpreted by the \fImodify\fR command. The default setting leaves the label
-unchanged from the import resource proposal. A simple example which uses the
-first authors surname and year is \fI'{author.split()[1]}{year}'\fR.
+as interpreted by the \fImodify\fR command. The default configuration value
+passes the originally provided label through \fItext-unidecode\fR which replaces
+all Unicode symbols with pure ASCII ones. A more useful example is
+\fI'{unidecode(author.split(' and ')[0].split()[-1])}{year}'\fR which takes the
+surname of the first author, replaces the Unicode characters and then
+immediately appends the publication year.
 .TP
 .IR config.database.format.label_suffix = ('_',\ LabelSuffix.ALPHA)
 This field specifies the default label disambiguator. The option takes a tuple
@@ -675,10 +678,6 @@ from the disambiguator and the second one is one of the enumerators provided by
 .IR config.database.format.suppress_latex_warnings = True
 This boolean field indicates whether latex warnings will be ignored during the
 escaping of special characters.
-.TP
-.IR config.database.format.unidecode_labels = True
-This boolean field indicates whether unicode symbols appearing in the label of
-entries should be decoded.
 .TP
 Some fields are internally stored as lists. Upon conversion to the BibTeX
 format, these need to be converted to a basic string. In this process the

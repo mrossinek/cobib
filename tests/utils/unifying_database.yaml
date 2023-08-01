@@ -81,3 +81,15 @@ Author2021:
   title: this label is already correct and should remain unchanged
   year: 2021
 ...
+---
+Pavošević2023:
+  ENTRYTYPE: unpublished
+  archivePrefix: arXiv
+  arxivid: 2307.07092v1
+  author: Fabijan Pavošević and Ivano Tavernelli and Angel Rubio
+  eprint: http://arxiv.org/abs/2307.07092v1
+  primaryClass: physics.chem-ph
+  title: 'Spin-Flip Unitary Coupled Cluster Method: Toward Accurate Description of
+    Strong Electron Correlation on Quantum Computers'
+  year: 2023
+...

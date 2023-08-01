@@ -92,6 +92,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Type
 
 from rich.console import Console
 from rich.prompt import PromptBase, PromptType
+from text_unidecode import unidecode
 from textual.app import App
 from typing_extensions import override
 
@@ -384,11 +385,15 @@ def evaluate_ast_node(node: ast.expr, locals_: Optional[Dict[str, Any]] = None) 
     Args:
         node: the AST expression extracted from an f-string.
         locals_: the dictionary of local variables to be used as context for the expression
-            evaluation.
+            evaluation. For convenience, this will include the `unidecode` method provided by
+            [text-unidecode](https://pypi.org/project/text-unidecode).
 
     Returns:
         The evaluated AST node expression.
     """
+    if locals_ is not None and "unidecode" not in locals_:
+        locals_["unidecode"] = unidecode
+
     try:
         # pylint: disable=eval-used
         return eval(  # type: ignore
@@ -406,7 +411,8 @@ def evaluate_as_f_string(value: str, locals_: Optional[Dict[str, Any]] = None) -
     Args:
         value: the string to be evaluated.
         locals_: the dictionary of local variables to be used as context for the expression
-            evaluation.
+            evaluation. For convenience, this will include the `unidecode` method provided by
+            [text-unidecode](https://pypi.org/project/text-unidecode).
 
     Returns:
         The evaluated f-string.
@@ -417,6 +423,9 @@ def evaluate_as_f_string(value: str, locals_: Optional[Dict[str, Any]] = None) -
     References:
         <https://stackoverflow.com/a/61190684>
     """
+    if locals_ is not None and "unidecode" not in locals_:
+        locals_["unidecode"] = unidecode
+
     result: List[str] = []
     for part in ast.parse(f"f'''{value}'''").body[0].value.values:  # type: ignore
         typ = type(part)
@@ -432,7 +441,7 @@ def evaluate_as_f_string(value: str, locals_: Optional[Dict[str, Any]] = None) -
                 value = conversions[chr(part.conversion)](value)
 
             if part.format_spec:
-                value = format(value, evaluate_ast_node(part.format_spec))
+                value = format(value, evaluate_ast_node(part.format_spec, locals_))
 
             result.append(str(value))
 
