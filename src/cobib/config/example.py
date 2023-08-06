@@ -17,7 +17,7 @@ import os
 import sys
 
 # To get started you must import coBib's configuration.
-from cobib.config import LabelSuffix, config
+from cobib.config import LabelSuffix, TagMarkup, config
 
 # Now, you are all set to apply your own settings.
 
@@ -80,10 +80,6 @@ config.commands.search.grep_args = []
 
 # You can specify whether searches should be performed case-insensitive.
 config.commands.search.ignore_case = False
-
-# You can configure the search label and query highlights.
-config.commands.search.highlights.label = "blue"
-config.commands.search.highlights.query = "red"
 
 
 # DATABASE
@@ -149,6 +145,34 @@ config.parsers.bibtex.ignore_non_standard_types = False
 # installation of the C-based parser:
 # https://yaml.readthedocs.io/en/latest/install.html#optional-requirements
 config.parsers.yaml.use_c_lib_yaml = True
+
+# THEME
+
+# You can configure the search label and query highlights.
+config.theme.search.label = "blue"
+config.theme.search.query = "red"
+
+# You can also configure the markup used for the following builtin special tags:
+config.theme.tags.new = TagMarkup(10, "bold bright_cyan")
+config.theme.tags.high = TagMarkup(40, "on bright_red")
+config.theme.tags.medium = TagMarkup(30, "bright_red")
+config.theme.tags.low = TagMarkup(20, "bright_yellow")
+# None of these tags are added automatically, but you can do this easily with a `PostAddCommand`
+# hook like so:
+#
+#    @Event.PostAddCommand.subscribe
+#    def add_new_tag(cmd: AddCommand) -> None:
+#        for entry in cmd.new_entries.values():
+#            if "new" not in entry.tags:
+#                entry.tags = entry.tags + ["new"]
+#
+# Note, that the `new` tag has a lower weight than all of the builtin priority tags (`high`,
+# `medium`, `low`) allowing these to be used to further classify new entries on a reading list.
+
+# You can even specify your own tag names which should be treated with special markup.
+# Because the markup names are used in a `rich.Theme`, they must be lower case, start with a letter,
+# and only contain letters or the characters `"."`, `"-"`, `"_"`.
+config.theme.tags.user_tags = {}
 
 # TUI
 

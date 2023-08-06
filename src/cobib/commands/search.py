@@ -227,9 +227,9 @@ class SearchCommand(Command):
         tree = Tree(".", hide_root=True)
         for entry, matches in zip(self.entries, self.matches):
             subtree = tree.add(
-                Text.assemble(
-                    (entry.label, config.commands.search.highlights.label),
-                    f" - {len(matches)} match" + ("es" if len(matches) > 1 else ""),
+                Text.from_markup(
+                    f"[search.label]{entry.markup_label()}[/search.label] - {len(matches)} match"
+                    + ("es" if len(matches) > 1 else "")
                 )
             )
 
@@ -255,9 +255,9 @@ class SearchCommand(Command):
         tree = SearchView(".")
         for entry, matches in zip(self.entries, self.matches):
             subtree = tree.root.add(
-                Text.assemble(
-                    (entry.label, config.commands.search.highlights.label),
-                    f" - {len(matches)} match" + ("es" if len(matches) > 1 else ""),
+                Text.from_markup(
+                    f"[search.label]{entry.markup_label()}[/search.label] - {len(matches)} match"
+                    + ("es" if len(matches) > 1 else "")
                 ),
                 # TODO: make configurable
                 expand=False,
@@ -273,7 +273,7 @@ class SearchCommand(Command):
                     line_text = Text(line)
                     line_text.highlight_words(
                         self.largs.query,
-                        config.commands.search.highlights.query,
+                        config.theme.search.query,
                         case_sensitive=not ignore_case,
                     )
                     matchtree.add_leaf(line_text)

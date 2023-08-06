@@ -343,7 +343,7 @@ class ListCommand(Command):
             rich_table.add_column(col)
 
         for entry in self.entries:
-            stringified: Dict[str, str] = entry.stringify()
+            stringified: Dict[str, str] = entry.stringify(markup=True)
 
             rich_table.add_row(*(stringified.get(col, "") for col in self.columns))
 
@@ -357,8 +357,10 @@ class ListCommand(Command):
             textual_table.add_column(col, width=None)
 
         for entry in self.entries:
-            stringified: Dict[str, str] = entry.stringify()
+            stringified: Dict[str, str] = entry.stringify(markup=True)
 
-            textual_table.add_row(*(Text(stringified.get(col, "")) for col in self.columns))
+            textual_table.add_row(
+                *(Text.from_markup(stringified.get(col, "")) for col in self.columns)
+            )
 
         return textual_table

@@ -643,14 +643,6 @@ Allows the specification of additional arguments for the \fIgrep\fR command.
 .TP
 .IR config.commands.search.ignore_case = False
 This boolean setting indicates whether search defaults to be case-insensitive.
-.TP
-.IR config.commands.search.highlights.label = 'blue'
-Specifies the color used to highlight the entry labels when displaying search
-rsults.
-.TP
-.IR config.commands.search.highlights.label = 'red'
-Specifies the color used to highlight the query matches when displaying search
-rsults.
 .PP
 .BR DATABASE
 .TP
@@ -707,6 +699,45 @@ This boolean setting indicates whether to use the C-based implementation of the
 YAML parser. For this to work, additional packages may need to be installed.
 Read https://yaml.readthedocs.io/en/latest/install.html#optional-requirements
 for more details.
+.PP
+.BR THEME
+.TP
+.IR config.theme.search.label = 'blue'
+Specifies the color used to highlight the entry labels when displaying search
+rsults.
+.TP
+.IR config.theme.search.label = 'red'
+Specifies the color used to highlight the query matches when displaying search
+results.
+.TP
+.IR config.theme.tags.new = (10,\ 'bright_cyan')
+Specifies the weight and color used to highlight the labels of entries which
+have the \fInew\fR tag. coBib does NOT add this tag automatically, but you can
+do this easily with a \fIPostAddCommand\fR hook like so:
+
+    @Event.PostAddCommand.subscribe
+    def add_new_tag(cmd: AddCommand) -> None:
+        for entry in cmd.new_entries.values():
+            if "new" not in entry.tags:
+                entry.tags = entry.tags + ["new"]
+
+.TP
+.IR config.theme.tags.high = (40,\ 'on\ bright_red')
+Specifies the weight and color used to highlight the labels of entries which
+have the \fIhigh\fR priority tag.
+.TP
+.IR config.theme.tags.medium = (30,\ 'bright_red')
+Specifies the weight and color used to highlight the labels of entries which
+have the \fImedium\fR priority tag.
+.TP
+.IR config.theme.tags.low = (20,\ 'bright_yellow')
+Specifies the weight and color used to highlight the labels of entries which
+have the \fIlow\fR priority tag.
+.TP
+.IR config.theme.tags.user_tags = {}
+You can define more tags which should undergo special markup. Note, that the
+tags must be lower case, start with a letter and only contain letters or the
+characters \fI'.'\fR, \fI'-'\fR, \fI'_'\fR.
 .PP
 .BR TUI
 .TP

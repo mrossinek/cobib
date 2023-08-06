@@ -15,11 +15,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - preset filters can be selected from the TUI via the `p` key binding
   - the first 9 filters can be selected directly by pressing the respective number
   - pressing `0` resets any applied filter
+- implemented special tags (#63,!83)
+  - adds new builtin tags which will trigger special highlights of entries: `new`, `high`, `medium`, `low`
+  - adds the new `config.theme` settings section for configuring these settings
+  - you can also add more special tags via `config.theme.tags.user_tags`
 
 ### Changed
 - unicode symbols in entry labels will now be replaced with ascii ones (#119,#120)
   - this is configured via the `config.database.format.default_label` setting, so if you are using a
     custom value for this, be sure to update your config to make use of this feature
+
+### Deprecated
+- the `config.commands.search.highlights` section is deprecated in favor of `config.theme.search`
 
 ### Fixed
 - retain scroll position in the TUI's list view

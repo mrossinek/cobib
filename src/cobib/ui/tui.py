@@ -147,6 +147,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
             **kwargs: any keyword arguments for textual's underlying `App` class.
         """
         super().__init__(*args, **kwargs)
+        self.console.push_theme(config.theme.build())
         self.root_logger.addHandler(TextualHandler())
         self.title = "coBib"
         self.sub_title = "The Console Bibliography Manager"
