@@ -14,12 +14,15 @@ import io
 import logging
 import os
 import sys
+import warnings
 from abc import abstractmethod
-from dataclasses import MISSING, dataclass, field
+from dataclasses import MISSING, dataclass, field, fields
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Optional, TextIO, Union
+from typing import TYPE_CHECKING, Callable, NamedTuple, Optional, TextIO, Union
 
+from rich.style import Style
+from rich.theme import Theme
 from typing_extensions import override
 
 from cobib.utils.rel_path import RelPath
@@ -65,6 +68,166 @@ class _ConfigBase:
                 setattr(self, name, field_.default)
             else:
                 setattr(self, name, field_.default_factory())  # type: ignore[misc]
+
+
+class TagMarkup(NamedTuple):
+    """A tuple for representing the weight and style of a tag."""
+
+    weight: int
+    """The weight of the tag. This integer is used to determine the markup priority of the tag.
+    Higher integer values indicate a higher priority."""
+    style: str | Style
+    """The style of the tag. This can be a `rich.Style` or a string which can be interpreted by
+    `rich.Style.parse`."""
+
+
+@dataclass
+class TagsThemeConfig(_ConfigBase):
+    """The markup configuration for special tags.
+
+    The tag names configured via this setting will be marked up via a `rich.Theme`. This allows you
+    to easily customize a visual differentiation of your entries based on simple properties.
+
+    The style and weight of the builtin special tags can be configured directly or you can add fully
+    custom special tags via the `user_tags` field.
+    """
+
+    new: TagMarkup = TagMarkup(10, "bold bright_cyan")
+    """The markup of the `new` tag. By default, coBib does *not* add this automatically, but you can
+    do this easily with a `PostAddCommand` hook like so:
+
+    ```python
+    @Event.PostAddCommand.subscribe
+    def add_new_tag(cmd: AddCommand) -> None:
+        for entry in cmd.new_entries.values():
+            if "new" not in entry.tags:
+                entry.tags = entry.tags + ["new"]
+    ```
+
+    .. note::
+       The `new` tag has a lower weight than all of the builtin priority tags (`high`, `medium`,
+       `low`) allowing these to be used to further classify new entries on a reading list.
+    """
+    high: TagMarkup = TagMarkup(40, "on bright_red")
+    """The markup of the `high` priority tag."""
+    medium: TagMarkup = TagMarkup(30, "bright_red")
+    """The markup of the `medium` priority tag."""
+    low: TagMarkup = TagMarkup(20, "bright_yellow")
+    """The markup of the `low` priority tag."""
+    user_tags: dict[str, TagMarkup] = field(default_factory=dict)
+    """A dictionary to add weight and markup definitions for arbitrary tags. The keys of the
+    dictionary will be compared as is to the tags of an `cobib.database.entry.Entry`.
+
+    .. note::
+       Because the markup names are used in a `rich.Theme`, they must be lower case, start with a
+       letter, and only contain letters or the characters `"."`, `"-"`, `"_"`. See also
+       [here](https://rich.readthedocs.io/en/stable/style.html#style-themes).
+    """
+
+    @property
+    def names(self) -> set[str]:
+        """Returns the set of all special tag names."""
+        return {f.name for f in fields(self)} - {"user_tags"} | set(self.user_tags.keys())
+
+    @property
+    def styles(self) -> dict[str, str | Style]:
+        """Returns the combined dictionary of all special tag styles."""
+        styles: dict[str, str | Style] = {}
+        for field_ in fields(self):
+            tag_markup = getattr(self, field_.name)
+            if isinstance(tag_markup, TagMarkup):
+                styles[f"tag.{field_.name}"] = tag_markup.style
+
+        for name, weighted_style in self.user_tags.items():
+            styles[f"tag.{name}"] = weighted_style.style
+
+        return styles
+
+    @property
+    def weights(self) -> dict[str, int]:
+        """Returns the combined dictionary of all special tag weights."""
+        weights: dict[str, int] = {}
+        for field_ in fields(self):
+            tag_markup = getattr(self, field_.name)
+            if isinstance(tag_markup, TagMarkup):
+                weights[field_.name] = tag_markup.weight
+
+        for name, weighted_style in self.user_tags.items():
+            weights[name] = weighted_style.weight
+
+        return weights
+
+    @override
+    def validate(self) -> None:
+        self._assert(
+            isinstance(self.new, TagMarkup), "config.theme.tags.new should be a TagMarkup tuple."
+        )
+        self._assert(
+            isinstance(self.high, TagMarkup), "config.theme.tags.high should be a TagMarkup tuple."
+        )
+        self._assert(
+            isinstance(self.medium, TagMarkup),
+            "config.theme.tags.medium should be a TagMarkup tuple.",
+        )
+        self._assert(
+            isinstance(self.low, TagMarkup), "config.theme.tags.low should be a TagMarkup tuple."
+        )
+        self._assert(
+            isinstance(self.user_tags, dict),
+            "config.theme.tags.user_tags should be a dict.",
+        )
+        for name, tag_markup in self.user_tags.items():
+            self._assert(
+                isinstance(tag_markup, TagMarkup),
+                f"The '{name}' entry in config.theme.tags.user_tags should be a TagMarkup tuple.",
+            )
+
+
+@dataclass
+class SearchHighlightConfig(_ConfigBase):
+    """The `config.theme.search` section."""
+
+    label: str | Style = "blue"
+    """Specifies the color with which to highlight the labels of search results."""
+    query: str | Style = "red"
+    """Specifies the color with which to highlight the query matches of a search."""
+
+    @property
+    def styles(self) -> dict[str, str | Style]:
+        """Returns the `rich.Theme`-compatible styles dictionary of the configured highlights."""
+        return {
+            "search.label": self.label,
+            "search.query": self.query,
+        }
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the THEME.SEARCH configuration section.")
+        self._assert(isinstance(self.label, str), "config.theme.search.label should be a string.")
+        self._assert(isinstance(self.query, str), "config.theme.search.query should be a string.")
+
+
+@dataclass
+class ThemeConfig(_ConfigBase):
+    """The `config.theme` section."""
+
+    search: SearchHighlightConfig = field(default_factory=lambda: SearchHighlightConfig())
+    """The nested section for theme settings related to the `search` command."""
+    tags: TagsThemeConfig = field(default_factory=lambda: TagsThemeConfig())
+    """The nested section for the markup of special tags."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the THEME configuration section.")
+        self.search.validate()
+        self.tags.validate()
+
+    def build(self) -> Theme:
+        """Returns the built `rich.Theme` from the configured styles."""
+        theme: dict[str, str | Style] = {}
+        theme.update(self.search.styles)
+        theme.update(self.tags.styles)
+        return Theme(theme)
 
 
 @dataclass
@@ -241,28 +404,6 @@ class OpenCommandConfig(_ConfigBase):
 
 
 @dataclass
-class SearchHighlightConfig(_ConfigBase):
-    """The `config.commands.search.highlights` section."""
-
-    label: str = "blue"
-    """Specifies the color with which to highlight the labels of search results."""
-    query: str = "red"
-    """Specifies the color with which to highlight the query matches of a search."""
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the COMMANDS.SEARCH.HIGHLIGHTS configuration section.")
-        self._assert(
-            isinstance(self.label, str),
-            "config.commands.search.highlights.label should be a string.",
-        )
-        self._assert(
-            isinstance(self.query, str),
-            "config.commands.search.highlights.query should be a string.",
-        )
-
-
-@dataclass
 class SearchCommandConfig(_ConfigBase):
     """The `config.commands.search` section."""
 
@@ -278,8 +419,19 @@ class SearchCommandConfig(_ConfigBase):
     extended regex patterns even without specifying `-E`."""
     ignore_case: bool = False
     """Specifies whether searches should be performed case-insensitive."""
-    highlights: SearchHighlightConfig = field(default_factory=lambda: SearchHighlightConfig())
-    """The nested section for highlights used when displaying search results."""
+
+    @property
+    def highlights(self) -> SearchHighlightConfig:
+        """**DEPRECATED** Use `config.theme.search` instead!
+
+        The nested section for highlights used when displaying search results.
+        """
+        warnings.warn(
+            "The config.commands.search.highlights setting is DEPRECATED! Please use the new "
+            "config.theme.search setting instead.",
+            FutureWarning,
+        )
+        return config.theme.search
 
     @override
     def validate(self) -> None:
@@ -666,6 +818,8 @@ class Config(_ConfigBase):
     """
     parsers: ParserConfig = field(default_factory=lambda: ParserConfig())
     """The nested section for the parsers settings."""
+    theme: ThemeConfig = field(default_factory=lambda: ThemeConfig())
+    """The nested section for the theme settings."""
     tui: TUIConfig = field(default_factory=lambda: TUIConfig())
     """The nested section for the TUI settings."""
     utils: UtilsConfig = field(default_factory=lambda: UtilsConfig())
@@ -684,6 +838,8 @@ class Config(_ConfigBase):
         self.commands.validate()
         self.database.validate()
         self.parsers.validate()
+        self.theme.validate()
+        self.tui.validate()
         self.utils.validate()
 
         LOGGER.debug("Validating the EVENTS configuration section.")

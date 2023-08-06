@@ -99,6 +99,20 @@ class Entry:
         LOGGER.debug("Changing the label '%s' to '%s'.", self.label, label)
         self._label = str(label)
 
+    def markup_label(self) -> str:
+        """Returns the label of this entry with the rich markup based on special tags."""
+        markup_label = self.label
+
+        markup_tags: dict[str, int] = {}
+        for tag in self.tags:
+            if tag in config.theme.tags.names:
+                markup_tags[f"tag.{tag}"] = config.theme.tags.weights[tag]
+
+        for tag, _ in sorted(markup_tags.items(), key=lambda item: item[1], reverse=True):
+            markup_label = f"[{tag}]{markup_label}[/{tag}]"
+
+        return markup_label
+
     @property
     def tags(self) -> List[str]:
         """The tags of this entry."""
@@ -228,14 +242,17 @@ class Entry:
                 extra={"entry": self.label, "field": "month"},
             )
 
-    def stringify(self) -> Dict[str, str]:
+    def stringify(self, *, markup: bool = False) -> Dict[str, str]:
         """Returns an identical entry to self but with all fields converted to strings.
+
+        Args:
+            markup: whether or not to add markup based on the configured special tags.
 
         Returns:
             An `Entry` with purely string fields.
         """
         data = {}
-        data["label"] = self.label
+        data["label"] = self.markup_label() if markup else self.label
         for field, value in self.data.items():
             if isinstance(value, list) and hasattr(config.database.stringify.list_separator, field):
                 data[field] = getattr(config.database.stringify.list_separator, field).join(value)

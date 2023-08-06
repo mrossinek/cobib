@@ -64,7 +64,7 @@ class CLI(UI):
     async def run(self) -> None:  # type: ignore[override]
         arguments = self.parse_args()
 
-        console = Console()
+        console = Console(theme=config.theme.build())
 
         if not arguments.porcelain:
             # print latest changelog

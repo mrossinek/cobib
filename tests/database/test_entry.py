@@ -441,3 +441,11 @@ def test_stringify() -> None:
         "tags": "tag1, tag2",
     }
     assert entry.stringify() == expected
+
+
+def test_markup_label() -> None:
+    """Test the `cobib.database.Entry.markup_label` method."""
+    entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
+    entry.tags = ["new", "medium"]
+    markup_label = entry.markup_label()
+    assert markup_label == "[tag.new][tag.medium]Cao_2019[/tag.medium][/tag.new]"
