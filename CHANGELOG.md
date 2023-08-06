@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - adds new builtin tags which will trigger special highlights of entries: `new`, `high`, `medium`, `low`
   - adds the new `config.theme` settings section for configuring these settings
   - you can also add more special tags via `config.theme.tags.user_tags`
+- added the `--skip-files` command line option to the `search` command
 
 ### Changed
 - unicode symbols in entry labels will now be replaced with ascii ones (#119,#120)

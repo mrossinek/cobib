@@ -45,6 +45,8 @@ The search will also be performed on any associated files of your entries.
 You can configure the tool which is used to perform this search via the
 `cobib.config.config.SearchCommandConfig.grep` setting (defaults to `grep`).
 
+If you do not want to search through associated files, you can specify the `--skip-files` argument.
+
 ### TUI
 
 You can also trigger this command from the `cobib.ui.tui.TUI`.
@@ -95,6 +97,7 @@ class SearchCommand(Command):
           lines before and after the actual match to be included in the output. This is similar to
           the `-C` option of `grep`. You can configure the default value via the
           `cobib.config.config.SearchCommandConfig.context` setting.
+        * `--skip-files`: if specified, associated files will **not** be searched.
         * in addition to the above, you can add `filters` to narrow the search down to a subset of
           your database. For more information refer to `cobib.commands.list_`.
     """
@@ -151,6 +154,12 @@ class SearchCommand(Command):
             help="number of context lines to provide for each match",
         )
         parser.add_argument(
+            "--skip-files",
+            action="store_true",
+            default=None,
+            help="do NOT search through associated files",
+        )
+        parser.add_argument(
             "filter",
             nargs="*",
             help="You can specify filters as used by the `list` command in order to select a "
@@ -193,7 +202,9 @@ class SearchCommand(Command):
         LOGGER.debug("The search will be performed case %ssensitive", "in" if ignore_case else "")
 
         for entry in self.entries.copy():
-            matches = entry.search(self.largs.query, self.largs.context, ignore_case)
+            matches = entry.search(
+                self.largs.query, self.largs.context, ignore_case, self.largs.skip_files
+            )
             if not matches:
                 self.entries.remove(entry)
                 continue
@@ -239,7 +250,7 @@ class SearchCommand(Command):
                     line_text = Text(line)
                     line_text.highlight_words(
                         self.largs.query,
-                        config.commands.search.highlights.query,
+                        config.theme.search.query,
                         case_sensitive=not ignore_case,
                     )
                     matchtree.add(line_text)

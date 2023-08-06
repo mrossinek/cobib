@@ -361,7 +361,11 @@ class Entry:
         return all(m for m in match_list)
 
     def search(
-        self, query: List[str], context: int = 1, ignore_case: bool = False
+        self,
+        query: List[str],
+        context: int = 1,
+        ignore_case: bool = False,
+        skip_files: bool = False,
     ) -> List[List[str]]:
         """Search entry contents for the query strings.
 
@@ -377,6 +381,7 @@ class Entry:
             context: the number of context lines to provide for each match. This behaves similarly
                 to the *Context Line Control* available for the UNIX `grep` command (`--context`).
             ignore_case: if True, the search will be case-*in*sensitive.
+            skip_files: if True, associated files will *not* be searched.
 
         Returns:
             A list of lists containing the context for each match associated with this entry.
@@ -407,6 +412,10 @@ class Entry:
                         if re_compiled.search(string):
                             break
                         matches[-1].append(string)
+
+            if skip_files:
+                LOGGER.info("Skipping the search in associated files of %s", self.label)
+                continue
 
             for file_ in self.file:
                 grep_prog = config.commands.search.grep

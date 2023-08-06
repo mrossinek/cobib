@@ -273,7 +273,7 @@ If multiple files are associated with the entry, the user can choose which
 file(s) to open through an interactive menu.
 .PP
 .in +8n
-.BR \-\-field " " \fI<choie>\fR
+.BR \-\-field " " \fI<choice>\fR
 .in +4n
 Specifies the field type to open. This bypasses the interactive prompt if
 multiple actionable fields are found. The choice can be either \fIall\fR or any
@@ -340,6 +340,11 @@ This takes precedence over the \fIconfig.commands.search.ignore_case\fR setting.
 .in +4n
 Makes the search case-insensitive.
 This takes precedence over the \fIconfig.commands.list_.ignore_case\fR setting.
+.PP
+.in +8n
+.BR \-\-skip\-files
+.in +4n
+Skips searching the associated files.
 .TP
 .B cobib export \fI<args>\fR ...
 Exports the database.

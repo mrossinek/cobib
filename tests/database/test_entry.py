@@ -375,6 +375,21 @@ def test_search_with_file() -> None:
         ["journal: Chemical Reviews"],
         ["publisher: American Chemical Society ({ACS})"],
     ]
+    assert len(results) == len(expected)
+    for res, exp in zip(results, expected):
+        assert res == exp
+
+
+def test_search_with_skipped_file() -> None:
+    """Test the `cobib.database.Entry.search` method with skipping the associated file."""
+    entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
+    entry.file = EXAMPLE_YAML_FILE  # type: ignore
+    results = entry.search(["Chemical"], context=0, skip_files=True)
+    expected = [
+        [" journal = {Chemical Reviews},"],
+        [" publisher = {American Chemical Society ({ACS})},"],
+    ]
+    assert len(results) == len(expected)
     for res, exp in zip(results, expected):
         assert res == exp
 

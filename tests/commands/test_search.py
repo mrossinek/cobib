@@ -213,7 +213,9 @@ class TestSearchCommand(CommandTest):
             capsys: the built-in pytest fixture.
             expected: the expected output.
         """
-        await self.run_module(monkeypatch, "main", ["cobib", "--porcelain", "search", "einstein"])
+        await self.run_module(
+            monkeypatch, "main", ["cobib", "--porcelain", "search", "--skip-files", "einstein"]
+        )
         self._assert(capsys.readouterr().out.strip().split("\n"), expected)
 
     def test_event_pre_search_command(self, setup: Any) -> None:
