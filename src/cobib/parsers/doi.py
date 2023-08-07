@@ -70,14 +70,23 @@ class DOIParser(Parser):
         try:
             page = requests.get(DOI_URL + doi, headers=DOI_HEADER, timeout=10)
             # this assumes that the doi.org page redirects to the correct journal's landing page
-            redirected_url = requests.head(DOI_URL + doi, timeout=1).headers["Location"]
+            redirected_url: str = ""
+            header = requests.head(DOI_URL + doi, timeout=1).headers
+            LOGGER.debug("The DOI URL header: '%s'", header)
+            max_iter = 3
+            while "Location" in header and max_iter:
+                max_iter -= 1
+                redirected_url = header["Location"]
+                LOGGER.debug("The found URL redirects to: '%s'", redirected_url)
+                header = requests.head(redirected_url, timeout=1).headers
         except requests.exceptions.RequestException as err:
             LOGGER.error("An Exception occurred while trying to query the DOI: %s.", doi)
             LOGGER.error(err)
             return OrderedDict()
         bib = BibtexParser().parse(page.text)
-        for entry in bib.values():
-            entry.data["_download"] = redirected_url
+        if redirected_url:
+            for entry in bib.values():
+                entry.data["_download"] = redirected_url
 
         Event.PostDOIParse.fire(bib)
 

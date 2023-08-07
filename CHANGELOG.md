@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - some user-visible logging messages around label disambiguation have been added (see also #121)
 - a warning has been added when the YAML parser encounters identical labels (which normally should
   not occur in the database but if it does, coBib does not really know how to resolve this)
+- DOI redirect links are now followed recursively (up to 3 times), improving PDF
+  download link detection in the process (#97)
 
 ### Deprecated
 - the `config.commands.search.highlights` section is deprecated in favor of `config.theme.search`
