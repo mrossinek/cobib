@@ -114,10 +114,20 @@ class Database(OrderedDict):  # type: ignore
         Returns:
             A unique label.
         """
-        if label not in self.keys() or self[label] == entry:
+        if label not in self.keys():
+            LOGGER.info("The label '%s' does not yet exist in the runtime database.", label)
             return label
 
-        LOGGER.warning("Label '%s' already exists in database. Running disambiguation.", label)
+        if self[label] == entry:
+            LOGGER.log(
+                35,
+                "Even though the label '%s' already exists in the runtime database, the entry is "
+                "identical and, thus, no further disambiguation is necessary.",
+                label,
+            )
+            return label
+
+        LOGGER.warning("The label '%s' already exists in database. Running disambiguation.", label)
         separator, enumerator = config.database.format.label_suffix
         offset = 0
         while True:
@@ -126,6 +136,15 @@ class Database(OrderedDict):  # type: ignore
             if new_label not in self.keys():
                 LOGGER.info("Found new unique label: %s", new_label)
                 return new_label
+            LOGGER.log(
+                35,
+                "The label '%s' also already exists in the database. You are seeing this because "
+                "you are running a disambiguation of the label '%s'. You may want to check whether "
+                "these two entries are related and (if so) edit or merge them manually. For more "
+                "information see also: https://gitlab.com/cobib/cobib/-/issues/121",
+                new_label,
+                label,
+            )
 
     @classmethod
     def read(cls) -> None:

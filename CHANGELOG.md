@@ -25,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - unicode symbols in entry labels will now be replaced with ascii ones (#119,#120)
   - this is configured via the `config.database.format.default_label` setting, so if you are using a
     custom value for this, be sure to update your config to make use of this feature
+- some user-visible logging messages around label disambiguation have been added (see also #121)
+- a warning has been added when the YAML parser encounters identical labels (which normally should
+  not occur in the database but if it does, coBib does not really know how to resolve this)
 
 ### Deprecated
 - the `config.commands.search.highlights` section is deprecated in favor of `config.theme.search`

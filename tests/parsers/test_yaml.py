@@ -1,6 +1,7 @@
 """Tests for coBib's YAMLParser."""
 # pylint: disable=unused-argument
 
+import tempfile
 from typing import Dict, Optional, cast
 
 import pytest
@@ -37,6 +38,26 @@ class TestYAMLParser(ParserTest):
             assert entry.data == reference
         finally:
             config.defaults()
+
+    def test_warn_duplicate_label(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Tests a warning is logged for duplicate labels.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
+        with tempfile.NamedTemporaryFile("w") as file:
+            with open(self.EXAMPLE_YAML_FILE, "r", encoding="utf-8") as existing:
+                file.writelines(existing.readlines())
+            with open(self.EXAMPLE_YAML_FILE, "r", encoding="utf-8") as existing:
+                file.writelines(existing.readlines())
+            file.flush()
+            _ = YAMLParser().parse(file.name)
+        assert (
+            "cobib.parsers.yaml",
+            30,
+            "An entry with label 'Cao_2019' was already encountered earlier on in the YAML file! "
+            "Please check the file manually as this cannot be resolved automatically by coBib.",
+        ) in caplog.record_tuples
 
     def test_raise_missing_file(self) -> None:
         """Test assertion is raised for missing file."""

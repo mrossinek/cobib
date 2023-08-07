@@ -53,7 +53,7 @@ class YAMLParser(Parser):
     def parse(self, string: Union[str, Path]) -> Dict[str, Entry]:
         string = Event.PreYAMLParse.fire(string) or string
 
-        bib = OrderedDict()
+        bib: Dict[str, Entry] = OrderedDict()
         LOGGER.debug("Loading YAML data from file: %s.", string)
         try:
             stream: IO = io.StringIO(Path(string))  # type: ignore[arg-type,type-arg]
@@ -70,6 +70,13 @@ class YAMLParser(Parser):
         ):
             for label, data in entry.items():
                 actual_entry = Entry(label, data)
+                if actual_entry.label in bib.keys():
+                    LOGGER.warning(
+                        "An entry with label '%s' was already encountered earlier on in the YAML "
+                        "file! Please check the file manually as this cannot be resolved "
+                        "automatically by coBib.",
+                        actual_entry.label,
+                    )
                 bib[actual_entry.label] = actual_entry
         stream.close()
 
