@@ -452,7 +452,6 @@ class SearchCommandConfig(_ConfigBase):
             isinstance(self.ignore_case, bool),
             "config.commands.search.ignore_case should be a boolean.",
         )
-        self.highlights.validate()
 
 
 @dataclass
