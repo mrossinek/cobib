@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [4.2.0] - 2023-08-08
+
+Pypi: https://pypi.org/project/cobib/4.2.0/
+
 ### Added
 - added the `config.tui.scroll_offset` setting
 - added the `--field` command line option to the `open` command
@@ -798,7 +803,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v4.1.0...master
+[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v4.2.0...master
+[4.2.0]: https://gitlab.com/cobib/cobib/-/compare/v4.2.0
 [4.1.0]: https://gitlab.com/cobib/cobib/-/compare/v4.1.0
 [4.0.0]: https://gitlab.com/cobib/cobib/-/compare/v4.0.0
 [3.5.5]: https://gitlab.com/cobib/cobib/-/compare/v3.5.5
