@@ -6,6 +6,7 @@ from __future__ import annotations
 import logging
 import os
 import tempfile
+from datetime import datetime
 from itertools import zip_longest
 from typing import TYPE_CHECKING, Any, Dict, Generator, List, Optional, Type
 
@@ -681,3 +682,22 @@ class TestAddCommand(CommandTest):
                     break
         else:
             pytest.fail("No Warning logged from AddCommand.")
+
+    @pytest.mark.asyncio
+    async def test_hook_datetime_added(self, setup: Any) -> None:
+        """Tests the hook to keep track of the time an entry was added.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+        """
+
+        @Event.PostAddCommand.subscribe
+        def date_added(command: AddCommand) -> None:
+            for entry in command.new_entries.values():
+                entry.data["datetime_added"] = str(datetime.now())
+
+        assert Event.PostModifyCommand.validate()
+
+        await AddCommand("-b", EXAMPLE_DUPLICATE_ENTRY_BIB, "-l", "dummy").execute()
+
+        assert "datetime_added" in Database()["dummy"].data

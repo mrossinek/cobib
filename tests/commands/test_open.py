@@ -519,7 +519,7 @@ class TestOpenCommand(CommandTest):
         assert "last_opened" not in Database()["example_multi_file_entry"].data
 
         @Event.PostOpenCommand.subscribe
-        def hook(command: OpenCommand) -> None:
+        def last_opened(command: OpenCommand) -> None:
             ModifyCommand(
                 f"last_opened:{datetime.now()}",
                 "-s",

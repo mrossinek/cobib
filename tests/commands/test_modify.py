@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import contextlib
 import tempfile
+from datetime import datetime
 from io import StringIO
 from typing import TYPE_CHECKING, Any, List, Type
 
@@ -275,3 +276,22 @@ class TestModifyCommand(CommandTest):
         with contextlib.redirect_stdout(StringIO()) as out:
             ModifyCommand("-a", "number:3", "++label", "einstein").execute()
             assert out.getvalue() == "['einstein']\n"
+
+    def test_hook_last_modified(self, setup: Any) -> None:
+        """Tests the hook to keep track of the last time an entry was modified.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+        """
+        assert "last_modified" not in Database()["einstein"].data
+
+        @Event.PostModifyCommand.subscribe
+        def last_modified(command: ModifyCommand) -> None:
+            for entry in command.modified_entries:
+                entry.data["last_modified"] = str(datetime.now())
+
+        assert Event.PostModifyCommand.validate()
+
+        ModifyCommand("-a", "number:3", "++label", "einstein").execute()
+
+        assert "last_modified" in Database()["einstein"].data
