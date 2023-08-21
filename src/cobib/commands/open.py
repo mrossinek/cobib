@@ -225,7 +225,12 @@ class OpenCommand(Command):
         """
         opener = config.commands.open.command
         try:
-            url_str: str = url.geturl() if url.scheme else str(RelPath(url.geturl()).path)
+            url_str = url.geturl()
+            if not url.scheme:
+                url_path = RelPath(url_str)
+                if not url_path.path.exists():
+                    raise FileNotFoundError(f"Could not find the file at '{url_path.path}'!")
+                url_str = str(url_path.path)
             LOGGER.debug('Opening "%s" with %s.', url_str, opener)
             with open(os.devnull, "w", encoding="utf-8") as devnull:
                 with warnings.catch_warnings():

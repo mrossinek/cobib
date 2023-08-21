@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - the `-f` short-hand alias for the `--field` argument of the `open` command
 
+### Changed
+- an error will be logged when a file is not found during the `open` command
+
 
 ## [4.2.0] - 2023-08-08
 

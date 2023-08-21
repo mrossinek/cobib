@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, Generator, List, Optional, Tuple, Type
 
 import pytest
@@ -33,6 +34,20 @@ class TestOpenCommand(CommandTest):
     @override
     def get_command(self) -> Type[cobib.commands.base_command.Command]:
         return OpenCommand
+
+    @pytest.fixture(autouse=True)
+    def auto_setup(self) -> Generator[None, None, None]:
+        """Additional setup instructions which will be run automatically for this class of tests."""
+        path_a = Path(self.TMP_FILE_A)
+        path_b = Path(self.TMP_FILE_B)
+
+        path_a.touch()
+        path_b.touch()
+
+        yield
+
+        path_a.unlink(missing_ok=True)
+        path_b.unlink(missing_ok=True)
 
     @pytest.fixture
     def post_setup(
@@ -221,6 +236,40 @@ class TestOpenCommand(CommandTest):
             "cobib.commands.open",
             30,
             "The entry 'einstein' has no actionable field associated with it.",
+        ) in caplog.record_tuples
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ["args", "post_setup"],
+        [
+            [["example_multi_file_entry"], {"multi_file": True, "stdin_list": ["1"]}],
+        ],
+        indirect=["post_setup"],
+    )
+    async def test_warning_missing_file(
+        self,
+        setup: Any,
+        post_setup: Any,
+        caplog: pytest.LogCaptureFixture,
+        args: List[str],
+    ) -> None:
+        """Test warning for non-existent files.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            post_setup: an additional setup fixture.
+            caplog: the built-in pytest fixture.
+            args: the arguments to pass to the command.
+        """
+        path_a = Path(self.TMP_FILE_A)
+        path_a.unlink(missing_ok=True)
+
+        await OpenCommand(*args).execute()
+
+        assert (
+            "cobib.commands.open",
+            40,
+            f"Could not find the file at '{path_a}'!",
         ) in caplog.record_tuples
 
     @pytest.mark.asyncio
