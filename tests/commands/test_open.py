@@ -4,13 +4,14 @@
 from __future__ import annotations
 
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, Generator, List, Optional, Tuple, Type
 
 import pytest
 from typing_extensions import override
 
-from cobib.commands import OpenCommand
+from cobib.commands import ModifyCommand, OpenCommand
 from cobib.config import Event, config
 from cobib.database import Database
 
@@ -498,3 +499,35 @@ class TestOpenCommand(CommandTest):
         self._assert(true_out, true_log, multi_file=False)
 
         assert outerr.err == "['knuthwebsite']\n"
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ["args", "post_setup"],
+        [
+            [["example_multi_file_entry"], {"multi_file": True, "stdin_list": ["1"]}],
+        ],
+        indirect=["post_setup"],
+    )
+    async def test_hook_last_opened(self, setup: Any, post_setup: Any, args: List[str]) -> None:
+        """Tests the hook to keep track of the last time an entry was opened.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            post_setup: an additional setup fixture.
+            args: the arguments to pass to the command.
+        """
+        assert "last_opened" not in Database()["example_multi_file_entry"].data
+
+        @Event.PostOpenCommand.subscribe
+        def hook(command: OpenCommand) -> None:
+            ModifyCommand(
+                f"last_opened:{datetime.now()}",
+                "-s",
+                *command.opened_entries,
+            ).execute()
+
+        assert Event.PostOpenCommand.validate()
+
+        await OpenCommand(*args).execute()
+
+        assert "last_opened" in Database()["example_multi_file_entry"].data

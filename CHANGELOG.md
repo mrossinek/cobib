@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - the `-f` short-hand alias for the `--field` argument of the `open` command
+- the `opened_entries` attribute of the `OpenCommand` (which is accessible during the `PostOpenCommand` hook)
 
 ### Changed
 - an error will be logged when a file is not found during the `open` command

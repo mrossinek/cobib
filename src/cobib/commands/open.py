@@ -55,7 +55,7 @@ import subprocess
 import warnings
 from collections import defaultdict
 from functools import wraps
-from typing import Callable, cast
+from typing import Callable, Type, cast
 from urllib.parse import ParseResult, urlparse
 
 from rich.console import Console
@@ -84,6 +84,18 @@ class OpenCommand(Command):
     """
 
     name = "open"
+
+    @override
+    def __init__(
+        self,
+        *args: str,
+        console: Console | App[None] | None = None,
+        prompt: Type[PromptBase[PromptType]] | None = None,
+    ) -> None:
+        super().__init__(*args, console=console, prompt=prompt)
+
+        self.opened_entries: set[str] = set()
+        """The set of labels corresponding to the entries which were opened by this command."""
 
     @override
     @classmethod
@@ -138,7 +150,7 @@ class OpenCommand(Command):
 
             if count == 1:
                 # we found a single URL to open
-                self._open_url(list(things_to_open.values())[0][0])
+                self._open_url(label, list(things_to_open.values())[0][0])
 
             elif self.largs.field is not None:
                 choice = self.largs.field
@@ -147,11 +159,11 @@ class OpenCommand(Command):
                 if choice == "all":
                     for urls in things_to_open.values():
                         for url in urls:
-                            self._open_url(url)
+                            self._open_url(label, url)
 
                 elif choice in things_to_open.keys():
                     for url in things_to_open[choice]:
-                        self._open_url(url)
+                        self._open_url(label, url)
 
                 else:
                     msg = f"The entry '{label}' has no field '{choice}' associated with it."
@@ -205,22 +217,22 @@ class OpenCommand(Command):
                 elif choice == "all":
                     LOGGER.debug("User selected all urls.")
                     for url in url_list:
-                        self._open_url(url)
+                        self._open_url(label, url)
                 elif choice in things_to_open.keys():
                     LOGGER.debug("User selected the %s set of urls.", choice)
                     for url in things_to_open[choice]:
-                        self._open_url(url)
+                        self._open_url(label, url)
                 elif choice.isdigit():
                     LOGGER.debug("User selected url %s", choice)
-                    self._open_url(url_list[int(choice) - 1])
+                    self._open_url(label, url_list[int(choice) - 1])
 
         Event.PostOpenCommand.fire(self)
 
-    @staticmethod
-    def _open_url(url: ParseResult) -> None:
+    def _open_url(self, label: str, url: ParseResult) -> None:
         """Opens a URL.
 
         Args:
+            label: the label of the entry to which the provided URL belongs.
             url: the URL to be opened.
         """
         opener = config.commands.open.command
@@ -242,6 +254,7 @@ class OpenCommand(Command):
                         stdin=devnull,
                         close_fds=True,
                     )
+            self.opened_entries.add(label)
         except FileNotFoundError as err:
             LOGGER.error(err)
 
