@@ -34,9 +34,9 @@ With the above options, here is what will happen depending on the users choice:
 * `cancel`: will abort the command.
 
 Since coBib v4.2.0 you can also bypass the above interactive prompt from the command-line using the
-optional `--field` argument. However, this only allows you to specify `all` or an openable field
-name (e.g. `file` or `url`) but *not* any of the numbers (since you would not know the order up
-front). Here is an example which will open all openable fields found in an entry:
+optional `--field` (or `-f` for short) argument. However, this only allows you to specify `all` or
+an openable field name (e.g. `file` or `url`) but *not* any of the numbers (since you would not know
+the order up front). Here is an example which will open all openable fields found in an entry:
 ```
 cobib open <label 1> --field all
 ```
@@ -80,7 +80,7 @@ class OpenCommand(Command):
     This command can parse the following arguments:
 
         * `labels`: one (or multiple) labels of the entries to be opened.
-        * `--field`: specifies the field to be opened, bypassing the interactive prompt.
+        * `-f`, `--field`: specifies the field to be opened, bypassing the interactive prompt.
     """
 
     name = "open"
@@ -91,6 +91,7 @@ class OpenCommand(Command):
         parser = ArgumentParser(prog="open", description="Open subcommand parser.")
         parser.add_argument("labels", type=str, nargs="+", help="labels of the entries")
         parser.add_argument(
+            "-f",
             "--field",
             type=str,
             choices=["all"] + config.commands.open.fields,
