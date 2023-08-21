@@ -523,6 +523,7 @@ class TestOpenCommand(CommandTest):
             ModifyCommand(
                 f"last_opened:{datetime.now()}",
                 "-s",
+                "--",
                 *command.opened_entries,
             ).execute()
 
