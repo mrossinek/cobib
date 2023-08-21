@@ -70,6 +70,9 @@ from cobib.database import Entry
 def print_new_entries(bib: Dict[str, Entry) -> None:
     print("New entries being added: ", list(bib.keys()))
 ```
+
+You can find some useful examples on
+[this wiki page](https://gitlab.com/cobib/cobib/-/wikis/Useful-Event-Hooks).
 """
 
 from __future__ import annotations

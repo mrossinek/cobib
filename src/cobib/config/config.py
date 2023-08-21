@@ -741,7 +741,10 @@ class FileDownloaderConfig(_ConfigBase):
     ] = r"\1://quantum-journal.org/papers/\2/pdf/"
     ```
 
-    Make sure to use raw Python strings to ensure proper backslash-escaping."""
+    Make sure to use raw Python strings to ensure proper backslash-escaping.
+
+    You can find some examples on
+    [this wiki page](https://gitlab.com/cobib/cobib/-/wikis/File-Downloader-URL-Maps)."""
 
     @override
     def validate(self) -> None:
@@ -770,7 +773,10 @@ class UtilsConfig(_ConfigBase):
     journal_abbreviations: list[tuple[str, str]] = field(default_factory=list)
     """Permits providing a list of journal abbreviations. This list should be formatted as tuples of
     the form: `(full journal name, abbreviation)`. The abbreviation should include any necessary
-    punctuation which can be excluded upon export (see also `cobib export --help`)."""
+    punctuation which can be excluded upon export (see also `cobib export --help`).
+
+    You can find some examples on
+    [this wiki page](https://gitlab.com/cobib/cobib/-/wikis/Journal-Abbreviations)."""
 
     @override
     def validate(self) -> None:

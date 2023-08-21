@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Prelude
+coBib now has a [Wiki](https://gitlab.com/cobib/cobib/-/wikis/home) where we can
+gather useful configuration resources and other details which may not make it
+into the full documentation.
+
+For example, if you are interested in the tracking more metadata of your
+database (as suggested in #123), be sure to check out
+[this wiki page](https://gitlab.com/cobib/cobib/-/wikis/Useful-Event-Hooks)!
+
 ### Added
 - the `-f` short-hand alias for the `--field` argument of the `open` command
 - the `opened_entries` attribute of the `OpenCommand` (which is accessible during the `PostOpenCommand` hook)
