@@ -9,6 +9,7 @@ from .add import AddCommand as AddCommand
 from .delete import DeleteCommand as DeleteCommand
 from .edit import EditCommand as EditCommand
 from .export import ExportCommand as ExportCommand
+from .git import GitCommand as GitCommand
 from .import_ import ImportCommand as ImportCommand
 from .init import InitCommand as InitCommand
 from .list_ import ListCommand as ListCommand

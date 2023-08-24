@@ -77,7 +77,7 @@ class RedoCommand(Command):
         if not git_tracked:
             msg = (
                 "You must enable coBib's git-tracking in order to use the `Redo` command."
-                "\nPlease refer to the man-page for more information on how to do so."
+                "\nPlease refer to the documentation for more information on how to do so."
             )
             LOGGER.error(msg)
             return

@@ -65,6 +65,11 @@ Note, that in order to use this functionality you must also enable the
 \fIDATABASE/git\fR configuration option (see also \fBCONFIGURATION\fR).
 Also be sure to at least set a \fIname\fR and \fIemail\fR in the git config!
 .TP
+.B cobib git \fI<args>\fR ...
+.in +4n
+Passes through to \fIgit\fR to run operations on the underlying database.
+All arguments provided after \fIgit\fR are forwarded without being changed.
+.TP
 .B cobib add \fI<args>\fR ...
 Adds a new entry to the database.
 The positional arguments may be used to provide \fItags\fR to associate with the

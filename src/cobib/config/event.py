@@ -108,6 +108,7 @@ else:
         "ForwardRef('commands.DeleteCommand')": "cobib.commands.delete.DeleteCommand",
         "ForwardRef('commands.EditCommand')": "cobib.commands.edit.EditCommand",
         "ForwardRef('commands.ExportCommand')": "cobib.commands.export.ExportCommand",
+        "ForwardRef('commands.GitCommand')": "cobib.commands.git.GitCommand",
         "ForwardRef('commands.ImportCommand')": "cobib.commands.import_.ImportCommand",
         "ForwardRef('commands.InitCommand')": "cobib.commands.init.InitCommand",
         "ForwardRef('commands.ListCommand')": "cobib.commands.list_.ListCommand",
@@ -253,6 +254,29 @@ class Event(Enum):
 
     Returns:
         Nothing. The files to which has been exported are still accessible and open.
+    """
+
+    PreGitCommand: Event = Callable[["commands.GitCommand"], None]  # type: ignore[assignment]
+    """
+    Fires:
+        Before starting the `cobib.commands.git.GitCommand`.
+
+    Arguments:
+        - `cobib.commands.git.GitCommand`: the command instance that is about to run.
+
+    Returns:
+        Nothing. But the command attributes can be modified, affecting the execution.
+    """
+    PostGitCommand: Event = Callable[["commands.GitCommand"], None]  # type: ignore[assignment]
+    """
+    Fires:
+        Before finishing the `cobib.commands.git.GitCommand`.
+
+    Arguments:
+        - `cobib.commands.git.GitCommand`: the command instance that just ran.
+
+    Returns:
+        Nothing.
     """
 
     PreImportCommand: Event = Callable[["commands.ImportCommand"], None]  # type: ignore[assignment]

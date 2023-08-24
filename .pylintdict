@@ -15,6 +15,7 @@ biblatex
 bibtex
 bibtexexpression
 bibtexparser
+capfd
 caplog
 capsys
 changelog
