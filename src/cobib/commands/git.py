@@ -6,6 +6,11 @@ It exists solely for convenience since the above can be cumbersome to type out a
 shell alias only works when coBib is used for a single database location (otherwise one needs one
 alias for each database).
 
+.. note::
+
+   This command is not available from within the TUI because the generated output is not dealt with
+   very nicely (yet? 🤔)
+
 Below are a few example use cases.
 
 ### Checking the latest change
