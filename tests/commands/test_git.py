@@ -30,7 +30,9 @@ class TestGitCommand(CommandTest):
     def test_command(self, setup: Any, capfd: pytest.CaptureFixture[str]) -> None:
         """Test the command itself.
 
-        TODO.
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            capfd: the built-in pytest fixture.
         """
         GitCommand("--version").execute()
         subprocess.run(["git", "--version"], check=False)
@@ -40,7 +42,11 @@ class TestGitCommand(CommandTest):
         assert stdout[0] == stdout[1]
 
     def test_guard_no_git(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Tests a proper warning is raised when the git integration was not initialized."""
+        """Tests a proper warning is raised when the git integration was not initialized.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         GitCommand("--version").execute()
 
         true_log = [rec for rec in caplog.record_tuples if rec[0] == "cobib.commands.git"]
