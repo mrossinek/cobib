@@ -19,6 +19,7 @@ import logging
 import shlex
 import sys
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
+from inspect import iscoroutinefunction
 from typing import Any, Awaitable, Callable, Coroutine, Iterator, cast
 
 from rich.console import RenderableType
@@ -50,6 +51,8 @@ from cobib.ui.components import (
 )
 from cobib.ui.ui import UI
 from cobib.utils.file_downloader import FileDownloader
+
+LOGGER = logging.getLogger(__name__)
 
 
 # NOTE: pylint and mypy are unable to understand that the `App` interface actually implements `run`
@@ -489,11 +492,34 @@ class TUI(UI, App[None]):  # type: ignore[misc]
             self._filter.active = False
 
         if command and command[0]:
+            if command[0].lower() == "init":
+                LOGGER.error(
+                    "You cannot run the 'init' command from within the TUI!\n"
+                    "Please run this command outside the TUI."
+                )
+                return
+            if command[0].lower() == "git":
+                LOGGER.error(
+                    "You cannot run the 'git' command from within the TUI because it is impossible "
+                    "to foresee what the command might output or need for input etc.\n"
+                    "Please run this command outside the TUI."
+                )
+                return
+            if command[0].lower() == "show":
+                LOGGER.warning(
+                    "Running the 'show' command via the ':' prompt in the TUI is not supported!\n"
+                    "Instead, you can simply look in the secondary panel which shows the entry "
+                    "that is currently under the cursor."
+                )
+                return
             if command[0].lower() == "list":
                 self._list_args = command[1:]
                 await self._update_table()
             elif command[0].lower() == "search":
                 await self._update_tree(command[1:])
+            elif command[0].lower() == "edit":
+                with self.suspend():
+                    commands.EditCommand(*command[1:]).execute()
             else:
                 self._run_command(command)
 
@@ -526,18 +552,23 @@ class TUI(UI, App[None]):  # type: ignore[misc]
                         *command[1:], prompt=Prompt, console=self
                     )
 
-                    # 1. create subcommand execution task
-                    task1 = asyncio.create_task(subcmd.execute())
+                    if not iscoroutinefunction(subcmd.execute):
+                        subcmd.execute()
+                    else:
+                        # 1. create subcommand execution task
+                        task1 = asyncio.create_task(subcmd.execute())
 
-                    # 2. create another task which chains an asynchronous callback after the
-                    #    previous one
-                    task2 = asyncio.create_task(TUI._async_done_callback(task1, self._update_table))
+                        # 2. create another task which chains an asynchronous callback after the
+                        #    previous one
+                        task2 = asyncio.create_task(
+                            TUI._async_done_callback(task1, self._update_table)
+                        )
 
-                    # 3. ensure proper clean-up of all created tasks
-                    self._background_tasks.add(task1)
-                    task1.add_done_callback(self._background_tasks.discard)
-                    self._background_tasks.add(task2)
-                    task2.add_done_callback(self._background_tasks.discard)
+                        # 3. ensure proper clean-up of all created tasks
+                        self._background_tasks.add(task1)
+                        task1.add_done_callback(self._background_tasks.discard)
+                        self._background_tasks.add(task2)
+                        task2.add_done_callback(self._background_tasks.discard)
 
                 except SystemExit:
                     pass

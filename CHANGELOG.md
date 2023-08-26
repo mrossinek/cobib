@@ -22,6 +22,13 @@ database (as suggested in #123), be sure to check out
 
 ### Changed
 - an error will be logged when a file is not found during the `open` command
+- the following commands are now treated specially when run via the `:` prompt of the TUI:
+  - `init`: will log an error
+  - `git`: will log an error
+  - `show`: will log a warning
+
+### Fixed
+- non-asynchronous commands triggered via the `:` prompt of the TUI will no longer break it (#125)
 
 
 ## [4.2.0] - 2023-08-08
