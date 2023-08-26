@@ -19,6 +19,7 @@ database (as suggested in #123), be sure to check out
 - the `-f` short-hand alias for the `--field` argument of the `open` command
 - the `opened_entries` attribute of the `OpenCommand` (which is accessible during the `PostOpenCommand` hook)
 - the new `git` command to simplify running git operations on the database (#124)
+- new bindings for `Home`, `End`, `PageUp`, and `PageDown` in the TUI
 
 ### Changed
 - an error will be logged when a file is not found during the `open` command

@@ -36,7 +36,10 @@ class ListView(DataTable[Text]):
         Binding("up", "motion('up', 'cursor_up')", "Up", show=False),
         Binding("left", "motion('left', 'cursor_left')", "Left", show=False),
         Binding("right", "motion('right', 'cursor_right')", "Right", show=False),
-        # TODO: add motions for home, end, page up, and page down
+        Binding("home", "motion('home', 'scroll_home')", "Home", show=False),
+        Binding("end", "motion('end', 'scroll_end')", "End", show=False),
+        Binding("pageup", "motion('pageup', 'page_up')", "Page Up", show=False),
+        Binding("pagedown", "motion('pagedown', 'page_down')", "Page Down", show=False),
     ]
     """
     | Key(s) | Description |
@@ -46,6 +49,10 @@ class ListView(DataTable[Text]):
     | k, up | Moves one row up. |
     | h, left | Moves to the left. |
     | l, right | Moves to the right. |
+    | PageDown | Moves one page down. |
+    | PageUp | Moves one page up. |
+    | End | Moves to the bottom of the list. |
+    | Home | Moves to the top of the list. |
     """
 
     DEFAULT_CSS = """
