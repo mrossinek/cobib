@@ -64,6 +64,8 @@ class ISBNParser(Parser):
         isbn_plain = "".join([i for i in isbn if i.isdigit()])
         try:
             page = requests.get(ISBN_URL + isbn_plain + "&jscmd=data&format=json", timeout=10)
+            if page.encoding is None:
+                page.encoding = "utf-8"
         except requests.exceptions.RequestException as err:
             LOGGER.error("An Exception occurred while trying to query the ISBN: %s.", isbn)
             LOGGER.error(err)

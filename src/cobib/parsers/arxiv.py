@@ -44,6 +44,7 @@ class ArxivParser(Parser):
 
     name = "arxiv"
 
+    # pylint: disable=too-many-branches
     @override
     def parse(self, string: str) -> Dict[str, Entry]:
         string = Event.PreArxivParse.fire(string) or string
@@ -60,6 +61,8 @@ class ArxivParser(Parser):
         LOGGER.info("Gathering BibTex data for arXiv ID: %s.", arxiv_id)
         try:
             page = requests.get(ARXIV_URL + arxiv_id, timeout=10)
+            if page.encoding is None:
+                page.encoding = "utf-8"
         except requests.exceptions.RequestException as err:
             LOGGER.error("An Exception occurred while trying to query the arXiv ID: %s.", arxiv_id)
             LOGGER.error(err)

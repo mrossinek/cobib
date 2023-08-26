@@ -30,6 +30,7 @@ database (as suggested in #123), be sure to check out
 
 ### Fixed
 - non-asynchronous commands triggered via the `:` prompt of the TUI will no longer break it (#125)
+- ensure UTF-8 encoding is used for downloaded data (this fixes many odd encounters w.r.t. special characters)
 
 
 ## [4.2.0] - 2023-08-08

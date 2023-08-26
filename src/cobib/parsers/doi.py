@@ -69,6 +69,8 @@ class DOIParser(Parser):
         LOGGER.info("Gathering BibTex data for DOI: %s.", doi)
         try:
             page = requests.get(DOI_URL + doi, headers=DOI_HEADER, timeout=10)
+            if page.encoding is None:
+                page.encoding = "utf-8"
             # this assumes that the doi.org page redirects to the correct journal's landing page
             redirected_url: str = ""
             header = requests.head(DOI_URL + doi, timeout=1).headers

@@ -64,6 +64,8 @@ class URLParser(Parser):
 
         try:
             page = requests.get(string, timeout=10)
+            if page.encoding is None:
+                page.encoding = "utf-8"
         except requests.exceptions.RequestException as err:
             LOGGER.error("An Exception occurred while trying to query the URL: %s.", string)
             LOGGER.error(err)
