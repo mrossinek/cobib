@@ -9,7 +9,6 @@ import os
 import shlex
 import sys
 from abc import ABC, abstractmethod
-from typing import List, Optional, Type
 
 from rich.console import Console, ConsoleRenderable
 from rich.prompt import Prompt, PromptBase, PromptType
@@ -43,7 +42,7 @@ class Command(ABC):
         self,
         *args: str,
         console: Console | App[None] | None = None,
-        prompt: Type[PromptBase[PromptType]] | None = None,
+        prompt: type[PromptBase[PromptType]] | None = None,
     ) -> None:
         """Initializes a command instance.
 
@@ -66,7 +65,7 @@ class Command(ABC):
         self.console: Console | App[None] = console if console is not None else Console()
         """The object via which to print output to the user during runtime execution."""
 
-        self.prompt: Type[PromptBase[PromptType]] = prompt if prompt is not None else Prompt
+        self.prompt: type[PromptBase[PromptType]] = prompt if prompt is not None else Prompt
         """The object via which to prompt the user for input during runtime execution."""
 
     @classmethod
@@ -134,7 +133,7 @@ class Command(ABC):
         Such encountered errors should be logged and the method should return gracefully.
         """
 
-    def render_porcelain(self) -> List[str]:
+    def render_porcelain(self) -> list[str]:
         """Renders the command results in "porcelain" mode.
 
         This method is called when the `--porcelain` argument has been provided.
@@ -146,7 +145,7 @@ class Command(ABC):
         """
         return []
 
-    def render_rich(self) -> Optional[ConsoleRenderable]:
+    def render_rich(self) -> ConsoleRenderable | None:
         """Renders the command results as a `rich` object.
 
         This method is called when a command is run via the command-line interface.
@@ -156,7 +155,7 @@ class Command(ABC):
         """
         return None
 
-    def render_textual(self) -> Optional[Widget]:
+    def render_textual(self) -> Widget | None:
         """Renders the command results as a `textual` widget.
 
         This method is called when a command is run via the terminal user interface.

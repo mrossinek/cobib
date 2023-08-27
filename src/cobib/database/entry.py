@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import re
 import subprocess
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any
 
 from pylatexenc.latexencode import UnicodeToLatexEncoder
 
@@ -37,7 +37,7 @@ class Entry:
     and querying.
     """
 
-    def __init__(self, label: str, data: Dict[str, Any]) -> None:
+    def __init__(self, label: str, data: dict[str, Any]) -> None:
         """Initializes a new Entry.
 
         Args:
@@ -50,7 +50,7 @@ class Entry:
 
         self._label: str = str(label)
 
-        self.data: Dict[str, Any] = {}
+        self.data: dict[str, Any] = {}
         """The actual bibliographic data."""
 
         for key, value in data.items():
@@ -114,12 +114,12 @@ class Entry:
         return markup_label
 
     @property
-    def tags(self) -> List[str]:
+    def tags(self) -> list[str]:
         """The tags of this entry."""
         return self.data.get("tags", [])
 
     @tags.setter
-    def tags(self, tags: Union[str, List[str]]) -> None:
+    def tags(self, tags: str | list[str]) -> None:
         """Sets the tags of this entry.
 
         Args:
@@ -140,7 +140,7 @@ class Entry:
         LOGGER.debug("Adding the tags '%s' to '%s'.", self.data["tags"], self.label)
 
     @property
-    def file(self) -> List[str]:
+    def file(self) -> list[str]:
         # noqa: D402 (we skip this error because file(s) raises a false negative)
         """The associated file(s) of this entry.
 
@@ -150,7 +150,7 @@ class Entry:
         return self.data.get("file", [])
 
     @file.setter
-    def file(self, file: Union[str, List[str]]) -> None:
+    def file(self, file: str | list[str]) -> None:
         # noqa: D402 (we skip this error because file(s) raises a false negative)
         """Sets the associated file(s) of this entry.
 
@@ -175,12 +175,12 @@ class Entry:
         LOGGER.debug("Adding '%s' as the file to '%s'.", self.data["file"], self.label)
 
     @property
-    def url(self) -> List[str]:
+    def url(self) -> list[str]:
         """The associated URL(s) of this entry."""
         return self.data.get("url", [])
 
     @url.setter
-    def url(self, url: Union[str, List[str]]) -> None:
+    def url(self, url: str | list[str]) -> None:
         """Sets the associated URL(s) of this entry.
 
         Args:
@@ -207,7 +207,7 @@ class Entry:
         return self.data.get("month", None)
 
     @month.setter
-    def month(self, month: Union[int, str]) -> None:
+    def month(self, month: int | str) -> None:
         """Sets the month."""
         months = [
             "jan",
@@ -242,7 +242,7 @@ class Entry:
                 extra={"entry": self.label, "field": "month"},
             )
 
-    def stringify(self, *, markup: bool = False) -> Dict[str, str]:
+    def stringify(self, *, markup: bool = False) -> dict[str, str]:
         """Returns an identical entry to self but with all fields converted to strings.
 
         Args:
@@ -287,7 +287,7 @@ class Entry:
             if isinstance(value, str):
                 self.data[key] = enc.unicode_to_latex(value)
 
-    def save(self, parser: Optional[cobib.parsers.base_parser.Parser] = None) -> str:
+    def save(self, parser: cobib.parsers.base_parser.Parser | None = None) -> str:
         """Saves an entry using the parsers `dump` method.
 
         This method is mainly used by the `Database.save` method and takes care of some final
@@ -312,14 +312,14 @@ class Entry:
         return parser.dump(self) or ""  # `dump` may return `None`
 
     def matches(
-        self, filter_: Dict[Tuple[str, bool], List[str]], or_: bool, ignore_case: bool = False
+        self, filter_: dict[tuple[str, bool], list[str]], or_: bool, ignore_case: bool = False
     ) -> bool:
         """Check whether this entry matches the supplied filter.
 
         coBib provides an extensive filtering implementation. The filter is specified in the form
         of a dictionary whose keys consist of pairs of `(str, bool)` entries where the string
         indicates the field to match against and the boolean whether a positive (`true`) or negative
-        (`false`) match is required. The values of the dictionary must be a `List[str]`. This means
+        (`false`) match is required. The values of the dictionary must be a `list[str]`. This means
         that field types are always compared on a string-basis (this is a limitation of the targeted
         command-line interface). However, as of v3.2.0 these strings are interpreted as regex
         patterns providing the most power within this framework.
@@ -362,11 +362,11 @@ class Entry:
 
     def search(
         self,
-        query: List[str],
+        query: list[str],
         context: int = 1,
         ignore_case: bool = False,
         skip_files: bool = False,
-    ) -> List[List[str]]:
+    ) -> list[list[str]]:
         """Search entry contents for the query strings.
 
         The entry will *always* be converted to a searchable string using the
@@ -387,7 +387,7 @@ class Entry:
             A list of lists containing the context for each match associated with this entry.
         """
         LOGGER.debug("Searching entry %s.", self.label)
-        matches: List[List[str]] = []
+        matches: list[list[str]] = []
         # pylint: disable=import-outside-toplevel,cyclic-import
         from cobib.parsers.bibtex import BibtexParser
 

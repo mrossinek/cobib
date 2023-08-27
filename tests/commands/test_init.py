@@ -6,7 +6,7 @@ from __future__ import annotations
 import os
 from datetime import datetime
 from shutil import rmtree
-from typing import TYPE_CHECKING, Any, Type
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from typing_extensions import override
@@ -24,7 +24,7 @@ class TestInitCommand(CommandTest):
     """Tests for coBib's InitCommand."""
 
     @override
-    def get_command(self) -> Type[cobib.commands.base_command.Command]:
+    def get_command(self) -> type[cobib.commands.base_command.Command]:
         return InitCommand
 
     @pytest.mark.parametrize(

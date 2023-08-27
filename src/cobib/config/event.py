@@ -81,23 +81,13 @@ import logging
 from enum import Enum
 from itertools import zip_longest
 from pathlib import Path
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Dict,
-    ForwardRef,
-    List,
-    Optional,
-    Tuple,
-    get_type_hints,
-)
+from typing import TYPE_CHECKING, Any, Callable, Dict, ForwardRef, Optional, Tuple, get_type_hints
 
 from cobib.utils.rel_path import RelPath
 
 from .config import config
 
-_FORWARD_REFS: Dict[str, str] = {}
+_FORWARD_REFS: dict[str, str] = {}
 if TYPE_CHECKING:
     from cobib import commands, importers
     from cobib.database import Entry
@@ -861,7 +851,7 @@ class Event(Enum):
         if self not in config.events:
             return True
 
-        def _compare_types(expected: Any, provided: Any) -> List[bool]:
+        def _compare_types(expected: Any, provided: Any) -> list[bool]:
             result = []
             for exp, pro in zip_longest(expected, provided):
                 try:

@@ -1,12 +1,15 @@
 """Tests for coBib's Database class."""
 
+from __future__ import annotations
+
 import copy
 import logging
 import os
 import tempfile
+from collections.abc import Generator
 from pathlib import Path
 from shutil import copyfile
-from typing import Any, Generator, Tuple
+from typing import Any
 
 import pytest
 
@@ -129,7 +132,7 @@ def test_database_rename() -> None:
         [(".", LabelSuffix.NUMERIC), "test.1"],
     ],
 )
-def test_database_disambiguate_label(label_suffix: Tuple[str, LabelSuffix], expected: str) -> None:
+def test_database_disambiguate_label(label_suffix: tuple[str, LabelSuffix], expected: str) -> None:
     # pylint: disable=invalid-name
     """Test the `cobib.database.Database.disambiguate_label` method."""
     config.database.format.label_default = "test"

@@ -60,7 +60,6 @@ import argparse
 import inspect
 import logging
 from collections import OrderedDict
-from typing import Dict, List, Type
 
 from rich.console import Console
 from rich.prompt import PromptBase, PromptType
@@ -104,11 +103,11 @@ class ImportCommand(Command):
         self,
         *args: str,
         console: Console | App[None] | None = None,
-        prompt: Type[PromptBase[PromptType]] | None = None,
+        prompt: type[PromptBase[PromptType]] | None = None,
     ) -> None:
         super().__init__(*args, console=console, prompt=prompt)
 
-        self.new_entries: Dict[str, Entry] = OrderedDict()
+        self.new_entries: dict[str, Entry] = OrderedDict()
         """An `OrderedDict` mapping labels to `cobib.database.Entry` instances which were imported
         by this command."""
 
@@ -151,7 +150,7 @@ class ImportCommand(Command):
 
         Event.PreImportCommand.fire(self)
 
-        imported_entries: List[Entry] = []
+        imported_entries: list[Entry] = []
 
         skip_download = config.commands.import_.skip_download
         if self.largs.skip_download is not None:

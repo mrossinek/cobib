@@ -1,7 +1,10 @@
 """Tests for coBib's Journal abbreviations."""
 # pylint: disable=protected-access
 
-from typing import Any, Generator
+from __future__ import annotations
+
+from collections.abc import Generator
+from typing import Any
 
 import pytest
 

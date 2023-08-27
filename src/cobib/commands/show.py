@@ -14,7 +14,6 @@ By default, it is bound to the `ENTER` key.
 from __future__ import annotations
 
 import logging
-from typing import List, Type
 
 from rich.console import Console, ConsoleRenderable
 from rich.prompt import PromptBase, PromptType
@@ -48,7 +47,7 @@ class ShowCommand(Command):
         self,
         *args: str,
         console: Console | App[None] | None = None,
-        prompt: Type[PromptBase[PromptType]] | None = None,
+        prompt: type[PromptBase[PromptType]] | None = None,
     ) -> None:
         super().__init__(*args, console=console, prompt=prompt)
 
@@ -80,7 +79,7 @@ class ShowCommand(Command):
         Event.PostShowCommand.fire(self)
 
     @override
-    def render_porcelain(self) -> List[str]:
+    def render_porcelain(self) -> list[str]:
         return self.entry_str.split("\n")
 
     @override

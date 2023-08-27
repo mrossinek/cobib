@@ -54,8 +54,9 @@ import os
 import subprocess
 import warnings
 from collections import defaultdict
+from collections.abc import Callable
 from functools import wraps
-from typing import Callable, Type, cast
+from typing import cast
 from urllib.parse import ParseResult, urlparse
 
 from rich.console import Console
@@ -90,7 +91,7 @@ class OpenCommand(Command):
         self,
         *args: str,
         console: Console | App[None] | None = None,
-        prompt: Type[PromptBase[PromptType]] | None = None,
+        prompt: type[PromptBase[PromptType]] | None = None,
     ) -> None:
         super().__init__(*args, console=console, prompt=prompt)
 

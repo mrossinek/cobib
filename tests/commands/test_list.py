@@ -9,7 +9,7 @@ from copy import copy
 from io import StringIO
 from itertools import zip_longest
 from shutil import copyfile
-from typing import TYPE_CHECKING, Any, List, Set, Type
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from rich.table import Table
@@ -30,7 +30,7 @@ class TestListCommand(CommandTest):
     """Tests for coBib's ListCommand."""
 
     @override
-    def get_command(self) -> Type[cobib.commands.base_command.Command]:
+    def get_command(self) -> type[cobib.commands.base_command.Command]:
         return ListCommand
 
     @pytest.mark.parametrize(
@@ -53,7 +53,7 @@ class TestListCommand(CommandTest):
         ],
     )
     def test_command(
-        self, setup: Any, args: List[str], expected_labels: List[str], config_overwrite: bool
+        self, setup: Any, args: list[str], expected_labels: list[str], config_overwrite: bool
     ) -> None:
         """Test the command itself.
 
@@ -92,9 +92,9 @@ class TestListCommand(CommandTest):
     def test_filter_entries(
         self,
         setup: Any,
-        args: List[str],
-        expected_labels: List[str],
-        expected_keys: Set[str],
+        args: list[str],
+        expected_labels: list[str],
+        expected_keys: set[str],
         config_overwrite: bool,
     ) -> None:
         """Tests the filtering methods.
@@ -143,7 +143,7 @@ class TestListCommand(CommandTest):
         setup: Any,
         monkeypatch: pytest.MonkeyPatch,
         capsys: pytest.CaptureFixture[str],
-        expected: List[List[str]],
+        expected: list[list[str]],
     ) -> None:
         """Test the command-line access of the command.
 
@@ -188,7 +188,7 @@ class TestListCommand(CommandTest):
         ],
     )
     def test_render_rich(
-        self, setup: Any, args: List[str], expected_cols: List[str], expected_rows: List[str]
+        self, setup: Any, args: list[str], expected_cols: list[str], expected_rows: list[str]
     ) -> None:
         """Test the `render_rich` method.
 

@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Type
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from typing_extensions import override
@@ -21,7 +21,7 @@ class TestImportCommand(CommandTest):
     """Tests for coBib's ImportCommand."""
 
     @override
-    def get_command(self) -> Type[cobib.commands.base_command.Command]:
+    def get_command(self) -> type[cobib.commands.base_command.Command]:
         return ImportCommand
 
     @pytest.mark.asyncio

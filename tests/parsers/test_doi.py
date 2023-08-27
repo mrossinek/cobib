@@ -1,8 +1,10 @@
 """Tests for coBib's DOIParser."""
 # pylint: disable=unused-argument
 
+from __future__ import annotations
+
 import logging
-from typing import Dict, Optional
+from typing import Optional
 
 import pytest
 import requests
@@ -132,7 +134,7 @@ class TestDOIParser(ParserTest):
         """Tests the PostDOIParse event."""
 
         @Event.PostDOIParse.subscribe
-        def hook(bib: Dict[str, Entry]) -> None:
+        def hook(bib: dict[str, Entry]) -> None:
             bib["Cao_2019"].data["test"] = "dummy"
 
         assert Event.PostDOIParse.validate()

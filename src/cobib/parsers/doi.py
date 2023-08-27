@@ -23,10 +23,11 @@ The following documentation is mostly inherited from the abstract interface
 `cobib.parsers.base_parser`.
 """
 
+from __future__ import annotations
+
 import logging
 import re
 from collections import OrderedDict
-from typing import Dict
 
 import requests
 from typing_extensions import override
@@ -54,7 +55,7 @@ class DOIParser(Parser):
     name = "doi"
 
     @override
-    def parse(self, string: str) -> Dict[str, Entry]:
+    def parse(self, string: str) -> dict[str, Entry]:
         string = Event.PreDOIParse.fire(string) or string
 
         try:

@@ -13,9 +13,10 @@ The following documentation is mostly inherited from the abstract interface
 `cobib.parsers.base_parser`.
 """
 
+from __future__ import annotations
+
 import logging
 from collections import OrderedDict
-from typing import Dict
 
 import bibtexparser
 from typing_extensions import override
@@ -35,7 +36,7 @@ class BibtexParser(Parser):
     name = "bibtex"
 
     @override
-    def parse(self, string: str) -> Dict[str, Entry]:
+    def parse(self, string: str) -> dict[str, Entry]:
         string = Event.PreBibtexParse.fire(string) or string
 
         bparser = bibtexparser.bparser.BibTexParser()

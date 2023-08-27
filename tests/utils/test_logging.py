@@ -1,9 +1,10 @@
 """Tests for coBib's logging helper functions."""
 
+from __future__ import annotations
+
 import logging
 import tempfile
 from pathlib import Path
-from typing import Optional
 
 import pytest
 from rich.console import Group
@@ -32,7 +33,7 @@ def test_get_file_handler() -> None:
 
 @pytest.mark.parametrize("cached_version", [None, False, "", "0.1", "0.2"])
 def test_print_changelog(
-    cached_version: Optional[str],
+    cached_version: str | None,
 ) -> None:
     """Test printing of the latest changelog section.
 

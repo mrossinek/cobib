@@ -1,8 +1,10 @@
 """Tests for coBib's YAMLParser."""
 # pylint: disable=unused-argument
 
+from __future__ import annotations
+
 import tempfile
-from typing import Dict, Optional, cast
+from typing import Optional, cast
 
 import pytest
 
@@ -82,7 +84,7 @@ class TestYAMLParser(ParserTest):
         """Tests the PostYAMLParse event."""
 
         @Event.PostYAMLParse.subscribe
-        def hook(bib: Dict[str, Entry]) -> None:
+        def hook(bib: dict[str, Entry]) -> None:
             bib["Cao_2019"].data["month"] = "August"
 
         reference = self.EXAMPLE_ENTRY_DICT.copy()

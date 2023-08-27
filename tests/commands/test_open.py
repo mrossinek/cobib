@@ -4,9 +4,10 @@
 from __future__ import annotations
 
 import sys
+from collections.abc import Generator
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, Generator, List, Optional, Tuple, Type
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from typing_extensions import override
@@ -33,7 +34,7 @@ class TestOpenCommand(CommandTest):
     TMP_FILE_B = "/tmp/b.txt"
 
     @override
-    def get_command(self) -> Type[cobib.commands.base_command.Command]:
+    def get_command(self) -> type[cobib.commands.base_command.Command]:
         return OpenCommand
 
     @pytest.fixture(autouse=True)
@@ -53,7 +54,7 @@ class TestOpenCommand(CommandTest):
     @pytest.fixture
     def post_setup(
         self, monkeypatch: pytest.MonkeyPatch, request: _pytest.fixtures.SubRequest
-    ) -> Generator[Dict[str, Any], None, None]:
+    ) -> Generator[dict[str, Any], None, None]:
         """Additional setup instructions.
 
         Args:
@@ -80,7 +81,7 @@ class TestOpenCommand(CommandTest):
         yield request.param
 
     def _assert(  # type: ignore
-        self, output: List[str], logs: Optional[List[Tuple[str, int, str]]] = None, **kwargs
+        self, output: list[str], logs: list[tuple[str, int, str]] | None = None, **kwargs
     ) -> None:
         """Common assertion utility method.
 
@@ -187,7 +188,7 @@ class TestOpenCommand(CommandTest):
         post_setup: Any,
         caplog: pytest.LogCaptureFixture,
         capsys: pytest.CaptureFixture[str],
-        args: List[str],
+        args: list[str],
     ) -> None:
         """Test the command itself.
 
@@ -252,7 +253,7 @@ class TestOpenCommand(CommandTest):
         setup: Any,
         post_setup: Any,
         caplog: pytest.LogCaptureFixture,
-        args: List[str],
+        args: list[str],
     ) -> None:
         """Test warning for non-existent files.
 
@@ -508,7 +509,7 @@ class TestOpenCommand(CommandTest):
         ],
         indirect=["post_setup"],
     )
-    async def test_hook_last_opened(self, setup: Any, post_setup: Any, args: List[str]) -> None:
+    async def test_hook_last_opened(self, setup: Any, post_setup: Any, args: list[str]) -> None:
         """Tests the hook to keep track of the last time an entry was opened.
 
         Args:

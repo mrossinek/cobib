@@ -88,7 +88,8 @@ from __future__ import annotations
 
 import ast
 import logging
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type
+from collections.abc import Callable
+from typing import Any
 
 from rich.console import Console
 from rich.prompt import PromptBase, PromptType
@@ -140,15 +141,15 @@ class ModifyCommand(Command):
         self,
         *args: str,
         console: Console | App[None] | None = None,
-        prompt: Type[PromptBase[PromptType]] | None = None,
+        prompt: type[PromptBase[PromptType]] | None = None,
     ) -> None:
         super().__init__(*args, console=console, prompt=prompt)
 
-        self.modified_entries: List[Entry] = []
+        self.modified_entries: list[Entry] = []
         """A list of `cobib.database.Entry` objects which were modified by this command."""
 
     @staticmethod
-    def field_value_pair(string: str) -> Tuple[str, str]:
+    def field_value_pair(string: str) -> tuple[str, str]:
         """Utility method to assert the field-value pair argument type.
 
         This method is given to the `argparse.ArgumentParser` instance as its `type` specifier.
@@ -379,7 +380,7 @@ class ModifyCommand(Command):
             self.git()
 
 
-def evaluate_ast_node(node: ast.expr, locals_: Optional[Dict[str, Any]] = None) -> str:
+def evaluate_ast_node(node: ast.expr, locals_: dict[str, Any] | None = None) -> str:
     """Evaluates an AST node representing an f-string.
 
     Args:
@@ -405,7 +406,7 @@ def evaluate_ast_node(node: ast.expr, locals_: Optional[Dict[str, Any]] = None) 
         return ""
 
 
-def evaluate_as_f_string(value: str, locals_: Optional[Dict[str, Any]] = None) -> str:
+def evaluate_as_f_string(value: str, locals_: dict[str, Any] | None = None) -> str:
     """Evaluates a string as if it were a literal f-string.
 
     Args:
@@ -426,7 +427,7 @@ def evaluate_as_f_string(value: str, locals_: Optional[Dict[str, Any]] = None) -
     if locals_ is not None and "unidecode" not in locals_:
         locals_["unidecode"] = unidecode
 
-    result: List[str] = []
+    result: list[str] = []
     for part in ast.parse(f"f'''{value}'''").body[0].value.values:  # type: ignore
         typ = type(part)
 
@@ -437,7 +438,7 @@ def evaluate_as_f_string(value: str, locals_: Optional[Dict[str, Any]] = None) -
             value = evaluate_ast_node(part.value, locals_)
 
             if part.conversion >= 0:
-                conversions: Dict[str, Callable[[Any], str]] = {"a": ascii, "r": repr, "s": str}
+                conversions: dict[str, Callable[[Any], str]] = {"a": ascii, "r": repr, "s": str}
                 value = conversions[chr(part.conversion)](value)
 
             if part.format_spec:

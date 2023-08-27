@@ -1,13 +1,15 @@
 """Tests for coBib's shell helper functions."""
 
+from __future__ import annotations
+
 import logging
 import os
 import subprocess
 import tempfile
+from collections.abc import Generator
 from itertools import zip_longest
 from pathlib import Path
 from shutil import copyfile, rmtree
-from typing import Generator, List, Optional, Set, Union
 
 import pytest
 
@@ -37,10 +39,10 @@ def ensure_logging_not_altered() -> Generator[None, None, None]:
 class ShellHelperTest(CmdLineTest):
     """A base class for some common shell helper unit tests."""
 
-    COMMAND: Optional[str] = None
+    COMMAND: str | None = None
     """The name of the shell helper command-"""
 
-    EXPECTED: Optional[Union[str, List[str], Set[str]]] = None
+    EXPECTED: str | list[str] | set[str] | None = None
     """The expected outcome."""
 
     def _assert(self, out: str) -> None:
@@ -290,7 +292,7 @@ class TestUnifyLabels(ShellHelperTest):
 
     COMMAND = "unify_labels"
     REL_PATH = RelPath(get_resource("unifying_database.yaml", "utils"))
-    EXPECTED: List[str] = [
+    EXPECTED: list[str] = [
         "[INFO] Associated files will not be preserved.",
         "[INFO] einstein: changing field 'label' from einstein to Einstein1905_a",
         "[INFO] latexcompanion: changing field 'label' from latexcompanion to Goossens1993",

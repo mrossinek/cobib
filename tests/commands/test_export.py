@@ -6,7 +6,7 @@ from __future__ import annotations
 import os
 import tempfile
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, List, Type
+from typing import TYPE_CHECKING, Any
 from zipfile import ZipFile
 
 import pytest
@@ -29,10 +29,10 @@ class TestExportCommand(CommandTest):
     """Tests for coBib's ExportCommand."""
 
     @override
-    def get_command(self) -> Type[cobib.commands.base_command.Command]:
+    def get_command(self) -> type[cobib.commands.base_command.Command]:
         return ExportCommand
 
-    def _assert(self, args: List[str]) -> None:
+    def _assert(self, args: list[str]) -> None:
         """Common assertion utility method.
 
         Args:
@@ -43,7 +43,7 @@ class TestExportCommand(CommandTest):
         if "-z" in args:
             self._assert_zip(args)
 
-    def _assert_bib(self, args: List[str]) -> None:
+    def _assert_bib(self, args: list[str]) -> None:
         """Assertion utility method for bibtex output.
 
         Args:
@@ -67,7 +67,7 @@ class TestExportCommand(CommandTest):
             # clean up file system
             os.remove(TMPDIR / "cobib_test_export.bib")
 
-    def _assert_zip(self, args: List[str]) -> None:
+    def _assert_zip(self, args: list[str]) -> None:
         """Assertion utility method for zip output.
 
         Args:
@@ -101,7 +101,7 @@ class TestExportCommand(CommandTest):
             [["-z", str(TMPDIR / "cobib_test_export.zip"), "-s", "--", "einstein"]],
         ],
     )
-    def test_command(self, setup: Any, args: List[str]) -> None:
+    def test_command(self, setup: Any, args: list[str]) -> None:
         """Test the command itself.
 
         Args:
@@ -182,7 +182,7 @@ class TestExportCommand(CommandTest):
     )
     # other variants are already covered by test_command
     async def test_cmdline(
-        self, setup: Any, monkeypatch: pytest.MonkeyPatch, args: List[str]
+        self, setup: Any, monkeypatch: pytest.MonkeyPatch, args: list[str]
     ) -> None:
         """Test the command-line access of the command.
 

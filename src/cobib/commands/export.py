@@ -61,7 +61,6 @@ from __future__ import annotations
 
 import argparse
 import logging
-from typing import List, Type
 from zipfile import ZipFile
 
 from rich.console import Console
@@ -107,11 +106,11 @@ class ExportCommand(Command):
         self,
         *args: str,
         console: Console | App[None] | None = None,
-        prompt: Type[PromptBase[PromptType]] | None = None,
+        prompt: type[PromptBase[PromptType]] | None = None,
     ) -> None:
         super().__init__(*args, console=console, prompt=prompt)
 
-        self.exported_entries: List[Entry] = []
+        self.exported_entries: list[Entry] = []
         """A list of `cobib.database.Entry` objects which were exported by this command."""
 
     @override

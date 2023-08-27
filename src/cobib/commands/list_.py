@@ -96,7 +96,7 @@ import argparse
 import logging
 from collections import defaultdict
 from copy import copy
-from typing import Any, Dict, List, Optional, Set, Tuple, Type
+from typing import Any
 
 from rich.console import Console, ConsoleRenderable
 from rich.prompt import PromptBase, PromptType
@@ -146,14 +146,14 @@ class ListCommand(Command):
         self,
         *args: str,
         console: Console | App[None] | None = None,
-        prompt: Type[PromptBase[PromptType]] | None = None,
+        prompt: type[PromptBase[PromptType]] | None = None,
     ) -> None:
         super().__init__(*args, console=console, prompt=prompt)
 
-        self.entries: List[Entry] = []
+        self.entries: list[Entry] = []
         """A list of entries, filtered and sorted according to the provided command arguments."""
 
-        self.columns: List[str] = []
+        self.columns: list[str] = []
         """A list of (key) columns to be included when rendering the results."""
 
     @override
@@ -189,7 +189,7 @@ class ListCommand(Command):
             action="store_true",
             help="concatenate filters with OR instead of AND",
         )
-        unique_keys: Set[str] = {"label"}
+        unique_keys: set[str] = {"label"}
         LOGGER.debug("Gathering possible filter arguments.")
         for entry in Database().values():
             unique_keys.update(entry.data.keys())
@@ -233,7 +233,7 @@ class ListCommand(Command):
 
         Event.PostListCommand.fire(self)
 
-    def filter_entries(self) -> Tuple[List[Entry], Set[str]]:
+    def filter_entries(self) -> tuple[list[Entry], set[str]]:
         """The filtering method.
 
         This method implements the actual filtering routine. Based on the arguments provided to this
@@ -248,8 +248,8 @@ class ListCommand(Command):
         """
         LOGGER.debug("Constructing filter.")
 
-        filtered_keys: Set[str] = set()
-        _filter: Dict[Tuple[str, bool], List[Any]] = defaultdict(list)
+        filtered_keys: set[str] = set()
+        _filter: dict[tuple[str, bool], list[Any]] = defaultdict(list)
 
         for key, val in self.largs.__dict__.items():
             if key in ["OR", "sort", "reverse", "ignore_case"] or val is None:
@@ -267,7 +267,7 @@ class ListCommand(Command):
                     if i == obj:
                         # once we find the current value in the CLI argument list we can determine
                         # whether this filter is INclusive (`++`) or EXclusive (`--`)
-                        index: Tuple[str, bool] = (key, self.args[idx - 1][0] == "+")
+                        index: tuple[str, bool] = (key, self.args[idx - 1][0] == "+")
                         _filter[index].append(i)
                         break
 
@@ -292,8 +292,8 @@ class ListCommand(Command):
 
     @staticmethod
     def _sort_entries(
-        entries: List[Entry], sort: Optional[str] = None, reverse: bool = False
-    ) -> List[Entry]:
+        entries: list[Entry], sort: str | None = None, reverse: bool = False
+    ) -> list[Entry]:
         """The sorting method.
 
         This method sorts the provided entries according to the requested key and order.
@@ -316,20 +316,20 @@ class ListCommand(Command):
 
         LOGGER.debug("Sorting entries by key '%s'.", sort)
 
-        sorted_entries: List[Entry] = sorted(
+        sorted_entries: list[Entry] = sorted(
             entries, reverse=reverse, key=lambda entry: entry.stringify().get(str(sort), "")
         )
 
         return sorted_entries
 
     @override
-    def render_porcelain(self) -> List[str]:
-        output: List[str] = []
+    def render_porcelain(self) -> list[str]:
+        output: list[str] = []
 
         output.append("::".join(self.columns))
 
         for entry in self.entries:
-            stringified: Dict[str, str] = entry.stringify()
+            stringified: dict[str, str] = entry.stringify()
 
             output.append("::".join(stringified.get(col, "") for col in self.columns))
 
@@ -343,7 +343,7 @@ class ListCommand(Command):
             rich_table.add_column(col)
 
         for entry in self.entries:
-            stringified: Dict[str, str] = entry.stringify(markup=True)
+            stringified: dict[str, str] = entry.stringify(markup=True)
 
             rich_table.add_row(*(stringified.get(col, "") for col in self.columns))
 
@@ -357,7 +357,7 @@ class ListCommand(Command):
             textual_table.add_column(col, width=None)
 
         for entry in self.entries:
-            stringified: Dict[str, str] = entry.stringify(markup=True)
+            stringified: dict[str, str] = entry.stringify(markup=True)
 
             textual_table.add_row(
                 *(Text.from_markup(stringified.get(col, "")) for col in self.columns)

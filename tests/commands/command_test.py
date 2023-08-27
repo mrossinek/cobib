@@ -9,9 +9,10 @@ import shlex
 import subprocess
 import tempfile
 from abc import abstractmethod
+from collections.abc import Generator
 from pathlib import Path
 from shutil import copyfile, rmtree
-from typing import TYPE_CHECKING, Any, Dict, Generator, Optional, Type
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -39,7 +40,7 @@ class CommandTest(CmdLineTest):
     """Path to the temporary coBib test git directory."""
 
     @abstractmethod
-    def get_command(self) -> Type[cobib.commands.base_command.Command]:
+    def get_command(self) -> type[cobib.commands.base_command.Command]:
         """Get the command tested by this class.
 
         Returns:
@@ -51,7 +52,7 @@ class CommandTest(CmdLineTest):
         """Test the command itself."""
 
     @pytest.fixture
-    def setup(self, request: _pytest.fixtures.SubRequest) -> Generator[Dict[str, Any], None, None]:
+    def setup(self, request: _pytest.fixtures.SubRequest) -> Generator[dict[str, Any], None, None]:
         """Setup testing environment.
 
         This method takes care of setting up the testing configuration. This involves:
@@ -116,7 +117,7 @@ class CommandTest(CmdLineTest):
         config.defaults()
 
     def assert_git_commit_message(
-        self, command: str, args: Optional[Dict[str, Any]] = None, msg: Optional[str] = None
+        self, command: str, args: dict[str, Any] | None = None, msg: str | None = None
     ) -> None:
         """Assert the last auto-generated git commit message.
 

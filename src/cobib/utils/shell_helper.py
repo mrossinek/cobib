@@ -11,7 +11,6 @@ import contextlib
 import inspect
 import logging
 from io import StringIO
-from typing import List, Set, Type
 
 from rich.console import Console
 from rich.prompt import PromptBase, PromptType
@@ -23,7 +22,7 @@ LOGGER = logging.getLogger(__name__)
 """@private module logger."""
 
 
-def list_commands(*args: str) -> List[str]:
+def list_commands(*args: str) -> list[str]:
     """Lists all available subcommands.
 
     Args:
@@ -41,7 +40,7 @@ def list_commands(*args: str) -> List[str]:
     return [cls.name for _, cls in inspect.getmembers(commands) if inspect.isclass(cls)]
 
 
-def list_labels(*args: str) -> List[str]:
+def list_labels(*args: str) -> list[str]:
     """List all available labels in the database.
 
     Args:
@@ -60,7 +59,7 @@ def list_labels(*args: str) -> List[str]:
     return labels
 
 
-def list_filters(*args: str) -> Set[str]:
+def list_filters(*args: str) -> set[str]:
     """Lists all field names available for filtering.
 
     Args:
@@ -75,13 +74,13 @@ def list_filters(*args: str) -> Set[str]:
     # pylint: disable=import-outside-toplevel
     from cobib.database import Database
 
-    filters: Set[str] = {"label"}
+    filters: set[str] = {"label"}
     for entry in Database().values():
         filters.update(entry.data.keys())
     return filters
 
 
-def example_config(*args: str) -> List[str]:
+def example_config(*args: str) -> list[str]:
     """Shows the (well-commented) example configuration.
 
     Args:
@@ -102,7 +101,7 @@ class LintFormatter(logging.Formatter):
         # noqa: D107
         super().__init__(*args, **kwargs)
 
-        self.dirty_entries: Set[str] = set()
+        self.dirty_entries: set[str] = set()
 
         # pylint: disable=import-outside-toplevel
         from cobib.config import config
@@ -140,7 +139,7 @@ class LintFormatter(logging.Formatter):
             return ""
 
 
-def lint_database(*args: str) -> List[str]:
+def lint_database(*args: str) -> list[str]:
     """Lints the users database.
 
     Args:
@@ -212,7 +211,7 @@ def lint_database(*args: str) -> List[str]:
                 self,
                 *args: str,
                 console: Console | App[None] | None = None,
-                prompt: Type[PromptBase[PromptType]] | None = None,
+                prompt: type[PromptBase[PromptType]] | None = None,
             ) -> None:
                 # pylint: disable=super-init-not-called
                 self.largs = largs
@@ -231,7 +230,7 @@ def lint_database(*args: str) -> List[str]:
     return lint_messages
 
 
-def unify_labels(*args: str) -> List[str]:
+def unify_labels(*args: str) -> list[str]:
     """Unifies all labels of the database according to `config.database.format.label_default`.
 
     Without the `--apply` argument this will only print the modification which would be performed!

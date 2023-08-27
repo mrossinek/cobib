@@ -60,7 +60,6 @@ from __future__ import annotations
 
 import argparse
 import logging
-from typing import List, Type
 
 from rich.console import Console, ConsoleRenderable
 from rich.prompt import PromptBase, PromptType
@@ -109,14 +108,14 @@ class SearchCommand(Command):
         self,
         *args: str,
         console: Console | App[None] | None = None,
-        prompt: Type[PromptBase[PromptType]] | None = None,
+        prompt: type[PromptBase[PromptType]] | None = None,
     ) -> None:
         super().__init__(*args, console=console, prompt=prompt)
 
-        self.entries: List[Entry] = []
+        self.entries: list[Entry] = []
         """A filtered list of entries searched over by this command."""
 
-        self.matches: List[List[List[str]]] = []
+        self.matches: list[list[list[str]]] = []
         """The search matches detected by this command. This is a nested list of the following
         structure: the first list level iterates over the entries; the second list level iterates
         over the matches of any given entry; the third list level iterates the (context) lines of
@@ -217,7 +216,7 @@ class SearchCommand(Command):
         Event.PostSearchCommand.fire(self)
 
     @override
-    def render_porcelain(self) -> List[str]:
+    def render_porcelain(self) -> list[str]:
         output = []
         for entry, matches in zip(self.entries, self.matches):
             title = f"{entry.label}::{len(matches)}"

@@ -6,7 +6,6 @@ import argparse
 import logging
 import sys
 from abc import ABC, abstractmethod
-from typing import List
 
 from cobib.database import Entry
 from cobib.ui.components import ArgumentParser as ArgumentParser
@@ -93,7 +92,7 @@ class Importer(ABC):
         return largs
 
     @abstractmethod
-    def fetch(self) -> List[Entry]:
+    def fetch(self) -> list[Entry]:
         """Fetches the data from the source which this importer links to.
 
         Returns:

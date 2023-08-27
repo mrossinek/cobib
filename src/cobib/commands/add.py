@@ -141,8 +141,9 @@ import asyncio
 import inspect
 import logging
 from collections import OrderedDict
+from collections.abc import Callable
 from functools import wraps
-from typing import Callable, Dict, Type, cast
+from typing import cast
 
 from rich.console import Console
 from rich.prompt import InvalidResponse, Prompt, PromptBase, PromptType
@@ -200,11 +201,11 @@ class AddCommand(Command):
         self,
         *args: str,
         console: Console | App[None] | None = None,
-        prompt: Type[PromptBase[PromptType]] | None = None,
+        prompt: type[PromptBase[PromptType]] | None = None,
     ) -> None:
         super().__init__(*args, console=console, prompt=prompt)
 
-        self.new_entries: Dict[str, Entry] = OrderedDict()
+        self.new_entries: dict[str, Entry] = OrderedDict()
         """An `OrderedDict` mapping labels to `cobib.database.Entry` instances which were added by
         this command."""
 

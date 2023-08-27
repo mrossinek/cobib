@@ -6,7 +6,7 @@ import logging
 import re
 import sys
 from collections import OrderedDict
-from typing import TYPE_CHECKING, Dict, List, Optional, cast
+from typing import TYPE_CHECKING, cast
 
 from cobib.config import config
 from cobib.utils.rel_path import RelPath
@@ -27,10 +27,10 @@ class Database(OrderedDict):  # type: ignore
     This ensures data consistency during all operations on the database.
     """
 
-    _instance: Optional[Database] = None
+    _instance: Database | None = None
     """The singleton instance of this class."""
 
-    _unsaved_entries: Dict[str, Optional[str]] = {}
+    _unsaved_entries: dict[str, str | None] = {}
     """A dictionary of changed entries which have not been written to the database file, yet.
     The keys are the entry labels. If it the entry was removed, the value of this key is `None`.
     Otherwise it is set to the label of the changed entry (which may be different from the previous
@@ -49,7 +49,7 @@ class Database(OrderedDict):  # type: ignore
             cls.read()
         return cls._instance
 
-    def update(self, new_entries: Dict[str, cobib.database.Entry]) -> None:  # type: ignore
+    def update(self, new_entries: dict[str, cobib.database.Entry]) -> None:  # type: ignore
         """Updates the database with the given dictionary of entries.
 
         This function wraps `OrderedDict.update` and adds the labels of the changed entries to the
@@ -215,7 +215,7 @@ class Database(OrderedDict):  # type: ignore
 
         overwrite = False
         cur_label: str = ""
-        buffer: List[str] = []
+        buffer: list[str] = []
         for line in lines:
             try:
                 matches = label_regex.match(line)

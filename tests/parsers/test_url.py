@@ -1,8 +1,11 @@
 """Tests for coBib's URLParser."""
 # pylint: disable=unused-argument
 
+from __future__ import annotations
+
 import logging
-from typing import Callable, Dict, Optional
+from collections.abc import Callable
+from typing import Optional
 
 import pytest
 
@@ -112,7 +115,7 @@ class TestURLParser(ParserTest):
         """Tests the PostURLParse event."""
 
         @Event.PostURLParse.subscribe
-        def hook(bib: Dict[str, Entry]) -> None:
+        def hook(bib: dict[str, Entry]) -> None:
             bib["Grimsley_2019"].data["test"] = "dummy"
 
         assert Event.PostURLParse.validate()

@@ -31,7 +31,6 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import Type
 
 from rich.console import Console
 from rich.prompt import PromptBase, PromptType
@@ -62,7 +61,7 @@ class InitCommand(Command):
         self,
         *args: str,
         console: Console | App[None] | None = None,
-        prompt: Type[PromptBase[PromptType]] | None = None,
+        prompt: type[PromptBase[PromptType]] | None = None,
     ) -> None:
         super().__init__(*args, console=console, prompt=prompt)
 

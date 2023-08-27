@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, Optional, Type
+from typing import TYPE_CHECKING, Any, Optional
 
 import pytest
 from rich.console import Console
@@ -33,7 +33,7 @@ class DummyCommand(Command):
         self,
         *args: str,
         console: Console | App[None] | None = None,
-        prompt: Type[PromptBase[PromptType]] | None = None,
+        prompt: type[PromptBase[PromptType]] | None = None,
     ) -> None:
         # pylint: disable=super-init-not-called
         self.largs = argparse.Namespace()
@@ -60,7 +60,7 @@ class TestGitCommitEvent(CommandTest):
     """Tests for the automatic git-commit related events."""
 
     @override
-    def get_command(self) -> Type[cobib.commands.base_command.Command]:
+    def get_command(self) -> type[cobib.commands.base_command.Command]:
         return DummyCommand
 
     @override
@@ -80,7 +80,7 @@ class TestGitCommitEvent(CommandTest):
         """
 
         @Event.PreGitCommit.subscribe
-        def hook(msg: str, args: Optional[Dict[str, Any]] = None) -> Optional[str]:
+        def hook(msg: str, args: Optional[dict[str, Any]] = None) -> Optional[str]:
             return "Hello world!"
 
         assert Event.PreGitCommit.validate()

@@ -5,8 +5,9 @@ from __future__ import annotations
 
 import contextlib
 import tempfile
+from collections.abc import Generator
 from io import StringIO
-from typing import TYPE_CHECKING, Any, Dict, Generator, List, Type
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from typing_extensions import override
@@ -29,13 +30,13 @@ class TestDeleteCommand(CommandTest):
     """Tests for coBib's DeleteCommand."""
 
     @override
-    def get_command(self) -> Type[cobib.commands.base_command.Command]:
+    def get_command(self) -> type[cobib.commands.base_command.Command]:
         return DeleteCommand
 
     @pytest.fixture
     def post_setup(
         self, monkeypatch: pytest.MonkeyPatch, request: _pytest.fixtures.SubRequest
-    ) -> Generator[Dict[str, Any], None, None]:
+    ) -> Generator[dict[str, Any], None, None]:
         """Additional setup instructions.
 
         Args:
@@ -53,7 +54,7 @@ class TestDeleteCommand(CommandTest):
 
         yield request.param
 
-    def _assert(self, labels: List[str]) -> None:
+    def _assert(self, labels: list[str]) -> None:
         """Common assertion utility method.
 
         Args:
@@ -91,7 +92,7 @@ class TestDeleteCommand(CommandTest):
             [["dummy", "knuthwebsite"], False],
         ],
     )
-    async def test_command(self, setup: Any, labels: List[str], skip_commit: bool) -> None:
+    async def test_command(self, setup: Any, labels: list[str], skip_commit: bool) -> None:
         # pylint: disable=invalid-overridden-method
         """Test the command itself.
 
@@ -124,7 +125,7 @@ class TestDeleteCommand(CommandTest):
         indirect=["post_setup"],
     )
     async def test_confirmation_prompt(
-        self, setup: Any, post_setup: Any, labels: List[str]
+        self, setup: Any, post_setup: Any, labels: list[str]
     ) -> None:
         """Tests the interactive confirmation prompt.
 
@@ -223,7 +224,7 @@ class TestDeleteCommand(CommandTest):
     )
     # other variants are already covered by test_command
     async def test_cmdline(
-        self, setup: Any, monkeypatch: pytest.MonkeyPatch, labels: List[str]
+        self, setup: Any, monkeypatch: pytest.MonkeyPatch, labels: list[str]
     ) -> None:
         """Test the command-line access of the command.
 

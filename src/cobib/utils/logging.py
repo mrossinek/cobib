@@ -3,12 +3,13 @@
 This module provides utility methods to set up logging to different handlers.
 """
 
+from __future__ import annotations
+
 import logging
 import logging.handlers
 import sys
 from importlib import metadata
 from pathlib import Path
-from typing import List, Optional, Union
 
 from rich.console import ConsoleRenderable, Group
 from rich.markdown import Markdown
@@ -57,7 +58,7 @@ def get_stream_handler(
 
 
 def get_file_handler(
-    level: Union[str, int] = "INFO", logfile: Optional[Union[str, Path]] = None
+    level: str | int = "INFO", logfile: str | Path | None = None
 ) -> logging.handlers.RotatingFileHandler:
     """Returns a `RotatingFileHandler`.
 
@@ -89,7 +90,7 @@ def get_file_handler(
     return handler
 
 
-def print_changelog(version: str, cached_version_path: Optional[str]) -> Optional[Panel]:
+def print_changelog(version: str, cached_version_path: str | None) -> Panel | None:
     """Generates a `rich.Panel` to display the changelog since the last displayed version.
 
     This function prints the contents of the CHANGELOG (extracted from the package metadata)
@@ -129,7 +130,7 @@ def print_changelog(version: str, cached_version_path: Optional[str]) -> Optiona
     with open(_cached_version_path, "w", encoding="utf-8") as version_file:
         version_file.write(current_version)
 
-    groups: List[ConsoleRenderable] = []
+    groups: list[ConsoleRenderable] = []
     groups.append(
         Text(
             "Hi there! It looks like you have updated coBib; here is what's new:",
@@ -139,7 +140,7 @@ def print_changelog(version: str, cached_version_path: Optional[str]) -> Optiona
 
     description = str(metadata.metadata("cobib").get("description"))
 
-    lines: List[str] = []
+    lines: list[str] = []
     started = False
     for line in description.splitlines():
         line = line.strip()

@@ -7,7 +7,7 @@ import contextlib
 import tempfile
 from datetime import datetime
 from io import StringIO
-from typing import TYPE_CHECKING, Any, List, Type
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from typing_extensions import override
@@ -27,7 +27,7 @@ class TestModifyCommand(CommandTest):
     """Tests for coBib's ModifyCommand."""
 
     @override
-    def get_command(self) -> Type[cobib.commands.base_command.Command]:
+    def get_command(self) -> type[cobib.commands.base_command.Command]:
         return ModifyCommand
 
     @pytest.mark.parametrize(
@@ -51,7 +51,7 @@ class TestModifyCommand(CommandTest):
         self,
         setup: Any,
         modification: str,
-        filters: List[str],
+        filters: list[str],
         selection: bool,
         add: bool,
         dry: bool,
@@ -239,7 +239,7 @@ class TestModifyCommand(CommandTest):
     )
     # other variants are already covered by test_command
     async def test_cmdline(
-        self, setup: Any, monkeypatch: pytest.MonkeyPatch, args: List[str]
+        self, setup: Any, monkeypatch: pytest.MonkeyPatch, args: list[str]
     ) -> None:
         """Test the command-line access of the command.
 

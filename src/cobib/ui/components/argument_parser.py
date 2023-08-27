@@ -10,8 +10,10 @@ versions lower than 3.9.
    class will be removed without further notice.
 """
 
+from __future__ import annotations
+
 import argparse
-from typing import NoReturn, Optional
+from typing import NoReturn
 
 
 class ArgumentParser(argparse.ArgumentParser):
@@ -24,7 +26,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
     # TODO: once Python 3.9 becomes the default, make use of the exit_on_error argument.
 
-    def exit(self, status: int = 0, message: Optional[str] = None) -> NoReturn:
+    def exit(self, status: int = 0, message: str | None = None) -> NoReturn:
         """Overwrite the exit method to raise an error rather than exit.
 
         Args:

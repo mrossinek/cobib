@@ -16,10 +16,12 @@ The following documentation is mostly inherited from the abstract interface
 `cobib.parsers.base_parser`.
 """
 
+from __future__ import annotations
+
 import logging
 import re
 from collections import OrderedDict
-from typing import Any, Dict
+from typing import Any
 
 import requests
 from bs4 import BeautifulSoup
@@ -46,7 +48,7 @@ class ArxivParser(Parser):
 
     # pylint: disable=too-many-branches
     @override
-    def parse(self, string: str) -> Dict[str, Entry]:
+    def parse(self, string: str) -> dict[str, Entry]:
         string = Event.PreArxivParse.fire(string) or string
 
         try:
@@ -75,7 +77,7 @@ class ArxivParser(Parser):
             LOGGER.warning(msg)
             return OrderedDict()
         label = ""
-        entry: Dict[str, Any] = {}
+        entry: dict[str, Any] = {}
         entry["archivePrefix"] = "arXiv"
         for key in xml.feed.entry.findChildren(recursive=False):
             if "doi" in key.name:

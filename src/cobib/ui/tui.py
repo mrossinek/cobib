@@ -18,9 +18,10 @@ import io
 import logging
 import shlex
 import sys
+from collections.abc import Awaitable, Callable, Coroutine, Iterator
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from inspect import iscoroutinefunction
-from typing import Any, Awaitable, Callable, Coroutine, Iterator, cast
+from typing import Any, cast
 
 from rich.console import RenderableType
 from textual.app import App, ComposeResult

@@ -6,7 +6,7 @@ from __future__ import annotations
 import contextlib
 from io import StringIO
 from itertools import zip_longest
-from typing import TYPE_CHECKING, Any, List, Type
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from rich.console import Console
@@ -26,10 +26,10 @@ class TestSearchCommand(CommandTest):
     """Tests for coBib's SearchCommand."""
 
     @override
-    def get_command(self) -> Type[cobib.commands.base_command.Command]:
+    def get_command(self) -> type[cobib.commands.base_command.Command]:
         return SearchCommand
 
-    def _assert(self, output: List[str], expected: List[str]) -> None:
+    def _assert(self, output: list[str], expected: list[str]) -> None:
         """Common assertion utility method.
 
         Args:
@@ -124,7 +124,7 @@ class TestSearchCommand(CommandTest):
         ],
     )
     def test_command(
-        self, setup: Any, args: List[str], expected: List[str], config_overwrite: bool
+        self, setup: Any, args: list[str], expected: list[str], config_overwrite: bool
     ) -> None:
         """Test the command itself.
 
@@ -203,7 +203,7 @@ class TestSearchCommand(CommandTest):
         setup: Any,
         monkeypatch: pytest.MonkeyPatch,
         capsys: pytest.CaptureFixture[str],
-        expected: List[str],
+        expected: list[str],
     ) -> None:
         """Test the command-line access of the command.
 

@@ -1,6 +1,9 @@
 """Tests for coBib's Event validation."""
 
-from typing import Any, Generator
+from __future__ import annotations
+
+from collections.abc import Generator
+from typing import Any
 
 import pytest
 

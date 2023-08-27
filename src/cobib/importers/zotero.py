@@ -46,7 +46,6 @@ import logging
 import os
 import subprocess
 import sys
-from typing import Dict, List
 
 import requests
 from requests_oauthlib import OAuth1Session
@@ -122,7 +121,7 @@ class ZoteroImporter(Importer):
         cls.argparser = parser
 
     @override
-    async def fetch(self) -> List[Entry]:  # type: ignore[override]
+    async def fetch(self) -> list[Entry]:  # type: ignore[override]
         # pylint: disable=invalid-overridden-method
         LOGGER.debug("Starting Zotero fetching.")
 
@@ -151,7 +150,7 @@ class ZoteroImporter(Importer):
 
         results = json.loads(raw_result.content)
 
-        encountered_attachments: Dict[str, Dict[str, str]] = {}
+        encountered_attachments: dict[str, dict[str, str]] = {}
 
         for res in results:
             biblatex = res.get("biblatex", "").strip()
@@ -212,7 +211,7 @@ class ZoteroImporter(Importer):
         return self.imported_entries
 
     @staticmethod
-    def _get_fresh_oauth_tokens() -> Dict[str, str]:  # pragma: no cover
+    def _get_fresh_oauth_tokens() -> dict[str, str]:  # pragma: no cover
         """Obtain new OAuth authentication tokens from the Zotero API.
 
         Returns:
@@ -252,7 +251,7 @@ class ZoteroImporter(Importer):
         return authentication
 
     @staticmethod
-    def _get_cached_oauth_tokens() -> Dict[str, str]:
+    def _get_cached_oauth_tokens() -> dict[str, str]:
         """Obtain the OAuth authentication tokens for the Zotero API from coBib's cache.
 
         Returns:
@@ -269,7 +268,7 @@ class ZoteroImporter(Importer):
         return cached_data.get("Zotero", {})  # type: ignore[no-any-return]
 
     @staticmethod
-    def _store_oauth_tokens(tokens: Dict[str, str]) -> None:
+    def _store_oauth_tokens(tokens: dict[str, str]) -> None:
         """Stores the OAuth authentication tokens for the Zotero API in coBib's cache.
 
         Args:
@@ -295,7 +294,7 @@ class ZoteroImporter(Importer):
             json.dump(cached_data, cache)
 
     @staticmethod
-    def _get_authentication_tokens(no_cache: bool = False) -> Dict[str, str]:
+    def _get_authentication_tokens(no_cache: bool = False) -> dict[str, str]:
         """Obtain the OAuth authentication tokens for the Zotero API.
 
         This method will first attempt to load the tokens from the cache. If that fails, it will
@@ -308,7 +307,7 @@ class ZoteroImporter(Importer):
             A dictionary containing the authentication information. Refer to
             `_get_fresh_oauth_tokens` for more specific details on the dictionary contents.
         """
-        authentication: Dict[str, str] = {}
+        authentication: dict[str, str] = {}
 
         if not no_cache:
             authentication = ZoteroImporter._get_cached_oauth_tokens()

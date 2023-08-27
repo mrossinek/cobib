@@ -1,6 +1,8 @@
 """Tests for coBib's Entry class."""
 
-from typing import Any, Dict, List, Tuple
+from __future__ import annotations
+
+from typing import Any
 
 import pytest
 
@@ -104,7 +106,7 @@ def test_entry_set_tags(caplog: pytest.LogCaptureFixture) -> None:
         [EXAMPLE_BIBTEX_FILE, EXAMPLE_YAML_FILE],
     ],
 )
-def test_entry_set_file(files: List[str], caplog: pytest.LogCaptureFixture) -> None:
+def test_entry_set_file(files: list[str], caplog: pytest.LogCaptureFixture) -> None:
     """Test file setting.
 
     Args:
@@ -162,7 +164,7 @@ def test_entry_set_url(caplog: pytest.LogCaptureFixture) -> None:
     ],
 )
 def test_entry_set_month(
-    month: Tuple[int, str], expected: str, caplog: pytest.LogCaptureFixture
+    month: tuple[int, str], expected: str, caplog: pytest.LogCaptureFixture
 ) -> None:
     """Test month setting.
 
@@ -203,7 +205,7 @@ def test_entry_set_month(
         [{("label", True): [r"\D+_\d+"]}, True, False],
     ],
 )
-def test_entry_matches(filter_: Dict[Tuple[str, bool], Any], or_: bool, ignore_case: bool) -> None:
+def test_entry_matches(filter_: dict[tuple[str, bool], Any], or_: bool, ignore_case: bool) -> None:
     """Test match filter.
 
     Args:
@@ -335,7 +337,7 @@ def test_match_with_wrong_key() -> None:
     ],
 )
 def test_search(
-    query: List[str], context: int, ignore_case: bool, expected: List[List[str]]
+    query: list[str], context: int, ignore_case: bool, expected: list[list[str]]
 ) -> None:
     """Test search method.
 

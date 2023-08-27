@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import cobib.database
@@ -22,7 +22,7 @@ class Parser(ABC):
     `cobib.commands.add.AddCommand`."""
 
     @abstractmethod
-    def parse(self, string: str) -> Dict[str, cobib.database.Entry]:
+    def parse(self, string: str) -> dict[str, cobib.database.Entry]:
         """Creates a new Entry from the given string.
 
         This method can add a URL in the special field `_download` of the
@@ -41,7 +41,7 @@ class Parser(ABC):
         """
 
     @abstractmethod
-    def dump(self, entry: cobib.database.Entry) -> Optional[str]:
+    def dump(self, entry: cobib.database.Entry) -> str | None:
         """Dumps an entry in the parsers format.
 
         Args:

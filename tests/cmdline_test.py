@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 import runpy
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import pytest
@@ -14,7 +14,7 @@ class CmdLineTest:
     """A command-line test runs coBib's command-line interface."""
 
     @staticmethod
-    async def run_module(monkeypatch: pytest.MonkeyPatch, main: str, sys_argv: List[str]) -> None:
+    async def run_module(monkeypatch: pytest.MonkeyPatch, main: str, sys_argv: list[str]) -> None:
         """Gets the coBib runtime module after monkeypatching `sys.argv`.
 
         Args:

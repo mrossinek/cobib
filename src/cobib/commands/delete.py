@@ -31,8 +31,9 @@ from __future__ import annotations
 
 import logging
 import os
+from collections.abc import Callable
 from functools import wraps
-from typing import Callable, Set, Type, cast
+from typing import cast
 
 from rich.console import Console
 from rich.prompt import Confirm, InvalidResponse, PromptBase, PromptType
@@ -68,14 +69,14 @@ class DeleteCommand(Command):
         self,
         *args: str,
         console: Console | App[None] | None = None,
-        prompt: Type[PromptBase[PromptType]] | None = None,
+        prompt: type[PromptBase[PromptType]] | None = None,
     ) -> None:
         if prompt is None:
             prompt = Confirm  # type: ignore[assignment]
 
         super().__init__(*args, console=console, prompt=prompt)
 
-        self.deleted_entries: Set[str] = set()
+        self.deleted_entries: set[str] = set()
         """A set of labels which were deleted by this command."""
 
     @override

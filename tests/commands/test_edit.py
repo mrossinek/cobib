@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import tempfile
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Type
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from typing_extensions import override
@@ -32,12 +32,12 @@ class TestEditCommand(CommandTest):
     """
 
     @override
-    def get_command(self) -> Type[cobib.commands.base_command.Command]:
+    def get_command(self) -> type[cobib.commands.base_command.Command]:
         return EditCommand
 
     @staticmethod
     def _assert(
-        changes: bool, logs: Optional[List[Tuple[str, int, str]]] = None, label: str = "dummy"
+        changes: bool, logs: list[tuple[str, int, str]] | None = None, label: str = "dummy"
     ) -> None:
         """Common assertion utility method.
 
@@ -77,7 +77,7 @@ class TestEditCommand(CommandTest):
         ],
     )
     def test_command(
-        self, setup: Any, caplog: pytest.LogCaptureFixture, args: List[str], changes: bool
+        self, setup: Any, caplog: pytest.LogCaptureFixture, args: list[str], changes: bool
     ) -> None:
         """Test the command itself.
 

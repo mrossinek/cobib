@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Callable, Dict, Optional
+from collections.abc import Callable
 
 from cobib.config import config
 
@@ -18,13 +18,13 @@ class JournalAbbreviations:
     names. It implements the singleton pattern to enforce consistency across all modules.
     """
 
-    _instance: Optional[JournalAbbreviations] = None
+    _instance: JournalAbbreviations | None = None
     """The singleton instance of this class."""
 
-    _abbreviations: Dict[str, str] = {}
+    _abbreviations: dict[str, str] = {}
     """The parsed abbreviations."""
 
-    _fullwords: Dict[str, str] = {}
+    _fullwords: dict[str, str] = {}
     """The inverted, parsed abbreviations."""
 
     def __new__(cls) -> JournalAbbreviations:

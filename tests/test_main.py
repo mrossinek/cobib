@@ -5,11 +5,13 @@ with testing the global parser arguments.
 """
 # pylint: disable=unused-argument
 
+from __future__ import annotations
+
 import logging
 import os
 import tempfile
 from pathlib import Path
-from typing import Any, List
+from typing import Any
 
 import pytest
 
@@ -65,7 +67,7 @@ class TestMainExecutable(CmdLineTest):
         self,
         setup: Any,
         monkeypatch: pytest.MonkeyPatch,
-        args: List[str],
+        args: list[str],
         verbosity_arg: str,
         level: int,
     ) -> None:
@@ -95,7 +97,7 @@ class TestMainExecutable(CmdLineTest):
         ],
     )
     async def test_logfile(
-        self, setup: Any, monkeypatch: pytest.MonkeyPatch, args: List[str]
+        self, setup: Any, monkeypatch: pytest.MonkeyPatch, args: list[str]
     ) -> None:
         """Tests the logfile parser argument.
 
@@ -121,7 +123,7 @@ class TestMainExecutable(CmdLineTest):
             ["_example_config"],
         ],
     )
-    async def test_configfile(self, monkeypatch: pytest.MonkeyPatch, args: List[str]) -> None:
+    async def test_configfile(self, monkeypatch: pytest.MonkeyPatch, args: list[str]) -> None:
         """Tests the configfile parser argument.
 
         Args:

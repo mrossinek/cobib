@@ -9,7 +9,7 @@ import os
 import subprocess
 from io import StringIO
 from shutil import rmtree
-from typing import TYPE_CHECKING, Any, Type
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from typing_extensions import override
@@ -31,7 +31,7 @@ class TestUndoCommand(CommandTest):
     """Tests for coBib's UndoCommand."""
 
     @override
-    def get_command(self) -> Type[cobib.commands.base_command.Command]:
+    def get_command(self) -> type[cobib.commands.base_command.Command]:
         return UndoCommand
 
     def _assert(self) -> None:

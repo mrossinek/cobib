@@ -1,12 +1,13 @@
 """Tests for coBib's ZoteroImporter."""
 # pylint: disable=unused-argument
 
+from __future__ import annotations
+
 import json
 import logging
 import tempfile
 from itertools import zip_longest
 from pathlib import Path
-from typing import Dict, List
 
 import pytest
 from typing_extensions import override
@@ -27,7 +28,7 @@ class MockZoteroImporter(ZoteroImporter):
 
     @override
     @staticmethod
-    def _get_authentication_tokens(no_cache: bool = False) -> Dict[str, str]:
+    def _get_authentication_tokens(no_cache: bool = False) -> dict[str, str]:
         return {
             # NOTE: we are relying on the publicly accessible user `cobib` for testing purposes
             "UserID": "8608002",
@@ -37,7 +38,7 @@ class MockZoteroImporter(ZoteroImporter):
 class TestZoteroImporter(ImporterTest):
     """Tests for coBib's ZoteroImporter."""
 
-    def _assert_results(self, imported_entries: List[Entry]) -> None:
+    def _assert_results(self, imported_entries: list[Entry]) -> None:
         """Common assertion utility method.
 
         Args:

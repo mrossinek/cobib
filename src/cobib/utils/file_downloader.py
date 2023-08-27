@@ -7,7 +7,6 @@ import logging
 import re
 import tempfile
 from pathlib import Path
-from typing import Dict, Optional, Type
 
 import requests
 from rich.console import Console
@@ -28,7 +27,7 @@ class FileDownloader:
     This utility centralizes the downloading of associated files.
     """
 
-    _instance: Optional[FileDownloader] = None
+    _instance: FileDownloader | None = None
     """The singleton instance of this class."""
 
     def __new__(cls) -> FileDownloader:
@@ -41,7 +40,7 @@ class FileDownloader:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    progress: Type[Progress] = Progress
+    progress: type[Progress] = Progress
     """The type of progress bar to use when displaying the downloading progress."""
 
     console: Console | App[None] = Console()
@@ -79,10 +78,10 @@ class FileDownloader:
     async def download(
         url: str,
         label: str,
-        folder: Optional[str] = None,
+        folder: str | None = None,
         overwrite: bool = False,
-        headers: Optional[Dict[str, str]] = None,
-    ) -> Optional[RelPath]:
+        headers: dict[str, str] | None = None,
+    ) -> RelPath | None:
         # pylint: disable=too-many-function-args,unexpected-keyword-arg,no-member
         """Downloads a file.
 
@@ -222,7 +221,7 @@ class FileDownloader:
 
     @staticmethod
     # pylint: disable=unsubscriptable-object
-    def _recover(path: RelPath, backup: Optional[tempfile._TemporaryFileWrapper[bytes]]) -> None:
+    def _recover(path: RelPath, backup: tempfile._TemporaryFileWrapper[bytes] | None) -> None:
         """Recovers from a backup file.
 
         If not `backup` exists, the file location which was supposed to be recovered is properly

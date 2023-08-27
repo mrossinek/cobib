@@ -1,7 +1,9 @@
 """coBib's path utility."""
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 
 class RelPath:
@@ -18,7 +20,7 @@ class RelPath:
     HOME = Path.home()
     """The path of the user's home directory."""
 
-    def __init__(self, path: Union[str, Path]) -> None:
+    def __init__(self, path: str | Path) -> None:
         """Initializes the path.
 
         This will first expand and fully resolve the given path and store it internally as a path

@@ -15,10 +15,11 @@ import logging
 import os
 import sys
 from abc import abstractmethod
+from collections.abc import Callable
 from dataclasses import MISSING, dataclass, field, fields
 from enum import Enum, EnumMeta
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional, TextIO, Union
+from typing import TYPE_CHECKING, Any, NamedTuple, TextIO
 
 from rich.style import Style
 from rich.theme import Theme
@@ -884,7 +885,7 @@ class Config(_ConfigBase):
             )
 
     @staticmethod
-    def load(configpath: Optional[Union[str, Path, TextIO, io.TextIOWrapper]] = None) -> None:
+    def load(configpath: str | Path | TextIO | io.TextIOWrapper | None = None) -> None:
         """Loads another configuration object at runtime.
 
         WARNING: The new Python-like configuration allows essentially arbitrary Python code so it is

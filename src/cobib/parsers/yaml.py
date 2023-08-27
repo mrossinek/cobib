@@ -12,12 +12,14 @@ The following documentation is mostly inherited from the abstract interface
 `cobib.parsers.base_parser`.
 """
 
+from __future__ import annotations
+
 import io
 import logging
 import sys
 from collections import OrderedDict
 from pathlib import Path
-from typing import IO, Dict, Optional, Union
+from typing import IO
 
 from rich.console import Console
 from rich.progress import track
@@ -38,7 +40,7 @@ class YAMLParser(Parser):
 
     name = "yaml"
 
-    _yaml: Optional[yaml.YAML] = None
+    _yaml: yaml.YAML | None = None
 
     def __init__(self) -> None:  # pylint: disable=C0116
         # noqa: D107
@@ -50,10 +52,10 @@ class YAMLParser(Parser):
             YAMLParser._yaml.default_flow_style = False
 
     @override
-    def parse(self, string: Union[str, Path]) -> Dict[str, Entry]:
+    def parse(self, string: str | Path) -> dict[str, Entry]:
         string = Event.PreYAMLParse.fire(string) or string
 
-        bib: Dict[str, Entry] = OrderedDict()
+        bib: dict[str, Entry] = OrderedDict()
         LOGGER.debug("Loading YAML data from file: %s.", string)
         try:
             stream: IO = io.StringIO(Path(string))  # type: ignore[arg-type,type-arg]
@@ -85,7 +87,7 @@ class YAMLParser(Parser):
         return bib
 
     @override
-    def dump(self, entry: Entry) -> Optional[str]:
+    def dump(self, entry: Entry) -> str | None:
         Event.PreYAMLDump.fire(entry)
 
         LOGGER.debug("Converting entry %s to YAML format.", entry.label)

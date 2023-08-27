@@ -16,13 +16,14 @@ pytest <path/to/test/file.py>
 Check out `pytest --help` for more options.
 """
 
-from pathlib import Path, PurePath
-from typing import List, Optional
+from __future__ import annotations
 
-from .cmdline_test import CmdLineTest
+from pathlib import Path
+
+from .cmdline_test import CmdLineTest as CmdLineTest
 
 
-def get_resource(filename: str, path: Optional[str] = None) -> str:
+def get_resource(filename: str, path: str | None = None) -> str:
     """A utility method to get the absolute path to a resource in the test suite.
 
     Args:
@@ -42,7 +43,7 @@ class MockStdin:
 
     # pylint: disable=missing-function-docstring
 
-    def __init__(self, string: Optional[List[str]] = None) -> None:
+    def __init__(self, string: list[str] | None = None) -> None:
         # noqa: D107
         if string is None:
             string = []

@@ -1,8 +1,10 @@
 """Tests for coBib's ArxivParser."""
 # pylint: disable=unused-argument
 
+from __future__ import annotations
+
 import logging
-from typing import Dict, Optional
+from typing import Optional
 
 import pytest
 import requests
@@ -143,7 +145,7 @@ class TestArxivParser(ParserTest):
         """Tests the PostArxivParse event."""
 
         @Event.PostArxivParse.subscribe
-        def hook(bib: Dict[str, Entry]) -> None:
+        def hook(bib: dict[str, Entry]) -> None:
             bib["Cao2018"].data["test"] = "dummy"
 
         assert Event.PostArxivParse.validate()

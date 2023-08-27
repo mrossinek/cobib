@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 from itertools import zip_longest
-from typing import TYPE_CHECKING, Any, List, Type
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from rich.syntax import Syntax
@@ -24,10 +24,10 @@ class TestShowCommand(CommandTest):
     """Tests for coBib's ShowCommand."""
 
     @override
-    def get_command(self) -> Type[cobib.commands.base_command.Command]:
+    def get_command(self) -> type[cobib.commands.base_command.Command]:
         return ShowCommand
 
-    def _assert(self, output: List[str]) -> None:
+    def _assert(self, output: list[str]) -> None:
         """Common assertion utility method.
 
         Args:

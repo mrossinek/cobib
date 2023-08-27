@@ -6,9 +6,10 @@ from __future__ import annotations
 import logging
 import os
 import tempfile
+from collections.abc import Generator
 from datetime import datetime
 from itertools import zip_longest
-from typing import TYPE_CHECKING, Any, Dict, Generator, List, Optional, Type
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from typing_extensions import override
@@ -37,13 +38,13 @@ class TestAddCommand(CommandTest):
     """Tests for coBib's AddCommand."""
 
     @override
-    def get_command(self) -> Type[cobib.commands.base_command.Command]:
+    def get_command(self) -> type[cobib.commands.base_command.Command]:
         return AddCommand
 
     @pytest.fixture
     def post_setup(
         self, monkeypatch: pytest.MonkeyPatch, request: _pytest.fixtures.SubRequest
-    ) -> Generator[Dict[str, Any], None, None]:
+    ) -> Generator[dict[str, Any], None, None]:
         """Additional setup instructions.
 
         Args:
@@ -113,7 +114,7 @@ class TestAddCommand(CommandTest):
         ],
     )
     async def test_command(
-        self, setup: Any, more_args: List[str], entry_kwargs: Dict[str, Any]
+        self, setup: Any, more_args: list[str], entry_kwargs: dict[str, Any]
     ) -> None:
         # pylint: disable=invalid-overridden-method
         """Test the command itself.
@@ -176,8 +177,8 @@ class TestAddCommand(CommandTest):
     async def test_add_with_download(
         self,
         setup: Any,
-        folder: Optional[str],
-        skip_download: Optional[bool],
+        folder: str | None,
+        skip_download: bool | None,
         config_overwrite: bool,
         capsys: pytest.CaptureFixture[str],
         caplog: pytest.LogCaptureFixture,
