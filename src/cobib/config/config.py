@@ -494,7 +494,7 @@ class LabelSuffix(Enum):
     """Suffixes to disambiguate `cobib.database.Entry` labels."""
 
     ALPHA = lambda count: chr(96 + count)  # pylint: disable=unnecessary-lambda-assignment
-    CAPTIAL = lambda count: chr(64 + count)  # pylint: disable=unnecessary-lambda-assignment
+    CAPITAL = lambda count: chr(64 + count)  # pylint: disable=unnecessary-lambda-assignment
     # pylint: disable=unnecessary-lambda,unnecessary-lambda-assignment
     NUMERIC = lambda count: str(count)
 
@@ -517,7 +517,7 @@ class DatabaseFormatConfig(_ConfigBase):
     proposed label from the enumerator and the second one is one of the enumerators provided by the
     `LabelSuffix` object. The available enumerators are:
         - ALPHA: a, b, ...
-        - CAPTIAL: A, B, ...
+        - CAPITAL: A, B, ...
         - NUMERIC: 1, 2, ...
     """
     suppress_latex_warnings: bool = True

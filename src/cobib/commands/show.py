@@ -1,6 +1,6 @@
 """coBib's Show command.
 
-This command simply shows/prints the specified entry as a BibLaTex-formmatted string.
+This command simply shows/prints the specified entry as a BibLaTex-formatted string.
 ```
 cobib show <label>
 ```

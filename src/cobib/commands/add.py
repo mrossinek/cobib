@@ -257,11 +257,11 @@ class AddCommand(Command):
         for name in cls._avail_parsers.keys():
             try:
                 group_add.add_argument(
-                    f"-{name[0]}", f"--{name}", type=str, help=f"{name} object identfier"
+                    f"-{name[0]}", f"--{name}", type=str, help=f"{name} object identifier"
                 )
             except argparse.ArgumentError:
                 try:
-                    group_add.add_argument(f"--{name}", type=str, help=f"{name} object identfier")
+                    group_add.add_argument(f"--{name}", type=str, help=f"{name} object identifier")
                 except argparse.ArgumentError:
                     continue
         parser.add_argument(
