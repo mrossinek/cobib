@@ -195,7 +195,7 @@ by simply typing
 cobib
 ```
 
-Here is an example screenshot of the TUI when listing the entires in your database:
+Here is an example screenshot of the TUI when listing the entries in your database:
 
 ![coBib TUI List](https://gitlab.com/cobib/cobib/-/raw/master/html/cobib_tui_list.svg)
 

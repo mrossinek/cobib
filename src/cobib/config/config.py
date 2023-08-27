@@ -14,12 +14,11 @@ import io
 import logging
 import os
 import sys
-import warnings
 from abc import abstractmethod
 from dataclasses import MISSING, dataclass, field, fields
-from enum import Enum
+from enum import Enum, EnumMeta
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, NamedTuple, Optional, TextIO, Union
+from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional, TextIO, Union
 
 from rich.style import Style
 from rich.theme import Theme
@@ -426,10 +425,10 @@ class SearchCommandConfig(_ConfigBase):
 
         The nested section for highlights used when displaying search results.
         """
-        warnings.warn(
+        LOGGER.log(
+            45,
             "The config.commands.search.highlights setting is DEPRECATED! Please use the new "
             "config.theme.search setting instead.",
-            FutureWarning,
         )
         return config.theme.search
 
@@ -490,13 +489,42 @@ class CommandConfig(_ConfigBase):
         self.search.validate()
 
 
-class LabelSuffix(Enum):
+class _DeprecateOnAccess(EnumMeta):
+    """A metaclass to add deprecation warnings to deprecated Enum values upon access."""
+
+    @override
+    def __getattribute__(cls, name: str) -> Any:
+        if name == "CAPTIAL":
+            LOGGER.log(
+                45,
+                "The LabelSuffix.CAPTIAL value is deprecated! Please switch to the correctly "
+                "spelled LabelSuffix.CAPITAL instead.",
+            )
+        return super().__getattribute__(name)
+
+    @override
+    def __getitem__(cls, name: str) -> Any:
+        if name == "CAPTIAL":
+            LOGGER.log(
+                45,
+                "The LabelSuffix.CAPTIAL value is deprecated! Please switch to the correctly "
+                "spelled LabelSuffix.CAPITAL instead.",
+            )
+        return super().__getitem__(name)
+
+
+class LabelSuffix(Enum, metaclass=_DeprecateOnAccess):
     """Suffixes to disambiguate `cobib.database.Entry` labels."""
 
     ALPHA = lambda count: chr(96 + count)  # pylint: disable=unnecessary-lambda-assignment
-    CAPTIAL = lambda count: chr(64 + count)  # pylint: disable=unnecessary-lambda-assignment
+    """Enumerates with lowercase roman letters: `a-z`."""
+    CAPITAL = lambda count: chr(64 + count)  # pylint: disable=unnecessary-lambda-assignment
+    """Enumerates with uppercase roman letters: `A-Z`."""
     # pylint: disable=unnecessary-lambda,unnecessary-lambda-assignment
     NUMERIC = lambda count: str(count)
+    """Enumerates with arabic numers: `1, 2, ...`."""
+    CAPTIAL = lambda count: chr(64 + count)  # pylint: disable=unnecessary-lambda-assignment
+    """**Deprecated!** This is a deprecated mistyped name of `LabelSuffix.CAPITAL`."""
 
 
 @dataclass
@@ -517,7 +545,7 @@ class DatabaseFormatConfig(_ConfigBase):
     proposed label from the enumerator and the second one is one of the enumerators provided by the
     `LabelSuffix` object. The available enumerators are:
         - ALPHA: a, b, ...
-        - CAPTIAL: A, B, ...
+        - CAPITAL: A, B, ...
         - NUMERIC: 1, 2, ...
     """
     suppress_latex_warnings: bool = True

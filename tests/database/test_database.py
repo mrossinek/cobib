@@ -122,10 +122,10 @@ def test_database_rename() -> None:
     ["label_suffix", "expected"],
     [
         [("_", LabelSuffix.ALPHA), "test_a"],
-        [("_", LabelSuffix.CAPTIAL), "test_A"],
+        [("_", LabelSuffix.CAPITAL), "test_A"],
         [("_", LabelSuffix.NUMERIC), "test_1"],
         [(".", LabelSuffix.ALPHA), "test.a"],
-        [(".", LabelSuffix.CAPTIAL), "test.A"],
+        [(".", LabelSuffix.CAPITAL), "test.A"],
         [(".", LabelSuffix.NUMERIC), "test.1"],
     ],
 )

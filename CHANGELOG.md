@@ -20,6 +20,7 @@ database (as suggested in #123), be sure to check out
 - the `opened_entries` attribute of the `OpenCommand` (which is accessible during the `PostOpenCommand` hook)
 - the new `git` command to simplify running git operations on the database (#124)
 - new bindings for `Home`, `End`, `PageUp`, and `PageDown` in the TUI
+- (DEV) added a new `DEPRECATED` logging level which has value 45
 
 ### Changed
 - an error will be logged when a file is not found during the `open` command
@@ -28,9 +29,13 @@ database (as suggested in #123), be sure to check out
   - `git`: will log an error
   - `show`: will log a warning
 
+### Deprecated
+- The `LabelSuffix.CAPTIAL` value because it was misspelled. Please use `LabelSuffix.CAPITAL` instead.
+
 ### Fixed
 - non-asynchronous commands triggered via the `:` prompt of the TUI will no longer break it (#125)
 - ensure UTF-8 encoding is used for downloaded data (this fixes many odd encounters w.r.t. special characters)
+- the spelling of the `LabelSuffix.CAPITAL` value (it used to be spelled `LabelSuffix.CAPTIAL`)
 
 
 ## [4.2.0] - 2023-08-08

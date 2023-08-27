@@ -17,7 +17,7 @@ class TestBibtexParser(ParserTest):
 
     def test_to_bibtex(self) -> None:
         """Test to bibtex conversion."""
-        pytest.skip("Testing this string is a bit ambigious. Assumed to be tested by bibtexparser.")
+        pytest.skip("Testing this string is a bit ambiguous. Assumed to be tested by bibtexparser.")
 
     def test_from_bibtex_str(self) -> None:
         """Test parsing a bibtex string."""

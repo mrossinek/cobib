@@ -62,7 +62,7 @@ async def test_download(monkeypatch: pytest.MonkeyPatch) -> None:
             tmpdirname,
         )
         if path is None:
-            pytest.skip("Likely, a requests error occured.")
+            pytest.skip("Likely, a requests error occurred.")
         with open(get_resource("__init__.py", "utils"), "r", encoding="utf-8") as expected:
             with open(tmpdirname + "/dummy.pdf", "r", encoding="utf-8") as truth:
                 assert expected.read() == truth.read()
@@ -160,7 +160,7 @@ async def test_download_with_url_map(setup_remove_content_length: Any) -> None:
                 tmpdirname,
             )
             if path is None:
-                pytest.skip("Likely, a requests error occured.")
+                pytest.skip("Likely, a requests error occurred.")
             assert path.path.exists()
             with open(path.path, "rb") as file:
                 assert file.read().startswith(bytes("%PDF", "utf-8"))
@@ -224,7 +224,7 @@ async def test_event_pre_download(monkeypatch: pytest.MonkeyPatch) -> None:
             tmpdirname,
         )
         if path is None:
-            pytest.skip("Likely, a requests error occured.")
+            pytest.skip("Likely, a requests error occurred.")
         with open(get_resource("__init__.py", "utils"), "r", encoding="utf-8") as expected:
             with open(tmpdirname + "/test.pdf", "r", encoding="utf-8") as truth:
                 assert expected.read() == truth.read()
@@ -258,7 +258,7 @@ async def test_event_post_download(monkeypatch: pytest.MonkeyPatch) -> None:
             tmpdirname,
         )
         if path is None:
-            pytest.skip("Likely, a requests error occured.")
+            pytest.skip("Likely, a requests error occurred.")
         with open(get_resource("__init__.py", "utils"), "r", encoding="utf-8") as expected:
             with open(tmpdirname + "/test.pdf", "r", encoding="utf-8") as truth:
                 assert expected.read() == truth.read()

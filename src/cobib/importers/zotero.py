@@ -91,7 +91,7 @@ class ZoteroImporter(Importer):
     OAUTH_ACCESS_URL = "https://www.zotero.org/oauth/access"
     """The URL from which to fetch generated OAuth authentication token."""
     OAUTH_AUTHORIZE_URL = "https://www.zotero.org/oauth/authorize"
-    """The URL where the user must be redirected in order to authenticate the coBib appliation."""
+    """The URL where the user must be redirected in order to authenticate the coBib application."""
 
     @override
     def __init__(self, *args: str, skip_download: bool = False) -> None:

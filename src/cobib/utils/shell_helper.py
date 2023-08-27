@@ -263,7 +263,7 @@ def unify_labels(*args: str) -> List[str]:
         f"label:{config.database.format.label_default}",
         "--",
         "--label",
-        "some_non_existend_label",  # this ensures that the command gets run on the entire database
+        "some_non_existent_label",  # this ensures that the command gets run on the entire database
     ]
     if largs.apply:
         modify_args = modify_args[1:]
