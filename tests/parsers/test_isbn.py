@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Optional
+from typing import Dict, Optional
 
 import pytest
 import requests
@@ -157,7 +157,7 @@ class TestISBNParser(ParserTest):
         """Tests the PostISBNParse event."""
 
         @Event.PostISBNParse.subscribe
-        def hook(bib: dict[str, Entry]) -> None:
+        def hook(bib: Dict[str, Entry]) -> None:
             bib["Lutz2013"].data["test"] = "dummy"
 
         assert Event.PostISBNParse.validate()

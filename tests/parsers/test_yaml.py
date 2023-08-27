@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import tempfile
-from typing import Optional, cast
+from typing import Dict, Optional, cast
 
 import pytest
 
@@ -84,7 +84,7 @@ class TestYAMLParser(ParserTest):
         """Tests the PostYAMLParse event."""
 
         @Event.PostYAMLParse.subscribe
-        def hook(bib: dict[str, Entry]) -> None:
+        def hook(bib: Dict[str, Entry]) -> None:
             bib["Cao_2019"].data["month"] = "August"
 
         reference = self.EXAMPLE_ENTRY_DICT.copy()

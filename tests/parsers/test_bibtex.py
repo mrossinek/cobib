@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Dict, Optional
 
 import pytest
 
@@ -57,7 +57,7 @@ class TestBibtexParser(ParserTest):
         """Tests the PostBibtexParse event."""
 
         @Event.PostBibtexParse.subscribe
-        def hook(bib: dict[str, Entry]) -> None:
+        def hook(bib: Dict[str, Entry]) -> None:
             bib["Cao_2019"].data["month"] = "August"
 
         assert Event.PostBibtexParse.validate()

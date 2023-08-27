@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Optional
+from typing import Dict, Optional
 
 import pytest
 import requests
@@ -145,7 +145,7 @@ class TestArxivParser(ParserTest):
         """Tests the PostArxivParse event."""
 
         @Event.PostArxivParse.subscribe
-        def hook(bib: dict[str, Entry]) -> None:
+        def hook(bib: Dict[str, Entry]) -> None:
             bib["Cao2018"].data["test"] = "dummy"
 
         assert Event.PostArxivParse.validate()

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import tempfile
 from os import remove
-from typing import Any, Optional
+from typing import Any, Dict, Optional, Tuple
 
 import pytest
 import requests
@@ -205,8 +205,8 @@ async def test_event_pre_download(monkeypatch: pytest.MonkeyPatch) -> None:
 
     @Event.PreFileDownload.subscribe
     def hook(
-        url: str, label: str, folder: Optional[str], headers: Optional[dict[str, str]]
-    ) -> Optional[tuple[str, str, Optional[str], Optional[dict[str, str]]]]:
+        url: str, label: str, folder: Optional[str], headers: Optional[Dict[str, str]]
+    ) -> Optional[Tuple[str, str, Optional[str], Optional[Dict[str, str]]]]:
         label = "test"
         return (url, label, folder, headers)
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 import pytest
 from rich.console import Console
@@ -80,7 +80,7 @@ class TestGitCommitEvent(CommandTest):
         """
 
         @Event.PreGitCommit.subscribe
-        def hook(msg: str, args: Optional[dict[str, Any]] = None) -> Optional[str]:
+        def hook(msg: str, args: Optional[Dict[str, Any]] = None) -> Optional[str]:
             return "Hello world!"
 
         assert Event.PreGitCommit.validate()

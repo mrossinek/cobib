@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Optional
+from typing import Dict, Optional
 
 import pytest
 import requests
@@ -134,7 +134,7 @@ class TestDOIParser(ParserTest):
         """Tests the PostDOIParse event."""
 
         @Event.PostDOIParse.subscribe
-        def hook(bib: dict[str, Entry]) -> None:
+        def hook(bib: Dict[str, Entry]) -> None:
             bib["Cao_2019"].data["test"] = "dummy"
 
         assert Event.PostDOIParse.validate()

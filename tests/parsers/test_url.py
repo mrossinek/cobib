@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-from typing import Optional
+from typing import Dict, Optional
 
 import pytest
 
@@ -115,7 +115,7 @@ class TestURLParser(ParserTest):
         """Tests the PostURLParse event."""
 
         @Event.PostURLParse.subscribe
-        def hook(bib: dict[str, Entry]) -> None:
+        def hook(bib: Dict[str, Entry]) -> None:
             bib["Grimsley_2019"].data["test"] = "dummy"
 
         assert Event.PostURLParse.validate()
