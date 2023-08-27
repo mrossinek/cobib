@@ -522,7 +522,7 @@ class LabelSuffix(Enum, metaclass=_DeprecateOnAccess):
     """Enumerates with uppercase roman letters: `A-Z`."""
     # pylint: disable=unnecessary-lambda,unnecessary-lambda-assignment
     NUMERIC = lambda count: str(count)
-    """Enumerates with arabic numers: `1, 2, ...`."""
+    """Enumerates with arabic numbers: `1, 2, ...`."""
     CAPTIAL = lambda count: chr(64 + count)  # pylint: disable=unnecessary-lambda-assignment
     """**Deprecated!** This is a deprecated mistyped name of `LabelSuffix.CAPITAL`."""
 
