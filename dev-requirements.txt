@@ -11,4 +11,4 @@ pyenchant==3.2.2
 pylint==2.17.5
 pdoc==14.1.0
 aiohttp==3.8.5
-msgpack==1.0.5
+msgpack==1.0.6
