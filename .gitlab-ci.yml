@@ -1,5 +1,5 @@
 default:
-    image: python:latest
+    image: python:3.11
     before_script:
         - uname -a
         - python -V  # Print out python version for debugging
