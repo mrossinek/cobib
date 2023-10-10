@@ -21,6 +21,7 @@ database (as suggested in #123), be sure to check out
 - the new `git` command to simplify running git operations on the database (#124)
 - new bindings for `Home`, `End`, `PageUp`, and `PageDown` in the TUI
 - (DEV) added a new `DEPRECATED` logging level which has value 45
+- Python 3.12 is now officially tested and supported
 
 ### Changed
 - an error will be logged when a file is not found during the `open` command
