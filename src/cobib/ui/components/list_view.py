@@ -25,6 +25,7 @@ from .motion_key import MotionKey
 class ListView(DataTable[Text]):
     """coBib's list results viewer widget."""
 
+    # pylint: disable=invalid-name
     id = "cobib-list-view"
 
     BINDINGS = [
