@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import re
 import subprocess
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any, List, Optional, cast
 
 from pylatexenc.latexencode import UnicodeToLatexEncoder
 
@@ -116,7 +116,7 @@ class Entry:
     @property
     def tags(self) -> list[str]:
         """The tags of this entry."""
-        return cast(list[str], self.data.get("tags", []))
+        return cast(List[str], self.data.get("tags", []))
 
     @tags.setter
     def tags(self, tags: str | list[str]) -> None:
@@ -147,7 +147,7 @@ class Entry:
         The setter of this property will convert the strings to paths relative to the user's home
         directory. Internally, this field will always be stored as a list.
         """
-        return cast(list[str], self.data.get("file", []))
+        return cast(List[str], self.data.get("file", []))
 
     @file.setter
     def file(self, file: str | list[str]) -> None:
@@ -177,7 +177,7 @@ class Entry:
     @property
     def url(self) -> list[str]:
         """The associated URL(s) of this entry."""
-        return cast(list[str], self.data.get("url", []))
+        return cast(List[str], self.data.get("url", []))
 
     @url.setter
     def url(self, url: str | list[str]) -> None:
