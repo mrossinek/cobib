@@ -22,6 +22,7 @@ from .motion_key import MotionKey
 class SearchView(Tree[Text]):
     """coBib's search results viewer widget."""
 
+    # pylint: disable=invalid-name
     id = "cobib-search-view"
 
     BINDINGS = [
