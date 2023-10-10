@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import re
 import subprocess
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, List, Optional, cast
 
 from pylatexenc.latexencode import UnicodeToLatexEncoder
 
@@ -116,7 +116,7 @@ class Entry:
     @property
     def tags(self) -> list[str]:
         """The tags of this entry."""
-        return self.data.get("tags", [])
+        return cast(List[str], self.data.get("tags", []))
 
     @tags.setter
     def tags(self, tags: str | list[str]) -> None:
@@ -147,7 +147,7 @@ class Entry:
         The setter of this property will convert the strings to paths relative to the user's home
         directory. Internally, this field will always be stored as a list.
         """
-        return self.data.get("file", [])
+        return cast(List[str], self.data.get("file", []))
 
     @file.setter
     def file(self, file: str | list[str]) -> None:
@@ -177,7 +177,7 @@ class Entry:
     @property
     def url(self) -> list[str]:
         """The associated URL(s) of this entry."""
-        return self.data.get("url", [])
+        return cast(List[str], self.data.get("url", []))
 
     @url.setter
     def url(self, url: str | list[str]) -> None:
@@ -202,9 +202,9 @@ class Entry:
         LOGGER.debug("Adding '%s' as the url to '%s'.", self.data["url"], self.label)
 
     @property
-    def month(self) -> str:
+    def month(self) -> str | None:
         """Returns the month."""
-        return self.data.get("month", None)
+        return cast(Optional[str], self.data.get("month", None))
 
     @month.setter
     def month(self, month: int | str) -> None:
