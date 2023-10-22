@@ -8,7 +8,7 @@ lxml==4.9.3
 mypy==1.6.1
 pydocstyle==6.3.0
 pyenchant==3.2.2
-pylint==3.0.1
+pylint==3.0.2
 pdoc==14.1.0
 aiohttp==3.9.0b0
 msgpack==1.0.7
