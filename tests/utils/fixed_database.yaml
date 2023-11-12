@@ -1,6 +1,10 @@
 ---
 dummy:
   ENTRYTYPE: article
+  author:
+  - first: Max
+    last: Müller
+  - '{Some Company Inc.}'
   file:
   - /tmp/a.txt
   - /tmp/b.txt

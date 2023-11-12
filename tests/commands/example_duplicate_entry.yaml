@@ -1,7 +1,9 @@
 ---
 duplicate_resolver:
   ENTRYTYPE: article
-  author: Albert Einstein
+  author:
+  - first: Albert
+    last: Einstein
   doi: http://dx.doi.org/10.1002/andp.19053221004
   journal: Annalen der Physik
   number: 10

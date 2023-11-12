@@ -10,7 +10,7 @@ import pytest
 import requests
 
 from cobib.config import Event
-from cobib.database import Entry
+from cobib.database import Author, Entry
 from cobib.parsers import ArxivParser
 
 from .parser_test import ParserTest
@@ -22,17 +22,24 @@ def assert_default_test_entry(entry: Entry) -> None:
     Args:
         entry: the entry to assert.
     """
-    entry.escape_special_chars()
     assert entry.label == "Cao2018"
     assert entry.data["archivePrefix"] == "arXiv"
     assert entry.data["arxivid"].startswith("1812.09976")
-    assert (
-        entry.data["author"]
-        == "Yudong Cao and Jonathan Romero and Jonathan P. Olson and Matthias Degroote and "
-        + "Peter D. Johnson and M{\\'a}ria Kieferov{\\'a} and Ian D. Kivlichan and Tim Menke "
-        + "and Borja Peropadre and Nicolas P. D. Sawaya and Sukin Sim and Libor Veis and "
-        + "Al{\\'a}n Aspuru-Guzik"
-    )
+    assert entry.data["author"] == [
+        Author(first="Yudong", last="Cao"),
+        Author(first="Jonathan", last="Romero"),
+        Author(first="Jonathan P.", last="Olson"),
+        Author(first="Matthias", last="Degroote"),
+        Author(first="Peter D.", last="Johnson"),
+        Author(first="Mária", last="Kieferová"),
+        Author(first="Ian D.", last="Kivlichan"),
+        Author(first="Tim", last="Menke"),
+        Author(first="Borja", last="Peropadre"),
+        Author(first="Nicolas P. D.", last="Sawaya"),
+        Author(first="Sukin", last="Sim"),
+        Author(first="Libor", last="Veis"),
+        Author(first="Alán", last="Aspuru-Guzik"),
+    ]
     assert entry.data["doi"].startswith("10.1021/acs.chemrev.8b00803")
     assert entry.data["title"] == "Quantum Chemistry in the Age of Quantum Computing"
     assert entry.data["year"] == 2018
@@ -76,10 +83,12 @@ class TestArxivParser(ParserTest):
         assert entry.label == "Bravyi2017"
         assert entry.data["archivePrefix"] == "arXiv"
         assert entry.data["arxivid"].startswith("1701.08213")
-        assert (
-            entry.data["author"]
-            == "Sergey Bravyi and Jay M. Gambetta and Antonio Mezzacapo and Kristan Temme"
-        )
+        assert entry.data["author"] == [
+            Author("Sergey", "Bravyi"),
+            Author("Jay M.", "Gambetta"),
+            Author("Antonio", "Mezzacapo"),
+            Author("Kristan", "Temme"),
+        ]
         assert entry.data["title"] == "Tapering off qubits to simulate fermionic Hamiltonians"
         assert entry.data["year"] == 2017
 

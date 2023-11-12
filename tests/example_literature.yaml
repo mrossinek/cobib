@@ -1,7 +1,9 @@
 ---
 einstein:
   ENTRYTYPE: article
-  author: Albert Einstein
+  author:
+  - first: Albert
+    last: Einstein
   doi: http://dx.doi.org/10.1002/andp.19053221004
   journal: Annalen der Physik
   number: 10
@@ -14,7 +16,13 @@ einstein:
 latexcompanion:
   ENTRYTYPE: book
   address: Reading, Massachusetts
-  author: Michel Goossens and Frank Mittelbach and Alexander Samarin
+  author:
+  - first: Michel
+    last: Goossens
+  - first: Frank
+    last: Mittelbach
+  - first: Alexander
+    last: Samarin
   publisher: Addison-Wesley
   title: The \LaTeX\ Companion
   year: 1993
@@ -22,7 +30,9 @@ latexcompanion:
 ---
 knuthwebsite:
   ENTRYTYPE: misc
-  author: Donald Knuth
+  author:
+  - first: Donald
+    last: Knuth
   title: 'Knuth: Computers and Typesetting'
   url: http://www-cs-faculty.stanford.edu/\~{}uno/abcde.html
 ...

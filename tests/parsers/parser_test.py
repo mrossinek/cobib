@@ -3,6 +3,7 @@
 import pytest
 
 from cobib.config import config
+from cobib.database import Author
 
 from .. import get_resource
 
@@ -18,10 +19,21 @@ class ParserTest:
 
     EXAMPLE_ENTRY_DICT = {
         "ENTRYTYPE": "article",
-        "author": "Yudong Cao and Jonathan Romero and Jonathan P. Olson and Matthias Degroote and "
-        + "Peter D. Johnson and M{\\'a}ria Kieferov{\\'a} and Ian D. Kivlichan and Tim Menke and "
-        + "Borja Peropadre and Nicolas P. D. Sawaya and Sukin Sim and Libor Veis and Al{\\'a}n "
-        + "Aspuru-Guzik",
+        "author": [
+            Author(first="Yudong", last="Cao"),
+            Author(first="Jonathan", last="Romero"),
+            Author(first="Jonathan P.", last="Olson"),
+            Author(first="Matthias", last="Degroote"),
+            Author(first="Peter D.", last="Johnson"),
+            Author(first="Mária", last="Kieferová"),
+            Author(first="Ian D.", last="Kivlichan"),
+            Author(first="Tim", last="Menke"),
+            Author(first="Borja", last="Peropadre"),
+            Author(first="Nicolas P. D.", last="Sawaya"),
+            Author(first="Sukin", last="Sim"),
+            Author(first="Libor", last="Veis"),
+            Author(first="Alán", last="Aspuru-Guzik"),
+        ],
         "doi": "10.1021/acs.chemrev.8b00803",
         "journal": "Chemical Reviews",
         "month": "aug",

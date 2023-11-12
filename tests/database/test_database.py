@@ -33,7 +33,9 @@ DUMMY_ENTRY = Entry(
 DUMMY_ENTRY_YAML = """---
 dummy:
     ENTRYTYPE: misc
-    author: D. Dummy
+    author:
+      - first: D.
+        last: Dummy
     title: Something dumb
 ...
 """

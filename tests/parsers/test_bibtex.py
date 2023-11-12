@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from itertools import zip_longest
 from typing import Dict, Optional
 
 import pytest
@@ -17,9 +18,37 @@ from .parser_test import ParserTest
 class TestBibtexParser(ParserTest):
     """Tests for coBib's BibtexParser."""
 
-    def test_to_bibtex(self) -> None:
-        """Test to bibtex conversion."""
-        pytest.skip("Testing this string is a bit ambiguous. Assumed to be tested by bibtexparser.")
+    @pytest.mark.parametrize("encode_latex", [True, False])
+    def test_to_bibtex(self, encode_latex: bool) -> None:
+        """Test to bibtex conversion.
+
+        Args:
+            encode_latex: whether to encode Unicode characters using LaTeX sequences.
+        """
+        entry = Entry(
+            "LaTeX_Einfuhrung",
+            {
+                "ENTRYTYPE": "book",
+                "author": "Mustermann, Max and Müller, Mara",
+                "title": 'LaTeX Einf{\\"u}hrung',
+            },
+        )
+
+        entry_str = BibtexParser(encode_latex).dump(entry)
+
+        expected = [
+            "@book{LaTeX_Einfuhrung,",
+            " author = {Mustermann, Max and Müller, Mara},",
+            ' title = {LaTeX Einf{\\"u}hrung}',
+            "}",
+        ]
+        if encode_latex:
+            expected[1] = ' author = {Mustermann, Max and M{\\"u}ller, Mara},'
+
+        for line, truth in zip_longest(entry_str.split("\n"), expected):
+            if not line:
+                continue
+            assert line == truth.strip("\n")
 
     def test_from_bibtex_str(self) -> None:
         """Test parsing a bibtex string."""

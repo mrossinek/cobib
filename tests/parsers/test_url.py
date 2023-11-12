@@ -10,7 +10,7 @@ from typing import Dict, Optional
 import pytest
 
 from cobib.config import Event
-from cobib.database import Entry
+from cobib.database import Author, Entry
 from cobib.parsers import URLParser
 
 from .parser_test import ParserTest
@@ -24,7 +24,6 @@ def assert_default_test_entry(entry: Entry) -> None:
     Args:
         entry: the entry to assert.
     """
-    entry.escape_special_chars()
     assert entry.label == "Grimsley_2019"
     assert entry.data["doi"] == "10.1038/s41467-019-10988-2"
     assert entry.data["url"] == ["https://doi.org/10.1038%2Fs41467-019-10988-2"]
@@ -33,10 +32,12 @@ def assert_default_test_entry(entry: Entry) -> None:
     assert entry.data["publisher"] == "Springer Science and Business Media {LLC}"
     assert entry.data["volume"] == 10
     assert entry.data["number"] == 1
-    assert (
-        entry.data["author"]
-        == "Harper R. Grimsley and Sophia E. Economou and Edwin Barnes and Nicholas J. Mayhall"
-    )
+    assert entry.data["author"] == [
+        Author("Harper R.", "Grimsley"),
+        Author("Sophia E.", "Economou"),
+        Author("Edwin", "Barnes"),
+        Author("Nicholas J.", "Mayhall"),
+    ]
     assert (
         entry.data["title"]
         == "An adaptive variational algorithm for exact molecular simulations on a quantum computer"

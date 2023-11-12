@@ -1,7 +1,9 @@
 ---
 einstein:
   ENTRYTYPE: article
-  author: Albert Einstein
+  author:
+  - first: Albert
+    last: Einstein
   doi: http://dx.doi.org/10.1002/andp.19053221004
   journal: Annalen der Physik
   number: 10
@@ -14,7 +16,13 @@ einstein:
 latexcompanion:
   ENTRYTYPE: book
   address: Reading, Massachusetts
-  author: Michel Goossens and Frank Mittelbach and Alexander Samarin
+  author:
+  - first: Michel
+    last: Goossens
+  - first: Frank
+    last: Mittelbach
+  - first: Alexander
+    last: Samarin
   publisher: Addison-Wesley
   title: The \LaTeX\ Companion
   year: 1993
@@ -22,7 +30,9 @@ latexcompanion:
 ---
 knuthwebsite:
   ENTRYTYPE: misc
-  author: Donald Knuth
+  author:
+  - first: Donald
+    last: Knuth
   title: 'Knuth: Computers and Typesetting'
   url:
   - http://www-cs-faculty.stanford.edu/\~{}uno/abcde.html
@@ -30,7 +40,9 @@ knuthwebsite:
 ---
 Einstein_1905:
   ENTRYTYPE: article
-  author: A. Einstein
+  author:
+  - first: A.
+    last: Einstein
   doi: 10.1002/andp.19053220806
   journal: Annalen der Physik
   number: 8
@@ -46,7 +58,9 @@ Einstein_1905:
 ---
 Einstein1905:
   ENTRYTYPE: article
-  author: A. Einstein
+  author:
+  - first: A.
+    last: Einstein
   doi: 10.1002/andp.19053220607
   journal: Annalen der Physik
   number: 6
@@ -62,7 +76,9 @@ Einstein1905:
 ---
 einstein_2:
   ENTRYTYPE: article
-  author: A. Einstein
+  author:
+  - first: A.
+    last: Einstein
   doi: 10.1002/andp.19053231314
   journal: Annalen der Physik
   number: 13
@@ -77,7 +93,9 @@ einstein_2:
 ---
 Author2021:
   ENTRYTYPE: misc
-  author: Some Author
+  author:
+  - first: Some
+    last: Author
   title: this label is already correct and should remain unchanged
   year: 2021
 ...
@@ -86,7 +104,13 @@ Pavošević2023:
   ENTRYTYPE: unpublished
   archivePrefix: arXiv
   arxivid: 2307.07092v1
-  author: Fabijan Pavošević and Ivano Tavernelli and Angel Rubio
+  author:
+  - first: Fabijan
+    last: Pavošević
+  - first: Ivano
+    last: Tavernelli
+  - first: Angel
+    last: Rubio
   eprint: http://arxiv.org/abs/2307.07092v1
   primaryClass: physics.chem-ph
   title: 'Spin-Flip Unitary Coupled Cluster Method: Toward Accurate Description of

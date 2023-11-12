@@ -22,7 +22,7 @@ from textual.app import App
 from typing_extensions import override
 
 from cobib import __version__
-from cobib.config import Event
+from cobib.config import Event, config
 from cobib.database import Database
 from cobib.parsers.bibtex import BibtexParser
 
@@ -69,7 +69,7 @@ class ShowCommand(Command):
 
         try:
             entry = Database()[self.largs.label]
-            entry_str = BibtexParser().dump(entry)
+            entry_str = BibtexParser(encode_latex=config.commands.show.encode_latex).dump(entry)
 
             self.entry_str = entry_str
         except KeyError:

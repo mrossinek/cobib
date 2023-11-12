@@ -1,0 +1,10 @@
+---
+LaTeX_Einfuhrung:
+  ENTRYTYPE: book
+  author:
+  - first: Max
+    last: Mustermann
+  - first: Mara
+    last: Müller
+  title: LaTeX Einf{\"u}hrung
+...

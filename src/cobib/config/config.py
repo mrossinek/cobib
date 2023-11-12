@@ -17,7 +17,7 @@ import sys
 from abc import abstractmethod
 from collections.abc import Callable
 from dataclasses import MISSING, dataclass, field, fields
-from enum import Enum, EnumMeta
+from enum import Enum, EnumMeta, auto
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, NamedTuple, TextIO
 
@@ -455,6 +455,22 @@ class SearchCommandConfig(_ConfigBase):
 
 
 @dataclass
+class ShowCommandConfig(_ConfigBase):
+    """The `config.commands.show` section."""
+
+    encode_latex: bool = True
+    """Specifies whether non-ASCII characters should be encoded using LaTeX sequences."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the COMMANDS.SHOW configuration section.")
+        self._assert(
+            isinstance(self.encode_latex, bool),
+            "config.commands.show.encode_latex should be a boolean.",
+        )
+
+
+@dataclass
 class CommandConfig(_ConfigBase):
     """The `config.commands` section."""
 
@@ -476,6 +492,8 @@ class CommandConfig(_ConfigBase):
     """The nested section for settings related to the `open` command."""
     search: SearchCommandConfig = field(default_factory=lambda: SearchCommandConfig())
     """The nested section for settings related to the `search` command."""
+    show: ShowCommandConfig = field(default_factory=lambda: ShowCommandConfig())
+    """The nested section for settings related to the `show` command."""
 
     @override
     def validate(self) -> None:
@@ -488,6 +506,7 @@ class CommandConfig(_ConfigBase):
         self.modify.validate()
         self.open.validate()
         self.search.validate()
+        self.show.validate()
 
 
 class _DeprecateOnAccess(EnumMeta):
@@ -528,10 +547,23 @@ class LabelSuffix(Enum, metaclass=_DeprecateOnAccess):
     """**Deprecated!** This is a deprecated mistyped name of `LabelSuffix.CAPITAL`."""
 
 
+class AuthorFormat(Enum):
+    """Storage formats for the `author` information."""
+
+    YAML = auto()
+    """Stores the list of authors as a YAML list, separating out the first and last names as well as
+    name pre- and suffixes."""
+    BIBLATEX = auto()
+    """Stores the author in the same form as it would be encoded inside of BibLaTeX."""
+
+
 @dataclass
 class DatabaseFormatConfig(_ConfigBase):
     """The `config.database.format` section."""
 
+    author_format: AuthorFormat = AuthorFormat.YAML
+    """Specifies the format to use for the `author` information. See also `AuthorFormat` for more
+    details."""
     label_default: str = "{unidecode(label)}"
     """Specifies a default label format which will be used for database entry keys. The format of
     this option follows the f-string like formatting of modifications (see also the documentation
@@ -553,10 +585,17 @@ class DatabaseFormatConfig(_ConfigBase):
     """Specifies whether latex warnings should not be ignored during the escaping of special
     characters. This is a simple option which gets passed on to the internally used `pylatexenc`
     library."""
+    verbatim_fields: list[str] = field(default_factory=lambda: ["file", "url"])
+    """Specifies the fields which will be left verbatim and, thus, remain unaffected from any
+    special character conversions (e.g. LaTeX encoding)."""
 
     @override
     def validate(self) -> None:
         LOGGER.debug("Validating the DATABASE.FORMAT configuration section.")
+        self._assert(
+            isinstance(self.author_format, AuthorFormat),
+            "config.database.format.author_format should be an AuthorFormat value.",
+        )
         self._assert(
             isinstance(self.label_default, str),
             "config.database.format.label_default should be a string.",
@@ -576,6 +615,10 @@ class DatabaseFormatConfig(_ConfigBase):
         self._assert(
             isinstance(self.suppress_latex_warnings, bool),
             "config.database.format.suppress_latex_warnings should be a boolean.",
+        )
+        self._assert(
+            isinstance(self.verbatim_fields, list),
+            "config.database.format.verbatim_fields should be a list.",
         )
 
 

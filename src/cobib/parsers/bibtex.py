@@ -35,6 +35,16 @@ class BibtexParser(Parser):
 
     name = "bibtex"
 
+    def __init__(self, encode_latex: bool = True) -> None:
+        """Initializes a parser instance.
+
+        Args:
+            encode_latex: whether to encode non-ASCII characters using LaTeX sequences.
+        """
+        self.encode_latex = encode_latex
+        """Whether to encode non-ASCII characters using LaTeX sequences. For more details see
+        `cobib.database.entry.Entry.stringify`."""
+
     @override
     def parse(self, string: str) -> dict[str, Entry]:
         string = Event.PreBibtexParse.fire(string) or string
@@ -69,7 +79,7 @@ class BibtexParser(Parser):
         Event.PreBibtexDump.fire(entry)
 
         database = bibtexparser.bibdatabase.BibDatabase()
-        stringified_entry = entry.stringify()
+        stringified_entry = entry.stringify(encode_latex=self.encode_latex)
         stringified_entry["ID"] = stringified_entry.pop("label")
         if "month" in stringified_entry.keys():
             # convert month to bibtexexpression
