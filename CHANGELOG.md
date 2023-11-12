@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [4.3.1] - 2023-11-12
+
+Pypi: https://pypi.org/project/cobib/4.3.1/
+
+### **Breaking Change**
+Note, that the introduction of the detailed author information parsing in v4.3.0
+resulted in possible breaking of a custom `config.database.formatlabel_default`
+setup. This bugfix release is meant to emphasize this breaking change and
+updates the documented example in the example configuration file. For the sake
+of verbosity, here is the change applied to the example:
+
+- old: `"{unidecode(author.split(' and ')[0].split()[-1])}{year}"`
+- new: `"{unidecode(author[0].last)}{year}"`
+
+
 ## [4.3.0] - 2023-11-12
 
 Pypi: https://pypi.org/project/cobib/4.3.0/
@@ -871,7 +886,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v4.3.0...master
+[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v4.3.1...master
+[4.3.1]: https://gitlab.com/cobib/cobib/-/compare/v4.3.1
 [4.3.0]: https://gitlab.com/cobib/cobib/-/compare/v4.3.0
 [4.2.0]: https://gitlab.com/cobib/cobib/-/compare/v4.2.0
 [4.1.0]: https://gitlab.com/cobib/cobib/-/compare/v4.1.0

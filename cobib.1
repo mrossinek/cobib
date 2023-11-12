@@ -1,4 +1,4 @@
-.TH COBIB 1 2023-11-12 v4.3.0
+.TH COBIB 1 2023-11-12 v4.3.1
 .SH NAME
 coBib \- Console-based Bibliography Management
 .SH SYNOPSIS
@@ -684,9 +684,9 @@ This field specifies the default label format in an f-string modification style
 as interpreted by the \fImodify\fR command. The default configuration value
 passes the originally provided label through \fItext-unidecode\fR which replaces
 all Unicode symbols with pure ASCII ones. A more useful example is
-\fI'{unidecode(author.split(' and ')[0].split()[-1])}{year}'\fR which takes the
-surname of the first author, replaces the Unicode characters and then
-immediately appends the publication year.
+\fI'{unidecode(author[0].last)}{year}'\fR which takes the surname of the first
+author, replaces the Unicode characters and then immediately appends the
+publication year.
 .TP
 .IR config.database.format.label_suffix = ('_',\ LabelSuffix.ALPHA)
 This field specifies the default label disambiguator. The option takes a tuple

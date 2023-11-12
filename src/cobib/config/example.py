@@ -105,7 +105,7 @@ config.database.git = False
 # configuration value passes the originally provided label through
 # [text-unidecode](https://pypi.org/project/text-unidecode/) which replaces all Unicode symbols with
 # pure ASCII ones. A more useful example is
-#     `"{unidecode(author.split(' and ')[0].split()[-1])}{year}"`
+#     `"{unidecode(author[0].last)}{year}"`
 # which takes the surname of the first author, replaces the Unicode characters and then immediately
 # appends the publication year.
 config.database.format.label_default = "{unidecode(label)}"
