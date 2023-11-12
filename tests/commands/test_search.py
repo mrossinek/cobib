@@ -45,7 +45,7 @@ class TestSearchCommand(CommandTest):
         [
             [
                 ["einstein"],
-                ["einstein::1", "1::@article{einstein,", "1::author = {Albert Einstein},"],
+                ["einstein::1", "1::@article{einstein,", "1::author = {Einstein, Albert},"],
                 False,
             ],
             [
@@ -58,14 +58,14 @@ class TestSearchCommand(CommandTest):
                 [
                     "einstein::2",
                     "1::@article{einstein,",
-                    "2::author = {Albert Einstein},",
+                    "2::author = {Einstein, Albert},",
                     "2::doi = {http://dx.doi.org/10.1002/andp.19053221004},",
                 ],
                 False,
             ],
             [
                 ["einstein", "-i", "-c", "0"],
-                ["einstein::2", "1::@article{einstein,", "2::author = {Albert Einstein},"],
+                ["einstein::2", "1::@article{einstein,", "2::author = {Einstein, Albert},"],
                 False,
             ],
             [
@@ -73,7 +73,7 @@ class TestSearchCommand(CommandTest):
                 [
                     "einstein::2",
                     "1::@article{einstein,",
-                    "2::author = {Albert Einstein},",
+                    "2::author = {Einstein, Albert},",
                     "2::doi = {http://dx.doi.org/10.1002/andp.19053221004},",
                     "2::journal = {Annalen der Physik},",
                 ],
@@ -84,7 +84,7 @@ class TestSearchCommand(CommandTest):
                 [
                     "einstein::2",
                     "1::@article{einstein,",
-                    "2::author = {Albert Einstein},",
+                    "2::author = {Einstein, Albert},",
                     "2::doi = {http://dx.doi.org/10.1002/andp.19053221004},",
                 ],
                 True,
@@ -94,7 +94,7 @@ class TestSearchCommand(CommandTest):
                 [
                     "einstein::2",
                     "1::@article{einstein,",
-                    "2::author = {Albert Einstein},",
+                    "2::author = {Einstein, Albert},",
                     "2::doi = {http://dx.doi.org/10.1002/andp.19053221004},",
                 ],
                 True,
@@ -104,7 +104,7 @@ class TestSearchCommand(CommandTest):
                 [
                     "einstein::2",
                     "1::@article{einstein,",
-                    "1::author = {Albert Einstein},",
+                    "1::author = {Einstein, Albert},",
                     "2::pages = {891--921},",
                     r"2::title = {Zur Elektrodynamik bewegter K{\"o}rper},",
                     "2::volume = {322},",
@@ -118,7 +118,7 @@ class TestSearchCommand(CommandTest):
             ],
             [
                 ["einstein", "-I"],
-                ["einstein::1", "1::@article{einstein,", "1::author = {Albert Einstein},"],
+                ["einstein::1", "1::@article{einstein,", "1::author = {Einstein, Albert},"],
                 True,
             ],
         ],
@@ -162,7 +162,7 @@ class TestSearchCommand(CommandTest):
             [
                 "einstein::2",
                 "1::@article{einstein,",
-                "2::author = {Albert Einstein},",
+                "2::author = {Einstein, Albert},",
                 "2::doi = {http://dx.doi.org/10.1002/andp.19053221004},",
                 "2::journal = {Annalen der Physik},",
             ],
@@ -186,7 +186,7 @@ class TestSearchCommand(CommandTest):
             "├── 1\n"
             "│   └── @article{einstein,\n"
             "└── 2\n"
-            "    ├──  author = {Albert Einstein},\n"
+            "    ├──  author = {Einstein, Albert},\n"
             "    └──  doi = {http://dx.doi.org/10.1002/andp.19053221004},\n"
         )
 
@@ -194,7 +194,7 @@ class TestSearchCommand(CommandTest):
     @pytest.mark.parametrize(
         ["expected"],
         [
-            [["einstein::1", "1::@article{einstein,", "1::author = {Albert Einstein},"]],
+            [["einstein::1", "1::@article{einstein,", "1::author = {Einstein, Albert},"]],
         ],
     )
     # other variants are already covered by test_command
@@ -227,7 +227,7 @@ class TestSearchCommand(CommandTest):
 
         assert Event.PreSearchCommand.validate()
 
-        expected = ["einstein::1", "1::@article{einstein,", "1::author = {Albert Einstein},"]
+        expected = ["einstein::1", "1::@article{einstein,", "1::author = {Einstein, Albert},"]
 
         cmd = SearchCommand("knuthwebsite")
         cmd.execute()

@@ -7,10 +7,13 @@ import re
 import subprocess
 from typing import TYPE_CHECKING, Any, List, Optional, cast
 
+from pylatexenc.latex2text import LatexNodes2Text
 from pylatexenc.latexencode import UnicodeToLatexEncoder
 
-from cobib.config import config
+from cobib.config import AuthorFormat, config
 from cobib.utils.rel_path import RelPath
+
+from .author import Author
 
 if TYPE_CHECKING:
     import cobib.parsers
@@ -36,6 +39,34 @@ class Entry:
     Besides being a data container, this class also provides some utilities for data manipulation
     and querying.
     """
+
+    _unicode_to_latex_encoder: UnicodeToLatexEncoder | None = None
+    """The singleton `UnicodeToLatexEncoder` used by all instances of this class."""
+
+    @classmethod
+    def _get_unicode_to_latex_encoder(cls) -> UnicodeToLatexEncoder:
+        """Returns the `_unicode_to_latex_encoder` singleton and constructs it if necessary."""
+        if cls._unicode_to_latex_encoder is None:
+            cls._unicode_to_latex_encoder = UnicodeToLatexEncoder(
+                non_ascii_only=True,
+                replacement_latex_protection="braces-all",
+                unknown_char_policy="keep",
+                unknown_char_warning=not config.database.format.suppress_latex_warnings
+                or LOGGER.isEnabledFor(logging.DEBUG),
+            )
+
+        return cls._unicode_to_latex_encoder
+
+    _latex_to_text_decoder: LatexNodes2Text | None = None
+    """The singleton `LatexNodes2Text` used by all instances of this class."""
+
+    @classmethod
+    def _get_latex_to_text_decoder(cls) -> LatexNodes2Text:
+        """Returns the `_latex_to_text_decoder` singleton and constructs it if necessary."""
+        if cls._latex_to_text_decoder is None:
+            cls._latex_to_text_decoder = LatexNodes2Text(keep_braced_groups=True)
+
+        return cls._latex_to_text_decoder
 
     def __init__(self, label: str, data: dict[str, Any]) -> None:
         """Initializes a new Entry.
@@ -112,6 +143,85 @@ class Entry:
             markup_label = f"[{tag}]{markup_label}[/{tag}]"
 
         return markup_label
+
+    @property
+    def author(self) -> str:
+        """The author of this entry formatted as a single string.
+
+        Internally, the author(s) may be stored as one or more strings or `cobib.database.Author`
+        instances. In this case, they will be joined into a single string of unified formatting
+        before returned by this method.
+
+        Returns:
+            The string-formatted author(s) of this entry.
+
+        References:
+            - https://www.bibtex.com/f/author-field/
+        """
+        authors = self.data.get("author", "")
+
+        if isinstance(authors, str):
+            return authors
+
+        if isinstance(authors, list):
+            author_string = ""
+            for author in authors:
+                if author_string:
+                    author_string += " and "
+                author_string += str(author)
+            return author_string
+
+        return ""
+
+    @author.setter
+    def author(self, authors: str | list[str] | list[dict[str, str]] | list[Author]) -> None:
+        # pylint: disable=too-many-branches
+        """Sets the author of this entry.
+
+        The input is processed in two steps.
+        1. any encountered LaTeX commands are decoded into Unicode.
+        2. each author is parsed by `cobib.database.Author.parse`.
+
+        Args:
+            authors: can be a single string, list of strings, list of `cobib.database.Author`
+                objects, or a list of dictionaries mapping strings to strings which are treated as
+                the key-value pairs to reconstruct a `cobib.database.Author` named tuple instance.
+
+        References:
+            - https://www.bibtex.com/f/author-field/
+        """
+        if not isinstance(authors, list):
+            authors = authors.split(" and ")
+
+        dec = self._get_latex_to_text_decoder()
+
+        parsed_authors: list[str | Author] = []
+        for author in authors:
+            if isinstance(author, Author):
+                parsed_authors.append(author)
+                continue
+            if isinstance(author, dict):
+                parsed_authors.append(Author(**author))
+                continue
+
+            # we explicitly convert any latex instructions to Unicode
+            author = cast(str, dec.latex_to_text(author))
+            LOGGER.debug("Converted the author to Unicode: '%s'", author)
+
+            parsed_author = Author.parse(author)
+            if config.database.format.author_format == AuthorFormat.YAML and not isinstance(
+                parsed_author, str
+            ):
+                LOGGER.info(
+                    "Parsed the author '%s' of entry '%s' from a string to the more detailed "
+                    "information. You can consider storing it as such directly.",
+                    author,
+                    self.label,
+                    extra={"entry": self.label, "field": "author"},
+                )
+            parsed_authors.append(parsed_author)
+
+        self.data["author"] = parsed_authors
 
     @property
     def tags(self) -> list[str]:
@@ -242,50 +352,73 @@ class Entry:
                 extra={"entry": self.label, "field": "month"},
             )
 
-    def stringify(self, *, markup: bool = False) -> dict[str, str]:
+    def stringify(self, *, encode_latex: bool = True, markup: bool = False) -> dict[str, str]:
         """Returns an identical entry to self but with all fields converted to strings.
 
         Args:
+            encode_latex: whether to encode non-ASCII characters using LaTeX sequences. If this is
+                `True`, a `pylatexenc.latexencode.UnicodeToLatexEncoder` will be used to replace
+                Unicode characters with LaTeX commands.
             markup: whether or not to add markup based on the configured special tags.
 
         Returns:
-            An `Entry` with purely string fields.
+            The data of this `Entry` as pure string fields.
         """
+        if encode_latex:
+            enc = self._get_unicode_to_latex_encoder()
         data = {}
         data["label"] = self.markup_label() if markup else self.label
         for field, value in self.data.items():
-            if isinstance(value, list) and hasattr(config.database.stringify.list_separator, field):
+            if hasattr(self, field):
+                value = getattr(self, field)
+            if field == "author":
+                data[field] = str(value)
+            elif isinstance(value, list) and hasattr(
+                config.database.stringify.list_separator, field
+            ):
                 data[field] = getattr(config.database.stringify.list_separator, field).join(value)
             else:
                 data[field] = str(value)
+            if encode_latex:
+                data[field] = enc.unicode_to_latex(data[field])
         return data
 
-    def escape_special_chars(self, suppress_warnings: bool = True) -> None:
-        """Escapes special characters in the bibliographic data.
+    def formatted(self) -> Entry:
+        """Formats the entry in a clean and reproducible manner.
 
-        Special characters should be escaped to ensure proper rendering in LaTeX documents. This
-        function leverages the existing implementation of the `pylatexenc` module to do said
-        conversion. The only fields exempted from the conversion are the `file` and `url` fields of
-        the `Entry.data` dictionary.
+        This includes the following:
 
-        Args:
-            suppress_warnings: if True, warnings generated by the `pylatexenc` modules will be
-                suppressed. This argument will be overwritten if the logging level is set to
-                `logging.DEBUG`.
+        1. escaping of special characters; these should be escaped to ensure proper rendering in
+           LaTeX documents. This function leverages the existing implementation of the `pylatexenc`
+           module to do said conversion. The only fields exempted from the conversion are those
+
+        2. handles the `cobib.config.config.DatabaseFormatConfig.author_format` setting and outputs
+           the `author` field in the corresponding format.
+
+        Returns:
+            A new `Entry` instance with all fields properly formatted.
         """
-        enc = UnicodeToLatexEncoder(
-            non_ascii_only=True,
-            replacement_latex_protection="braces-all",
-            unknown_char_policy="keep",
-            unknown_char_warning=not suppress_warnings or LOGGER.isEnabledFor(logging.DEBUG),
-        )
+        enc = self._get_unicode_to_latex_encoder()
+        formatted_entry = Entry(self.label, {})
         for key, value in self.data.items():
-            if key in ("file", "url"):
+            if key in config.database.format.verbatim_fields:
                 # do NOT these fields and keep any special characters
-                self.data[key] = value
+                formatted_entry.data[key] = value
                 continue
+
+            if key == "author":
+                if config.database.format.author_format == AuthorFormat.BIBLATEX:
+                    formatted_entry.data[key] = enc.unicode_to_latex(self.author)
+                elif config.database.format.author_format == AuthorFormat.YAML:
+                    formatted_entry.data[key] = value
+                continue
+
             if isinstance(value, str):
-                self.data[key] = enc.unicode_to_latex(value)
+                formatted_entry.data[key] = enc.unicode_to_latex(value)
+            else:
+                formatted_entry.data[key] = value
+
+        return formatted_entry
 
     def save(self, parser: cobib.parsers.base_parser.Parser | None = None) -> str:
         """Saves an entry using the parsers `dump` method.
@@ -303,13 +436,13 @@ class Entry:
         Returns:
             The string-representation of this entry as produced by the provided parser.
         """
-        self.escape_special_chars(config.database.format.suppress_latex_warnings)
+        formatted_entry = self.formatted()
         if parser is None:
             # pylint: disable=import-outside-toplevel,cyclic-import
             from cobib.parsers.yaml import YAMLParser
 
             parser = YAMLParser()
-        return parser.dump(self) or ""  # `dump` may return `None`
+        return parser.dump(formatted_entry) or ""  # `dump` may return `None`
 
     def matches(
         self, filter_: dict[tuple[str, bool], list[str]], or_: bool, ignore_case: bool = False
@@ -346,7 +479,7 @@ class Entry:
         LOGGER.debug("Checking whether entry %s matches.", self.label)
         re_flags = re.IGNORECASE if ignore_case else 0
         match_list = []
-        stringified_data = self.stringify()
+        stringified_data = self.stringify(encode_latex=False)
         for key, values in filter_.items():
             if key[0] not in stringified_data:
                 match_list.append(not key[1])
@@ -391,7 +524,7 @@ class Entry:
         # pylint: disable=import-outside-toplevel,cyclic-import
         from cobib.parsers.bibtex import BibtexParser
 
-        bibtex = BibtexParser().dump(self).split("\n")
+        bibtex = BibtexParser(encode_latex=False).dump(self).split("\n")
         re_flags = re.IGNORECASE if ignore_case else 0
         for query_str in query:
             re_compiled = re.compile(rf"{query_str}", flags=re_flags)

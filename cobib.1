@@ -653,6 +653,10 @@ Allows the specification of additional arguments for the \fIgrep\fR command.
 .TP
 .IR config.commands.search.ignore_case = False
 This boolean setting indicates whether search defaults to be case-insensitive.
+.TP
+.IR config.commands.show.encode_latex = True
+This boolean setting indicates whether non-ASCII characters should be encoded
+using LaTeX sequences during rendering via the \fIshow\fR command.
 .PP
 .BR DATABASE
 .TP
@@ -667,6 +671,13 @@ Note, that you must initialize the git-tracking with \fIcobib init --git\fR. If
 you already have an existing database file, it will be preserved. Nonetheless,
 it is a good idea to make a backup before doing so, just in case.
 Also be sure to at least set a \fIname\fR and \fIemail\fR in the git config!
+.TP
+.IR config.database.format.author_format = AuthorFormat.YAML
+This field specifies in which format to store the \fIauthor\fR information of
+each entries. See the detailed online documentation of the \fiAuthorFormat\fR
+enum for all possible values. As of version 4.3.0 this defaults to a YAML format
+in which each author information is stored in detailed form by splitting out the
+first and last names as well as name pre- and suffixes.
 .TP
 .IR config.database.format.label_default = '{unidecode(label)}'
 This field specifies the default label format in an f-string modification style
@@ -686,6 +697,10 @@ from the disambiguator and the second one is one of the enumerators provided by
 .IR config.database.format.suppress_latex_warnings = True
 This boolean field indicates whether latex warnings will be ignored during the
 escaping of special characters.
+.TP
+.IR config.database.format.verbatim_fields = ['file',\ 'url']
+Specifies the names of the data fields which are kept verbatim and, thus remain
+unaffected from any special character conversions (e.g. LaTeX encoding).
 .TP
 Some fields are internally stored as lists. Upon conversion to the BibTeX
 format, these need to be converted to a basic string. In this process the

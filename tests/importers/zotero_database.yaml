@@ -1,8 +1,15 @@
 ---
 rossmannek_quantum_2021:
   ENTRYTYPE: article
-  author: Rossmannek, Max and Barkoutsos, Panagiotis Kl. and Ollitrault, Pauline J.
-    and Tavernelli, Ivano
+  author:
+  - first: Max
+    last: Rossmannek
+  - first: Panagiotis Kl.
+    last: Barkoutsos
+  - first: Pauline J.
+    last: Ollitrault
+  - first: Ivano
+    last: Tavernelli
   date: '2021-03-21'
   doi: 10.1063/5.0029536
   issn: 0021-9606
@@ -35,8 +42,15 @@ rossmannek_quantum_2021:
     we are able to obtain energy correction terms for a single pyridine molecule that
     outperform the Complete Active Space Self Consistent Field ({CASSCF}) results
     regardless of the chosen {AS}.
-  author: Rossmannek, Max and Barkoutsos, Panagiotis Kl and Ollitrault, Pauline J.
-    and Tavernelli, Ivano
+  author:
+  - first: Max
+    last: Rossmannek
+  - first: Panagiotis Kl
+    last: Barkoutsos
+  - first: Pauline J.
+    last: Ollitrault
+  - first: Ivano
+    last: Tavernelli
   date: '2021-03-21'
   doi: 10.1063/5.0029536
   eprint: '2009.01872'

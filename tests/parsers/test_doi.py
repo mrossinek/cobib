@@ -23,10 +23,6 @@ def assert_default_test_entry(entry: Entry) -> None:
         entry: the entry to assert.
     """
     reference = ParserTest.EXAMPLE_ENTRY_DICT.copy()
-    # In this specific case the bib file provided by this DOI includes additional (yet
-    # unnecessary) brackets in the escaped special characters of the author field. Thus, we
-    # correct for this inconsistency manually before asserting the equality.
-    reference["author"] = str(reference["author"]).replace("'a", "'{a}")
     reference["_download"] = "https://pubs.acs.org/doi/10.1021/acs.chemrev.8b00803"
     assert entry.data == reference
 

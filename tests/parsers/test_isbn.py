@@ -11,7 +11,7 @@ import pytest
 import requests
 
 from cobib.config import Event
-from cobib.database import Entry
+from cobib.database import Author, Entry
 from cobib.parsers import ISBNParser
 
 from .parser_test import ParserTest
@@ -24,7 +24,7 @@ def assert_default_test_entry(entry: Entry) -> None:
         entry: the entry to assert.
     """
     assert entry.label == "Lutz2013"
-    assert entry.data["author"] == "Mark Lutz and David Ascher"
+    assert entry.data["author"] == [Author("Mark", "Lutz"), Author("David", "Ascher")]
     assert entry.data["pages"] == 1540
     assert entry.data["title"] == "Learning Python"
     assert entry.data["year"] == 2013

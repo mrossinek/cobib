@@ -271,7 +271,8 @@ class TestAddCommand(CommandTest):
         # assert initial state
         entry = Database()["Cao2018"]
 
-        assert entry.data["author"].startswith("Yudong Cao")
+        assert entry.data["author"][0].first == "Yudong"
+        assert entry.data["author"][0].last == "Cao"
         assert entry.data["title"].startswith("Quantum Chemistry in the Age of Quantum Computing")
         assert entry.data["arxivid"].startswith("1812.09976")
         assert entry.data["doi"] == "10.1021/acs.chemrev.8b00803"
@@ -317,7 +318,8 @@ class TestAddCommand(CommandTest):
         # assert final state
         entry = Database()["Cao2018"]
 
-        assert entry.data["author"].startswith("Yudong Cao")
+        assert entry.data["author"][0].first == "Yudong"
+        assert entry.data["author"][0].last == "Cao"
         assert entry.data["title"].startswith("Quantum Chemistry in the Age of Quantum Computing")
         assert entry.data["arxivid"].startswith("1812.09976")
         assert entry.data["primaryClass"] == "quant-ph"
@@ -467,7 +469,7 @@ class TestAddCommand(CommandTest):
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
         """
-        config.database.format.label_default = "{author.split()[1]}{year}"
+        config.database.format.label_default = "{author[0].last}{year}"
         git = setup.get("git", False)
 
         await AddCommand("-b", EXAMPLE_DUPLICATE_ENTRY_BIB).execute()
@@ -569,7 +571,8 @@ class TestAddCommand(CommandTest):
                     pytest.skip("The requests API encountered an error. Skipping test.")
 
                 entry = database[label]
-                assert entry.data["author"].startswith("Yudong Cao")
+                assert entry.data["author"][0].first == "Yudong"
+                assert entry.data["author"][0].last == "Cao"
                 assert entry.data["title"].startswith(
                     "Quantum Chemistry in the Age of Quantum Computing"
                 )

@@ -14,7 +14,7 @@ from typing_extensions import override
 
 from cobib.commands import ModifyCommand
 from cobib.config import Event, config
-from cobib.database import Database
+from cobib.database import Author, Database
 from cobib.utils.rel_path import RelPath
 
 from .command_test import CommandTest
@@ -114,7 +114,7 @@ class TestModifyCommand(CommandTest):
     @pytest.mark.parametrize(
         ["modification", "expected"],
         [
-            ["author: and Knuth", "Albert Einstein and Knuth"],
+            ["author: and Knuth", [Author("Albert", "Einstein"), "Knuth"]],
             ["dummy:test", "test"],
             ["number:2", 12],
             ["number:a", "10a"],
@@ -135,6 +135,7 @@ class TestModifyCommand(CommandTest):
 
         ModifyCommand(*args).execute()
 
+        print(Database()["einstein"].data[field])
         assert Database()["einstein"].data[field] == expected
 
     @pytest.mark.parametrize(
@@ -142,7 +143,7 @@ class TestModifyCommand(CommandTest):
         [
             ["pages:{pages.replace('--', '-')}", "891-921"],
             ["year:{year+10}", 1915],
-            ["label:{author.split()[1]}{year}", "Einstein1905"],
+            ["label:{author[0].last}{year}", "Einstein1905"],
             ["string:{'à' !a}", "'\\xe0'"],
             ["number:{1.2345:.2}", "1.2"],
             ["dummy:{dummy}", ""],

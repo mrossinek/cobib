@@ -22,6 +22,7 @@ from cobib.config import config
 For more information take a look at the example configuration, `cobib.config.example`.
 """
 
+from .config import AuthorFormat as AuthorFormat
 from .config import LabelSuffix as LabelSuffix
 from .config import TagMarkup as TagMarkup
 from .config import config as config

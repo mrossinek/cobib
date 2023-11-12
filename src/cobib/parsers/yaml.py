@@ -27,6 +27,7 @@ from ruamel import yaml
 from typing_extensions import override
 
 from cobib.config import Event, config
+from cobib.database.author import Author
 from cobib.database.entry import Entry
 
 from .base_parser import Parser
@@ -50,6 +51,7 @@ class YAMLParser(Parser):
             YAMLParser._yaml.explicit_start = True  # type: ignore[assignment]
             YAMLParser._yaml.explicit_end = True  # type: ignore[assignment]
             YAMLParser._yaml.default_flow_style = False
+            YAMLParser._yaml.register_class(Author)
 
     @override
     def parse(self, string: str | Path) -> dict[str, Entry]:

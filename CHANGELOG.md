@@ -6,7 +6,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## Prelude
+### Prelude
+
+#### Detailed Authors
+coBib now has the ability to store more detailed author information (see #92 and
+!88). This means, that the `author` field of an entry is analyzed in more detail
+and coBib will separate out the first and last names as well as name pre- and
+suffixes. The new setting `config.database.format.author_format` determines,
+whether this detailed information is kept directly in the database (the
+`AuthorFormat.YAML` setting; the **new default**) or is only constructed at
+runtime and the author field is still simply saved in BibLaTeX form
+(`AuthorFormat.BIBLATEX`).
+
+Note, that the `YAML` format also implies, that Unicode characters are allowed
+and will *not* be encoded in LaTeX form. This has an effect on how you may need
+to format your searches. See also #130 for some more insights on this.
+
+If you have company names or any author name which you want to have treated
+verbatim, you can simply wrap it in curly braces (e.g. `{My Company}`).
+Refer to the online documentation of `cobib.database.Author` and the above
+setting for more details.
+
+#### Wiki
 coBib now has a [Wiki](https://gitlab.com/cobib/cobib/-/wikis/home) where we can
 gather useful configuration resources and other details which may not make it
 into the full documentation.
@@ -22,6 +43,13 @@ database (as suggested in #123), be sure to check out
 - new bindings for `Home`, `End`, `PageUp`, and `PageDown` in the TUI
 - (DEV) added a new `DEPRECATED` logging level which has value 45
 - Python 3.12 is now officially tested and supported
+- the `config.commands.show.encode_latex` setting
+- the `encode_latex` attribute to the `BibtexParser`
+- the `config.database.format.verbatim_fields` setting
+- the `config.database.format.author_format` setting. The new default behavior
+  is to store detailed author information in YAML form.
+- the `encode_latex` keyword-argument to the `Entry.stringify` method
+- the `Entry.formatted` method. This replaces the `Entry.escape_special_chars` method.
 
 ### Changed
 - an error will be logged when a file is not found during the `open` command
@@ -37,6 +65,9 @@ database (as suggested in #123), be sure to check out
 - non-asynchronous commands triggered via the `:` prompt of the TUI will no longer break it (#125)
 - ensure UTF-8 encoding is used for downloaded data (this fixes many odd encounters w.r.t. special characters)
 - the spelling of the `LabelSuffix.CAPITAL` value (it used to be spelled `LabelSuffix.CAPTIAL`)
+
+### Removed
+- the `Entry.escape_special_chars` method. Use `Entry.formatted` instead.
 
 
 ## [4.2.0] - 2023-08-08

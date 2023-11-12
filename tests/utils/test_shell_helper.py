@@ -170,13 +170,15 @@ class TestLintDatabase(ShellHelperTest):
     COMMAND = "lint_database"
     REL_PATH = RelPath(get_resource("linting_database.yaml", "utils"))
     EXPECTED = [
-        f"{REL_PATH}:5 Converted the field 'file' of entry 'dummy' to a list. You can consider "
+        f"{REL_PATH}:5 Parsed the author 'Max Müller' of entry 'dummy' from a string to the "
+        "more detailed information. You can consider storing it as such directly.",
+        f"{REL_PATH}:6 Converted the field 'file' of entry 'dummy' to a list. You can consider "
         "storing it as such directly.",
-        f"{REL_PATH}:6 Converting field 'month' of entry 'dummy' from '8' to 'aug'.",
-        f"{REL_PATH}:7 Converting field 'number' of entry 'dummy' to integer: 1.",
-        f"{REL_PATH}:8 Converted the field 'tags' of entry 'dummy' to a list. You can consider "
+        f"{REL_PATH}:7 Converting field 'month' of entry 'dummy' from '8' to 'aug'.",
+        f"{REL_PATH}:8 Converting field 'number' of entry 'dummy' to integer: 1.",
+        f"{REL_PATH}:9 Converted the field 'tags' of entry 'dummy' to a list. You can consider "
         "storing it as such directly.",
-        f"{REL_PATH}:9 Converted the field 'url' of entry 'dummy' to a list. You can consider "
+        f"{REL_PATH}:10 Converted the field 'url' of entry 'dummy' to a list. You can consider "
         "storing it as such directly.",
         f"{REL_PATH}:4 The field 'ID' of entry 'dummy' is no longer required. It will be inferred "
         "from the entry label.",
@@ -311,7 +313,7 @@ class TestUnifyLabels(ShellHelperTest):
         This fixture is automatically enabled for all tests in this class.
         """
         config.defaults()
-        config.database.format.label_default = "{unidecode(author.split()[1])}{year}"
+        config.database.format.label_default = "{unidecode(author[0].last)}{year}"
         config.database.file = str(TestUnifyLabels.REL_PATH)
 
     def _assert(self, out: str) -> None:

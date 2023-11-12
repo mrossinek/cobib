@@ -11,7 +11,8 @@ from rich.syntax import Syntax
 from typing_extensions import override
 
 from cobib.commands import ShowCommand
-from cobib.config import Event
+from cobib.config import Event, config
+from cobib.database import Database
 
 from .. import get_resource
 from .command_test import CommandTest
@@ -49,6 +50,40 @@ class TestShowCommand(CommandTest):
         cmd = ShowCommand("einstein")
         cmd.execute()
         self._assert(cmd.entry_str.split("\n"))
+
+    @pytest.mark.parametrize("config_overwrite", [True, False])
+    def test_umlaut(self, setup: Any, config_overwrite: bool) -> None:
+        """Test the handling of non-ASCII characters.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            config_overwrite: what to overwrite `config.commands.show.encode_latex` with.
+        """
+        config.commands.show.encode_latex = config_overwrite
+
+        with open(
+            get_resource("example_entry_umlaut.yaml", "database"), "r", encoding="utf-8"
+        ) as multi_file_entry:
+            with open(config.database.file, "a", encoding="utf-8") as database:
+                database.write(multi_file_entry.read())
+        Database().read()
+
+        cmd = ShowCommand("LaTeX_Einfuhrung")
+        cmd.execute()
+
+        expected = [
+            "@book{LaTeX_Einfuhrung,",
+            " author = {Mustermann, Max and Müller, Mara},",
+            ' title = {LaTeX Einf{\\"u}hrung}',
+            "}",
+        ]
+        if config_overwrite:
+            expected[1] = ' author = {Mustermann, Max and M{\\"u}ller, Mara},'
+
+        for line, truth in zip_longest(cmd.entry_str.split("\n"), expected):
+            if not line:
+                continue
+            assert line == truth.strip("\n")
 
     def test_render_porcelain(self, setup: Any) -> None:
         """Test the porcelain rendering.

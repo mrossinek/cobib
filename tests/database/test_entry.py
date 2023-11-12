@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Generator
 
 import pytest
 
-from cobib.database import Entry
+from cobib.config import AuthorFormat, config
+from cobib.database import Author, Entry
 from cobib.parsers.bibtex import BibtexParser
 from cobib.utils.rel_path import RelPath
 
@@ -31,6 +32,20 @@ EXAMPLE_ENTRY_DICT = {
     "volume": 119,
     "year": 2019,
 }
+
+
+@pytest.fixture(autouse=True)
+def setup() -> Generator[Any, None, None]:
+    """Setup debugging configuration.
+
+    This method is automatically enabled for all tests in this file.
+
+    Yields:
+        Access to the local fixture variables.
+    """
+    config.load(get_resource("debug.py"))
+    yield
+    config.defaults()
 
 
 def test_init_logging(caplog: pytest.LogCaptureFixture) -> None:
@@ -416,27 +431,64 @@ def test_search_with_missing_file(caplog: pytest.LogCaptureFixture) -> None:
         pytest.fail("Missing file was not logged.")
 
 
-def test_escape_special_chars() -> None:
-    """Test escaping of special characters.
+@pytest.mark.parametrize("author_format", [AuthorFormat.BIBLATEX, AuthorFormat.YAML])
+def test_formatted(author_format: AuthorFormat) -> None:
+    """Test the special formatting of entries.
 
     This also ensures that special characters in the label remain unchanged.
     """
-    reference = {
+    config.database.format.author_format = author_format
+    reference: dict[str, Any] = {
         "ENTRYTYPE": "book",
         "title": 'LaTeX Einf{\\"u}hrung',
     }
+    if author_format == AuthorFormat.BIBLATEX:
+        reference["author"] = 'Mustermann, Max and M{\\"u}ller, Mara'
+    elif author_format == AuthorFormat.YAML:
+        reference["author"] = [
+            Author("Max", "Mustermann"),
+            Author("Mara", "Müller"),
+        ]
     entries = BibtexParser().parse(get_resource("example_entry_umlaut.bib", "database"))
     entry = list(entries.values())[0]
-    entry.escape_special_chars()
-    assert entry.data == reference
-    assert entry.label == "LaTeX_Einführung"
+    formatted = entry.formatted()
+    assert formatted.data == reference
+    assert formatted.label == "LaTeX_Einführung"
 
 
-def test_save() -> None:
+def test_verbatim_fields() -> None:
+    """Tests the `config.database.format.verbatim_fields` setting."""
+    entry = Entry("LaTeX_Einfuhrung", {"title": "LaTeX Einführung"})
+
+    formatted = entry.formatted()
+    config.database.format.verbatim_fields += ["title"]
+    assert formatted.data["title"] == 'LaTeX Einf{\\"u}hrung'
+
+    try:
+        formatted = entry.formatted()
+        config.database.format.verbatim_fields += ["title"]
+        assert formatted.data["title"] == "LaTeX Einführung"
+    finally:
+        config.defaults()
+
+
+@pytest.mark.parametrize(
+    ["author_format", "reference_file"],
+    [
+        (
+            AuthorFormat.BIBLATEX,
+            get_resource("example_entry_author_format_biblatex.yaml", "database"),
+        ),
+        (AuthorFormat.YAML, get_resource("example_entry_author_format_yaml.yaml", "database")),
+    ],
+)
+def test_save(author_format: AuthorFormat, reference_file: str) -> None:
     """Test the `cobib.database.Entry.save` method."""
+    config.database.format.author_format = author_format
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     entry_str = entry.save()
-    with open(EXAMPLE_YAML_FILE, "r", encoding="utf-8") as expected:
+    print(entry_str)
+    with open(reference_file, "r", encoding="utf-8") as expected:
         for line, truth in zip(entry_str.split("\n"), expected):
             assert line == truth.strip("\n")
 
