@@ -570,7 +570,7 @@ class DatabaseFormatConfig(_ConfigBase):
     of the `cobib.commands.modify.ModifyCommand`). The default configuration value passes the
     originally provided label through [text-unidecode](https://pypi.org/project/text-unidecode/)
     which replaces all Unicode symbols with pure ASCII ones. A more useful example is
-    `"{unidecode(author[0]last)}{year}"` which takes the surname of the first author, replaces the
+    `"{unidecode(author[0].last)}{year}"` which takes the surname of the first author, replaces the
     Unicode characters and then immediately appends the publication year."""
     label_suffix: tuple[str, LabelSuffix] = field(default_factory=lambda: ("_", LabelSuffix.ALPHA))
     """Specifies the suffix format which is used to disambiguate labels if a conflict would occur.
