@@ -76,6 +76,7 @@ class CommandTest(CmdLineTest):
         config.commands.delete.confirm = False
         config.commands.edit.editor = "cat"
         config.commands.open.command = "cat"
+        config.database.cache = None
         config.database.file = str(self.COBIB_TEST_DIR / "database.yaml")
         config.database.git = request.param.get("git", False)
         config.utils.file_downloader.default_location = "/tmp"
@@ -111,7 +112,7 @@ class CommandTest(CmdLineTest):
 
         # clean up database
         if request.param.get("database", True):
-            Database().clear()
+            Database.reset()
 
         # clean up config
         config.defaults()

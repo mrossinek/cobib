@@ -192,6 +192,7 @@ class TestLintDatabase(ShellHelperTest):
         This fixture is automatically enabled for all tests in this class.
         """
         config.defaults()
+        config.database.cache = None
         config.database.file = str(TestLintDatabase.REL_PATH)
 
     def _assert(self, out: str) -> None:
@@ -224,6 +225,7 @@ class TestLintDatabase(ShellHelperTest):
         database_file = RelPath(cobib_test_dir / "database.yaml")
 
         copyfile(TestLintDatabase.REL_PATH.path, database_file.path)
+        config.database.cache = None
         config.database.file = str(database_file)
         config.database.git = git
 
@@ -286,7 +288,7 @@ class TestLintDatabase(ShellHelperTest):
 
         finally:
             rmtree(cobib_test_dir)
-            Database().clear()
+            Database.reset()
 
 
 class TestUnifyLabels(ShellHelperTest):
@@ -313,6 +315,7 @@ class TestUnifyLabels(ShellHelperTest):
         This fixture is automatically enabled for all tests in this class.
         """
         config.defaults()
+        config.database.cache = None
         config.database.format.label_default = "{unidecode(author[0].last)}{year}"
         config.database.file = str(TestUnifyLabels.REL_PATH)
 
@@ -337,6 +340,7 @@ class TestUnifyLabels(ShellHelperTest):
         database_file = RelPath(cobib_test_dir / "database.yaml")
 
         copyfile(TestUnifyLabels.REL_PATH.path, database_file.path)
+        config.database.cache = None
         config.database.file = str(database_file)
         config.database.git = git
 
@@ -387,4 +391,4 @@ class TestUnifyLabels(ShellHelperTest):
 
         finally:
             rmtree(cobib_test_dir)
-            Database().clear()
+            Database.reset()

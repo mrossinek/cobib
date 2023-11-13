@@ -664,6 +664,11 @@ using LaTeX sequences during rendering via the \fIshow\fR command.
 This setting sets the path to the database file. You can use \fI~\fR to
 represent your \fI$HOME\fR directory.
 .TP
+.IR config.database.cache = '~/.cache/cobib/databases/'
+This settings sets the path to the folder in which already parsed databases
+should be stored. Set this to \fINone\fR if you want to disable caching
+entirely.
+.TP
 .IR config.database.git = False
 This boolean field indicates whether the database file should automatically be
 tracked in a git repository.

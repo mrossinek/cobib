@@ -89,6 +89,10 @@ config.commands.search.ignore_case = False
 # directory.
 config.database.file = "~/.local/share/cobib/literature.yaml"
 
+# You can specify the path under which to store already parsed databases. If you want to entirely
+# disable caching, set this to `None`.
+config.database.cache = "~/.cache/cobib/databases/"
+
 # coBib can integrate with `git` in order to automatically track the history of your database.
 # However, by default, this option is disabled. If you want to enable it, simply change the
 # following setting to `True` and initialize your database with `cobib init --git`.

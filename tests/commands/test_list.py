@@ -232,7 +232,7 @@ class TestListCommand(CommandTest):
             # clean up file system
             os.remove(config.database.file)
             # clean up database
-            Database().clear()
+            Database.reset()
             # clean up config
             config.defaults()
 
