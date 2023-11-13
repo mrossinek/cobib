@@ -15,6 +15,14 @@ You can use the `--add` option to not overwrite but append to existing values of
 fields will be concatenated with*out* any spaces, lists will be appended, and numeric fields will be
 added. Any other kind of field will be converted to a `str`.
 
+As of v4.4.0 you can also use the `--remove` option to achieve the opposite to the above: removing
+an item from a list or subtracting numbers. Strings cannot be subtracted and any other kind of field
+will log a warning but continue gracefully.
+
+.. note::
+
+   The options `--add` and `--remove` are mutually exclusive for obvious reasons.
+
 As with other commands, you can also use filters (see also `cobib.commands.list_`) rather than a
 manual selection to specify the entries which to modify:
 ```
@@ -89,6 +97,7 @@ from __future__ import annotations
 import ast
 import logging
 from collections.abc import Callable
+from copy import copy
 from typing import Any
 
 from rich.console import Console
@@ -121,6 +130,10 @@ class ModifyCommand(Command):
         * `--dry`: run in "dry"-mode which lists modifications without applying them.
         * `-a`, `--add`: when specified, the modification's value will be added to the entry's field
           rather than overwrite it. If the field in question is numeric, the numbers will be added.
+          This argument is _mutually exclusive_ with `--remove`.
+        * `-r`, `--remove`: when specified, the modification's value will be removed from the
+          entry's field rather than overwrite it. If the field in question is numeric, the numbers
+          will be subtracted. This argument is _mutually exclusive_ with `--add`.
         * `--preserve-files`: skips the renaming of any associated files in case the applied
           modification acted on the entry labels. This overwrites the
           `cobib.config.config.ModifyCommandConfig.preserve_files` setting.
@@ -186,11 +199,18 @@ class ModifyCommand(Command):
             action="store_true",
             help="Run in 'dry'-mode, listing modifications without actually applying them.",
         )
-        parser.add_argument(
+        add_remove = parser.add_mutually_exclusive_group()
+        add_remove.add_argument(
             "-a",
             "--add",
             action="store_true",
             help="Adds to the modified field rather than overwriting it.",
+        )
+        add_remove.add_argument(
+            "-r",
+            "--remove",
+            action="store_true",
+            help="Removes from the modified field rather than overwriting it.",
         )
         preserve_files_group = parser.add_mutually_exclusive_group()
         preserve_files_group.add_argument(
@@ -223,7 +243,7 @@ class ModifyCommand(Command):
         )
         cls.argparser = parser
 
-    # pylint: disable=too-many-branches
+    # pylint: disable=too-many-branches,too-many-statements
     @override
     def execute(self) -> None:
         LOGGER.debug("Starting Modify command.")
@@ -270,21 +290,23 @@ class ModifyCommand(Command):
                 else:
                     prev_value = entry.data.get(field, None)
 
-                if not self.largs.add:
+                if not self.largs.add and not self.largs.remove:
                     new_value = local_value
                     if local_value.isnumeric():
-                        new_value = int(local_value)  # type: ignore
-                else:
+                        new_value = int(local_value)  # type: ignore[assignment]
+                elif self.largs.add:
                     try:
                         if prev_value is None:
                             new_value = local_value
                         elif isinstance(prev_value, str):
                             new_value = prev_value + local_value
                         elif isinstance(prev_value, list):
-                            new_value = prev_value + [local_value]  # type: ignore
+                            new_value = prev_value + [local_value]  # type: ignore[assignment]
                         elif isinstance(prev_value, int):
                             if local_value.isnumeric():
-                                new_value = prev_value + int(local_value)  # type: ignore
+                                new_value = prev_value + int(
+                                    local_value
+                                )  # type: ignore[assignment]
                             else:
                                 raise TypeError
                         else:
@@ -298,6 +320,36 @@ class ModifyCommand(Command):
                             str(prev_value) + local_value,
                         )
                         new_value = str(prev_value) + local_value
+                elif self.largs.remove:
+                    try:
+                        if isinstance(prev_value, list):
+                            try:
+                                new_value = copy(prev_value)  # type: ignore[assignment]
+                                new_value.remove(local_value)  # type: ignore[attr-defined]
+                            except ValueError:
+                                LOGGER.warning(
+                                    "Could not remove '%s' from the field '%s' of entry '%s'.",
+                                    local_value,
+                                    field,
+                                    label,
+                                )
+                        elif isinstance(prev_value, int):
+                            if local_value.isnumeric():
+                                new_value = prev_value - int(
+                                    local_value
+                                )  # type: ignore[assignment]
+                            else:
+                                raise TypeError
+                        else:
+                            raise TypeError
+                    except TypeError:
+                        LOGGER.warning(
+                            "Encountered an unexpected field type to remove from. Leaving the field"
+                            "'%s' of entry '%s' unchanged.",
+                            field,
+                            label,
+                        )
+                        new_value = prev_value  # type: ignore[assignment]
 
                 # guard against overwriting existing data if label gets changed
                 if field == "label":

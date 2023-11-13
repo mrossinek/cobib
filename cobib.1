@@ -235,6 +235,14 @@ If the field did not exist previously, it will simply be initialized with the
 new value.
 .PP
 .in +8n
+.BR \-r ", " \-\-remove
+.in +4n
+Specifying this flag will remove the modification's value from the specified
+field of the entry rather than overwriting it. In doing so, items will be
+removed from lists, numbers will be subtracted, and anything else will be left
+unchanged.
+.PP
+.in +8n
 .BR \-s ", " \-\-selection
 .in +4n
 This boolean flag enables the \fIselection\fR mode in which the positional args

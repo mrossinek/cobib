@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import contextlib
+import logging
 import tempfile
 from datetime import datetime
 from io import StringIO
@@ -45,7 +46,7 @@ class TestModifyCommand(CommandTest):
             ["tags:test", ["++label", "einstein"], False],
         ],
     )
-    @pytest.mark.parametrize("add", [False, True])
+    @pytest.mark.parametrize("add_remove", [(False, False), (True, False), (False, True)])
     @pytest.mark.parametrize("dry", [False, True])
     def test_command(
         self,
@@ -53,7 +54,7 @@ class TestModifyCommand(CommandTest):
         modification: str,
         filters: list[str],
         selection: bool,
-        add: bool,
+        add_remove: tuple[bool, bool],
         dry: bool,
     ) -> None:
         """Test the command itself.
@@ -63,10 +64,13 @@ class TestModifyCommand(CommandTest):
             modification: the modification string to apply.
             filters: the filter arguments for the command.
             selection: whether the filters are of `selection` type.
-            add: whether to use append mode.
+            add_remove:  a tuple indicating whether to use the `add` or `remove` mode. Setting both
+                to `True` is not supported since these options are mutually exclusive. Handling
+                this situation is tested in `test_add_remove_exclusive`.
             dry: whether to run in dry mode.
         """
         git = setup.get("git", False)
+        add, remove = add_remove
 
         # modify some data
         args = [modification, "--"] + filters
@@ -75,11 +79,15 @@ class TestModifyCommand(CommandTest):
 
         expected = ["test"]
 
-        if add:
+        if add or remove:
             # first insert something to add to
-            ModifyCommand("tags:dummy", "++label", "einstein").execute()
-            args = ["-a"] + args
-            expected = ["dummy"] + expected
+            ModifyCommand("tags:test", "++label", "einstein").execute()
+            if add:
+                args = ["-a"] + args
+                expected = ["test"] + expected
+            elif remove:
+                args = ["-r"] + args
+                expected = []
 
         if dry:
             args.insert(0, "--dry")
@@ -87,8 +95,8 @@ class TestModifyCommand(CommandTest):
         ModifyCommand(*args).execute()
 
         if dry:
-            if add:
-                assert Database()["einstein"].data["tags"] == ["dummy"]
+            if add or remove:
+                assert Database()["einstein"].data["tags"] == ["test"]
             else:
                 assert "tags" not in Database()["einstein"].data.keys()
         else:
@@ -103,6 +111,7 @@ class TestModifyCommand(CommandTest):
                         "modification": modification.split(":"),
                         "dry": False,
                         "add": add,
+                        "remove": remove,
                         "preserve_files": None,
                         "selection": selection,
                         "filter": filters,
@@ -135,8 +144,51 @@ class TestModifyCommand(CommandTest):
 
         ModifyCommand(*args).execute()
 
-        print(Database()["einstein"].data[field])
         assert Database()["einstein"].data[field] == expected
+
+    @pytest.mark.parametrize(
+        ["modification", "expected"],
+        [
+            ["dummy:test", None],
+            ["number:2", 8],
+            ["number:a", 10],
+            ["pages:21", "891--921"],
+        ],
+    )
+    def test_remove_mode(self, setup: Any, modification: str, expected: Any) -> None:
+        """Test more cases of the remove mode.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            modification: the modification string to apply.
+            expected: the expected final `Entry` field.
+        """
+        # modify some data
+        args = ["-r", modification, "++label", "einstein"]
+
+        field, _ = modification.split(":")
+
+        ModifyCommand(*args).execute()
+
+        assert Database()["einstein"].data.get(field, None) == expected
+
+    def test_add_remove_exclusive(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Test that `--add` and `--remove` are mutually exclusive.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
+        with pytest.raises(SystemExit):
+            ModifyCommand("-a", "-r", "dummy:test", "++label", "einstein").execute()
+
+        for source, level, message in caplog.record_tuples:
+            if ("cobib.commands.base_command", logging.ERROR) == (
+                source,
+                level,
+            ) and "Error: modify: error:" in message:
+                break
+        else:
+            pytest.fail("No Error logged from ArgumentParser.")
 
     @pytest.mark.parametrize(
         ["modification", "expected"],
