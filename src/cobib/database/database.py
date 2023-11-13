@@ -295,6 +295,8 @@ class Database(OrderedDict):  # type: ignore
             for line in buffer:
                 bib.write(line)
 
+        Database.save_cache()
+
     @staticmethod
     def _get_cache_file() -> Path | None:
         """Returns the full path to the cache file for the current database file.
