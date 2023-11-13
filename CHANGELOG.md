@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- a primitive caching mechanism to speed up the database loading. This feature
+  is enabled by default and will store its cache at `~/.cache/cobib/databases/`.
+  You can configure the location via `config.database.cache` or even disable
+  caching entirely by changing this setting to `None`. (see also #129 and !108)
+
 
 ## [4.3.1] - 2023-11-12
 

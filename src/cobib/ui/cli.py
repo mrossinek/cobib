@@ -9,7 +9,6 @@ import argparse
 import asyncio
 import inspect
 import logging
-import sys
 from inspect import iscoroutinefunction
 from typing import Any
 
@@ -85,7 +84,6 @@ class CLI(UI):
         if not arguments.command:
             task = asyncio.create_task(TUI().run_async())  # type: ignore[abstract]
             await task
-            sys.exit()
         else:
             subcmd = getattr(commands, arguments.command.title() + "Command")(*arguments.args)
             if iscoroutinefunction(subcmd.execute):
@@ -100,3 +98,5 @@ class CLI(UI):
                 renderable = subcmd.render_rich()
                 if renderable is not None:
                     console.print(renderable)
+
+        Database.save_cache()

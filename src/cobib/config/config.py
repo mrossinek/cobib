@@ -677,6 +677,9 @@ class DatabaseConfig(_ConfigBase):
     file: str | Path = "~/.local/share/cobib/literature.yaml"
     """Specifies the path to the database YAML file. You can use `~` to represent your `$HOME`
     directory."""
+    cache: str | Path | None = "~/.cache/cobib/databases/"
+    """Specifies the folder in which already parsed databases should be stored. Set this to `None`
+    if you want to disable caching entirely."""
     format: DatabaseFormatConfig = field(default_factory=lambda: DatabaseFormatConfig())
     """The nested section for database formatting settings."""
     git: bool = False
@@ -694,6 +697,10 @@ class DatabaseConfig(_ConfigBase):
     def validate(self) -> None:
         LOGGER.debug("Validating the DATABASE configuration section.")
         self._assert(isinstance(self.file, str), "config.database.file should be a string.")
+        self._assert(
+            self.cache is None or isinstance(self.cache, str),
+            "config.database.cache should be a string or `None`.",
+        )
         self._assert(isinstance(self.git, bool), "config.database.git should be a boolean.")
         self.format.validate()
         self.stringify.validate()
