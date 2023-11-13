@@ -72,10 +72,11 @@ class ListView(DataTable[Text]):
 
     @override
     def validate_scroll_y(self, value: float) -> float:
-        # we implement the scroll offset at the top by forcing the scroll y value to be at
-        # least an offset away from the cursor row
-        if self.cursor_row - value < config.tui.scroll_offset:
-            value = self.cursor_row - config.tui.scroll_offset
+        if not self.vertical_scrollbar.grabbed:
+            # we implement the scroll offset at the top by forcing the scroll y value to be at
+            # least an offset away from the cursor row
+            if self.cursor_row - value < config.tui.scroll_offset:
+                value = self.cursor_row - config.tui.scroll_offset
         return clamp(value, 0, self.row_count)
 
     @override

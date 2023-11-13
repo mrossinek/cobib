@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     numeric values
   - other field types than lists or numbers are not supported by this option
 
+### Fixed
+- unblocked the vertical scrollbar of the TUI's list view from the scroll offset
+
 
 ## [4.3.1] - 2023-11-12
 
