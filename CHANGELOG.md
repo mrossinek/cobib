@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is enabled by default and will store its cache at `~/.cache/cobib/databases/`.
   You can configure the location via `config.database.cache` or even disable
   caching entirely by changing this setting to `None`. (see also #129 and !108)
-- added the `-r/--remove` option to the `modify` command
+- added the `-r/--remove` option to the `modify` command (#128)
   - this can achieve the opposite of `-a/--add` in the sense that it will try to
     remove the specified modification from a list or subtract a number from
     numeric values
