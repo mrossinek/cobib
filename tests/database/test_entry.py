@@ -22,13 +22,14 @@ EXAMPLE_ENTRY_DICT = {
     + " D. Johnson and M{\\'a}ria Kieferov{\\'a} and Ian D. Kivlichan and Tim Menke and Borja "
     + "Peropadre and Nicolas P. D. Sawaya and Sukin Sim and Libor Veis and Al{\\'a}n Aspuru-Guzik",
     "doi": "10.1021/acs.chemrev.8b00803",
+    "issn": "1520-6890",
     "journal": "Chemical Reviews",
     "month": "aug",
     "number": 19,
-    "pages": "10856--10915",
-    "publisher": "American Chemical Society ({ACS})",
+    "pages": "10856-10915",
+    "publisher": "American Chemical Society (ACS)",
     "title": "Quantum Chemistry in the Age of Quantum Computing",
-    "url": "https://doi.org/10.1021%2Facs.chemrev.8b00803",
+    "url": ["http://dx.doi.org/10.1021/acs.chemrev.8b00803"],
     "volume": 119,
     "year": 2019,
 }
@@ -388,9 +389,9 @@ def test_search_with_file() -> None:
     results = entry.search(["Chemical"], context=0)
     expected = [
         [" journal = {Chemical Reviews},"],
-        [" publisher = {American Chemical Society ({ACS})},"],
+        [" publisher = {American Chemical Society (ACS)},"],
         ["journal: Chemical Reviews"],
-        ["publisher: American Chemical Society ({ACS})"],
+        ["publisher: American Chemical Society (ACS)"],
     ]
     assert len(results) == len(expected)
     for res, exp in zip(results, expected):
@@ -404,7 +405,7 @@ def test_search_with_skipped_file() -> None:
     results = entry.search(["Chemical"], context=0, skip_files=True)
     expected = [
         [" journal = {Chemical Reviews},"],
-        [" publisher = {American Chemical Society ({ACS})},"],
+        [" publisher = {American Chemical Society (ACS)},"],
     ]
     assert len(results) == len(expected)
     for res, exp in zip(results, expected):

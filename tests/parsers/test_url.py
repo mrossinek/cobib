@@ -26,10 +26,10 @@ def assert_default_test_entry(entry: Entry) -> None:
     """
     assert entry.label == "Grimsley_2019"
     assert entry.data["doi"] == "10.1038/s41467-019-10988-2"
-    assert entry.data["url"] == ["https://doi.org/10.1038%2Fs41467-019-10988-2"]
+    assert entry.data["url"] == ["http://dx.doi.org/10.1038/s41467-019-10988-2"]
     assert entry.data["year"] == 2019
     assert entry.data["month"] == "jul"
-    assert entry.data["publisher"] == "Springer Science and Business Media {LLC}"
+    assert entry.data["publisher"] == "Springer Science and Business Media LLC"
     assert entry.data["volume"] == 10
     assert entry.data["number"] == 1
     assert entry.data["author"] == [

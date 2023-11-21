@@ -326,11 +326,12 @@ class TestAddCommand(CommandTest):
         assert entry.data["archivePrefix"] == "arXiv"
         assert entry.data["abstract"] != ""
 
+        assert entry.data["issn"] == "1520-6890"
         assert entry.data["journal"] == "Chemical Reviews"
         assert entry.data["doi"] == "10.1021/acs.chemrev.8b00803"
         assert entry.data["month"] == "aug"
         assert entry.data["number"] == 19
-        assert entry.data["pages"] == "10856--10915"
+        assert entry.data["pages"] == "10856–10915"
         assert entry.data["volume"] == 119
         assert entry.data["year"] == 2019
 
