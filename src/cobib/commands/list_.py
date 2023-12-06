@@ -22,6 +22,11 @@ cobib list --sort year
 ```
 (In the TUI, this is available via the `s` key, by default.)
 
+You can limit the number of displayed entries:
+```
+cobib list --limit 5
+```
+
 
 ### Filters
 
@@ -128,6 +133,9 @@ class ListCommand(Command):
           added entries at the top of the window. When using the command-line interface it is
           disabled by default, because this puts the last added entries at the bottom, just above
           the new command-line prompt.
+        * `-l`, `--limit`: you can specify a maximum number of entries to be returned in order to
+          limit the amount of matches to be displayed. (Note, that as of now, this is purely a
+          post-processing step and, thus, does not yield faster results.)
         * `-i`, `--ignore-case`: if specified, the entry matching will be case-**in**sensitive. This
           overwrites the `cobib.config.config.ListCommandConfig.ignore_case` setting.
         * `-I`, `--no-ignore-case`: if specified, the entry matching will be case-sensitive. This
@@ -166,6 +174,7 @@ class ListCommand(Command):
         parser.add_argument(
             "-r", "--reverse", action="store_true", help="reverses the listing order"
         )
+        parser.add_argument("-l", "--limit", type=int, help="limits the number of listed entries")
         ignore_case_group = parser.add_mutually_exclusive_group()
         ignore_case_group.add_argument(
             "-i",
@@ -216,9 +225,7 @@ class ListCommand(Command):
 
         Event.PreListCommand.fire(self)
 
-        filtered_entries, filtered_keys = self.filter_entries()
-
-        self.entries = self._sort_entries(filtered_entries, self.largs.sort, self.largs.reverse)
+        self.entries, filtered_keys = self.execute_dull()
 
         # construct list of columns to be displayed
         self.columns = copy(config.commands.list_.default_columns)
@@ -232,6 +239,26 @@ class ListCommand(Command):
         self.columns.extend(col for col in filtered_keys if col not in self.columns)
 
         Event.PostListCommand.fire(self)
+
+    def execute_dull(self) -> tuple[list[Entry], set[str]]:
+        """The event-less variant of `execute`.
+
+        This method executes this command without firing any events or post-processing the final
+        list of labels. This can be used by other commands which allow piping of the filtering/
+        sorting/limiting arguments to the `ListCommand`.
+
+        Returns:
+            A pair of the filtered, sorted, and limited entries as the first object (which is also
+            exposed via `entries`) and the set of keys which were filtered on as the second one.
+            This can be used (for example) to include these keys during the result rendering.
+        """
+        _, filtered_keys = self.filter_entries()
+
+        sorted_entries = self.sort_entries()
+
+        self.entries = sorted_entries[: self.largs.limit]
+
+        return self.entries, filtered_keys
 
     def filter_entries(self) -> tuple[list[Entry], set[str]]:
         """The filtering method.
@@ -252,7 +279,7 @@ class ListCommand(Command):
         _filter: dict[tuple[str, bool], list[Any]] = defaultdict(list)
 
         for key, val in self.largs.__dict__.items():
-            if key in ["OR", "sort", "reverse", "ignore_case"] or val is None:
+            if key in ["OR", "sort", "reverse", "limit", "ignore_case"] or val is None:
                 # ignore special arguments
                 continue
 
@@ -283,44 +310,44 @@ class ListCommand(Command):
             "The entry matching will be performed case %ssensitive", "in" if ignore_case else ""
         )
 
-        for key, entry in Database().items():
-            if entry.matches(_filter, self.largs.OR, ignore_case):
-                LOGGER.debug('Entry "%s" matches the filter.', key)
-                self.entries.append(entry)
+        if len(filtered_keys) == 0:
+            # bypassing the unnecessary calls to `Entry.matches` when no filter was provided
+            self.entries = list(Database().values())
+        else:
+            for key, entry in Database().items():
+                if entry.matches(_filter, self.largs.OR, ignore_case):
+                    LOGGER.debug('Entry "%s" matches the filter.', key)
+                    self.entries.append(entry)
 
         return self.entries, filtered_keys
 
-    @staticmethod
-    def _sort_entries(
-        entries: list[Entry], sort: str | None = None, reverse: bool = False
-    ) -> list[Entry]:
+    def sort_entries(self) -> list[Entry]:
         """The sorting method.
 
-        This method sorts the provided entries according to the requested key and order.
-
-        Args:
-            entries: the list of entries to be sorted.
-            sort: the optional key by which to sort.
-            reverse: whether or not to sort in reverse order.
+        This method sorts the entries according to the key and order provided to this command.
+        This method _must_ be run after `filter_entries` to ensure that the `entries` of this
+        command instance are already populated.
 
         Returns:
             The sorted list of entries.
         """
-        if reverse:
+        if self.largs.reverse:
             LOGGER.debug("Reversing the entry order.")
 
-        if sort is None:
-            if reverse:
-                return entries[::-1]
-            return entries
+        if self.largs.sort is None:
+            if self.largs.reverse:
+                self.entries = self.entries[::-1]
+            return self.entries
 
-        LOGGER.debug("Sorting entries by key '%s'.", sort)
+        LOGGER.debug("Sorting entries by key '%s'.", self.largs.sort)
 
-        sorted_entries: list[Entry] = sorted(
-            entries, reverse=reverse, key=lambda entry: entry.stringify().get(str(sort), "")
+        self.entries = sorted(
+            self.entries,
+            reverse=self.largs.reverse,
+            key=lambda entry: entry.stringify().get(str(self.largs.sort), ""),
         )
 
-        return sorted_entries
+        return self.entries
 
     @override
     def render_porcelain(self) -> list[str]:

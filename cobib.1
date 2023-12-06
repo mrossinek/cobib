@@ -311,6 +311,11 @@ Specify the entry field to use as the \fIsorting column\fR of the table.
 Reverses the sorting order.
 .PP
 .in +8n
+.BR \-l ", " \-\-limit " " \fI<int>\fI
+.in +4n
+Limits the number of displayed results to the specified number.
+.PP
+.in +8n
 .BR \-i ", " \-\-ignore\-case
 .in +4n
 Makes the entry matching case-insensitive.
@@ -468,6 +473,9 @@ In general, multiple filters provided to the \fIlist\fR and \fIexport\fR
 commands are combined with logical \fIAND\fR.
 This may be overwritten by adding the \fI\-x\fR or \fI\-\-or\fR arguments as
 described in the arguments section of the \fIlist\fR command.
+More generally, you may also provide any of the other arguments of the
+\fIlist\fR command allowing you to sort and limit the number of entries which
+you want to further act on.
 .SH EXAMPLES
 This section provides a few examples of \fBFILTERS\fR as described above.
 .TP

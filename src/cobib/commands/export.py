@@ -171,7 +171,7 @@ class ExportCommand(Command):
                     LOGGER.warning(msg)
         else:
             LOGGER.debug("Gathering filtered list of entries to be exported.")
-            self.exported_entries, _ = ListCommand(*self.largs.filter).filter_entries()
+            self.exported_entries, _ = ListCommand(*self.largs.filter).execute_dull()
 
         bibtex_parser = BibtexParser()
 

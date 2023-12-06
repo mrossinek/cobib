@@ -44,6 +44,8 @@ class TestModifyCommand(CommandTest):
         [
             ["tags:test", ["einstein"], True],
             ["tags:test", ["++label", "einstein"], False],
+            # the following limit test works only if "einstein" is the first entry in the database
+            ["tags:test", ["-l", "1"], False],
         ],
     )
     @pytest.mark.parametrize("add_remove", [(False, False), (True, False), (False, True)])
@@ -92,7 +94,8 @@ class TestModifyCommand(CommandTest):
         if dry:
             args.insert(0, "--dry")
 
-        ModifyCommand(*args).execute()
+        cmd = ModifyCommand(*args)
+        cmd.execute()
 
         if dry:
             if add or remove:
@@ -101,6 +104,7 @@ class TestModifyCommand(CommandTest):
                 assert "tags" not in Database()["einstein"].data.keys()
         else:
             assert Database()["einstein"].data["tags"] == expected
+            assert len(cmd.modified_entries) == 1
 
         if git:
             try:

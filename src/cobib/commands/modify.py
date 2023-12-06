@@ -268,8 +268,8 @@ class ModifyCommand(Command):
             labels = self.largs.filter
         else:
             LOGGER.debug("Gathering filtered list of entries to be modified.")
-            filtered_entries, _ = ListCommand(*self.largs.filter).filter_entries()
-            labels = [entry.label for entry in filtered_entries]
+            listed_entries, _ = ListCommand(*self.largs.filter).execute_dull()
+            labels = [entry.label for entry in listed_entries]
 
         field, value = self.largs.modification
 
