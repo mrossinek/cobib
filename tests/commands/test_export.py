@@ -96,9 +96,13 @@ class TestExportCommand(CommandTest):
             [["-b", str(TMPDIR / "cobib_test_export.bib")]],
             [["-b", str(TMPDIR / "cobib_test_export.bib"), "--", "++label", "einstein"]],
             [["-b", str(TMPDIR / "cobib_test_export.bib"), "-s", "--", "einstein"]],
+            # the following limit test works only if "einstein" is the first entry in the database
+            [["-b", str(TMPDIR / "cobib_test_export.bib"), "--", "-l", "1"]],
             [["-z", str(TMPDIR / "cobib_test_export.zip")]],
             [["-z", str(TMPDIR / "cobib_test_export.zip"), "--", "++label", "einstein"]],
             [["-z", str(TMPDIR / "cobib_test_export.zip"), "-s", "--", "einstein"]],
+            # the following limit test works only if "einstein" is the first entry in the database
+            [["-z", str(TMPDIR / "cobib_test_export.zip"), "--", "-l", "1"]],
         ],
     )
     def test_command(self, setup: Any, args: list[str]) -> None:

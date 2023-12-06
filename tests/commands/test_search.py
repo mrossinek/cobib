@@ -121,6 +121,16 @@ class TestSearchCommand(CommandTest):
                 ["einstein::1", "1::@article{einstein,", "1::author = {Einstein, Albert},"],
                 True,
             ],
+            [
+                # tests the --limit option passed on to the ListCommand
+                ["19", "-c", "0", "--", "-l", "1"],
+                [
+                    "einstein::2",
+                    "1::doi = {http://dx.doi.org/10.1002/andp.19053221004},",
+                    "2::year = {1905}",
+                ],
+                False,
+            ],
         ],
     )
     def test_command(

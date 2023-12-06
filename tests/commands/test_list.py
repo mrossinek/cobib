@@ -37,6 +37,7 @@ class TestListCommand(CommandTest):
         ["args", "expected_labels", "config_overwrite"],
         [
             [[], ["einstein", "latexcompanion", "knuthwebsite"], False],
+            [["-l", "1"], ["einstein"], False],
             [["-r"], ["knuthwebsite", "latexcompanion", "einstein"], False],
             [["-s", "year"], ["knuthwebsite", "einstein", "latexcompanion"], False],
             [["-r", "-s", "year"], ["latexcompanion", "einstein", "knuthwebsite"], False],
@@ -111,6 +112,61 @@ class TestListCommand(CommandTest):
         filtered_entries, filtered_keys = ListCommand(*args).filter_entries()
         assert filtered_keys == expected_keys
         assert [entry.label for entry in filtered_entries] == expected_labels
+
+    @pytest.mark.parametrize(
+        ["args", "expected_labels"],
+        [
+            [[], ["einstein", "latexcompanion", "knuthwebsite"]],
+            [["-r"], ["knuthwebsite", "latexcompanion", "einstein"]],
+            [["-s", "year"], ["knuthwebsite", "einstein", "latexcompanion"]],
+            [["-r", "-s", "year"], ["latexcompanion", "einstein", "knuthwebsite"]],
+            [["-r", "--author", "Einstein"], ["knuthwebsite", "latexcompanion"]],
+            [["-s", "year", "--author", "Einstein"], ["knuthwebsite", "latexcompanion"]],
+            [["-r", "-s", "year", "--author", "Einstein"], ["latexcompanion", "knuthwebsite"]],
+        ],
+    )
+    def test_sort_entries(self, setup: Any, args: list[str], expected_labels: list[str]) -> None:
+        """Tests the sorting methods.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            args: the arguments to pass to the command.
+            expected_labels: the expected list of labels which match the filter.
+        """
+        cmd = ListCommand(*args)
+        # NOTE: if we do not call `Entry.filter_entries` first, the list of labels will be empty!
+        _, _ = cmd.filter_entries()
+        sorted_entries = cmd.sort_entries()
+        assert [entry.label for entry in sorted_entries] == expected_labels
+
+    @pytest.mark.parametrize(
+        ["args", "expected_labels", "expected_keys"],
+        [
+            [
+                ["-r", "-s", "year", "-l", "1", "--author", "Einstein"],
+                ["latexcompanion"],
+                {"author"},
+            ],
+        ],
+    )
+    def test_execute_dull(
+        self,
+        setup: Any,
+        args: list[str],
+        expected_labels: list[str],
+        expected_keys: set[str],
+    ) -> None:
+        """Tests the `ListCommand.execute_dull` method.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            args: the arguments to pass to the command.
+            expected_labels: the expected list of labels which match the filter.
+            expected_keys: the expected keys which were filtered on.
+        """
+        final_entries, filtered_keys = ListCommand(*args).execute_dull()
+        assert filtered_keys == expected_keys
+        assert [entry.label for entry in final_entries] == expected_labels
 
     def test_missing_keys(self, setup: Any) -> None:
         """Asserts issue #1 is fixed.

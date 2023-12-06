@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     remove the specified modification from a list or subtract a number from
     numeric values
   - other field types than lists or numbers are not supported by this option
+- added the `-l/--limit` option to the `list` command (#127)
+  - exposed the `ListCommand.sort_entries` method in the public API
+  - added the `ListCommand.execute_dull` method in the public API
+- the `search`, `export`, and `modify` commands now also support sorting and limiting options to be
+  passed onto the `list` command (along with the already existing filtering options)
 
 ### Fixed
 - unblocked the vertical scrollbar of the TUI's list view from the scroll offset

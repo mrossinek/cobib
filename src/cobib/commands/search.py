@@ -39,6 +39,14 @@ cobib search Einstein -- ++year 2020
 Note, that we use the auxiliary `--` argument to separate the filters from the actual arguments.
 While this is not strictly necessary it helps to disambiguate the origin of the arguments.
 
+.. note::
+
+   You may also pass other arguments to the `list` command such as `--sort <field>`, `--reverse`, or
+   `--limit`. However, these affect which list of entries is being searched over and not the search
+   results directly. Thus, the `--limit` will provide an upper bound on the number of entries that
+   is being searched and does _not_ indicate the maximum number of search results (since this can
+   still be lower).
+
 ### Associated files
 
 The search will also be performed on any associated files of your entries.
@@ -193,7 +201,7 @@ class SearchCommand(Command):
 
         Event.PreSearchCommand.fire(self)
 
-        self.entries, _ = ListCommand(*self.largs.filter).filter_entries()
+        self.entries, _ = ListCommand(*self.largs.filter).execute_dull()
 
         ignore_case = config.commands.search.ignore_case
         if self.largs.ignore_case is not None:
