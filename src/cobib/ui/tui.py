@@ -34,6 +34,7 @@ from typing_extensions import override
 
 from cobib import commands
 from cobib.config import config
+from cobib.database import Database
 from cobib.ui.components import (
     EntryView,
     HelpScreen,
@@ -431,19 +432,46 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         with self.suspend():
             commands.EditCommand(label).execute()
 
-    def _show_entry(self) -> None:
-        """Renders the entry currently under the cursor in the `EntryView` widget."""
-        main = self.query_one(MainContent)
-        label = main.get_current_label()
-        show_cmd = commands.ShowCommand(label)
-        show_cmd.execute()
+    def _show_entry(self, command: commands.ShowCommand | None = None) -> None:
+        """Renders the entry currently under the cursor in the `EntryView` widget.
+
+        Args:
+            command: the `cobib.commands.show.ShowCommand` to execute. If this is `None`, a new
+                instance will be constructed to show the entry at the current cursor location.
+        """
+        if command is None:
+            main = self.query_one(MainContent)
+            label = main.get_current_label()
+            command = commands.ShowCommand(label)
+        command.execute()
         entry = self.query_one(EntryView)
         static = entry.query_one(Static)
         static.update(
-            show_cmd.render_rich(
+            command.render_rich(
                 background_color=entry.background_colors[1].rich_color.name,
             )
         )
+
+    def _jump_to_entry(self, command: list[str]) -> None:
+        """Jumps the cursor in the current view to the entry provided by the command arguments.
+
+        Args:
+            command: the list of command arguments to be passed to the
+                `cobib.commands.show.ShowCommand`.
+        """
+        show_cmd = commands.ShowCommand(*command)
+        label = show_cmd.largs.label
+        main = self.query_one(MainContent)
+        try:
+            main.jump_to_label(label)
+        except KeyError:
+            if label in Database():
+                msg = (
+                    f"The entry with label '{label}' exists in the database but not in the current "
+                    "view. Displaying it only in the side panel."
+                )
+                LOGGER.info(msg)
+        self._show_entry(show_cmd)
 
     async def _update_table(self) -> None:
         """Updates the list of entries displayed in the `MainContent`."""
@@ -462,7 +490,12 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         self.refresh(layout=True)
 
     async def _update_tree(self, command: list[str]) -> None:
-        """Updates the tree of search results displayed in the `MainContent`."""
+        """Updates the tree of search results displayed in the `MainContent`.
+
+        Args:
+            command: the list of command arguments to be passed to the
+                `cobib.commands.search.SearchCommand`.
+        """
         subcmd = commands.SearchCommand(*command)
         subcmd.execute()
         tree = subcmd.render_textual()
@@ -507,12 +540,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
                 )
                 return
             if command[0].lower() == "show":
-                LOGGER.warning(
-                    "Running the 'show' command via the ':' prompt in the TUI is not supported!\n"
-                    "Instead, you can simply look in the secondary panel which shows the entry "
-                    "that is currently under the cursor."
-                )
-                return
+                self._jump_to_entry(command[1:])
             if command[0].lower() == "list":
                 self._list_args = command[1:]
                 await self._update_table()
@@ -544,7 +572,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         as popups in the TUI.
 
         Args:
-            command: the list of command and its arguments.
+            command: a list of strings consisting of the command keyword and its arguments.
         """
         with redirect_stdout(io.StringIO()) as stdout:
             with redirect_stderr(io.StringIO()) as stderr:

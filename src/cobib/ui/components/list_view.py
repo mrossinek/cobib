@@ -15,6 +15,7 @@ from textual.binding import Binding
 from textual.coordinate import Coordinate
 from textual.geometry import Region, clamp
 from textual.widgets import DataTable
+from textual.widgets.data_table import RowDoesNotExist
 from typing_extensions import override
 
 from cobib.config import config
@@ -100,11 +101,26 @@ class ListView(DataTable[Text]):
             func()
         self.post_message(MotionKey(key))
 
-    def get_current_label(self) -> str:
+    def get_current_label(self) -> str | None:
         """Gets the label of the entry currently under the cursor.
 
         Returns:
             The label of the entry currently under the cursor.
         """
-        label = self.get_cell_at(Coordinate(self.cursor_row, 0)).plain
+        label = self.coordinate_to_cell_key(Coordinate(self.cursor_row, 0)).row_key.value
         return label
+
+    def jump_to_label(self, label: str) -> None:
+        """Jumps to the requested label.
+
+        Args:
+            label: the label to jump to.
+
+        Raises:
+            KeyError: when the label was not found in the current view.
+        """
+        try:
+            idx = self.get_row_index(label)
+        except RowDoesNotExist as exc:
+            raise KeyError from exc
+        self.move_cursor(row=idx, animate=True)

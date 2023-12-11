@@ -272,11 +272,13 @@ class SearchCommand(Command):
 
         tree = SearchView(".")
         for entry, matches in zip(self.entries, self.matches):
+            data = entry.label
             subtree = tree.root.add(
                 Text.from_markup(
                     f"[search.label]{entry.markup_label()}[/search.label] - {len(matches)} match"
                     + ("es" if len(matches) > 1 else "")
                 ),
+                data=data,
                 # TODO: make configurable
                 expand=False,
             )
@@ -284,6 +286,7 @@ class SearchCommand(Command):
             for idx, match in enumerate(matches):
                 matchtree = subtree.add(
                     str(idx + 1),
+                    data=data,
                     # TODO: make configurable
                     expand=True,
                 )
@@ -294,6 +297,6 @@ class SearchCommand(Command):
                         config.theme.search.query,
                         case_sensitive=not ignore_case,
                     )
-                    matchtree.add_leaf(line_text)
+                    matchtree.add_leaf(line_text, data=data)
 
         return tree

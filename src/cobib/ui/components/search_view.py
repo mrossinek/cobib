@@ -10,16 +10,17 @@ It subclasses textual's built-in `Tree` widget.
 
 from __future__ import annotations
 
+from typing import Union
+
 from rich.text import Text
 from textual.binding import Binding
-from textual.css.query import NoMatches
 from textual.widgets import Tree
 from typing_extensions import override
 
 from .motion_key import MotionKey
 
 
-class SearchView(Tree[Text]):
+class SearchView(Tree[Union[str, Text]]):
     """coBib's search results viewer widget."""
 
     # pylint: disable=invalid-name
@@ -72,18 +73,29 @@ class SearchView(Tree[Text]):
             func()
         self.post_message(MotionKey(key))
 
-    def get_current_label(self) -> str:
+    def get_current_label(self) -> str | None:
         """Gets the label of the entry currently under the cursor.
 
         Returns:
             The label of the entry currently under the cursor.
         """
-        previous_node, current_node = self.cursor_node, self.cursor_node
-        if current_node is None:
-            raise NoMatches  # pylint: disable=raise-missing-from
-        while current_node.parent is not None:
-            previous_node, current_node = current_node, current_node.parent
-        if previous_node is None:
-            raise NoMatches  # pylint: disable=raise-missing-from
-        label = str(previous_node.label).split(" - ", maxsplit=1)[0]
-        return label
+        if self.cursor_node is None:
+            return None
+        return str(self.cursor_node.data)
+
+    def jump_to_label(self, label: str) -> None:
+        """Jumps to the requested label.
+
+        Args:
+            label: the label to jump to.
+
+        Raises:
+            KeyError: when the label was not found in the current view.
+        """
+        for child in self.root.children:
+            if child.data == label:
+                self.select_node(child)
+                self.scroll_to_node(child, animate=True)
+                break
+        else:
+            raise KeyError
