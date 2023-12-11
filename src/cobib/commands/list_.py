@@ -387,7 +387,8 @@ class ListCommand(Command):
             stringified: dict[str, str] = entry.stringify(markup=True)
 
             textual_table.add_row(
-                *(Text.from_markup(stringified.get(col, "")) for col in self.columns)
+                *(Text.from_markup(stringified.get(col, "")) for col in self.columns),
+                key=entry.label,
             )
 
         return textual_table

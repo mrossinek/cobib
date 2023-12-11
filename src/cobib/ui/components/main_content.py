@@ -32,6 +32,7 @@ class MainContent(ContentSwitcher):
 
         Raises:
             NoMatches: when `current` is `None`.
+            KeyError: when no label could be found.
 
         Returns:
             The label of the entry currently under the cursor.
@@ -39,7 +40,30 @@ class MainContent(ContentSwitcher):
         if self.current is None:
             raise NoMatches
         current_child = self.get_child_by_id(self.current)
-        return current_child.get_current_label()  # type: ignore[no-any-return,attr-defined]
+        label = current_child.get_current_label()  # type: ignore[attr-defined]
+        if label is None:
+            raise KeyError(f"Could not find entry with label '{label}'")
+        return label  # type: ignore[no-any-return]
+
+    def jump_to_label(self, label: str) -> None:
+        """Jumps to the requested label.
+
+        Args:
+            label: the label to jump to.
+
+        Raises:
+            NoMatches: when `current` is `None`.
+            KeyError: when the label was not found in the current view.
+        """
+        if self.current is None:
+            raise NoMatches
+        current_child = self.get_child_by_id(self.current)
+        try:
+            current_child.jump_to_label(label)  # type: ignore[attr-defined]
+        except KeyError as exc:
+            raise KeyError(
+                f"Could not find entry with label '{label}' in the current view."
+            ) from exc
 
     async def replace_widget(self, widget: Widget) -> None:
         """Mounts the provided widget in-place of the one with the same `id`.
