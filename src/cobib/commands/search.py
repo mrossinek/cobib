@@ -67,6 +67,7 @@ By default, it is bound to the `/` key.
 from __future__ import annotations
 
 import argparse
+import asyncio
 import logging
 
 from rich.console import Console, ConsoleRenderable
@@ -80,6 +81,7 @@ from cobib import __version__
 from cobib.config import Event, config
 from cobib.database import Entry
 from cobib.ui.components import SearchView
+from cobib.utils.progress import Progress
 
 from .base_command import ArgumentParser, Command
 from .list_ import ListCommand
@@ -195,8 +197,9 @@ class SearchCommand(Command):
         largs.filter = filter_args
         return largs
 
+    # pylint: disable=invalid-overridden-method
     @override
-    def execute(self) -> None:
+    async def execute(self) -> None:  # type: ignore[override]
         LOGGER.debug("Starting Search command.")
 
         Event.PreSearchCommand.fire(self)
@@ -208,7 +211,17 @@ class SearchCommand(Command):
             ignore_case = self.largs.ignore_case
         LOGGER.debug("The search will be performed case %ssensitive", "in" if ignore_case else "")
 
+        progress_bar = Progress.initialize()
+        optional_awaitable = progress_bar.start()  # type: ignore[func-returns-value]
+        if optional_awaitable is not None:
+            await optional_awaitable
+
+        task = progress_bar.add_task("Searching...", total=len(self.entries))
+
         for entry in self.entries.copy():
+            progress_bar.advance(task, 1)
+            await asyncio.sleep(0)
+
             matches = entry.search(
                 self.largs.query, self.largs.context, ignore_case, self.largs.skip_files
             )
@@ -220,6 +233,8 @@ class SearchCommand(Command):
             self.hits += len(matches)
 
             LOGGER.debug('Entry "%s" includes %d hits.', entry.label, len(matches))
+
+        progress_bar.stop()
 
         Event.PostSearchCommand.fire(self)
 

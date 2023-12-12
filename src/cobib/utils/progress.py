@@ -4,24 +4,48 @@ This widget is a bit of a Frankenstein project as it wraps rich's `rich.progress
 and makes sure that upon advancing a task, the `textual.widgets.Static` widget used to display it in
 the TUI gets updated. This was favored over using textual's `textual.widgets.ProgressBar` to
 re-implement rich's more flexible `rich.progress.Progress` displaying capabilities.
-
-.. warning::
-
-   This module makes no API stability guarantees! Refer to `cobib.ui.components` for more details.
 """
 
 from __future__ import annotations
 
 from threading import RLock
 from time import monotonic
+from typing import Any
 
+from rich.console import Console
 from rich.progress import Progress as RichProgress
 from rich.progress import ProgressColumn, Task, TaskID
+from textual.app import App
 from textual.widgets import Static
 from typing_extensions import override
 
 
-class Progress(  # type: ignore[misc]
+class Progress:
+    """A utility class to construct either a `rich` or `textual` progress indicator."""
+
+    console: Console | App[None] = Console()
+    """The object via which to print output."""
+
+    @staticmethod
+    def initialize(*columns: str | ProgressColumn, **kwargs: Any) -> RichProgress:
+        """Initializes a new progress indicator.
+
+        When `console` is a `textual` App, this will construct a `TextualProgress` widget, otherwise
+        it falls back to constructing a `rich.progress.Progress` object.
+
+        Args:
+            columns: the columns to include in the progress indicator.
+            kwargs: any keyword arguments.
+
+        Returns:
+            The new progress indicator.
+        """
+        if isinstance(Progress.console, App):
+            return TextualProgress(*columns, **kwargs)
+        return RichProgress(*columns, **kwargs)
+
+
+class TextualProgress(  # type: ignore[misc]
     Static, RichProgress, can_focus=False, can_focus_children=False
 ):
     """coBib's Frankenstein Rich-Textual progress widget."""
@@ -31,6 +55,7 @@ class Progress(  # type: ignore[misc]
             layout: horizontal;
             width: 100%;
             height: 1;
+            dock: bottom;
         }
     """
 
@@ -61,10 +86,15 @@ class Progress(  # type: ignore[misc]
         self.renderable = self.make_tasks_table(self.tasks)
         self.refresh()
 
+    # pylint: disable=invalid-overridden-method
     @override
-    def start(self) -> None:
-        return
+    async def start(self) -> None:  # type: ignore[override]
+        if isinstance(Progress.console, App):
+            # pylint: disable=assignment-from-no-return,unpacking-non-sequence
+            _, await_mount = Progress.console.print(self)  # type: ignore[attr-defined]
+            await await_mount
 
     @override
     def stop(self) -> None:
-        return
+        if isinstance(Progress.console, App):
+            self.set_timer(5.0, self.remove)

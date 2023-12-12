@@ -40,6 +40,7 @@ class TestSearchCommand(CommandTest):
         for line, exp in zip_longest(output, expected):
             assert line == exp
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         ["args", "expected", "config_overwrite"],
         [
@@ -133,9 +134,10 @@ class TestSearchCommand(CommandTest):
             ],
         ],
     )
-    def test_command(
+    async def test_command(
         self, setup: Any, args: list[str], expected: list[str], config_overwrite: bool
     ) -> None:
+        # pylint: disable=invalid-overridden-method
         """Test the command itself.
 
         Args:
@@ -147,11 +149,12 @@ class TestSearchCommand(CommandTest):
         config.commands.search.ignore_case = config_overwrite
 
         cmd = SearchCommand(*args)
-        cmd.execute()
+        await cmd.execute()
         output = cmd.render_porcelain()
         self._assert(output, expected)
 
-    def test_context_configuration(self, setup: Any) -> None:
+    @pytest.mark.asyncio
+    async def test_context_configuration(self, setup: Any) -> None:
         """Test the `config.commands.search.context` setting.
 
         Args:
@@ -165,7 +168,7 @@ class TestSearchCommand(CommandTest):
             "-c",
             "2",
         )
-        cmd.execute()
+        await cmd.execute()
         output = cmd.render_porcelain()
         self._assert(
             output,
@@ -178,14 +181,15 @@ class TestSearchCommand(CommandTest):
             ],
         )
 
-    def test_render_rich(self, setup: Any) -> None:
+    @pytest.mark.asyncio
+    async def test_render_rich(self, setup: Any) -> None:
         """Test the rich rendering.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
         """
         cmd = SearchCommand("einstein", "-i")
-        cmd.execute()
+        await cmd.execute()
         renderable = cmd.render_rich()
 
         assert isinstance(renderable, Tree)
@@ -226,9 +230,12 @@ class TestSearchCommand(CommandTest):
         await self.run_module(
             monkeypatch, "main", ["cobib", "--porcelain", "search", "--skip-files", "einstein"]
         )
-        self._assert(capsys.readouterr().out.strip().split("\n"), expected)
+        output = capsys.readouterr().out.strip().split("\n")
+        assert output[0].strip().startswith("Searching...")
+        self._assert(output[1:], expected)
 
-    def test_event_pre_search_command(self, setup: Any) -> None:
+    @pytest.mark.asyncio
+    async def test_event_pre_search_command(self, setup: Any) -> None:
         """Tests the PreSearchCommand event."""
 
         @Event.PreSearchCommand.subscribe
@@ -240,11 +247,12 @@ class TestSearchCommand(CommandTest):
         expected = ["einstein::1", "1::@article{einstein,", "1::author = {Einstein, Albert},"]
 
         cmd = SearchCommand("knuthwebsite")
-        cmd.execute()
+        await cmd.execute()
         output = cmd.render_porcelain()
         self._assert(output, expected)
 
-    def test_event_post_search_command(self, setup: Any) -> None:
+    @pytest.mark.asyncio
+    async def test_event_post_search_command(self, setup: Any) -> None:
         """Tests the PostSearchCommand event."""
 
         @Event.PostSearchCommand.subscribe
@@ -255,5 +263,7 @@ class TestSearchCommand(CommandTest):
 
         with contextlib.redirect_stdout(StringIO()) as file:
             cmd = SearchCommand("einstein")
-            cmd.execute()
-            assert file.getvalue().strip() == "1 ['einstein']"
+            await cmd.execute()
+            output = file.getvalue().splitlines()
+            assert output[0].strip().startswith("Searching...")
+            assert output[1].strip() == "1 ['einstein']"

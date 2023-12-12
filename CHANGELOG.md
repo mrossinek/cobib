@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - when using the TUI you may now use the `:show <label>` command to jump to the
   specified label (#126,!116)
+- the `search` command now reports its progress live (!117)
 
 ### Fixed
 - unblocked the vertical scrollbar of the TUI's list view from the scroll offset
