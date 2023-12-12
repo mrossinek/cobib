@@ -22,6 +22,7 @@ class PopupPanel(Container, can_focus=False, can_focus_children=False):
             align: center bottom;
             width: 100%;
             height: auto;
+            max-height: 50%;
             offset-y: -1;
         }
     """

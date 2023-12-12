@@ -46,13 +46,12 @@ from cobib.ui.components import (
     PopupLoggingHandler,
     PopupPanel,
     PresetFilterScreen,
-    Progress,
     Prompt,
     SearchView,
     SelectionFilter,
 )
 from cobib.ui.ui import UI
-from cobib.utils.file_downloader import FileDownloader
+from cobib.utils.progress import Progress
 
 LOGGER = logging.getLogger(__name__)
 
@@ -161,8 +160,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         self._filters.append(self._filter)
         self._background_tasks: set[asyncio.Task] = set()  # type: ignore[type-arg]
         PopupLoggingHandler(self, level=logging.INFO)
-        FileDownloader.console = self
-        FileDownloader.progress = Progress
+        Progress.console = self
 
     @override
     def compose(self) -> ComposeResult:
@@ -497,7 +495,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
                 `cobib.commands.search.SearchCommand`.
         """
         subcmd = commands.SearchCommand(*command)
-        subcmd.execute()
+        await subcmd.execute()
         tree = subcmd.render_textual()
         main = self.query_one(MainContent)
         await main.replace_widget(tree)

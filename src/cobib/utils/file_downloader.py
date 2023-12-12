@@ -9,12 +9,13 @@ import tempfile
 from pathlib import Path
 
 import requests
-from rich.console import Console
-from rich.progress import DownloadColumn, Progress, SpinnerColumn, TimeElapsedColumn
-from textual.app import App
+from rich.progress import DownloadColumn
+from rich.progress import Progress as RichProgress
+from rich.progress import SpinnerColumn, TimeElapsedColumn
 
 from cobib.config import Event, config
 
+from .progress import Progress
 from .rel_path import RelPath
 
 LOGGER = logging.getLogger(__name__)
@@ -39,12 +40,6 @@ class FileDownloader:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
-
-    progress: type[Progress] = Progress
-    """The type of progress bar to use when displaying the downloading progress."""
-
-    console: Console | App[None] = Console()
-    """The object via which to print output."""
 
     _PDF_MARKER = bytes("%PDF", "utf-8")
     """A marker which the downloaded file's beginning is checked against, to determine that it is
@@ -133,20 +128,15 @@ class FileDownloader:
                 FileDownloader._recover(path, backup)
                 return None
 
-            progress_bar = FileDownloader.progress(
+            progress_bar = Progress.initialize(
                 SpinnerColumn(),
-                *Progress.get_default_columns(),
+                *RichProgress.get_default_columns(),
                 TimeElapsedColumn(),
                 DownloadColumn(),
             )
-            progress_bar.start()
-
-            if isinstance(FileDownloader.console, App):
-                # pylint: disable=assignment-from-no-return,unpacking-non-sequence
-                _, await_mount = FileDownloader.console.print(  # type: ignore[attr-defined]
-                    progress_bar
-                )
-                await await_mount
+            optional_awaitable = progress_bar.start()  # type: ignore[func-returns-value]
+            if optional_awaitable is not None:
+                await optional_awaitable
 
             task = progress_bar.add_task("Downloading...", total=total_length)
 
@@ -170,8 +160,6 @@ class FileDownloader:
                     file.write(data)
 
             progress_bar.stop()
-            if isinstance(FileDownloader.console, App):
-                progress_bar.set_timer(5.0, progress_bar.remove)  # type: ignore[attr-defined]
 
             msg = f"Successfully downloaded {path}"
             print(msg)
