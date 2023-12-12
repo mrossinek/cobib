@@ -547,7 +547,7 @@ class Entry:
                         matches[-1].append(string)
 
             if skip_files:
-                LOGGER.info("Skipping the search in associated files of %s", self.label)
+                LOGGER.debug("Skipping the search in associated files of %s", self.label)
                 continue
 
             for file_ in self.file:

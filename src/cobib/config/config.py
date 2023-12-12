@@ -767,6 +767,11 @@ class TUIConfig(_ConfigBase):
     scroll_offset: int = 2
     """The minimum number of lines to keep above and below the cursor in the
     `cobib.ui.tui.components.ListView`. This is similar to Vim's `scrolloff` setting."""
+    tree_folding: tuple[bool, bool] = (True, False)
+    """The default folding level of the tree nodes in the `cobib.ui.tui.components.SearchView`. When
+    `True`, the node will be initialized to be folded (or collapsed), when `False`, it will be
+    expanded. The first boolean corresponds to the nodes for each matching entry, the second one is
+    for all the search matches."""
     preset_filters: list[str] = field(default_factory=list)
     """Permits providing a list of preset filters. These can be interactively selected in the TUI by
     pressing `p`. To specify these, simply provide a string with the filter arguments, for example:

@@ -279,16 +279,14 @@ class SearchCommand(Command):
                     + ("es" if len(matches) > 1 else "")
                 ),
                 data=data,
-                # TODO: make configurable
-                expand=False,
+                expand=not config.tui.tree_folding[0],
             )
 
             for idx, match in enumerate(matches):
                 matchtree = subtree.add(
                     str(idx + 1),
                     data=data,
-                    # TODO: make configurable
-                    expand=True,
+                    expand=not config.tui.tree_folding[1],
                 )
                 for line in match:
                     line_text = Text(line)

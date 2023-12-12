@@ -183,6 +183,10 @@ config.theme.tags.user_tags = {}
 # You can configure the minimum number of lines to keep above and below the cursor in the TUI's list
 # view. This is similar to Vim's `scrolloff` setting.
 config.tui.scroll_offset = 2
+# You can configure the default folding level of the tree nodes in the TUI's search result view. The
+# first boolean corresponds to the nodes for each matching entry, the second one is for all the
+# search matches.
+config.tui.tree_folding = (True, False)
 # You can provide a list of preset filters. These can be interactively selected in the TUI by
 # pressing `p`. To specify these, simply provide a string with the filter arguments, for example:
 #

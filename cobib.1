@@ -791,6 +791,11 @@ characters \fI'.'\fR, \fI'-'\fR, \fI'_'\fR.
 The minimum number of lines to keep above and below the cursor in the TUI's list
 view. This is similar to Vim's \fIscrolloff\fR setting.
 .TP
+.IR config.tui.tree_folding = (True,\ False)
+The default folding level of the tree nodes in the TUI's search result view. The
+first boolean corresponds to the nodes for each matching entry, the second one
+is for all the search matches.
+.TP
 .IR config.tui.preset_filters = []
 You can provide a list of preset filters. These can be interactively selected in
 the TUI by pressing \fIp\fR. To specify these, simply provide a string with the

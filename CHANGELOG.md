@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - added the `ListCommand.execute_dull` method in the public API
 - the `search`, `export`, and `modify` commands now also support sorting and limiting options to be
   passed onto the `list` command (along with the already existing filtering options)
+- the `config.tui.tree_folding` setting which allows you to configure the
+  default folding state of the tree nodes in the TUI's search result view
+- the `ENTER` binding in the TUI's search result view to recursively toggle all
+  folds of the current node
 
 ### Changed
 - when using the TUI you may now use the `:show <label>` command to jump to the

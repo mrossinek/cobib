@@ -27,6 +27,7 @@ class SearchView(Tree[Union[str, Text]]):
     id = "cobib-search-view"
 
     BINDINGS = [
+        Binding("enter", "toggle_all", "Toggle All"),
         Binding("j", "motion('down', 'cursor_down')", "Down", show=False),
         Binding("k", "motion('up', 'cursor_up')", "Up", show=False),
         Binding("h", "motion('left', 'cursor_left')", "Left", show=False),
@@ -44,6 +45,7 @@ class SearchView(Tree[Union[str, Text]]):
     | Key(s) | Description |
     | :- | :- |
     | space | Toggle the expand/collapsed space of the current item. |
+    | enter | Toggle the expand/collapsed space of the current item and all its children. |
     | j, down | Moves one row down. |
     | k, up | Moves one row up. |
     | h, left | Moves to the left. |
@@ -72,6 +74,11 @@ class SearchView(Tree[Union[str, Text]]):
         if func is not None:
             func()
         self.post_message(MotionKey(key))
+
+    def action_toggle_all(self) -> None:
+        """Toggles the expansion of the current node and all of its children recursively."""
+        if self.cursor_node is not None:
+            self.cursor_node.toggle_all()
 
     def get_current_label(self) -> str | None:
         """Gets the label of the entry currently under the cursor.
