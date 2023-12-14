@@ -9,6 +9,6 @@ mypy==1.7.1
 pydocstyle==6.3.0
 pyenchant==3.2.2
 pylint==3.0.3
-pdoc==14.1.0
+pdoc==14.2.0
 aiohttp==3.9.1
 msgpack==1.0.7
