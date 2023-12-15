@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [4.4.0] - 2023-12-15
+
+Pypi: https://pypi.org/project/cobib/4.4.0/
+
 ### Added
 - a primitive caching mechanism to speed up the database loading. This feature
   is enabled by default and will store its cache at `~/.cache/cobib/databases/`.
@@ -914,7 +919,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v4.3.1...master
+[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v4.4.0...master
+[4.4.0]: https://gitlab.com/cobib/cobib/-/compare/v4.4.0
 [4.3.1]: https://gitlab.com/cobib/cobib/-/compare/v4.3.1
 [4.3.0]: https://gitlab.com/cobib/cobib/-/compare/v4.3.0
 [4.2.0]: https://gitlab.com/cobib/cobib/-/compare/v4.2.0
