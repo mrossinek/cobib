@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- loading a cached database will be bypassed during `_lint_database` (#133)
+  - to support this the `bypass_cache` keyword-argument was added to the
+    `Database.read` method
+
 
 ## [4.4.0] - 2023-12-15
 

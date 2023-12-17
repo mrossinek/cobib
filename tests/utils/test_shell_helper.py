@@ -200,8 +200,12 @@ class TestLintDatabase(ShellHelperTest):
             if msg.strip() and truth:
                 assert msg == truth
 
-    def test_no_lint_warnings(self) -> None:
-        """Test the case of no raised lint warnings."""
+    def test_no_lint_warnings(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Test the case of no raised lint warnings.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
         config.load(get_resource("debug.py"))
         lint_messages = shell_helper.lint_database()
         for msg, exp in zip_longest(
@@ -209,6 +213,12 @@ class TestLintDatabase(ShellHelperTest):
         ):
             if msg.strip() and exp:
                 assert msg == exp
+
+        assert (
+            "cobib.database.database",
+            35,
+            "Encountered the following exception during cache lookup: 'Bypassing the cache.'",
+        ) in caplog.record_tuples
 
     @pytest.mark.parametrize("git", [False, True])
     def test_lint_auto_format(self, git: bool) -> None:

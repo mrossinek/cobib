@@ -182,7 +182,7 @@ def lint_database(*args: str) -> list[str]:
         root_logger.addHandler(handler)
 
     # trigger database reading to cause lint messages upon entry-construction
-    Database.read()
+    Database.read(bypass_cache=True)
 
     lint_messages = output.getvalue().split("\n")
 

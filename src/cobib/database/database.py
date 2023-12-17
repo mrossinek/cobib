@@ -45,17 +45,21 @@ class Database(OrderedDict):  # type: ignore
     preventing further recursion. This is especially important when dealing with the separate call
     to `read_cache`."""
 
-    def __new__(cls) -> Database:
+    def __new__(cls, *, bypass_cache: bool = False) -> Database:
         """Singleton constructor.
 
         This method gets called when accessing `Database` and enforces the singleton pattern
         implemented by this class.
+
+        Args:
+            bypass_cache: whether or not to try reading the cache. Set this to `True` to bypass the
+                cache no matter its age or the user configuration.
         """
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._unsaved_entries = {}
         if not cls._read:
-            cls.read()
+            cls.read(bypass_cache=bypass_cache)
         return cls._instance
 
     def update(self, new_entries: dict[str, cobib.database.Entry]) -> None:  # type: ignore
@@ -166,7 +170,7 @@ class Database(OrderedDict):  # type: ignore
         cls._read = False
 
     @classmethod
-    def read(cls) -> None:
+    def read(cls, *, bypass_cache: bool = False) -> None:
         """Reads the database file.
 
         The YAML database file pointed to by the configuration file is read in and parsed.
@@ -175,13 +179,19 @@ class Database(OrderedDict):  # type: ignore
         `Database._unsaved_entries` to an empty dictionary. Thus, a call to this function
         *irreversibly* synchronizes the state of the runtime `Database` instance to the actually
         written contents of the database file on disc.
+
+        Args:
+            bypass_cache: whether or not to try reading the cache. Set this to `True` to bypass the
+                cache no matter its age or the user configuration.
         """
         if cls._instance is None:
-            cls()
+            cls(bypass_cache=bypass_cache)
             return
         _instance = cls._instance
 
         try:
+            if bypass_cache:
+                raise CacheError("Bypassing the cache.")
             Database.read_cache()
         except CacheError as exc:
             LOGGER.log(
