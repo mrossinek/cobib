@@ -9,9 +9,8 @@ import tempfile
 from pathlib import Path
 
 import requests
-from rich.progress import DownloadColumn
+from rich.progress import DownloadColumn, SpinnerColumn, TimeElapsedColumn
 from rich.progress import Progress as RichProgress
-from rich.progress import SpinnerColumn, TimeElapsedColumn
 
 from cobib.config import Event, config
 
@@ -77,7 +76,6 @@ class FileDownloader:
         overwrite: bool = False,
         headers: dict[str, str] | None = None,
     ) -> RelPath | None:
-        # pylint: disable=too-many-function-args,unexpected-keyword-arg,no-member
         """Downloads a file.
 
         The path of the downloaded file is `folder/label.pdf`. The path can be configured via
@@ -191,7 +189,6 @@ class FileDownloader:
         return url
 
     @staticmethod
-    # pylint: disable=unsubscriptable-object
     def _backup_file(path: RelPath) -> tempfile._TemporaryFileWrapper[bytes]:
         """Create a backup of an existing file.
 
@@ -202,13 +199,12 @@ class FileDownloader:
             The temporary backup file.
         """
         # we make a copy of the existing file in case downloading a new one fails
-        backup = tempfile.NamedTemporaryFile(delete=False)  # pylint: disable=consider-using-with
+        backup = tempfile.NamedTemporaryFile(delete=False)
         backup.write(path.path.read_bytes())
         backup.seek(0)
         return backup
 
     @staticmethod
-    # pylint: disable=unsubscriptable-object
     def _recover(path: RelPath, backup: tempfile._TemporaryFileWrapper[bytes] | None) -> None:
         """Recovers from a backup file.
 

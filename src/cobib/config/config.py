@@ -1,4 +1,3 @@
-# pylint: disable=unnecessary-lambda,missing-docstring
 """coBib's configuration.
 
 This file contains both, the actual implementation of the `Config` classes, as well as the runtime
@@ -6,6 +5,7 @@ This file contains both, the actual implementation of the `Config` classes, as w
 Note, that this last link will not point to the correct location in the online documentation due to
 the nature of the lower-level import.
 """
+# ruff: noqa: E731, RUF009
 
 from __future__ import annotations
 
@@ -62,7 +62,6 @@ class _ConfigBase:
 
     def defaults(self) -> None:
         """Resets the configuration to the default settings."""
-        # pylint: disable=no-member
         for name, field_ in self.__dataclass_fields__.items():
             if field_.default != MISSING:
                 setattr(self, name, field_.default)
@@ -536,14 +535,14 @@ class _DeprecateOnAccess(EnumMeta):
 class LabelSuffix(Enum, metaclass=_DeprecateOnAccess):
     """Suffixes to disambiguate `cobib.database.Entry` labels."""
 
-    ALPHA = lambda count: chr(96 + count)  # pylint: disable=unnecessary-lambda-assignment
+    ALPHA = lambda count: chr(96 + count)
     """Enumerates with lowercase roman letters: `a-z`."""
-    CAPITAL = lambda count: chr(64 + count)  # pylint: disable=unnecessary-lambda-assignment
+    CAPITAL = lambda count: chr(64 + count)
     """Enumerates with uppercase roman letters: `A-Z`."""
-    # pylint: disable=unnecessary-lambda,unnecessary-lambda-assignment
+
     NUMERIC = lambda count: str(count)
     """Enumerates with arabic numbers: `1, 2, ...`."""
-    CAPTIAL = lambda count: chr(64 + count)  # pylint: disable=unnecessary-lambda-assignment
+    CAPTIAL = lambda count: chr(64 + count)
     """**Deprecated!** This is a deprecated mistyped name of `LabelSuffix.CAPITAL`."""
 
 
@@ -601,7 +600,7 @@ class DatabaseFormatConfig(_ConfigBase):
             "config.database.format.label_default should be a string.",
         )
         self._assert(
-            isinstance(self.label_suffix, tuple) and len(self.label_suffix) == 2,
+            isinstance(self.label_suffix, tuple) and len(self.label_suffix) == 2,  # noqa: PLR2004
             "config.database.format.label_suffix should be a tuple of length 2.",
         )
         self._assert(
@@ -914,7 +913,6 @@ class Config(_ConfigBase):
     utils: UtilsConfig = field(default_factory=lambda: UtilsConfig())
     """The nested section for the utils settings."""
 
-    # pylint: disable=invalid-name
     XDG_CONFIG_FILE: str | Path = field(
         default="~/.config/cobib/config.py", init=False, repr=False, compare=False
     )

@@ -1,5 +1,5 @@
 """Tests for coBib's ArxivParser."""
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 
@@ -66,7 +66,7 @@ class TestArxivParser(ParserTest):
         ) in caplog.record_tuples:
             pytest.skip("The requests API encountered an error. Skipping test.")
 
-        entry = list(entries.values())[0]
+        entry = next(iter(entries.values()))
         assert_default_test_entry(entry)
 
     # regression test for https://gitlab.com/cobib/cobib/-/issues/57
@@ -74,12 +74,12 @@ class TestArxivParser(ParserTest):
         """Test parsing an invalid arXiv ID."""
         entries = ArxivParser().parse("10.1021/acs.chemrev.8b00803")
         assert not entries
-        assert entries == {}  # pylint: disable=C1803
+        assert entries == {}
 
     def test_arxiv_without_doi(self) -> None:
         """Test parsing an arXiv ID without an associated DOI."""
         entries = ArxivParser().parse("1701.08213")
-        entry = list(entries.values())[0]
+        entry = next(iter(entries.values()))
         assert entry.label == "Bravyi2017"
         assert entry.data["archivePrefix"] == "arXiv"
         assert entry.data["arxivid"].startswith("1701.08213")
@@ -147,7 +147,7 @@ class TestArxivParser(ParserTest):
         ) in caplog.record_tuples:
             pytest.skip("The requests API encountered an error. Skipping test.")
 
-        entry = list(entries.values())[0]
+        entry = next(iter(entries.values()))
         assert_default_test_entry(entry)
 
     def test_event_post_arxiv_parse(self, caplog: pytest.LogCaptureFixture) -> None:
@@ -167,6 +167,6 @@ class TestArxivParser(ParserTest):
         ) in caplog.record_tuples:
             pytest.skip("The requests API encountered an error. Skipping test.")
 
-        entry = list(entries.values())[0]
+        entry = next(iter(entries.values()))
         assert_default_test_entry(entry)
         assert entry.data["test"] == "dummy"

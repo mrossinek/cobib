@@ -451,7 +451,7 @@ def test_formatted(author_format: AuthorFormat) -> None:
             Author("Mara", "Müller"),
         ]
     entries = BibtexParser().parse(get_resource("example_entry_umlaut.bib", "database"))
-    entry = list(entries.values())[0]
+    entry = next(iter(entries.values()))
     formatted = entry.formatted()
     assert formatted.data == reference
     assert formatted.label == "LaTeX_Einführung"

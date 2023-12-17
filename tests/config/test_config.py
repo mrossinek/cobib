@@ -1,5 +1,5 @@
 """Tests for coBib's config validation."""
-# pylint: disable=unused-argument, redefined-outer-name
+
 
 from __future__ import annotations
 

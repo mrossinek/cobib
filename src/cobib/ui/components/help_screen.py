@@ -9,8 +9,11 @@ This screen renders a help information with the current key bindings and action 
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from rich.table import Table
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.screen import ModalScreen
 from textual.widgets import Static
 from typing_extensions import override
@@ -19,7 +22,7 @@ from typing_extensions import override
 class HelpScreen(ModalScreen[None]):
     """coBib's help screen."""
 
-    BINDINGS = [
+    BINDINGS: ClassVar[list[Binding | tuple[str, str] | tuple[str, str, str]]] = [
         ("question_mark", "toggle_help", "Help"),
     ]
     """
@@ -41,7 +44,7 @@ class HelpScreen(ModalScreen[None]):
         }
     """
 
-    HELP_DESCRIPTIONS = [
+    HELP_DESCRIPTIONS: ClassVar[list[tuple[str, str]]] = [
         ("q", "Quit's coBib"),
         ("question_mark", "Toggles the help screen"),
         ("underscore", "Toggles between the horizontal and vertical layout"),

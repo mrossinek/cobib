@@ -1,5 +1,5 @@
 """Tests for coBib's DeleteCommand."""
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 
@@ -93,7 +93,6 @@ class TestDeleteCommand(CommandTest):
         ],
     )
     async def test_command(self, setup: Any, labels: list[str], skip_commit: bool) -> None:
-        # pylint: disable=invalid-overridden-method
         """Test the command itself.
 
         Args:
@@ -173,7 +172,7 @@ class TestDeleteCommand(CommandTest):
 
         with tempfile.TemporaryDirectory() as tmpdirname:
             path = RelPath(tmpdirname + "/dummy.pdf")
-            open(path.path, "w", encoding="utf-8").close()  # pylint: disable=consider-using-with
+            open(path.path, "w", encoding="utf-8").close()
 
             Database()["knuthwebsite"].file = str(path)
 
@@ -233,7 +232,7 @@ class TestDeleteCommand(CommandTest):
             monkeypatch: the built-in pytest fixture.
             labels: the list of labels to be deleted.
         """
-        await self.run_module(monkeypatch, "main", ["cobib", "delete"] + labels)
+        await self.run_module(monkeypatch, "main", ["cobib", "delete", *labels])
         self._assert(labels)
 
     @pytest.mark.asyncio

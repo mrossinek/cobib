@@ -1,5 +1,5 @@
 """Tests for coBib's UndoCommand."""
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 
@@ -62,7 +62,6 @@ class TestUndoCommand(CommandTest):
     async def test_command(
         self, setup: Any, expected_exit: bool, caplog: pytest.LogCaptureFixture
     ) -> None:
-        # pylint: disable=invalid-overridden-method
         """Test the command itself.
 
         Args:
@@ -189,9 +188,7 @@ class TestUndoCommand(CommandTest):
 
         # initialize git-tracking
         self.COBIB_TEST_DIR.mkdir(parents=True, exist_ok=True)
-        open(  # pylint: disable=consider-using-with
-            config.database.file, "w", encoding="utf-8"
-        ).close()
+        open(config.database.file, "w", encoding="utf-8").close()
         os.system("git init " + str(self.COBIB_TEST_DIR))
 
         try:

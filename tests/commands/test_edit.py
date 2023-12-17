@@ -1,5 +1,5 @@
 """Tests for coBib's EditCommand."""
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 
@@ -57,9 +57,8 @@ class TestEditCommand(CommandTest):
                 assert lines[dummy_start - 1] == "---\n"
                 assert lines[dummy_start + 1] == "  ENTRYTYPE: article\n"
                 assert lines[dummy_start + 2] == "...\n"
-        else:
-            if logs is not None:
-                assert ("cobib.commands.edit", 20, "No changes detected.") in logs
+        elif logs is not None:
+            assert ("cobib.commands.edit", 20, "No changes detected.") in logs
 
     @pytest.mark.parametrize(
         ["setup"],
@@ -147,9 +146,7 @@ class TestEditCommand(CommandTest):
 
             with tempfile.TemporaryDirectory() as tmpdirname:
                 path = RelPath(tmpdirname + "/einstein.pdf")
-                open(  # pylint: disable=consider-using-with
-                    path.path, "w", encoding="utf-8"
-                ).close()
+                open(path.path, "w", encoding="utf-8").close()
 
                 Database()["einstein"].file = str(path)
 

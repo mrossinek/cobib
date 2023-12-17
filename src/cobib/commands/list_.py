@@ -287,7 +287,7 @@ class ListCommand(Command):
             filtered_keys.add(key)
 
             if not isinstance(val, list):
-                val = [val]
+                val = [val]  # noqa: PLW2901
             # iterate values to be filtered by
             for i in val:
                 for idx, obj in enumerate(self.args):

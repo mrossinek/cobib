@@ -175,7 +175,7 @@ class EditCommand(Command):
             assert status == 0
             LOGGER.debug("Editor finished successfully.")
             new_entries = YAMLParser().parse(tmp_file.name)
-            self.new_entry = list(new_entries.values())[0]
+            self.new_entry = next(iter(new_entries.values()))
         assert not Path(tmp_file_name).exists()
         if entry == self.new_entry and not self.largs.add:
             LOGGER.info("No changes detected.")

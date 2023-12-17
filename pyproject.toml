@@ -5,15 +5,62 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
-[tool.black]
-line-length = 100
-target-version = ['py37']
+[tool.pytest.ini_options]
+log_level = "DEBUG"
 
-[tool.isort]
-line_length = 100
-force_grid_wrap = 0
-multi_line_output = 3
-use_parentheses = true
-include_trailing_comma = true
-ensure_newline_before_comments = true
-src_paths = ["src", "tests"]
+[tool.mypy]
+python_version = 3.8
+show_error_codes = true
+warn_return_any = true
+warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "bibtexparser",
+    "bs4",
+    "pylatexenc.*",
+    "requests",
+    "requests_oauthlib",
+    "setuptools",
+    "text_unidecode",
+]
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+target-version = "py38"
+
+[tool.ruff.extend-per-file-ignores]
+# we explicitly rename imported modules in the __init__ files by design
+"__init__.py" = ["PLC0414"]
+"tests/*" = [
+    "PLR2004",  # allow magic values in the tests
+]
+
+[tool.ruff.lint]
+select = [
+    "I",   # isort
+    "E",   # pycodestyle
+    "W",   # pycodestyle
+    "D",   # pydocstyle
+    "PL",  # pylint
+    "RUF", # ruff
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+ignore-decorators = ["typing.overload", "typing_extensions.override"]
+
+[tool.ruff.lint.pylint]
+max-args = 10
+max-branches = 20
+max-returns = 10
+max-statements = 100
+
+[tool.typos.default.extend-words]
+# Do not fix an old typo which has to be documented until its removal.
+captial = "captial"
+# Do not fix this substring which occurs as part of a regex. This can be removed
+# once typos supports inline-overrides.
+earch = "earch"

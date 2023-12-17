@@ -1,5 +1,5 @@
 """Tests for coBib's ZoteroImporter."""
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 

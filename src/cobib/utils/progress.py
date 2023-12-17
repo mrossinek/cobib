@@ -86,11 +86,9 @@ class TextualProgress(  # type: ignore[misc]
         self.renderable = self.make_tasks_table(self.tasks)
         self.refresh()
 
-    # pylint: disable=invalid-overridden-method
     @override
     async def start(self) -> None:  # type: ignore[override]
         if isinstance(Progress.console, App):
-            # pylint: disable=assignment-from-no-return,unpacking-non-sequence
             _, await_mount = Progress.console.print(self)  # type: ignore[attr-defined]
             await await_mount
 

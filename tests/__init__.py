@@ -41,14 +41,20 @@ def get_resource(filename: str, path: str | None = None) -> str:
 class MockStdin:
     """A mock object to replace `sys.stdin`."""
 
-    # pylint: disable=missing-function-docstring
-
     def __init__(self, string: list[str] | None = None) -> None:
-        # noqa: D107
+        """Initializes a fake standard input.
+
+        Arsg:
+            string: an optional list of strings to type as the fake input.
+        """
         if string is None:
             string = []
-        self.string = string + ["\n"]
+        self.string = [*string, "\n"]
 
     def readline(self) -> str:
-        # noqa: D102
+        """Fakes reading a line.
+
+        Returns:
+            The read line.
+        """
         return self.string.pop(0)

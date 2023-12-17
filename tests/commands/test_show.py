@@ -1,5 +1,5 @@
 """Tests for coBib's ShowCommand."""
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 
@@ -107,7 +107,7 @@ class TestShowCommand(CommandTest):
         renderable = cmd.render_rich()
         assert isinstance(renderable, Syntax)
         assert renderable.code == cmd.entry_str
-        # pylint: disable=protected-access
+
         assert renderable._lexer == "bibtex"
 
     def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:

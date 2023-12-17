@@ -10,6 +10,8 @@ It subclasses textual's built-in `DataTable` widget.
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from rich.text import Text
 from textual.binding import Binding
 from textual.coordinate import Coordinate
@@ -26,10 +28,9 @@ from .motion_key import MotionKey
 class ListView(DataTable[Text]):
     """coBib's list results viewer widget."""
 
-    # pylint: disable=invalid-name
     id = "cobib-list-view"
 
-    BINDINGS = [
+    BINDINGS: ClassVar[list[Binding | tuple[str, str] | tuple[str, str, str]]] = [
         Binding("j", "motion('down', 'cursor_down')", "Down", show=False),
         Binding("k", "motion('up', 'cursor_up')", "Up", show=False),
         Binding("h", "motion('left', 'cursor_left')", "Left", show=False),

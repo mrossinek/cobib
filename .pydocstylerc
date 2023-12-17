@@ -1,4 +1,0 @@
-[pydocstyle]
-convention = google
-match = .*\.py
-ignore_decorators=override

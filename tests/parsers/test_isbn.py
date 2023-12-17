@@ -1,5 +1,5 @@
 """Tests for coBib's ISBNParser."""
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 
@@ -46,7 +46,7 @@ class TestISBNParser(ParserTest):
         ):
             pytest.skip("The requests API encountered an error. Skipping test.")
 
-        entry = list(entries.values())[0]
+        entry = next(iter(entries.values()))
         assert_default_test_entry(entry)
 
     # regression test for https://gitlab.com/cobib/cobib/-/issues/53
@@ -64,7 +64,7 @@ class TestISBNParser(ParserTest):
             pytest.skip("The requests API encountered an error. Skipping test.")
 
         assert not entries
-        assert entries == {}  # pylint: disable=C1803
+        assert entries == {}
 
         assert ("cobib.parsers.isbn", logging.WARNING) in [
             (source, level) for source, level, _ in caplog.record_tuples
@@ -150,7 +150,7 @@ class TestISBNParser(ParserTest):
         ):
             pytest.skip("The requests API encountered an error. Skipping test.")
 
-        entry = list(entries.values())[0]
+        entry = next(iter(entries.values()))
         assert_default_test_entry(entry)
 
     def test_event_post_isbn_parse(self, caplog: pytest.LogCaptureFixture) -> None:
@@ -168,6 +168,6 @@ class TestISBNParser(ParserTest):
         ):
             pytest.skip("The requests API encountered an error. Skipping test.")
 
-        entry = list(entries.values())[0]
+        entry = next(iter(entries.values()))
         assert_default_test_entry(entry)
         assert entry.data["test"] == "dummy"

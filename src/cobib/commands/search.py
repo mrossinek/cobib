@@ -197,7 +197,6 @@ class SearchCommand(Command):
         largs.filter = filter_args
         return largs
 
-    # pylint: disable=invalid-overridden-method
     @override
     async def execute(self) -> None:  # type: ignore[override]
         LOGGER.debug("Starting Search command.")

@@ -35,7 +35,6 @@ LOGGER = logging.getLogger(__name__)
 
 
 class URLParser(Parser):
-    # pylint: disable=too-many-return-statements
     """The URL Parser."""
 
     name = "url"

@@ -35,7 +35,6 @@ class Prompt(PromptBase[str]):
     console: TUI  # type: ignore[assignment]
     """The running TUI instance. This overloads the meaning of `console` in rich's understanding."""
 
-    # pylint: disable=invalid-overridden-method
     @override
     async def __call__(  # type: ignore[override]
         self, *, default: Any = ..., stream: TextIO | None = None
@@ -54,7 +53,6 @@ class Prompt(PromptBase[str]):
             else:
                 return return_value
 
-    # pylint: disable=invalid-overridden-method
     @override
     @classmethod
     async def get_input(  # type: ignore[override]

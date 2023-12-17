@@ -107,15 +107,14 @@ class OpenCommand(Command):
             "-f",
             "--field",
             type=str,
-            choices=["all"] + config.commands.open.fields,
+            choices=["all", *config.commands.open.fields],
             help="which field to open in case multiple are found",
         )
         cls.argparser = parser
 
     # TODO: can we make the implementation cleaner and avoid the type ignore comment below?
     @override
-    async def execute(self) -> None:  # type: ignore[override]
-        # pylint: disable=invalid-overridden-method,too-many-branches
+    async def execute(self) -> None:  # type: ignore[override]  # noqa: PLR0912
         LOGGER.debug("Starting Open command.")
 
         Event.PreOpenCommand.fire(self)
@@ -134,7 +133,7 @@ class OpenCommand(Command):
                         if not isinstance(value, list):
                             value = [value]
                         for val in value:
-                            val = val.strip()
+                            val = val.strip()  # noqa: PLW2901
                             LOGGER.debug('Parsing "%s" for URLs.', val)
                             things_to_open[field] += [urlparse(val)]
                             count += 1
@@ -151,7 +150,7 @@ class OpenCommand(Command):
 
             if count == 1:
                 # we found a single URL to open
-                self._open_url(label, list(things_to_open.values())[0][0])
+                self._open_url(label, next(iter(things_to_open.values()))[0])
 
             elif self.largs.field is not None:
                 choice = self.largs.field
@@ -176,7 +175,7 @@ class OpenCommand(Command):
                 idx = 0
                 url_list: list[ParseResult] = []
                 prompt_text = Text()
-                choices = ["all"] + config.commands.open.fields + ["help", "cancel"]
+                choices = ["all", *config.commands.open.fields, "help", "cancel"]
 
                 # print formatted list of available URLs
                 for field, urls in things_to_open.items():
@@ -190,7 +189,6 @@ class OpenCommand(Command):
                         prompt_text.append(f"] {url.geturl()}\n")
                 prompt_text.append("[all,help,cancel]", "prompt.choices")
 
-                # pylint: disable=line-too-long
                 self.prompt.process_response = self._wrap_prompt_process_response(  # type: ignore[method-assign]
                     self.prompt.process_response  # type: ignore[assignment]
                 )
@@ -248,7 +246,7 @@ class OpenCommand(Command):
             with open(os.devnull, "w", encoding="utf-8") as devnull:
                 with warnings.catch_warnings():
                     warnings.filterwarnings("ignore", category=ResourceWarning)
-                    subprocess.Popen(  # pylint: disable=consider-using-with
+                    subprocess.Popen(
                         [opener, url_str],
                         stdout=devnull,
                         stderr=devnull,
@@ -261,7 +259,7 @@ class OpenCommand(Command):
 
     @staticmethod
     def _wrap_prompt_process_response(
-        func: Callable[[PromptBase[PromptType], str], PromptType]
+        func: Callable[[PromptBase[PromptType], str], PromptType],
     ) -> Callable[[PromptBase[PromptType], str], PromptType]:
         """A method to wrap a `PromptBase.process_response` method.
 

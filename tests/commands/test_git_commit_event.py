@@ -1,5 +1,5 @@
 """coBib GitCommit event tests."""
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 
@@ -35,7 +35,6 @@ class DummyCommand(Command):
         console: Console | App[None] | None = None,
         prompt: type[PromptBase[PromptType]] | None = None,
     ) -> None:
-        # pylint: disable=super-init-not-called
         self.largs = argparse.Namespace()
 
     @override

@@ -102,7 +102,6 @@ class DeleteCommand(Command):
 
     @override
     async def execute(self) -> None:  # type: ignore[override]
-        # pylint: disable=invalid-overridden-method
         LOGGER.debug("Starting Delete command.")
 
         Event.PreDeleteCommand.fire(self)
@@ -112,7 +111,6 @@ class DeleteCommand(Command):
             preserve_files = self.largs.preserve_files
         LOGGER.info("Associated files will%s be preserved.", "" if preserve_files else " not")
 
-        # pylint: disable=line-too-long
         self.prompt.process_response = self._wrap_prompt_process_response(  # type: ignore[method-assign]
             self.prompt.process_response  # type: ignore[assignment]
         )
@@ -171,7 +169,7 @@ class DeleteCommand(Command):
 
     @staticmethod
     def _wrap_prompt_process_response(
-        func: Callable[[PromptBase[PromptType], str], PromptType]
+        func: Callable[[PromptBase[PromptType], str], PromptType],
     ) -> Callable[[PromptBase[PromptType], str], PromptType]:
         """A method to wrap a `PromptBase.process_response` method.
 

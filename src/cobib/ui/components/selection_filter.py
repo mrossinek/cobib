@@ -31,7 +31,6 @@ class SelectionFilter(LineFilter):
 
     @override
     def apply(self, segments: list[Segment], background: Color | None = None) -> list[Segment]:
-        # pylint: disable=unused-argument
         return [
             Segment(
                 text,

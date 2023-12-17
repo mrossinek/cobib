@@ -108,7 +108,7 @@ class Author(NamedTuple):
         if num_commas == 1:
             prefixed_last, first = author.split(",")
             suffix = None
-        elif num_commas == 2:
+        elif num_commas == 2:  # noqa: PLR2004
             prefixed_last, suffix, first = author.split(",")
             suffix = suffix.strip()
         else:

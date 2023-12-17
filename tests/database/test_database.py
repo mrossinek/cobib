@@ -67,7 +67,6 @@ def test_database_singleton() -> None:
 
 
 def test_database_reset() -> None:
-    # pylint: disable=protected-access
     """Test the Database.reset method."""
     bib = Database()
     assert len(bib.keys()) > 0
@@ -104,7 +103,7 @@ def test_database_update() -> None:
     entries = {"dummy1": "test1", "dummy2": "test2", "dummy3": "test3"}
     bib = Database()
     bib.update(entries)  # type: ignore
-    # pylint: disable=protected-access
+
     assert Database._unsaved_entries == {e: e for e in list(entries.keys())}
     for key, val in entries.items():
         assert bib[key] == val
@@ -115,9 +114,9 @@ def test_database_pop() -> None:
     entries = {"dummy1": "test1", "dummy2": "test2", "dummy3": "test3"}
     bib = Database()
     bib.update(entries)  # type: ignore
-    # pylint: disable=protected-access
+
     Database._unsaved_entries = {}
-    assert Database._unsaved_entries == {}  # pylint: disable=C1803
+    assert Database._unsaved_entries == {}
     entry = bib.pop("dummy1")
     assert entry == "test1"
     assert "dummy1" not in bib.keys()
@@ -127,11 +126,11 @@ def test_database_pop() -> None:
 def test_database_rename() -> None:
     """Test the `cobib.database.Database.rename` method."""
     bib = Database()
-    # pylint: disable=protected-access
+
     Database._unsaved_entries = {}
-    assert Database._unsaved_entries == {}  # pylint: disable=C1803
+    assert Database._unsaved_entries == {}
     bib.rename("einstein", "dummy")
-    # pylint: disable=protected-access
+
     assert Database._unsaved_entries == {"einstein": "dummy"}
 
 
@@ -147,7 +146,6 @@ def test_database_rename() -> None:
     ],
 )
 def test_database_disambiguate_label(label_suffix: tuple[str, LabelSuffix], expected: str) -> None:
-    # pylint: disable=invalid-name
     """Test the `cobib.database.Database.disambiguate_label` method."""
     config.database.format.label_default = "test"
     config.database.format.label_suffix = label_suffix
@@ -164,8 +162,8 @@ def test_database_read() -> None:
     """Test the `cobib.database.Database.read` method."""
     bib = Database()
     bib.read()
-    # pylint: disable=protected-access
-    assert Database._unsaved_entries == {}  # pylint: disable=C1803
+
+    assert Database._unsaved_entries == {}
     assert list(bib.keys()) == ["einstein", "latexcompanion", "knuthwebsite"]
 
 
@@ -187,8 +185,7 @@ def test_database_save_add() -> None:
     expected.extend(DUMMY_ENTRY_YAML.split("\n"))
 
     try:
-        # pylint: disable=protected-access
-        assert Database._unsaved_entries == {}  # pylint: disable=C1803
+        assert Database._unsaved_entries == {}
 
         with open(config.database.file, "r", encoding="utf-8") as file:
             # NOTE: do NOT use zip_longest to omit last entries (for testing simplicity)
@@ -216,8 +213,7 @@ def test_database_save_modify() -> None:
     bib.save()
 
     try:
-        # pylint: disable=protected-access
-        assert Database._unsaved_entries == {}  # pylint: disable=C1803
+        assert Database._unsaved_entries == {}
 
         with open(config.database.file, "r", encoding="utf-8") as file:
             with open(EXAMPLE_LITERATURE, "r", encoding="utf-8") as expected:
@@ -227,7 +223,7 @@ def test_database_save_modify() -> None:
                         assert line == "  tags: test\n"
                         # advance only the `file` iterator one step in order to catch up with the
                         # `expected` iterator
-                        line = next(file)
+                        line = next(file)  # noqa: PLW2901
                     assert line == truth
                 with pytest.raises(StopIteration):
                     next(file)
@@ -249,8 +245,7 @@ def test_database_save_delete() -> None:
     bib.save()
 
     try:
-        # pylint: disable=protected-access
-        assert Database._unsaved_entries == {}  # pylint: disable=C1803
+        assert Database._unsaved_entries == {}
 
         with open(config.database.file, "r", encoding="utf-8") as file:
             with open(EXAMPLE_LITERATURE, "r", encoding="utf-8") as expected:
@@ -359,7 +354,6 @@ def test_database_cache_outdated() -> None:
         Database.reset()
         Database.read()  # this will trigger save_cache, too
 
-        # pylint: disable=protected-access
         cache_file = Database._get_cache_file()
         new_time = cast(Path, cache_file).stat().st_mtime_ns
         # make the cache appear outdated by updating the modified time of the database file

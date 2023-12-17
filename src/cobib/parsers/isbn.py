@@ -88,7 +88,7 @@ class ISBNParser(Parser):
             return OrderedDict()
         label = ""
         entry = {}
-        for key, value in contents[list(contents.keys())[0]].items():
+        for key, value in contents[next(iter(contents.keys()))].items():
             if key in ["title", "url"]:
                 entry[key] = value
             elif key == "number_of_pages":

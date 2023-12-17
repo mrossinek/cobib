@@ -243,9 +243,8 @@ class ModifyCommand(Command):
         )
         cls.argparser = parser
 
-    # pylint: disable=too-many-branches,too-many-statements
     @override
-    def execute(self) -> None:
+    def execute(self) -> None:  # noqa: PLR0912, PLR0915
         LOGGER.debug("Starting Modify command.")
 
         Event.PreModifyCommand.fire(self)
@@ -280,7 +279,7 @@ class ModifyCommand(Command):
 
         bib = Database()
 
-        for label in labels:  # pylint: disable=too-many-nested-blocks
+        for label in labels:
             try:
                 entry = bib[label]
                 local_value = evaluate_as_f_string(value, {"label": label, **entry.data.copy()})
@@ -301,12 +300,10 @@ class ModifyCommand(Command):
                         elif isinstance(prev_value, str):
                             new_value = prev_value + local_value
                         elif isinstance(prev_value, list):
-                            new_value = prev_value + [local_value]  # type: ignore[assignment]
+                            new_value = [*prev_value, local_value]  # type: ignore[assignment]
                         elif isinstance(prev_value, int):
                             if local_value.isnumeric():
-                                new_value = prev_value + int(
-                                    local_value
-                                )  # type: ignore[assignment]
+                                new_value = prev_value + int(local_value)  # type: ignore[assignment]
                             else:
                                 raise TypeError
                         else:
@@ -335,9 +332,7 @@ class ModifyCommand(Command):
                                 )
                         elif isinstance(prev_value, int):
                             if local_value.isnumeric():
-                                new_value = prev_value - int(
-                                    local_value
-                                )  # type: ignore[assignment]
+                                new_value = prev_value - int(local_value)  # type: ignore[assignment]
                             else:
                                 raise TypeError
                         else:
@@ -448,7 +443,6 @@ def evaluate_ast_node(node: ast.expr, locals_: dict[str, Any] | None = None) -> 
         locals_["unidecode"] = unidecode
 
     try:
-        # pylint: disable=eval-used
         return eval(  # type: ignore
             compile(ast.Expression(node), filename="<string>", mode="eval"), locals_
         )

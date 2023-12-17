@@ -1,5 +1,5 @@
 """Tests for coBib's ModifyCommand."""
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 
@@ -75,9 +75,9 @@ class TestModifyCommand(CommandTest):
         add, remove = add_remove
 
         # modify some data
-        args = [modification, "--"] + filters
+        args = [modification, "--", *filters]
         if selection:
-            args = ["-s"] + args
+            args = ["-s", *args]
 
         expected = ["test"]
 
@@ -85,10 +85,10 @@ class TestModifyCommand(CommandTest):
             # first insert something to add to
             ModifyCommand("tags:test", "++label", "einstein").execute()
             if add:
-                args = ["-a"] + args
-                expected = ["test"] + expected
+                args = ["-a", *args]
+                expected = ["test", *expected]
             elif remove:
-                args = ["-r"] + args
+                args = ["-r", *args]
                 expected = []
 
         if dry:
@@ -247,7 +247,7 @@ class TestModifyCommand(CommandTest):
 
         with tempfile.TemporaryDirectory() as tmpdirname:
             path = RelPath(tmpdirname + "/knuthwebsite.pdf")
-            open(path.path, "w", encoding="utf-8").close()  # pylint: disable=consider-using-with
+            open(path.path, "w", encoding="utf-8").close()
 
             Database()["knuthwebsite"].file = str(path)
 
@@ -305,7 +305,7 @@ class TestModifyCommand(CommandTest):
             monkeypatch: the built-in pytest fixture.
             args: additional arguments to pass to the command.
         """
-        await self.run_module(monkeypatch, "main", ["cobib", "modify"] + args)
+        await self.run_module(monkeypatch, "main", ["cobib", "modify", *args])
         assert Database()["einstein"].data["tags"] == ["test"]
 
     def test_event_pre_modify_command(self, setup: Any) -> None:

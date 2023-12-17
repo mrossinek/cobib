@@ -1,5 +1,5 @@
 """Tests for coBib's OpenCommand."""
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 
@@ -182,7 +182,7 @@ class TestOpenCommand(CommandTest):
         ],
         indirect=["post_setup"],
     )
-    async def test_command(  # pylint: disable=invalid-overridden-method
+    async def test_command(
         self,
         setup: Any,
         post_setup: Any,

@@ -60,6 +60,7 @@ import argparse
 import inspect
 import logging
 from collections import OrderedDict
+from typing import Any, Callable, ClassVar
 
 from rich.console import Console
 from rich.prompt import PromptBase, PromptType
@@ -69,6 +70,7 @@ from typing_extensions import override
 from cobib import importers
 from cobib.config import Event, config
 from cobib.database import Database, Entry
+from cobib.importers.base_importer import Importer
 
 from .base_command import ArgumentParser, Command
 
@@ -93,7 +95,8 @@ class ImportCommand(Command):
 
     name = "import"
 
-    _avail_importers = {
+    # NOTE: the Callable type is unable to express the complex signature of the Importer class
+    _avail_importers: ClassVar[dict[str, Callable[[Any], Importer]]] = {
         cls.name: cls for _, cls in inspect.getmembers(importers) if inspect.isclass(cls)
     }
     """The available importers."""
@@ -145,7 +148,6 @@ class ImportCommand(Command):
 
     @override
     async def execute(self) -> None:  # type: ignore[override]
-        # pylint: disable=invalid-overridden-method
         LOGGER.debug("Starting Import command.")
 
         Event.PreImportCommand.fire(self)
@@ -165,7 +167,7 @@ class ImportCommand(Command):
             if not enabled:
                 continue
             LOGGER.debug("Importing entries from %s.", name)
-            imported_entries = await cls(
+            imported_entries = await cls(  # type: ignore[call-arg]
                 *self.largs.importer_arguments, skip_download=skip_download
             ).fetch()
             break

@@ -1,5 +1,5 @@
 """Tests for coBib's DOIParser."""
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 
@@ -49,7 +49,7 @@ class TestDOIParser(ParserTest):
         ) in caplog.record_tuples:
             pytest.skip("The requests API encountered an error. Skipping test.")
 
-        entry = list(entries.values())[0]
+        entry = next(iter(entries.values()))
         assert_default_test_entry(entry)
 
     def test_invalid_doi(self, caplog: pytest.LogCaptureFixture) -> None:
@@ -60,7 +60,7 @@ class TestDOIParser(ParserTest):
         """
         entries = DOIParser().parse("1812.09976")
         assert not entries
-        assert entries == {}  # pylint: disable=C1803
+        assert entries == {}
 
         assert (
             "cobib.parsers.doi",
@@ -123,7 +123,7 @@ class TestDOIParser(ParserTest):
         ) in caplog.record_tuples:
             pytest.skip("The requests API encountered an error. Skipping test.")
 
-        entry = list(entries.values())[0]
+        entry = next(iter(entries.values()))
         assert_default_test_entry(entry)
 
     def test_event_post_doi_parse(self, caplog: pytest.LogCaptureFixture) -> None:
@@ -143,5 +143,5 @@ class TestDOIParser(ParserTest):
         ) in caplog.record_tuples:
             pytest.skip("The requests API encountered an error. Skipping test.")
 
-        entry = list(entries.values())[0]
+        entry = next(iter(entries.values()))
         assert entry.data["test"] == "dummy"

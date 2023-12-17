@@ -1,5 +1,5 @@
 """Tests for coBib's ImportCommand."""
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 
@@ -26,7 +26,6 @@ class TestImportCommand(CommandTest):
 
     @pytest.mark.asyncio
     async def test_command(self) -> None:  # type: ignore[override]
-        # pylint: disable=invalid-overridden-method
         """Test the command itself."""
         with pytest.raises(SystemExit):
             await ImportCommand("-h").execute()

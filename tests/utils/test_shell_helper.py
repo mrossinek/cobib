@@ -10,6 +10,7 @@ from collections.abc import Generator
 from itertools import zip_longest
 from pathlib import Path
 from shutil import copyfile, rmtree
+from typing import ClassVar
 
 import pytest
 
@@ -42,7 +43,7 @@ class ShellHelperTest(CmdLineTest):
     COMMAND: str | None = None
     """The name of the shell helper command-"""
 
-    EXPECTED: str | list[str] | set[str] | None = None
+    EXPECTED: ClassVar[str | list[str] | set[str] | None] = None
     """The expected outcome."""
 
     def _assert(self, out: str) -> None:
@@ -102,7 +103,7 @@ class TestListCommands(ShellHelperTest):
         config.load(get_resource("debug.py"))
 
     COMMAND = "list_commands"
-    EXPECTED = [
+    EXPECTED: ClassVar[list[str]] = [
         "add",
         "delete",
         "edit",
@@ -124,14 +125,18 @@ class TestListLabels(ShellHelperTest):
     """Tests for the shell helper which lists the existing labels."""
 
     COMMAND = "list_labels"
-    EXPECTED = ["einstein", "latexcompanion", "knuthwebsite"]
+    EXPECTED: ClassVar[list[str]] = [
+        "einstein",
+        "latexcompanion",
+        "knuthwebsite",
+    ]
 
 
 class TestListFilters(ShellHelperTest):
     """Tests for the shell helper which lists the existing filters."""
 
     COMMAND = "list_filters"
-    EXPECTED = {
+    EXPECTED: ClassVar[set[str]] = {
         "publisher",
         "ENTRYTYPE",
         "address",
@@ -169,7 +174,7 @@ class TestLintDatabase(ShellHelperTest):
 
     COMMAND = "lint_database"
     REL_PATH = RelPath(get_resource("linting_database.yaml", "utils"))
-    EXPECTED = [
+    EXPECTED: ClassVar[list[str]] = [
         f"{REL_PATH}:5 Parsed the author 'Max Müller' of entry 'dummy' from a string to the "
         "more detailed information. You can consider storing it as such directly.",
         f"{REL_PATH}:6 Converted the field 'file' of entry 'dummy' to a list. You can consider "
@@ -252,8 +257,9 @@ class TestLintDatabase(ShellHelperTest):
             # apply linting with formatting and check for the expected lint messages
             pre_lint_messages = shell_helper.lint_database("--format")
             expected_messages = [
-                "The following lint messages have successfully been resolved:"
-            ] + self.EXPECTED
+                "The following lint messages have successfully been resolved:",
+                *self.EXPECTED,
+            ]
             for msg, truth in zip_longest(pre_lint_messages, expected_messages):
                 if msg.strip() and truth:
                     assert msg == truth.replace(str(TestLintDatabase.REL_PATH), str(database_file))
@@ -306,7 +312,7 @@ class TestUnifyLabels(ShellHelperTest):
 
     COMMAND = "unify_labels"
     REL_PATH = RelPath(get_resource("unifying_database.yaml", "utils"))
-    EXPECTED: list[str] = [
+    EXPECTED: ClassVar[list[str]] = [
         "[INFO] Associated files will not be preserved.",
         "[INFO] einstein: changing field 'label' from einstein to Einstein1905_a",
         "[INFO] latexcompanion: changing field 'label' from latexcompanion to Goossens1993",
