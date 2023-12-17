@@ -1,5 +1,5 @@
 """Tests for coBib's SearchCommand."""
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 
@@ -137,7 +137,6 @@ class TestSearchCommand(CommandTest):
     async def test_command(
         self, setup: Any, args: list[str], expected: list[str], config_overwrite: bool
     ) -> None:
-        # pylint: disable=invalid-overridden-method
         """Test the command itself.
 
         Args:

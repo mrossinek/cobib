@@ -110,7 +110,7 @@ class InitCommand(Command):
             self.root.mkdir(parents=True, exist_ok=True)
 
             LOGGER.debug('Creating empty database file: "%s"', self.file)
-            open(self.file, "w", encoding="utf-8").close()  # pylint: disable=consider-using-with
+            open(self.file, "w", encoding="utf-8").close()
 
         if self.largs.git:
             if not config.database.git:

@@ -8,7 +8,7 @@ import sys
 from abc import ABC, abstractmethod
 
 from cobib.database import Entry
-from cobib.ui.components import ArgumentParser as ArgumentParser
+from cobib.ui.components import ArgumentParser as ArgumentParser  # noqa: PLC0414
 
 LOGGER = logging.getLogger(__name__)
 """@private module logger."""
@@ -92,7 +92,7 @@ class Importer(ABC):
         return largs
 
     @abstractmethod
-    def fetch(self) -> list[Entry]:
+    async def fetch(self) -> list[Entry]:
         """Fetches the data from the source which this importer links to.
 
         Returns:

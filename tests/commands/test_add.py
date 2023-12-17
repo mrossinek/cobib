@@ -1,5 +1,5 @@
 """Tests for coBib's AddCommand."""
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 
@@ -116,7 +116,6 @@ class TestAddCommand(CommandTest):
     async def test_command(
         self, setup: Any, more_args: list[str], entry_kwargs: dict[str, Any]
     ) -> None:
-        # pylint: disable=invalid-overridden-method
         """Test the command itself.
 
         Args:
@@ -130,7 +129,7 @@ class TestAddCommand(CommandTest):
             label = more_args[more_args.index("-l") + 1]
         except ValueError:
             label = "example_multi_file_entry"
-        args = ["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB] + more_args
+        args = ["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB, *more_args]
 
         await AddCommand(*args).execute()
 
@@ -331,7 +330,7 @@ class TestAddCommand(CommandTest):
         assert entry.data["doi"] == "10.1021/acs.chemrev.8b00803"
         assert entry.data["month"] == "aug"
         assert entry.data["number"] == 19
-        assert entry.data["pages"] == "10856–10915"
+        assert entry.data["pages"] == "10856–10915"  # noqa: RUF001
         assert entry.data["volume"] == 119
         assert entry.data["year"] == 2019
 
@@ -677,7 +676,7 @@ class TestAddCommand(CommandTest):
             msg_string: the string which the warning message must match.
             caplog: the built-in pytest fixture.
         """
-        args = ["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB] + args
+        args = ["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB, *args]
 
         await AddCommand(*args).execute()
 

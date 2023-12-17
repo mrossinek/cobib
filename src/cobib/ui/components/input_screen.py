@@ -10,7 +10,10 @@ also provides panels to displays user prompts, help information and other popups
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.screen import ModalScreen
 from textual.widget import Widget
 from textual.widgets import Input, Static
@@ -24,7 +27,9 @@ class InputScreen(ModalScreen[str]):
 
     AUTO_FOCUS = "Input"
 
-    BINDINGS = [("escape", "escape", "Quit the prompt")]
+    BINDINGS: ClassVar[list[Binding | tuple[str, str] | tuple[str, str, str]]] = [
+        ("escape", "escape", "Quit the prompt")
+    ]
     """
     | Key(s) | Description |
     | :- | :- |

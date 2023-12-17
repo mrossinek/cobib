@@ -79,7 +79,6 @@ async def test_download(monkeypatch: pytest.MonkeyPatch) -> None:
     ],
     indirect=["setup_remove_content_length"],
 )
-# pylint: disable=unused-argument,redefined-outer-name
 async def test_skip_download_if_no_pdf(setup_remove_content_length: Any) -> None:
     """Test that download is skipped when file is not a PDF.
 
@@ -107,9 +106,7 @@ async def test_skip_download_if_exists(caplog: pytest.LogCaptureFixture, overwri
         overwrite: whether or not to overwrite the existing file.
     """
     with tempfile.TemporaryDirectory() as tmpdirname:
-        open(  # pylint: disable=consider-using-with
-            tmpdirname + "/dummy.pdf", "w", encoding="utf-8"
-        ).close()
+        open(tmpdirname + "/dummy.pdf", "w", encoding="utf-8").close()
         await FileDownloader().download(
             "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
             "dummy",
@@ -138,7 +135,6 @@ async def test_skip_download_if_exists(caplog: pytest.LogCaptureFixture, overwri
     ],
     indirect=["setup_remove_content_length"],
 )
-# pylint: disable=unused-argument,redefined-outer-name
 async def test_download_with_url_map(setup_remove_content_length: Any) -> None:
     """Test the `config.utils.file_downloader.url_map` usage.
 

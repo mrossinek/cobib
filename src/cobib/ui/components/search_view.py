@@ -10,7 +10,7 @@ It subclasses textual's built-in `Tree` widget.
 
 from __future__ import annotations
 
-from typing import Union
+from typing import ClassVar, Union
 
 from rich.text import Text
 from textual.binding import Binding
@@ -23,10 +23,9 @@ from .motion_key import MotionKey
 class SearchView(Tree[Union[str, Text]]):
     """coBib's search results viewer widget."""
 
-    # pylint: disable=invalid-name
     id = "cobib-search-view"
 
-    BINDINGS = [
+    BINDINGS: ClassVar[list[Binding | tuple[str, str] | tuple[str, str, str]]] = [
         Binding("enter", "toggle_all", "Toggle All"),
         Binding("j", "motion('down', 'cursor_down')", "Down", show=False),
         Binding("k", "motion('up', 'cursor_up')", "Up", show=False),

@@ -1,5 +1,5 @@
 """Tests for coBib's RedoCommand."""
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 
@@ -62,7 +62,6 @@ class TestRedoCommand(CommandTest):
     async def test_command(
         self, setup: Any, expected_exit: bool, caplog: pytest.LogCaptureFixture
     ) -> None:
-        # pylint: disable=invalid-overridden-method
         """Test the command itself.
 
         Args:
@@ -202,9 +201,7 @@ class TestRedoCommand(CommandTest):
 
         # initialize git-tracking
         os.makedirs(self.COBIB_TEST_DIR, exist_ok=True)
-        open(  # pylint: disable=consider-using-with
-            config.database.file, "w", encoding="utf-8"
-        ).close()
+        open(config.database.file, "w", encoding="utf-8").close()
         os.system("git init " + str(self.COBIB_TEST_DIR))
 
         try:

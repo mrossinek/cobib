@@ -175,7 +175,6 @@ class Entry:
 
     @author.setter
     def author(self, authors: str | list[str] | list[dict[str, str]] | list[Author]) -> None:
-        # pylint: disable=too-many-branches
         """Sets the author of this entry.
 
         The input is processed in two steps.
@@ -205,7 +204,7 @@ class Entry:
                 continue
 
             # we explicitly convert any latex instructions to Unicode
-            author = cast(str, dec.latex_to_text(author))
+            author = cast(str, dec.latex_to_text(author))  # noqa: PLW2901
             LOGGER.debug("Converted the author to Unicode: '%s'", author)
 
             parsed_author = Author.parse(author)
@@ -251,8 +250,7 @@ class Entry:
 
     @property
     def file(self) -> list[str]:
-        # noqa: D402 (we skip this error because file(s) raises a false negative)
-        """The associated file(s) of this entry.
+        """The associated files of this entry.
 
         The setter of this property will convert the strings to paths relative to the user's home
         directory. Internally, this field will always be stored as a list.
@@ -261,8 +259,7 @@ class Entry:
 
     @file.setter
     def file(self, file: str | list[str]) -> None:
-        # noqa: D402 (we skip this error because file(s) raises a false negative)
-        """Sets the associated file(s) of this entry.
+        """Sets the associated files of this entry.
 
         Args:
             file: can be either a single path (`str`) or a list thereof. In either case, the strings
@@ -370,7 +367,7 @@ class Entry:
         data["label"] = self.markup_label() if markup else self.label
         for field, value in self.data.items():
             if hasattr(self, field):
-                value = getattr(self, field)
+                value = getattr(self, field)  # noqa: PLW2901
             if field == "author":
                 data[field] = str(value)
             elif isinstance(value, list) and hasattr(
@@ -438,7 +435,6 @@ class Entry:
         """
         formatted_entry = self.formatted()
         if parser is None:
-            # pylint: disable=import-outside-toplevel,cyclic-import
             from cobib.parsers.yaml import YAMLParser
 
             parser = YAMLParser()
@@ -521,7 +517,7 @@ class Entry:
         """
         LOGGER.debug("Searching entry %s.", self.label)
         matches: list[list[str]] = []
-        # pylint: disable=import-outside-toplevel,cyclic-import
+
         from cobib.parsers.bibtex import BibtexParser
 
         bibtex = BibtexParser(encode_latex=False).dump(self).split("\n")

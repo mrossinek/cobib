@@ -59,7 +59,6 @@ class CLI(UI):
             ),
         )
 
-    # pylint: disable=invalid-overridden-method
     @override
     async def run(self) -> None:  # type: ignore[override]
         arguments = self.parse_args()

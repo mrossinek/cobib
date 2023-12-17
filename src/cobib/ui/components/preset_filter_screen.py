@@ -10,6 +10,8 @@ This screen renders a Textual-`OptionList` with all the preset filters configure
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.screen import ModalScreen
@@ -22,7 +24,7 @@ from cobib.config import config
 class PresetFilter(OptionList):
     """coBib's custom `OptionList` which can be navigated with Vi-like bindings."""
 
-    BINDINGS = [
+    BINDINGS: ClassVar[list[Binding | tuple[str, str] | tuple[str, str, str]]] = [
         Binding("j", "cursor_down", "Down", show=False),
         Binding("k", "cursor_up", "Up", show=False),
     ]
@@ -37,7 +39,7 @@ class PresetFilter(OptionList):
 class PresetFilterScreen(ModalScreen[str]):
     """coBib's `PresetFilter` selection screen."""
 
-    BINDINGS = [
+    BINDINGS: ClassVar[list[Binding | tuple[str, str] | tuple[str, str, str]]] = [
         ("q", "abort", "Close"),
     ]
     """

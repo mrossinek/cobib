@@ -1,5 +1,5 @@
 """Tests for coBib's BibtexParser."""
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 
@@ -56,14 +56,14 @@ class TestBibtexParser(ParserTest):
         with open(self.EXAMPLE_BIBTEX_FILE, "r", encoding="utf-8") as file:
             bibtex_str = file.read()
         entries = BibtexParser().parse(bibtex_str)
-        entry = list(entries.values())[0]
+        entry = next(iter(entries.values()))
         assert entry.data == reference
 
     def test_from_bibtex_file(self) -> None:
         """Test parsing a bibtex file."""
         reference = self.EXAMPLE_ENTRY_DICT.copy()
         entries = BibtexParser().parse(self.EXAMPLE_BIBTEX_FILE)
-        entry = list(entries.values())[0]
+        entry = next(iter(entries.values()))
         assert entry.data == reference
 
     def test_event_pre_bibtex_parse(self) -> None:
@@ -79,7 +79,7 @@ class TestBibtexParser(ParserTest):
         reference = self.EXAMPLE_ENTRY_DICT.copy()
         entries = BibtexParser().parse("Hello world!")
 
-        entry = list(entries.values())[0]
+        entry = next(iter(entries.values()))
         assert entry.data == reference
 
     def test_event_post_bibtex_parse(self) -> None:
@@ -97,7 +97,7 @@ class TestBibtexParser(ParserTest):
         with open(self.EXAMPLE_BIBTEX_FILE, "r", encoding="utf-8") as file:
             bibtex_str = file.read()
         entries = BibtexParser().parse(bibtex_str)
-        entry = list(entries.values())[0]
+        entry = next(iter(entries.values()))
         assert entry.data == reference
 
     def test_event_pre_bibtex_dump(self) -> None:

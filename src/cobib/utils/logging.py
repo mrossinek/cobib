@@ -67,7 +67,6 @@ def get_file_handler(
         logfile: the output path for the log file.
     """
     if logfile is None:
-        # pylint: disable=import-outside-toplevel
         from cobib.config import config
 
         logfile = config.logging.logfile
@@ -143,7 +142,7 @@ def print_changelog(version: str, cached_version_path: str | None) -> Panel | No
     lines: list[str] = []
     started = False
     for line in description.splitlines():
-        line = line.strip()
+        line = line.strip()  # noqa: PLW2901
         if line.startswith(f"## [{current_version}]"):
             started = True
         elif line.startswith(f"## [{cached_version}]"):

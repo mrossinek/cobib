@@ -8,7 +8,7 @@ import re
 import sys
 from collections import OrderedDict
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, ClassVar, cast
 
 from cobib.config import config
 from cobib.utils.rel_path import RelPath
@@ -32,7 +32,7 @@ class Database(OrderedDict):  # type: ignore
     _instance: Database | None = None
     """The singleton instance of this class."""
 
-    _unsaved_entries: dict[str, str | None] = {}
+    _unsaved_entries: ClassVar[dict[str, str | None]] = {}
     """A dictionary of changed entries which have not been written to the database file, yet.
     The keys are the entry labels. If it the entry was removed, the value of this key is `None`.
     Otherwise it is set to the label of the changed entry (which may be different from the previous
@@ -201,7 +201,7 @@ class Database(OrderedDict):  # type: ignore
             file = RelPath(config.database.file).path
             try:
                 LOGGER.info("Loading database file: %s", file)
-                # pylint: disable=import-outside-toplevel
+
                 from cobib.parsers.yaml import YAMLParser
 
                 cls._read = True
@@ -243,7 +243,6 @@ class Database(OrderedDict):  # type: ignore
             cls()
         _instance = cast(Database, cls._instance)
 
-        # pylint: disable=import-outside-toplevel
         from cobib.parsers.yaml import YAMLParser
 
         yml = YAMLParser()

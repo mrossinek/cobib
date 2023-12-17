@@ -121,8 +121,7 @@ class ZoteroImporter(Importer):
         cls.argparser = parser
 
     @override
-    async def fetch(self) -> list[Entry]:  # type: ignore[override]
-        # pylint: disable=invalid-overridden-method
+    async def fetch(self) -> list[Entry]:
         LOGGER.debug("Starting Zotero fetching.")
 
         if self.largs.user_id is not None:
@@ -229,7 +228,7 @@ class ZoteroImporter(Importer):
         LOGGER.debug("Opening user authorization URL")
         opener = "xdg-open" if sys.platform.lower() == "linux" else "open"
         with open(os.devnull, "w", encoding="utf-8") as devnull:
-            subprocess.Popen(  # pylint: disable=consider-using-with
+            subprocess.Popen(
                 [opener, authorization_url],
                 stdout=devnull,
                 stderr=devnull,

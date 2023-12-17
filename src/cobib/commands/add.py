@@ -143,7 +143,7 @@ import logging
 from collections import OrderedDict
 from collections.abc import Callable
 from functools import wraps
-from typing import cast
+from typing import Callable, ClassVar, cast
 
 from rich.console import Console
 from rich.prompt import InvalidResponse, Prompt, PromptBase, PromptType
@@ -154,6 +154,7 @@ from cobib import parsers
 from cobib.config import Event, config
 from cobib.database import Database, Entry
 from cobib.parsers import BibtexParser
+from cobib.parsers.base_parser import Parser
 from cobib.utils.diff_renderer import Differ
 from cobib.utils.file_downloader import FileDownloader
 from cobib.utils.journal_abbreviations import JournalAbbreviations
@@ -191,7 +192,7 @@ class AddCommand(Command):
 
     name = "add"
 
-    _avail_parsers = {
+    _avail_parsers: ClassVar[dict[str, Callable[[], Parser]]] = {
         cls.name: cls for _, cls in inspect.getmembers(parsers) if inspect.isclass(cls)
     }
     """The available parsers."""
@@ -296,9 +297,8 @@ class AddCommand(Command):
 
         return largs
 
-    # pylint: disable=invalid-overridden-method,too-many-statements,too-many-branches,too-many-locals
     @override
-    async def execute(self) -> None:  # type: ignore[override]
+    async def execute(self) -> None:  # type: ignore[override]  # noqa: PLR0912, PLR0915
         LOGGER.debug("Starting Add command.")
 
         Event.PreAddCommand.fire(self)
@@ -399,7 +399,6 @@ class AddCommand(Command):
                     choices = ["keep", "replace", "update", "disambiguate", "help"]
                     default = "keep"
 
-                    # pylint: disable=line-too-long
                     self.prompt.process_response = self._wrap_prompt_process_response(  # type: ignore[method-assign]
                         self.prompt.process_response  # type: ignore[assignment]
                     )
@@ -409,9 +408,8 @@ class AddCommand(Command):
                         @wraps(self.prompt.pre_prompt)
                         def pre_prompt(_prompt: PromptBase[PromptType]) -> None:
                             _prompt.console.push_screen("input")  # type: ignore[attr-defined]
-                            _prompt.console.print(table)  # pylint: disable=cell-var-from-loop
+                            _prompt.console.print(table)
 
-                        # pylint: disable=line-too-long
                         self.prompt.pre_prompt = pre_prompt  # type: ignore[assignment,method-assign]
 
                         res = await self.prompt.ask(  # type: ignore[call-overload]
@@ -500,7 +498,7 @@ class AddCommand(Command):
 
     @staticmethod
     def _wrap_prompt_process_response(
-        func: Callable[[PromptBase[PromptType], str], PromptType]
+        func: Callable[[PromptBase[PromptType], str], PromptType],
     ) -> Callable[[PromptBase[PromptType], str], PromptType]:
         """A method to wrap a `PromptBase.process_response` method.
 

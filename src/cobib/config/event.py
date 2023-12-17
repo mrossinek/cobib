@@ -116,7 +116,6 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Event(Enum):
-    # pylint: disable=invalid-name
     """Subscribable events triggered at runtime.
 
     The following sections list all events available in coBib. The heading of each section includes
@@ -184,9 +183,7 @@ class Event(Enum):
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
     """
-    PostDeleteCommand: Event = Callable[  # type: ignore[assignment]
-        ["commands.DeleteCommand"], None
-    ]
+    PostDeleteCommand: Event = Callable[["commands.DeleteCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before finishing the `cobib.commands.delete.DeleteCommand`.
@@ -232,9 +229,7 @@ class Event(Enum):
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
     """
-    PostExportCommand: Event = Callable[  # type: ignore[assignment]
-        ["commands.ExportCommand"], None
-    ]
+    PostExportCommand: Event = Callable[["commands.ExportCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before finishing the `cobib.commands.export.ExportCommand`.
@@ -280,9 +275,7 @@ class Event(Enum):
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
     """
-    PostImportCommand: Event = Callable[  # type: ignore[assignment]
-        ["commands.ImportCommand"], None
-    ]
+    PostImportCommand: Event = Callable[["commands.ImportCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before finishing the `cobib.commands.import_.ImportCommand`.
@@ -352,9 +345,7 @@ class Event(Enum):
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
     """
-    PostModifyCommand: Event = Callable[  # type: ignore[assignment]
-        ["commands.ModifyCommand"], None
-    ]
+    PostModifyCommand: Event = Callable[["commands.ModifyCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before finishing the `cobib.commands.modify.ModifyCommand`.
@@ -423,9 +414,7 @@ class Event(Enum):
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
     """
-    PostSearchCommand: Event = Callable[  # type: ignore[assignment]
-        ["commands.SearchCommand"], None
-    ]
+    PostSearchCommand: Event = Callable[["commands.SearchCommand"], None]  # type: ignore[assignment]
     """
     Fires:
         Before finishing the `cobib.commands.search.SearchCommand`.
@@ -697,9 +686,7 @@ class Event(Enum):
         propagated to the database.
     """
 
-    PreZoteroImport: Event = Callable[  # type: ignore[assignment]
-        ["importers.ZoteroImporter"], None
-    ]
+    PreZoteroImport: Event = Callable[["importers.ZoteroImporter"], None]  # type: ignore[assignment]
     """
     Fires:
         Before starting `cobib.importers.zotero.ZoteroImporter.fetch`.
@@ -710,9 +697,7 @@ class Event(Enum):
     Returns:
         Nothing. But the importer attributes can be modified, affecting the execution.
     """
-    PostZoteroImport: Event = Callable[  # type: ignore[assignment]
-        ["importers.ZoteroImporter"], None
-    ]
+    PostZoteroImport: Event = Callable[["importers.ZoteroImporter"], None]  # type: ignore[assignment]
     """
     Fires:
         Before finishing `cobib.importers.zotero.ZoteroImporter.fetch`.
@@ -763,9 +748,7 @@ class Event(Enum):
         If a registered hook returns a new path, no subsequent hooks will be run!
     """
 
-    PreGitCommit: Event = Callable[  # type: ignore[assignment]
-        [str, Optional[Dict[str, Any]]], Optional[str]
-    ]
+    PreGitCommit: Event = Callable[[str, Optional[Dict[str, Any]]], Optional[str]]  # type: ignore[assignment]
     """
     Fires:
         Before starting `cobib.commands.base_command.Command.git` (i.e. whenever an automatic

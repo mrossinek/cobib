@@ -1,5 +1,5 @@
 """Tests for coBib's ListCommand."""
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 
@@ -261,7 +261,7 @@ class TestListCommand(CommandTest):
         assert isinstance(renderable, Table)
         assert [col.header for col in renderable.columns] == expected_cols
         assert len(renderable.rows) == len(expected_rows)
-        # pylint: disable=protected-access
+
         assert renderable.columns[0]._cells == expected_rows
 
     # manually overwrite this test because we must populate the database with actual data

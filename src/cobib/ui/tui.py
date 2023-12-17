@@ -21,13 +21,15 @@ import sys
 from collections.abc import Awaitable, Callable, Coroutine, Iterator
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from inspect import iscoroutinefunction
-from typing import Any, cast
+from typing import Any, ClassVar, cast
 
 from rich.console import RenderableType
 from textual.app import App, ComposeResult
+from textual.binding import Binding
 from textual.css.query import NoMatches
 from textual.keys import Keys
 from textual.logging import TextualHandler
+from textual.screen import Screen
 from textual.widget import AwaitMount, Widget
 from textual.widgets import Footer, Header, Input, Static
 from typing_extensions import override
@@ -57,7 +59,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 # NOTE: pylint and mypy are unable to understand that the `App` interface actually implements `run`
-# pylint: disable=abstract-method
+
+
 class TUI(UI, App[None]):  # type: ignore[misc]
     """The TUI class.
 
@@ -91,8 +94,10 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         }
     """
 
-    _PRESET_FILTER_BINDINGS = [(f"{i}", f"preset_filter({i})", f"Preset #{i}") for i in range(10)]
-    BINDINGS = [
+    _PRESET_FILTER_BINDINGS: ClassVar[list[tuple[str, str, str]]] = [
+        (f"{i}", f"preset_filter({i})", f"Preset #{i}") for i in range(10)
+    ]
+    BINDINGS: ClassVar[list[Binding | tuple[str, str] | tuple[str, str, str]]] = [
         ("q", "quit", "Quit"),
         ("question_mark", "push_screen('help')", "Help"),
         ("underscore", "toggle_layout", "Layout"),
@@ -137,7 +142,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
     | x | Exports the current (or selected) entries. |
     """
 
-    SCREENS = {
+    SCREENS: ClassVar[dict[str, Screen[Any] | Callable[[], Screen[Any]]]] = {
         "help": HelpScreen,
         "input": InputScreen,
         "preset_filter": PresetFilterScreen,
@@ -344,7 +349,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         else:
             labels = [main.get_current_label()]
 
-        self._run_command(["delete"] + labels)
+        self._run_command(["delete", *labels])
 
     async def action_edit(self) -> None:
         """The edit action.
@@ -367,7 +372,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         else:
             labels = [main.get_current_label()]
 
-        self._run_command(["open"] + labels)
+        self._run_command(["open", *labels])
 
     async def action_preset_filter(self, idx: int | None = None) -> None:
         """The preset filter selection action.

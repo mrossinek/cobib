@@ -46,9 +46,8 @@ class ArxivParser(Parser):
 
     name = "arxiv"
 
-    # pylint: disable=too-many-branches
     @override
-    def parse(self, string: str) -> dict[str, Entry]:
+    def parse(self, string: str) -> dict[str, Entry]:  # noqa: PLR0912
         string = Event.PreArxivParse.fire(string) or string
 
         try:
@@ -99,7 +98,7 @@ class ArxivParser(Parser):
                 if "author" not in entry:
                     first = True
                     entry["author"] = ""
-                name = [n.contents[0] for n in key.findChildren()][0]
+                name = next(n.contents[0] for n in key.findChildren())
                 if first:
                     label = name.split()[-1] + label
                     first = False

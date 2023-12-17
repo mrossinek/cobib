@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
+from typing import ClassVar
 
 from cobib.config import config
 
@@ -21,10 +22,10 @@ class JournalAbbreviations:
     _instance: JournalAbbreviations | None = None
     """The singleton instance of this class."""
 
-    _abbreviations: dict[str, str] = {}
+    _abbreviations: ClassVar[dict[str, str]] = {}
     """The parsed abbreviations."""
 
-    _fullwords: dict[str, str] = {}
+    _fullwords: ClassVar[dict[str, str]] = {}
     """The inverted, parsed abbreviations."""
 
     def __new__(cls) -> JournalAbbreviations:
@@ -93,7 +94,7 @@ class JournalAbbreviations:
         if not JournalAbbreviations.check_existence(journal):
             return journal
 
-        remove_punctuation: Callable[[str], str] = (
+        remove_punctuation: Callable[[str], str] = (  # noqa: E731
             lambda journal: journal.replace(".", "") if dotless else journal
         )
 

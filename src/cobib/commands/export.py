@@ -155,9 +155,7 @@ class ExportCommand(Command):
             LOGGER.error(msg)
             return
         if self.largs.zip is not None:
-            self.largs.zip = ZipFile(  # pylint: disable=consider-using-with
-                self.largs.zip.name, "w"
-            )
+            self.largs.zip = ZipFile(self.largs.zip.name, "w")
 
         if self.largs.selection:
             LOGGER.info("Selection given. Interpreting `filter` as a list of labels")

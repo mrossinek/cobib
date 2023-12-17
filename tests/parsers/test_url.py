@@ -1,5 +1,5 @@
 """Tests for coBib's URLParser."""
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 
@@ -69,7 +69,7 @@ class TestURLParser(ParserTest):
         entries = URLParser().parse(query)
 
         try:
-            entry = list(entries.values())[0]
+            entry = next(iter(entries.values()))
         except IndexError:
             pytest.skip("Skipping because we likely ran into a network timeout.")
 
@@ -109,7 +109,7 @@ class TestURLParser(ParserTest):
         if any(s == "cobib.parsers.url" and t == logging.ERROR for s, t, _ in caplog.record_tuples):
             pytest.skip("The requests API encountered an error. Skipping test.")
 
-        entry = list(entries.values())[0]
+        entry = next(iter(entries.values()))
         assert_default_test_entry(entry)
 
     def test_event_post_url_parse(self, caplog: pytest.LogCaptureFixture) -> None:
@@ -125,6 +125,6 @@ class TestURLParser(ParserTest):
         if any(s == "cobib.parsers.url" and t == logging.ERROR for s, t, _ in caplog.record_tuples):
             pytest.skip("The requests API encountered an error. Skipping test.")
 
-        entry = list(entries.values())[0]
+        entry = next(iter(entries.values()))
         assert_default_test_entry(entry)
         assert entry.data["test"] == "dummy"

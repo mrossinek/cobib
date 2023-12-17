@@ -1,5 +1,5 @@
 """Tests for coBib's GitCommand."""
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 

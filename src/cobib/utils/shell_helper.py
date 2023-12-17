@@ -2,7 +2,7 @@
 
 This module provides a variety of shell helper utilities.
 """
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 
@@ -34,7 +34,6 @@ def list_commands(*args: str) -> list[str]:
     msg = "The _list_commands shell helper utility is deprecated and will be removed in the future!"
     LOGGER.warning(msg)
 
-    # pylint: disable=import-outside-toplevel
     from cobib import commands
 
     return [cls.name for _, cls in inspect.getmembers(commands) if inspect.isclass(cls)]
@@ -52,7 +51,6 @@ def list_labels(*args: str) -> list[str]:
     msg = "The _list_labels shell helper utility is deprecated and will be removed in the future!"
     LOGGER.warning(msg)
 
-    # pylint: disable=import-outside-toplevel
     from cobib.database import Database
 
     labels = list(Database().keys())
@@ -71,7 +69,6 @@ def list_filters(*args: str) -> set[str]:
     msg = "The _list_filters shell helper utility is deprecated and will be removed in the future!"
     LOGGER.warning(msg)
 
-    # pylint: disable=import-outside-toplevel
     from cobib.database import Database
 
     filters: set[str] = {"label"}
@@ -98,12 +95,11 @@ class LintFormatter(logging.Formatter):
     """A custom logging.Formatter."""
 
     def __init__(self, *args, **kwargs) -> None:  # type: ignore
-        # noqa: D107
+        """Initializes a LintFormatter."""
         super().__init__(*args, **kwargs)
 
         self.dirty_entries: set[str] = set()
 
-        # pylint: disable=import-outside-toplevel
         from cobib.config import config
 
         self._database_path = RelPath(config.database.file)
@@ -160,7 +156,6 @@ def lint_database(*args: str) -> list[str]:
     )
     largs = parser.parse_args(args)
 
-    # pylint: disable=import-outside-toplevel
     from cobib.database import Database
 
     output = StringIO()
@@ -198,7 +193,6 @@ def lint_database(*args: str) -> list[str]:
 
         Database.save()
 
-        # pylint: disable=import-outside-toplevel
         from cobib.commands.base_command import Command
 
         # generate automatic git commit
@@ -213,7 +207,6 @@ def lint_database(*args: str) -> list[str]:
                 console: Console | App[None] | None = None,
                 prompt: type[PromptBase[PromptType]] | None = None,
             ) -> None:
-                # pylint: disable=super-init-not-called
                 self.largs = largs
 
             @classmethod
@@ -225,7 +218,7 @@ def lint_database(*args: str) -> list[str]:
 
         LintCommand().git()
 
-        return ["The following lint messages have successfully been resolved:"] + lint_messages
+        return ["The following lint messages have successfully been resolved:", *lint_messages]
 
     return lint_messages
 
@@ -253,7 +246,6 @@ def unify_labels(*args: str) -> list[str]:
     )
     largs = parser.parse_args(args)
 
-    # pylint: disable=import-outside-toplevel
     from cobib.commands import ModifyCommand
     from cobib.config import config
 

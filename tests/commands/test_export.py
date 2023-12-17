@@ -1,5 +1,5 @@
 """Tests for coBib's ExportCommand."""
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 
@@ -195,7 +195,7 @@ class TestExportCommand(CommandTest):
             monkeypatch: the built-in pytest fixture.
             args: additional arguments to pass to the command.
         """
-        await self.run_module(monkeypatch, "main", ["cobib", "export"] + args)
+        await self.run_module(monkeypatch, "main", ["cobib", "export", *args])
         self._assert(args)
 
     def test_event_pre_export_command(self, setup: Any) -> None:
@@ -211,7 +211,7 @@ class TestExportCommand(CommandTest):
 
         ExportCommand(*args).execute()
 
-        self._assert_bib(["-s"] + args + ["--", "einstein"])
+        self._assert_bib(["-s", *args, "--", "einstein"])
 
     def test_event_post_export_command(self, setup: Any) -> None:
         """Tests the PostExportCommand event."""

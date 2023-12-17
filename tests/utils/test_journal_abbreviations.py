@@ -1,5 +1,5 @@
 """Tests for coBib's Journal abbreviations."""
-# pylint: disable=protected-access
+
 
 from __future__ import annotations
 

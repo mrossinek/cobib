@@ -1,5 +1,9 @@
 """coBib parser test class."""
 
+from __future__ import annotations
+
+from typing import Any, ClassVar
+
 import pytest
 
 from cobib.config import config
@@ -17,7 +21,7 @@ class ParserTest:
     EXAMPLE_YAML_FILE = get_resource("example_entry.yaml")
     """Path to the example YAML file (matching the BibTeX file)."""
 
-    EXAMPLE_ENTRY_DICT = {
+    EXAMPLE_ENTRY_DICT: ClassVar[dict[str, Any]] = {
         "ENTRYTYPE": "article",
         "author": [
             Author(first="Yudong", last="Cao"),
@@ -39,7 +43,7 @@ class ParserTest:
         "journal": "Chemical Reviews",
         "month": "aug",
         "number": 19,
-        "pages": "10856–10915",
+        "pages": "10856–10915",  # noqa: RUF001
         "publisher": "American Chemical Society (ACS)",
         "title": "Quantum Chemistry in the Age of Quantum Computing",
         "url": ["http://dx.doi.org/10.1021/acs.chemrev.8b00803"],

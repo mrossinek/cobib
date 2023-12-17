@@ -43,8 +43,8 @@ class YAMLParser(Parser):
 
     _yaml: yaml.YAML | None = None
 
-    def __init__(self) -> None:  # pylint: disable=C0116
-        # noqa: D107
+    def __init__(self) -> None:
+        """Initializes a YAMLParser."""
         if YAMLParser._yaml is None:
             # we need to lazily construct this in order to be able to respect the config setting
             YAMLParser._yaml = yaml.YAML(typ="safe", pure=not config.parsers.yaml.use_c_lib_yaml)
@@ -63,7 +63,7 @@ class YAMLParser(Parser):
             stream: IO = io.StringIO(Path(string))  # type: ignore[arg-type,type-arg]
         except TypeError:
             try:
-                stream = open(string, "r", encoding="utf-8")  # pylint: disable=consider-using-with
+                stream = open(string, "r", encoding="utf-8")
             except FileNotFoundError as exc:
                 raise exc
         for entry in track(

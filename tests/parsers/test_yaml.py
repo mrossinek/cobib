@@ -1,5 +1,5 @@
 """Tests for coBib's YAMLParser."""
-# pylint: disable=unused-argument
+
 
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ class TestYAMLParser(ParserTest):
             config.parsers.yaml.use_c_lib_yaml = use_c_lib_yaml
             reference = self.EXAMPLE_ENTRY_DICT.copy()
             entries = YAMLParser().parse(self.EXAMPLE_YAML_FILE)
-            entry = list(entries.values())[0]
+            entry = next(iter(entries.values()))
             assert entry.data == reference
         finally:
             config.defaults()
@@ -77,7 +77,7 @@ class TestYAMLParser(ParserTest):
 
         reference = self.EXAMPLE_ENTRY_DICT.copy()
         entries = YAMLParser().parse("Hello world!")
-        entry = list(entries.values())[0]
+        entry = next(iter(entries.values()))
         assert entry.data == reference
 
     def test_event_post_yaml_parse(self) -> None:
@@ -93,7 +93,7 @@ class TestYAMLParser(ParserTest):
         assert Event.PostYAMLParse.validate()
 
         entries = YAMLParser().parse(self.EXAMPLE_YAML_FILE)
-        entry = list(entries.values())[0]
+        entry = next(iter(entries.values()))
         assert entry.data == reference
 
     def test_event_pre_yaml_dump(self) -> None:
