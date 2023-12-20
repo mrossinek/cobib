@@ -3,7 +3,6 @@ pytest-asyncio==0.23.2
 pytest-cov==4.1.0
 coverage<8
 aiohttp==3.9.1
-lxml==4.9.3
 msgpack==1.0.7
 pdoc==14.2.0
 mypy==1.7.1
