@@ -4,7 +4,7 @@ pytest-cov==4.1.0
 coverage<8
 aiohttp==3.9.1
 msgpack==1.0.7
-pdoc==14.2.0
+pdoc==14.3.0
 mypy==1.7.1
 ruff==0.1.8
 typos==1.16.25
