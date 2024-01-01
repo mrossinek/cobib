@@ -6,5 +6,5 @@ aiohttp==3.9.1
 msgpack==1.0.7
 pdoc==14.2.0
 mypy==1.7.1
-ruff==0.1.8
+ruff==0.1.9
 typos==1.16.25
