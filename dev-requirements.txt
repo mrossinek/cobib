@@ -1,5 +1,5 @@
 pytest==7.4.4
-pytest-asyncio==0.23.2
+pytest-asyncio==0.23.3
 pytest-cov==4.1.0
 coverage<8
 aiohttp==3.9.1
