@@ -7,4 +7,4 @@ msgpack==1.0.7
 pdoc==14.3.0
 mypy==1.8.0
 ruff==0.1.11
-typos==1.16.26
+typos==1.17.0
