@@ -51,7 +51,7 @@ Pypi: https://pypi.org/project/cobib/4.3.1/
 
 ### **Breaking Change**
 Note, that the introduction of the detailed author information parsing in v4.3.0
-resulted in possible breaking of a custom `config.database.formatlabel_default`
+resulted in possible breaking of a custom `config.database.format.label_default`
 setup. This bugfix release is meant to emphasize this breaking change and
 updates the documented example in the example configuration file. For the sake
 of verbosity, here is the change applied to the example:
@@ -925,28 +925,28 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 
 
 [Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v4.4.0...master
-[4.4.0]: https://gitlab.com/cobib/cobib/-/compare/v4.4.0
-[4.3.1]: https://gitlab.com/cobib/cobib/-/compare/v4.3.1
-[4.3.0]: https://gitlab.com/cobib/cobib/-/compare/v4.3.0
-[4.2.0]: https://gitlab.com/cobib/cobib/-/compare/v4.2.0
-[4.1.0]: https://gitlab.com/cobib/cobib/-/compare/v4.1.0
-[4.0.0]: https://gitlab.com/cobib/cobib/-/compare/v4.0.0
-[3.5.5]: https://gitlab.com/cobib/cobib/-/compare/v3.5.5
-[3.5.4]: https://gitlab.com/cobib/cobib/-/compare/v3.5.4
-[3.5.3]: https://gitlab.com/cobib/cobib/-/compare/v3.5.3
-[3.5.2]: https://gitlab.com/cobib/cobib/-/compare/v3.5.2
-[3.5.1]: https://gitlab.com/cobib/cobib/-/compare/v3.5.1
-[3.5.0]: https://gitlab.com/cobib/cobib/-/compare/v3.5.0
-[3.4.0]: https://gitlab.com/cobib/cobib/-/compare/v3.4.0
-[3.3.2]: https://gitlab.com/cobib/cobib/-/compare/v3.3.2
-[3.3.1]: https://gitlab.com/cobib/cobib/-/compare/v3.3.1
-[3.3.0]: https://gitlab.com/cobib/cobib/-/compare/v3.3.0
-[3.2.1]: https://gitlab.com/cobib/cobib/-/compare/v3.2.1
-[3.2.0]: https://gitlab.com/cobib/cobib/-/compare/v3.2.0
-[3.1.1]: https://gitlab.com/cobib/cobib/-/compare/v3.1.1
-[3.1.0]: https://gitlab.com/cobib/cobib/-/compare/v3.1.0
-[3.0.0]: https://gitlab.com/cobib/cobib/-/compare/v3.0.0
-[2.6.1]: https://gitlab.com/cobib/cobib/-/compare/v2.6.1
+[4.4.0]: https://gitlab.com/cobib/cobib/-/tags/v4.4.0
+[4.3.1]: https://gitlab.com/cobib/cobib/-/tags/v4.3.1
+[4.3.0]: https://gitlab.com/cobib/cobib/-/tags/v4.3.0
+[4.2.0]: https://gitlab.com/cobib/cobib/-/tags/v4.2.0
+[4.1.0]: https://gitlab.com/cobib/cobib/-/tags/v4.1.0
+[4.0.0]: https://gitlab.com/cobib/cobib/-/tags/v4.0.0
+[3.5.5]: https://gitlab.com/cobib/cobib/-/tags/v3.5.5
+[3.5.4]: https://gitlab.com/cobib/cobib/-/tags/v3.5.4
+[3.5.3]: https://gitlab.com/cobib/cobib/-/tags/v3.5.3
+[3.5.2]: https://gitlab.com/cobib/cobib/-/tags/v3.5.2
+[3.5.1]: https://gitlab.com/cobib/cobib/-/tags/v3.5.1
+[3.5.0]: https://gitlab.com/cobib/cobib/-/tags/v3.5.0
+[3.4.0]: https://gitlab.com/cobib/cobib/-/tags/v3.4.0
+[3.3.2]: https://gitlab.com/cobib/cobib/-/tags/v3.3.2
+[3.3.1]: https://gitlab.com/cobib/cobib/-/tags/v3.3.1
+[3.3.0]: https://gitlab.com/cobib/cobib/-/tags/v3.3.0
+[3.2.1]: https://gitlab.com/cobib/cobib/-/tags/v3.2.1
+[3.2.0]: https://gitlab.com/cobib/cobib/-/tags/v3.2.0
+[3.1.1]: https://gitlab.com/cobib/cobib/-/tags/v3.1.1
+[3.1.0]: https://gitlab.com/cobib/cobib/-/tags/v3.1.0
+[3.0.0]: https://gitlab.com/cobib/cobib/-/tags/v3.0.0
+[2.6.1]: https://gitlab.com/cobib/cobib/-/tags/v2.6.1
 [2.6.0]: https://gitlab.com/cobib/cobib/-/tags/v2.6.0
 [2.5.0]: https://gitlab.com/cobib/cobib/-/tags/v2.5.0
 [2.4.1]: https://gitlab.com/cobib/cobib/-/tags/v2.4.1
