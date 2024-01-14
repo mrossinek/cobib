@@ -62,11 +62,23 @@ class Command(ABC):
         self.largs: argparse.Namespace = self.__class__._parse_args(args)
         """The parsed (local) arguments."""
 
+        if console is not None:
+            LOGGER.log(
+                45,
+                "The `console` argument to all the commands is DEPRECATED since it no longer has "
+                "any effect.",
+            )
         self.console: Console | App[None] = console if console is not None else Console()
-        """The object via which to print output to the user during runtime execution."""
+        """DEPRECATED The object via which to print output to the user during runtime execution."""
 
+        if prompt is not None:
+            LOGGER.log(
+                45,
+                "The `prompt` argument to all the commands is DEPRECATED since it no longer has "
+                "any effect.",
+            )
         self.prompt: type[PromptBase[PromptType]] = prompt if prompt is not None else Prompt
-        """The object via which to prompt the user for input during runtime execution."""
+        """DEPRECATED The object via which to prompt the user for input during runtime execution."""
 
     @classmethod
     @abstractmethod

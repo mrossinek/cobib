@@ -1,3 +1,3 @@
 """coBib's parser tests."""
 
-from .parser_test import ParserTest
+from .parser_test import ParserTest as ParserTest

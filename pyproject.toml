@@ -44,6 +44,7 @@ select = [
     "E",   # pycodestyle
     "W",   # pycodestyle
     "D",   # pydocstyle
+    "F",   # pyflakes
     "PL",  # pylint
     "RUF", # ruff
 ]
