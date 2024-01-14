@@ -23,14 +23,11 @@ from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from inspect import iscoroutinefunction
 from typing import Any, ClassVar, cast
 
-from rich.console import RenderableType
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.css.query import NoMatches
 from textual.keys import Keys
 from textual.logging import TextualHandler
 from textual.screen import Screen
-from textual.widget import AwaitMount, Widget
 from textual.widgets import Footer, Header, Input, Static
 from typing_extensions import override
 
@@ -42,18 +39,17 @@ from cobib.ui.components import (
     HelpScreen,
     InputScreen,
     ListView,
+    LoggingHandler,
+    LogScreen,
     MainContent,
     MotionKey,
-    Popup,
-    PopupLoggingHandler,
-    PopupPanel,
     PresetFilterScreen,
-    Prompt,
     SearchView,
     SelectionFilter,
 )
 from cobib.ui.ui import UI
 from cobib.utils.progress import Progress
+from cobib.utils.prompt import Confirm, Prompt
 
 LOGGER = logging.getLogger(__name__)
 
@@ -89,7 +85,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
 
     DEFAULT_CSS = """
         Screen {
-            layers: default popup overlay;
+            layers: default;
             align-vertical: bottom;
         }
     """
@@ -116,6 +112,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         ("s", "sort", "Sort"),
         ("u", "prompt('undo', True)", "Undo"),
         ("x", "prompt('export ', False, True)", "Export"),
+        ("z", "push_screen('log')", "Log"),
         *_PRESET_FILTER_BINDINGS,
     ]
     """
@@ -140,10 +137,12 @@ class TUI(UI, App[None]):  # type: ignore[misc]
     | s | Prompts for the field to sort by (use -r to list in reverse). |
     | u | Undes the last change. Requires git-tracking! |
     | x | Exports the current (or selected) entries. |
+    | z | Toggles the log screen. |
     """
 
     SCREENS: ClassVar[dict[str, Screen[Any] | Callable[[], Screen[Any]]]] = {
         "help": HelpScreen,
+        "log": LogScreen,
         "input": InputScreen,
         "preset_filter": PresetFilterScreen,
     }
@@ -164,8 +163,9 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         self._filter: SelectionFilter = SelectionFilter()
         self._filters.append(self._filter)
         self._background_tasks: set[asyncio.Task] = set()  # type: ignore[type-arg]
-        PopupLoggingHandler(self, level=logging.INFO)
+        LoggingHandler(self, level=logging.INFO)
         Progress.console = self
+        Prompt.console = self
 
     @override
     def compose(self) -> ComposeResult:
@@ -174,8 +174,6 @@ class TUI(UI, App[None]):  # type: ignore[misc]
             yield SearchView(".")
 
         yield EntryView()
-
-        yield PopupPanel()
 
         yield Header()
         yield Footer()
@@ -197,32 +195,6 @@ class TUI(UI, App[None]):  # type: ignore[misc]
             with redirect_stdout(sys.__stdout__), redirect_stderr(sys.__stderr__):
                 yield
             driver.start_application_mode()
-
-    def print(self, renderable: RenderableType | Widget) -> tuple[Widget, AwaitMount]:
-        """A utility method for "printing" to the screen.
-
-        Args:
-            renderable: the object to be printed. If this is a `Widget`, it will be mounted in the
-                `PopupPanel` as is. Otherwise, the renderable object will be wrapped in a `Popup`
-                before mounting without any styling or timer applied.
-
-        Returns:
-            The pair of the widget mounted to the `PopupPanel` and the awaitable of its `mount`
-            action.
-        """
-        if isinstance(renderable, Widget):
-            popup = renderable
-        else:
-            popup = Popup(renderable, level=0, timer=None)
-
-        panel = self.screen.query_one(PopupPanel)
-
-        try:
-            await_mount = panel.mount(popup, before="#live")
-        except NoMatches:
-            await_mount = panel.mount(popup)
-
-        return popup, await_mount
 
     # Event reaction methods
 
@@ -255,13 +227,8 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         """Action to display the quit dialog."""
 
         async def _prompt_quit() -> None:
-            res = await Prompt.ask(  # type: ignore[call-overload]
-                "Are you sure you want to quit?",
-                choices=["y", "n"],
-                default="y",
-                console=self,
-            )
-            if res == "y":
+            res = await Confirm.ask("Are you sure you want to quit?", default=True)
+            if res:
                 self.exit()
 
         task = asyncio.create_task(_prompt_quit())
@@ -313,7 +280,6 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         else:
             await_mount = self.push_screen("input", self._process_input)
             inp_screen = cast(InputScreen, self.get_screen("input"))
-            inp_screen.escape_enabled = True
             await await_mount
             inp = inp_screen.query_one(Input)
             inp.value = value
@@ -587,6 +553,8 @@ class TUI(UI, App[None]):  # type: ignore[misc]
                     if not iscoroutinefunction(subcmd.execute):
                         subcmd.execute()
                     else:
+                        # FIXME: in these cases, stdout and stderr cannot be captured
+
                         # 1. create subcommand execution task
                         task1 = asyncio.create_task(subcmd.execute())
 
@@ -607,8 +575,8 @@ class TUI(UI, App[None]):  # type: ignore[misc]
 
         stdout_val = stdout.getvalue().strip()
         if stdout_val:
-            self.print(Popup(stdout_val, level=logging.INFO))
+            self.notify(stdout_val, title="Output", severity="information", timeout=5)
 
         stderr_val = stderr.getvalue().strip()
         if stderr_val:
-            self.print(Popup(stderr_val, level=logging.CRITICAL))
+            self.notify(stderr_val, title="Error", severity="error", timeout=10)

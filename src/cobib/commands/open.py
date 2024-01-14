@@ -56,17 +56,17 @@ import warnings
 from collections import defaultdict
 from collections.abc import Callable
 from functools import wraps
-from typing import cast
 from urllib.parse import ParseResult, urlparse
 
 from rich.console import Console
-from rich.prompt import InvalidResponse, Prompt, PromptBase, PromptType
+from rich.prompt import InvalidResponse, PromptBase, PromptType
 from rich.text import Text
 from textual.app import App
 from typing_extensions import override
 
 from cobib.config import Event, config
 from cobib.database import Database
+from cobib.utils.prompt import Prompt
 from cobib.utils.rel_path import RelPath
 
 from .base_command import ArgumentParser, Command
@@ -189,26 +189,11 @@ class OpenCommand(Command):
                         prompt_text.append(f"] {url.geturl()}\n")
                 prompt_text.append("[all,help,cancel]", "prompt.choices")
 
-                self.prompt.process_response = self._wrap_prompt_process_response(  # type: ignore[method-assign]
-                    self.prompt.process_response  # type: ignore[assignment]
-                )
-                if self.prompt is not Prompt:
-                    choice = await self.prompt.ask(  # type: ignore[call-overload]
-                        prompt_text,
-                        choices=choices,
-                        show_choices=False,
-                        console=cast(App[None], self.console),
-                    )
-                else:
-                    choice = self.prompt.ask(
-                        prompt_text,
-                        choices=choices,
-                        show_choices=False,
-                        console=cast(Console, self.console),
-                    )
-
-                self.prompt.process_response = (  # type: ignore[method-assign]
-                    self.prompt.process_response.__wrapped__  # type: ignore[attr-defined]
+                choice = await Prompt.ask(
+                    prompt_text,
+                    choices=choices,
+                    show_choices=False,
+                    process_response_wrapper=self._wrap_prompt_process_response,
                 )
 
                 if choice == "cancel":

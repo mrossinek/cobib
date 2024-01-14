@@ -1,9 +1,9 @@
-"""coBib's Rich-Textual progress widget.
+"""coBib's Rich-Textual progress integration.
 
-This widget is a bit of a Frankenstein project as it wraps rich's `rich.progress.Progress` object
-and makes sure that upon advancing a task, the `textual.widgets.Static` widget used to display it in
-the TUI gets updated. This was favored over using textual's `textual.widgets.ProgressBar` to
-re-implement rich's more flexible `rich.progress.Progress` displaying capabilities.
+The `Progress` utility provided by this module either constructs a `rich.progress.Progress` object
+or a custom textual widget to display a rich-progress indicator and update it accordingly. This was
+favored over using textual's `textual.widgets.ProgressBar` to re-implement rich's more flexible
+`rich.progress.Progress` displaying capabilities.
 """
 
 from __future__ import annotations
@@ -51,10 +51,11 @@ class TextualProgress(  # type: ignore[misc]
     """coBib's Frankenstein Rich-Textual progress widget."""
 
     DEFAULT_CSS = """
-        Progress {
+        TextualProgress {
             layout: horizontal;
             width: 100%;
             height: 1;
+            offset-y: -1;
             dock: bottom;
         }
     """
@@ -69,7 +70,7 @@ class TextualProgress(  # type: ignore[misc]
             *columns: the columns to be reported. If this is empty, it will fall back to
                 `get_default_columns`.
         """
-        super().__init__(id="live")
+        super().__init__()
 
         self.columns = columns or self.get_default_columns()
 
@@ -88,11 +89,10 @@ class TextualProgress(  # type: ignore[misc]
 
     @override
     async def start(self) -> None:  # type: ignore[override]
-        if isinstance(Progress.console, App):
-            _, await_mount = Progress.console.print(self)  # type: ignore[attr-defined]
-            await await_mount
+        # NOTE: we know that Progress.console is an App when we are using the TextualProgress widget
+        await_mount = Progress.console.mount(self)  # type: ignore[union-attr]
+        await await_mount
 
     @override
     def stop(self) -> None:
-        if isinstance(Progress.console, App):
-            self.set_timer(5.0, self.remove)
+        self.set_timer(5.0, self.remove)

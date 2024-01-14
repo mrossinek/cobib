@@ -21,7 +21,6 @@ from rich.syntax import Syntax
 from textual.app import App
 from typing_extensions import override
 
-from cobib import __version__
 from cobib.config import Event, config
 from cobib.database import Database
 from cobib.parsers.bibtex import BibtexParser

@@ -77,7 +77,6 @@ from rich.tree import Tree
 from textual.app import App
 from typing_extensions import override
 
-from cobib import __version__
 from cobib.config import Event, config
 from cobib.database import Entry
 from cobib.ui.components import SearchView

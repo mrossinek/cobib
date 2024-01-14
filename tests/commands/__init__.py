@@ -1,3 +1,3 @@
 """coBib's command tests."""
 
-from .command_test import CommandTest
+from .command_test import CommandTest as CommandTest

@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- log messages will now be displayed in the `LogPanel` of the TUI (which can be
+  toggled with the `z` keybinding) (#132,!133)
+- the `cobib.ui.components.prompt` module has been refactored into `cobib.utils.prompt` (!133)
+
+### Deprecated
+- the `console` argument to all commands has been deprecated since it no longer
+  has any effect (!133)
+- the `prompt` argument to all commands has been deprecated since it no longer
+  has any effect (!133)
+
 ### Fixed
 - loading a cached database will be bypassed during `_lint_database` (#133)
   - to support this the `bypass_cache` keyword-argument was added to the

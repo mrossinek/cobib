@@ -31,17 +31,15 @@ from __future__ import annotations
 
 import logging
 import os
-from collections.abc import Callable
-from functools import wraps
-from typing import cast
 
 from rich.console import Console
-from rich.prompt import Confirm, InvalidResponse, PromptBase, PromptType
+from rich.prompt import PromptBase, PromptType
 from textual.app import App
 from typing_extensions import override
 
 from cobib.config import Event, config
 from cobib.database import Database
+from cobib.utils.prompt import Confirm
 from cobib.utils.rel_path import RelPath
 
 from .base_command import ArgumentParser, Command
@@ -71,9 +69,6 @@ class DeleteCommand(Command):
         console: Console | App[None] | None = None,
         prompt: type[PromptBase[PromptType]] | None = None,
     ) -> None:
-        if prompt is None:
-            prompt = Confirm  # type: ignore[assignment]
-
         super().__init__(*args, console=console, prompt=prompt)
 
         self.deleted_entries: set[str] = set()
@@ -111,10 +106,6 @@ class DeleteCommand(Command):
             preserve_files = self.largs.preserve_files
         LOGGER.info("Associated files will%s be preserved.", "" if preserve_files else " not")
 
-        self.prompt.process_response = self._wrap_prompt_process_response(  # type: ignore[method-assign]
-            self.prompt.process_response  # type: ignore[assignment]
-        )
-
         bib = Database()
         for label in self.largs.labels:
             try:
@@ -123,20 +114,7 @@ class DeleteCommand(Command):
                 if config.commands.delete.confirm:
                     prompt_text = f"Are you sure you want to delete the entry '{label}'?"
 
-                    if self.prompt is not Confirm:
-                        res = await self.prompt.ask(  # type: ignore[call-overload]
-                            prompt_text,
-                            choices=["y", "n"],
-                            default="y",
-                            console=cast(App[None], self.console),
-                        )
-                    else:
-                        res = self.prompt.ask(
-                            prompt_text,
-                            default=True,
-                            console=cast(Console, self.console),
-                        )
-
+                    res = await Confirm.ask(prompt_text, default=True)
                     if not res:
                         continue
 
@@ -154,10 +132,6 @@ class DeleteCommand(Command):
             except KeyError:
                 pass
 
-        self.prompt.process_response = (  # type: ignore[method-assign]
-            self.prompt.process_response.__wrapped__  # type: ignore[attr-defined]
-        )
-
         Event.PostDeleteCommand.fire(self)
         bib.save()
 
@@ -166,37 +140,3 @@ class DeleteCommand(Command):
         for label in self.deleted_entries:
             msg = f"'{label}' was removed from the database."
             LOGGER.info(msg)
-
-    @staticmethod
-    def _wrap_prompt_process_response(
-        func: Callable[[PromptBase[PromptType], str], PromptType],
-    ) -> Callable[[PromptBase[PromptType], str], PromptType]:
-        """A method to wrap a `PromptBase.process_response` method.
-
-        This method wraps a `PromptBase.process_response` method in order to handle a user's request
-        for additional help.
-
-        Args:
-            func: the `PromptBase.process_response` method to be wrapped.
-
-        Returns:
-            The wrapped `PromptBase.process_response` method.
-        """
-
-        @override  # type: ignore[misc]
-        @wraps(func)
-        def process_response(prompt: PromptBase[PromptType], value: str) -> PromptType:
-            return_value: PromptType = func(prompt, value)
-
-            if isinstance(return_value, bool):
-                return return_value  # type: ignore[return-value]
-
-            if cast(str, return_value).strip().lower() == "y":
-                return True  # type: ignore[return-value]
-
-            if cast(str, return_value).strip().lower() == "n":
-                return False  # type: ignore[return-value]
-
-            raise InvalidResponse("You may only provide 'y' or 'n' as a valid response.")
-
-        return process_response

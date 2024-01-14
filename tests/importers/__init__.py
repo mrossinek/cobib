@@ -1,3 +1,3 @@
 """coBib's importer tests."""
 
-from .importer_test import ImporterTest
+from .importer_test import ImporterTest as ImporterTest

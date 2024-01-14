@@ -15,11 +15,8 @@ from typing import ClassVar
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.screen import ModalScreen
-from textual.widget import Widget
 from textual.widgets import Input, Static
 from typing_extensions import override
-
-from .popup_panel import PopupPanel
 
 
 class InputScreen(ModalScreen[str]):
@@ -70,10 +67,7 @@ class InputScreen(ModalScreen[str]):
         }
 
         #panel {
-            layer: default;
-            layout: vertical;
-            align: center bottom;
-            padding: 0 2;
+            padding: 1 2;
             width: 80%;
             height: auto;
             background: $surface;
@@ -85,16 +79,8 @@ class InputScreen(ModalScreen[str]):
 
     @override
     def compose(self) -> ComposeResult:
-        yield PopupPanel(id="panel")
         inp = Input(id="input")
         yield inp
-
-    async def on_resume(self) -> None:
-        """The hook triggered when receiving the `Resume` event.
-
-        Basically this method clears all pre-existing popups.
-        """
-        await self.query_one(PopupPanel).query(Widget).remove()
 
     async def action_escape(self) -> None:
         """The action to perform when the `Escape` key is pressed."""

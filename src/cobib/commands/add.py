@@ -143,10 +143,10 @@ import logging
 from collections import OrderedDict
 from collections.abc import Callable
 from functools import wraps
-from typing import Callable, ClassVar, cast
+from typing import ClassVar
 
 from rich.console import Console
-from rich.prompt import InvalidResponse, Prompt, PromptBase, PromptType
+from rich.prompt import InvalidResponse, PromptBase, PromptType
 from textual.app import App
 from typing_extensions import override
 
@@ -158,6 +158,7 @@ from cobib.parsers.base_parser import Parser
 from cobib.utils.diff_renderer import Differ
 from cobib.utils.file_downloader import FileDownloader
 from cobib.utils.journal_abbreviations import JournalAbbreviations
+from cobib.utils.prompt import Prompt
 
 from .base_command import ArgumentParser, Command
 from .edit import EditCommand
@@ -298,7 +299,7 @@ class AddCommand(Command):
         return largs
 
     @override
-    async def execute(self) -> None:  # type: ignore[override]  # noqa: PLR0912, PLR0915
+    async def execute(self) -> None:  # type: ignore[override]  # noqa: PLR0912
         LOGGER.debug("Starting Add command.")
 
         Event.PreAddCommand.fire(self)
@@ -399,41 +400,12 @@ class AddCommand(Command):
                     choices = ["keep", "replace", "update", "disambiguate", "help"]
                     default = "keep"
 
-                    self.prompt.process_response = self._wrap_prompt_process_response(  # type: ignore[method-assign]
-                        self.prompt.process_response  # type: ignore[assignment]
-                    )
-
-                    if self.prompt is not Prompt:
-
-                        @wraps(self.prompt.pre_prompt)
-                        def pre_prompt(_prompt: PromptBase[PromptType]) -> None:
-                            _prompt.console.push_screen("input")  # type: ignore[attr-defined]
-                            _prompt.console.print(table)
-
-                        self.prompt.pre_prompt = pre_prompt  # type: ignore[assignment,method-assign]
-
-                        res = await self.prompt.ask(  # type: ignore[call-overload]
-                            prompt_text,
-                            choices=choices,
-                            default=default,
-                            console=cast(App[None], self.console),
-                        )
-
-                        self.prompt.pre_prompt = (  # type: ignore[method-assign]
-                            self.prompt.pre_prompt.__wrapped__  # type: ignore[attr-defined]
-                        )
-                    else:
-                        self.console.print(table)  # type: ignore[union-attr]
-
-                        res = self.prompt.ask(
-                            prompt_text,
-                            choices=choices,
-                            default=default,
-                            console=cast(Console, self.console),
-                        )
-
-                    self.prompt.process_response = (  # type: ignore[method-assign]
-                        self.prompt.process_response.__wrapped__  # type: ignore[attr-defined]
+                    res = await Prompt.ask(
+                        prompt_text,
+                        choices=choices,
+                        default=default,
+                        pre_prompt_message=table,
+                        process_response_wrapper=self._wrap_prompt_process_response,
                     )
 
                 if res == "update":
