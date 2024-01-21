@@ -132,7 +132,7 @@ class ExportCommand(Command):
             "filter",
             nargs="*",
             help="You can specify filters as used by the `list` command in order to select a "
-            "subset of labels to be modified. To ensure this works as expected you should add the "
+            "subset of labels to be exported. To ensure this works as expected you should add the "
             "pseudo-argument '--' before the list of filters. See also `list --help` for more "
             "information.",
         )

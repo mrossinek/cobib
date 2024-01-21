@@ -178,7 +178,7 @@ class Command(ABC):
         """
         return None
 
-    def git(self, force: bool = False) -> None:
+    def git(self, force: bool = False, *, allow_empty: bool = False) -> None:
         """Generates a git commit to track the commands changes.
 
         This function only has an effect when `cobib.config.config.DatabaseConfig.git` is enabled
@@ -192,6 +192,8 @@ class Command(ABC):
         Args:
             force: whether to ignore the configuration setting. This option is mainly used by the
                 `cobib.commands.init.InitCommand`.
+            allow_empty: whether to allow an empty commit to be created. Normally, this is a
+                mistake, but some commands may want to enforce a commit.
         """
         git_tracked = config.database.git
         if not git_tracked and not force:
@@ -217,10 +219,13 @@ class Command(ABC):
 
         msg = Event.PreGitCommit.fire(msg, args) or msg
 
+        git_commit_args = ["--no-gpg-sign", "--quiet"]
+        if allow_empty:
+            git_commit_args.append("--allow-empty")
         commands = [
             f"cd {root}",
             f"git add -- {file}",
-            f"git commit --no-gpg-sign --quiet --message {shlex.quote(msg)}",
+            f"git commit {' '.join(git_commit_args)} --message {shlex.quote(msg)}",
         ]
         LOGGER.debug("Auto-commit to git from %s command.", self.name)
         os.system("; ".join(commands))

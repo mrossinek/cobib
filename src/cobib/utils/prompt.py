@@ -16,7 +16,7 @@ import asyncio
 from functools import wraps
 from typing import Any, Callable, TextIO, Type, cast
 
-from rich.console import Console, RenderableType
+from rich.console import RenderableType
 from rich.prompt import Confirm as RichConfirm
 from rich.prompt import InvalidResponse, PromptBase, PromptType
 from rich.prompt import Prompt as RichPrompt
@@ -25,12 +25,11 @@ from textual.app import App
 from textual.widgets import Input, Static
 from typing_extensions import override
 
+from .context import get_active_app
+
 
 class Prompt:
     """A utility class to construct either a `rich` or `textual` prompt."""
-
-    console: Console | App[None] = Console()
-    """The object via which to print output."""
 
     @staticmethod
     async def ask(
@@ -40,6 +39,7 @@ class Prompt:
         default: Any = ...,
         show_choices: bool = True,
         show_default: bool = True,
+        input_text: str = "",
         pre_prompt_message: RenderableType | None = None,
         process_response_wrapper: Callable[
             [Callable[[PromptBase[PromptType], str], PromptType]],
@@ -55,13 +55,16 @@ class Prompt:
             default: an optional default choice.
             show_choices: whether to display the choices (if any).
             show_default: whether to display the default choice.
+            input_text: the text with which to pre-populate the input prompt.
             pre_prompt_message: a renderable message to display before the prompt.
             process_response_wrapper: a function to wrap the `rich.prompt.Prompt.process_response`
                 method to allow the calling scope to inject response handling logic.
         """
         ask_prompt: Type[RichPrompt | TextualPrompt] = RichPrompt
-        if isinstance(Prompt.console, App):
+        app = get_active_app()
+        if app is not None:
             ask_prompt = TextualPrompt
+            ask_prompt.input_text = input_text
 
         if process_response_wrapper is not None:
             ask_prompt.process_response = process_response_wrapper(  # type: ignore[assignment]
@@ -73,14 +76,14 @@ class Prompt:
                 ask_prompt.pre_prompt, pre_prompt_message
             )
 
-        if isinstance(Prompt.console, App):
+        if app is not None:
             res = await ask_prompt.ask(  # type: ignore[call-overload]
                 prompt,
                 choices=choices,
                 default=default,
                 show_choices=show_choices,
                 show_default=show_default,
-                console=Prompt.console,
+                console=app,
             )
         else:
             res = ask_prompt.ask(
@@ -89,7 +92,6 @@ class Prompt:
                 default=default,
                 show_choices=show_choices,
                 show_default=show_default,
-                console=Prompt.console,
             )
 
         if process_response_wrapper is not None:
@@ -110,10 +112,12 @@ class Prompt:
     ) -> Callable[[PromptBase[PromptType]], None]:
         @wraps(func)
         def pre_prompt(prompt: PromptBase[PromptType]) -> None:
-            if isinstance(Prompt.console, App):
-                prompt.console.get_screen("input").mount(Static(message, id="panel"), before=-1)  # type: ignore[attr-defined]
-            else:
+            app = get_active_app()
+            if app is None:
                 prompt.console.print(message)
+            else:
+                input_screen = app.get_screen("input")
+                input_screen.mount(Static(message, id="panel"), before=-1)
 
         return pre_prompt
 
@@ -134,19 +138,20 @@ class Confirm:
             default: the default answer.
         """
         confirm_prompt: Type[RichConfirm | TextualPrompt] = RichConfirm
-        if isinstance(Prompt.console, App):
+        app = get_active_app()
+        if app is not None:
             confirm_prompt = TextualPrompt
 
         confirm_prompt.process_response = Confirm._wrap_process_response(  # type: ignore[assignment]
             confirm_prompt.process_response  # type: ignore[arg-type]
         )
 
-        if isinstance(Prompt.console, App):
-            res = await confirm_prompt.ask(  # type: ignore[call-overload]
-                prompt, console=Prompt.console, choices=["y", "n"], default="y" if default else "n"
-            )
+        if app is None:
+            res = confirm_prompt.ask(prompt, default=default)
         else:
-            res = confirm_prompt.ask(prompt, console=Prompt.console, default=default)
+            res = await confirm_prompt.ask(  # type: ignore[call-overload]
+                prompt, console=app, choices=["y", "n"], default="y" if default else "n"
+            )
 
         confirm_prompt.process_response = (  # type: ignore[method-assign]
             confirm_prompt.process_response.__wrapped__  # type: ignore[union-attr]
@@ -178,6 +183,9 @@ class Confirm:
 
 class TextualPrompt(PromptBase[str]):
     """coBib's prompt widget."""
+
+    input_text: str = ""
+    """The text to pre-populate the input prompt with."""
 
     @override
     async def __call__(  # type: ignore[override]
@@ -226,7 +234,7 @@ class TextualPrompt(PromptBase[str]):
         inp_screen.mount(popup, before=-1)
         await await_mount
 
-        inp_screen.query_one(Input).value = ""
+        inp_screen.query_one(Input).value = cls.input_text
         await dismiss_event.wait()
         return value
 

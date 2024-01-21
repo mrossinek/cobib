@@ -41,6 +41,23 @@ class TestYAMLParser(ParserTest):
         finally:
             config.defaults()
 
+    @pytest.mark.parametrize("use_c_lib_yaml", [False, True])
+    def test_from_yaml_string(self, use_c_lib_yaml: bool) -> None:
+        """Test parsing a yaml string.
+
+        Args:
+            use_c_lib_yaml: the configuration setting.
+        """
+        try:
+            config.parsers.yaml.use_c_lib_yaml = use_c_lib_yaml
+            reference = self.EXAMPLE_ENTRY_DICT.copy()
+            with open(self.EXAMPLE_YAML_FILE, "r", encoding="utf-8") as stream:
+                entries = YAMLParser().parse(stream.read())
+            entry = next(iter(entries.values()))
+            assert entry.data == reference
+        finally:
+            config.defaults()
+
     def test_warn_duplicate_label(self, caplog: pytest.LogCaptureFixture) -> None:
         """Tests a warning is logged for duplicate labels.
 

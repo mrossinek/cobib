@@ -115,6 +115,7 @@ class TestListCommands(ShellHelperTest):
         "modify",
         "open",
         "redo",
+        "review",
         "search",
         "show",
         "undo",

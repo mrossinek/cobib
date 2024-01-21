@@ -80,7 +80,7 @@ class TestOpenCommand(CommandTest):
 
         yield request.param
 
-    def _assert(  # type: ignore
+    def _assert(  # type: ignore[no-untyped-def]
         self, output: list[str], logs: list[tuple[str, int, str]] | None = None, **kwargs
     ) -> None:
         """Common assertion utility method.

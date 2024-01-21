@@ -12,26 +12,23 @@ from threading import RLock
 from time import monotonic
 from typing import Any
 
-from rich.console import Console
 from rich.progress import Progress as RichProgress
 from rich.progress import ProgressColumn, Task, TaskID
-from textual.app import App
 from textual.widgets import Static
 from typing_extensions import override
+
+from .context import get_active_app
 
 
 class Progress:
     """A utility class to construct either a `rich` or `textual` progress indicator."""
 
-    console: Console | App[None] = Console()
-    """The object via which to print output."""
-
     @staticmethod
     def initialize(*columns: str | ProgressColumn, **kwargs: Any) -> RichProgress:
         """Initializes a new progress indicator.
 
-        When `console` is a `textual` App, this will construct a `TextualProgress` widget, otherwise
-        it falls back to constructing a `rich.progress.Progress` object.
+        When `get_active_app` returns a `textual` App, this will construct a `TextualProgress`
+        widget, otherwise it falls back to constructing a `rich.progress.Progress` object.
 
         Args:
             columns: the columns to include in the progress indicator.
@@ -40,9 +37,10 @@ class Progress:
         Returns:
             The new progress indicator.
         """
-        if isinstance(Progress.console, App):
-            return TextualProgress(*columns, **kwargs)
-        return RichProgress(*columns, **kwargs)
+        app = get_active_app()
+        if app is None:
+            return RichProgress(*columns, **kwargs)
+        return TextualProgress(*columns, **kwargs)
 
 
 class TextualProgress(  # type: ignore[misc]
@@ -89,8 +87,8 @@ class TextualProgress(  # type: ignore[misc]
 
     @override
     async def start(self) -> None:  # type: ignore[override]
-        # NOTE: we know that Progress.console is an App when we are using the TextualProgress widget
-        await_mount = Progress.console.mount(self)  # type: ignore[union-attr]
+        app = get_active_app()
+        await_mount = app.mount(self)  # type: ignore[union-attr]
         await await_mount
 
     @override

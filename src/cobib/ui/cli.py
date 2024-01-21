@@ -48,6 +48,23 @@ class CLI(UI):
         self.parser.add_argument("args", nargs=argparse.REMAINDER)
 
     @override
+    def parse_args(self) -> argparse.Namespace:
+        arguments = super().parse_args()
+        if arguments.command is not None:
+            sys_args = list(sys.argv)
+            subcmd_args = sys_args[sys_args.index(arguments.command) + 1 :]
+            if subcmd_args != arguments.args:
+                LOGGER.log(
+                    35,
+                    "The arguments provided after the subcommand name did did not match the parsed "
+                    "ones. This can occur in rare cases when the '--' pseudo-argument is involved. "
+                    "Taking an educated guess and overwriting them. Please file a bug report if "
+                    "this is a wrong assumption: https://gitlab.com/cobib/cobib/-/issues/new",
+                )
+                arguments.args = subcmd_args
+        return arguments
+
+    @override
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
 

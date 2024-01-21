@@ -48,8 +48,7 @@ from cobib.ui.components import (
     SelectionFilter,
 )
 from cobib.ui.ui import UI
-from cobib.utils.progress import Progress
-from cobib.utils.prompt import Confirm, Prompt
+from cobib.utils.prompt import Confirm
 
 LOGGER = logging.getLogger(__name__)
 
@@ -101,6 +100,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         ("v", "select", "Select"),
         ("slash", "prompt('/')", "Search"),
         ("a", "prompt('add ')", "Add"),
+        ("c", "prompt('review ', False, True)", "Review"),
         ("d", "delete", "Delete"),
         ("e", "edit", "Edit"),
         ("f", "filter", "Filter"),
@@ -164,8 +164,6 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         self._filters.append(self._filter)
         self._background_tasks: set[asyncio.Task] = set()  # type: ignore[type-arg]
         LoggingHandler(self, level=logging.INFO)
-        Progress.console = self
-        Prompt.console = self
 
     @override
     def compose(self) -> ComposeResult:
@@ -394,12 +392,12 @@ class TUI(UI, App[None]):  # type: ignore[misc]
     def _edit_entry(self) -> None:
         """Edits the current entry.
 
-        This method takes care of suspending the application in favor of the editor.
+        Suspension of the App is handled directly by the edit command using
+        `cobib.utils.context.get_active_app`.
         """
         main = self.query_one(MainContent)
         label = main.get_current_label()
-        with self.suspend():
-            commands.EditCommand(label).execute()
+        commands.EditCommand(label).execute()
 
     def _show_entry(self, command: commands.ShowCommand | None = None) -> None:
         """Renders the entry currently under the cursor in the `EntryView` widget.
@@ -444,7 +442,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
 
     async def _update_table(self) -> None:
         """Updates the list of entries displayed in the `MainContent`."""
-        main = self.query_one(MainContent)
+        main = self.screen_stack[0].query_one(MainContent)
         old_table = main.query_one(ListView)
         command = commands.ListCommand(*self._list_args)
         command.execute()
@@ -546,9 +544,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         with redirect_stdout(io.StringIO()) as stdout:
             with redirect_stderr(io.StringIO()) as stderr:
                 try:
-                    subcmd = getattr(commands, command[0].title() + "Command")(
-                        *command[1:], prompt=Prompt, console=self
-                    )
+                    subcmd = getattr(commands, command[0].title() + "Command")(*command[1:])
 
                     if not iscoroutinefunction(subcmd.execute):
                         subcmd.execute()
