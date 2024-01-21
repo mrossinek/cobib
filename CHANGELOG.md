@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- the new `cobib.utils.context.get_active_app` method which returns any running
+  textual App and replaces the need for the `cobib.utils.prompt.Prompt.console`
+  and `cobib.utils.progress.Progress.console` (which have been removed) (!137)
+- `cobib.parsers.YAMLParser.parse` can now also parse strings directly (rather
+  than always interpreting the argument as the path to a file) (!137)
+- the `review` command (#131,!137).
+  Please refer to its online documentation or the man-page for more details on
+  how to use it.
+- the `cobib.database.Entry.merge` method (!137)
+
 ### Changed
 - log messages will now be displayed in the `LogPanel` of the TUI (which can be
   toggled with the `z` keybinding) (#132,!133)

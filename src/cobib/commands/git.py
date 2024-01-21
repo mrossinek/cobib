@@ -98,12 +98,19 @@ class GitCommand(Command):
             LOGGER.error(msg)
             return
 
+        file = RelPath(config.database.file).path
+        root = file.parent
+        if not (root / ".git").exists():
+            msg = (
+                "You have configured, but not initialized coBib's git-tracking."
+                "\nPlease consult `cobib init --help` for more information on how to do so."
+            )
+            LOGGER.error(msg)
+            return
+
         LOGGER.debug("Starting Git command.")
 
         Event.PreGitCommand.fire(self)
-
-        file = RelPath(config.database.file).path
-        root = file.parent
 
         subprocess.run(["git", "-C", root, *self.largs.git_args], check=False)
 

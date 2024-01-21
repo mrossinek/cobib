@@ -115,6 +115,22 @@ class Entry:
             return False
         return self.label == other.label and self.data == other.data
 
+    def merge(self, other: Entry, *, ours: bool = False) -> None:
+        """Merges the current entry with the other one.
+
+        Args:
+            other: the other entry.
+            ours: a boolean indicating which data takes precedence. `True` indicates that `self`
+                takes precedence over `other` which means that `other.update(self)` will be run
+                (`self` overwrites values in `other`). `False` (the default) indicates the opposite.
+        """
+        if ours:
+            other_data = other.data.copy()
+            other_data.update(self.data)
+            self.data = other_data.copy()
+        else:
+            self.data.update(other.data)
+
     @property
     def label(self) -> str:
         """The `Database` label of this entry."""

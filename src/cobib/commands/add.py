@@ -411,9 +411,7 @@ class AddCommand(Command):
                 if res == "update":
                     msg = f"Updating the already existing entry '{lbl}' with the new data."
                     LOGGER.info(msg)
-                    existing_data = bib[lbl].data.copy()
-                    existing_data.update(entry.data)
-                    entry.data = existing_data.copy()
+                    entry.merge(bib[lbl], ours=True)
                     overwrite_file = True
                 elif res == "disambiguate":
                     msg = (

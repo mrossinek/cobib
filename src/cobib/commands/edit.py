@@ -60,6 +60,7 @@ from typing_extensions import override
 from cobib.config import Event, config
 from cobib.database import Database, Entry
 from cobib.parsers.yaml import YAMLParser
+from cobib.utils.context import get_active_app
 from cobib.utils.rel_path import RelPath
 
 from .base_command import ArgumentParser, Command
@@ -138,7 +139,7 @@ class EditCommand(Command):
 
         try:
             entry = bib[self.largs.label]
-            prv = yml.dump(entry)
+            entry_text = yml.dump(entry)
             if self.largs.add:
                 LOGGER.warning(
                     "Entry '%s' already exists! Ignoring the `--add` argument.", self.largs.label
@@ -152,7 +153,7 @@ class EditCommand(Command):
                     self.largs.label,
                     {"ENTRYTYPE": config.commands.edit.default_entry_type},
                 )
-                prv = yml.dump(entry)
+                entry_text = yml.dump(entry)
             else:
                 msg = (
                     f"No entry with the label '{self.largs.label}' could be found."
@@ -160,26 +161,23 @@ class EditCommand(Command):
                 )
                 LOGGER.error(msg)
                 return
-        if prv is None:
+        if entry_text is None:
             # No entry found to be edited. This should never occur unless the YAMLParser experiences
             # an unexpected error.
+            LOGGER.error(
+                f"Encountered an unexpected case while trying to edit {self.largs.label} which "
+                "might result from a problem with the YAML parser."
+            )
             return
 
-        LOGGER.debug("Creating temporary file.")
-        with tempfile.NamedTemporaryFile(mode="w+", prefix="cobib-", suffix=".yaml") as tmp_file:
-            tmp_file_name = tmp_file.name
-            tmp_file.write(prv)
-            tmp_file.flush()
-            LOGGER.debug('Starting editor "%s".', config.commands.edit.editor)
-            status = os.system(config.commands.edit.editor + " " + tmp_file.name)
-            assert status == 0
-            LOGGER.debug("Editor finished successfully.")
-            new_entries = YAMLParser().parse(tmp_file.name)
-            self.new_entry = next(iter(new_entries.values()))
-        assert not Path(tmp_file_name).exists()
-        if entry == self.new_entry and not self.largs.add:
+        new_text = self.edit(entry_text)
+
+        if entry_text == new_text and not self.largs.add:
             LOGGER.info("No changes detected.")
             return
+
+        parsed = yml.parse(new_text)
+        self.new_entry = next(iter(parsed.values()))
 
         bib.update({self.new_entry.label: self.new_entry})
 
@@ -213,3 +211,34 @@ class EditCommand(Command):
 
         msg = f"'{self.largs.label}' was successfully edited."
         LOGGER.info(msg)
+
+    @staticmethod
+    def edit(entry_text: str) -> str:
+        """Spawns an editor in the terminal to edit the provided entry text.
+
+        Args:
+            entry_text: the entry in text form to edit.
+
+        Returns:
+            The new entry.
+        """
+        app = get_active_app()
+        if app is None:
+            return EditCommand._edit(entry_text)
+        with app.suspend():  # type: ignore[attr-defined]
+            return EditCommand._edit(entry_text)
+
+    @staticmethod
+    def _edit(entry_text: str) -> str:
+        LOGGER.debug("Creating temporary file.")
+        with tempfile.NamedTemporaryFile(mode="w+", prefix="cobib-", suffix=".yaml") as tmp_file:
+            tmp_file_name = tmp_file.name
+            tmp_file.write(entry_text)
+            tmp_file.flush()
+            LOGGER.debug('Starting editor "%s".', config.commands.edit.editor)
+            status = os.system(config.commands.edit.editor + " " + tmp_file.name)
+            assert status == 0
+            LOGGER.debug("Editor finished successfully.")
+            new_text = open(tmp_file.name, "r", encoding="utf-8").read()
+        assert not Path(tmp_file_name).exists()
+        return new_text

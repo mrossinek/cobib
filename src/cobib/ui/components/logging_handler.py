@@ -71,5 +71,5 @@ class LoggingHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:
         log_screen = cast(LogScreen, self._app.get_screen("log"))
         log_screen.rich_log.write(self.format(record))
-        if record.levelno >= logging.ERROR:
+        if record.levelno >= logging.ERROR and not log_screen.is_current:
             self._app.push_screen("log")

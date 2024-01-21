@@ -263,6 +263,87 @@ If specified, associated files will \fInot\fR be preserved and be renamed if
 the modification happens to rename the entry. This takes precedence over the
 \fIconfig.commands.modify.preserve_files\fR setting.
 .TP
+.B cobib review \fI<field>\fR \fI<args>\fR ...
+Performs an interactive review of your database.
+You can optionally review one or more specific fields of the entries by
+providing the field names as arguments to the command.
+The positional arguments may be used to provide \fBFILTERS\fR which the entries
+must match in order to be reviewed \fIor\fR to provide a list of labels of the
+entries which are to be reviewed (this requires the \fI-s\fR flag to be set).
+For every entry that is being reviewed, multiple actions are possible. These
+include:
+.TP
+.in +8n
+.BR edit
+.in +4n
+Opens the current entry in an external editor.
+.TP
+.in +8n
+.BR done
+.in +4n
+Marks the current entry as fully reviewed.
+.TP
+.in +8n
+.BR skip
+.in +4n
+Skips the current entry for this review.
+.TP
+.in +8n
+.BR context
+.in +4n
+Requests additional context and updates the preview to contain all the
+information stored in the entry. This action is only available when no context
+has been requested yet and the previewed fields are being filtered in the first
+place.
+.TP
+.in +8n
+.BR finish
+.in +4n
+Finishes the review early (even if some entries have not been shown yet). See
+\fI\-\-resume\fR for how to resume a previously started review process.
+.TP
+.in +8n
+.BR inline <field>
+.in +4n
+Edits a specific field in-line. When reviewing a single field, you can simply
+type \fIinline\fR. When reviewing more than one, you need to specify which field
+to edit like so \fIinline <field>\fR. This is a highly experimental feature so
+please be aware of bugs and report any issues or suggestions online:
+https://gitlab.com/cobib/cobib/-/issues/new
+.TP
+.in +8n
+The \fI<args>\fR to the \fBreview\fR command may be any of the following:
+.PP
+.in +8n
+.BR \-c ", " \-\-context
+.in +4n
+.PP
+Enforces that context will be provided for every entry.
+.in +8n
+.BR \-r ", " \-\-resume " " \fI<SHA>\fR
+.in +4n
+If you finished a review early (see `finish` above) you can use this argument to
+continue where you left. This option takes a git commit identifier as its
+argument so you should either find the SHA of the auto-commit of the review that
+you would like to continue (see also the \fIgit\fR command), or if you know that
+it is (for example) the last thing that you did, you can simply use \fRHEAD\fR.
+.PP
+.in +8n
+.BR \-d ", " \-\-done " " \fI<labels>\fR
+.in +4n
+Can supply a list of entry labels which will be considered as already reviewed
+and therefore skipped. Thus, this has a higher precedence than the provided
+\fBFILTERS\fR and can be used to resume a previously started review process. If
+you have the \fIgit\fR integration enabled, you will likely not use this
+argument manually. Instead, refer to the \fI\-\-resume\fR argument.
+.PP
+.in +8n
+.BR \-s ", " \-\-selection
+.in +4n
+This boolean flag enables the \fIselection\fR mode in which the positional args
+are interpreted as a list of labels which are to be exported. The name for this
+argument is a result of the TUI's selection interface.
+.TP
 .B cobib undo \fI<args>\fR
 If you enabled the git-integration of coBib (available since v2.6.0) you can
 undo the changes done to your database file by commands such as add, edit and
@@ -333,9 +414,9 @@ This takes precedence over the \fIconfig.commands.list_.ignore_case\fR setting.
 Concatenate the filters using logical \fIOR\fR rather than the default
 \fIAND\fR.
 .TP
-.B cobib search \fI<args>\fR ...
+.B cobib search \fI<query>\fR \fI<args>\fR ...
 Searches the database recursively (i.e. including any associated files) for the
-specified keywords (if multiple are given, these will be search independently).
+specified queries (if multiple are given, these will be searched independently).
 The positional arguments may be used to provide \fBFILTERS\fR which the entries
 must match in order to be included in the export.
 Additionally, the following \fI<args>\fR are also allowed:

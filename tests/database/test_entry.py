@@ -494,6 +494,38 @@ def test_save(author_format: AuthorFormat, reference_file: str) -> None:
             assert line == truth.strip("\n")
 
 
+def test_merge_ours() -> None:
+    """Test the `cobib.database.Entry.merge` method with the `ours` strategy."""
+    entry = Entry(
+        "dummy",
+        {"month": "jan", "year": 2024},
+    )
+    theirs = Entry(
+        "dummy",
+        {"month": "feb", "number": 1},
+    )
+    entry.merge(theirs, ours=True)
+    assert entry.data["number"] == 1
+    assert entry.data["month"] == "jan"
+    assert entry.data["year"] == 2024
+
+
+def test_merge_theirs() -> None:
+    """Test the `cobib.database.Entry.merge` method with the `theirs` strategy."""
+    entry = Entry(
+        "dummy",
+        {"month": "jan", "year": 2024},
+    )
+    theirs = Entry(
+        "dummy",
+        {"month": "feb", "number": 1},
+    )
+    entry.merge(theirs, ours=False)
+    assert entry.data["number"] == 1
+    assert entry.data["month"] == "feb"
+    assert entry.data["year"] == 2024
+
+
 def test_stringify() -> None:
     """Test the `cobib.database.Entry.stringify` method."""
     entry = Entry(

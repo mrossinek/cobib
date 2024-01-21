@@ -105,6 +105,7 @@ else:
         "ForwardRef('commands.ModifyCommand')": "cobib.commands.modify.ModifyCommand",
         "ForwardRef('commands.OpenCommand')": "cobib.commands.open.OpenCommand",
         "ForwardRef('commands.RedoCommand')": "cobib.commands.redo.RedoCommand",
+        "ForwardRef('commands.ReviewCommand')": "cobib.commands.review.ReviewCommand",
         "ForwardRef('commands.SearchCommand')": "cobib.commands.search.SearchCommand",
         "ForwardRef('commands.ShowCommand')": "cobib.commands.show.ShowCommand",
         "ForwardRef('commands.UndoCommand')": "cobib.commands.undo.UndoCommand",
@@ -398,6 +399,31 @@ class Event(Enum):
 
     Arguments:
         - `cobib.commands.redo.RedoCommand`: the command instance that just ran.
+
+    Returns:
+        Nothing.
+    """
+
+    PreReviewCommand: Event = Callable[["commands.ReviewCommand"], None]  # type: ignore[assignment]
+    """
+    Fires:
+        Before starting the `cobib.commands.review.ReviewCommand`.
+        The only logic which is done prior to this event is the retrieval of the command arguments
+        from a previous review process when the `--resume` option has been specified.
+
+    Arguments:
+        - `cobib.commands.review.ReviewCommand`: the command instance that is about to run.
+
+    Returns:
+        Nothing. But the command attributes can be modified, affecting the execution.
+    """
+    PostReviewCommand: Event = Callable[["commands.ReviewCommand"], None]  # type: ignore[assignment]
+    """
+    Fires:
+        Before finishing the `cobib.commands.review.ReviewCommand`.
+
+    Arguments:
+        - `cobib.commands.review.ReviewCommand`: the command instance that just ran.
 
     Returns:
         Nothing.

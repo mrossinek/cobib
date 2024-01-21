@@ -79,7 +79,7 @@ class TestAddCommand(CommandTest):
             for line, truth in zip_longest(file, true_lines):
                 assert line == truth
 
-    def _assert_entry(self, label: str, **kwargs) -> None:  # type: ignore
+    def _assert_entry(self, label: str, **kwargs) -> None:  # type: ignore[no-untyped-def]
         """An additional assertion utility to check specific entry fields.
 
         Args:

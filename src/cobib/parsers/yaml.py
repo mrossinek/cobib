@@ -57,15 +57,27 @@ class YAMLParser(Parser):
     def parse(self, string: str | Path) -> dict[str, Entry]:
         string = Event.PreYAMLParse.fire(string) or string
 
-        bib: dict[str, Entry] = OrderedDict()
-        LOGGER.debug("Loading YAML data from file: %s.", string)
         try:
-            stream: IO = io.StringIO(Path(string))  # type: ignore[arg-type,type-arg]
-        except TypeError:
+            LOGGER.debug("Attempting to load YAML data from file: %s.", string)
+            stream = open(string, "r", encoding="utf-8")
+            bib = self._load_all(stream)
+            stream.close()
+        except (OSError, FileNotFoundError) as exc:
             try:
-                stream = open(string, "r", encoding="utf-8")
-            except FileNotFoundError as exc:
+                LOGGER.debug("Attempting to load YAML data from string: %s.", string)
+                stream = io.StringIO(string)  # type: ignore[arg-type]
+                bib = self._load_all(stream)
+                stream.close()
+            except (TypeError, AttributeError):
                 raise exc
+
+        Event.PostYAMLParse.fire(bib)
+
+        return bib
+
+    def _load_all(self, stream: IO) -> dict[str, Entry]:  # type: ignore[type-arg]
+        bib: dict[str, Entry] = OrderedDict()
+
         for entry in track(
             self._yaml.load_all(stream),  # type: ignore[union-attr]
             description="Reading database...",
@@ -82,9 +94,6 @@ class YAMLParser(Parser):
                         actual_entry.label,
                     )
                 bib[actual_entry.label] = actual_entry
-        stream.close()
-
-        Event.PostYAMLParse.fire(bib)
 
         return bib
 
