@@ -28,6 +28,8 @@ from typing_extensions import override
 from cobib.utils.rel_path import RelPath
 
 if TYPE_CHECKING:
+    import rich
+
     from .event import Event
 
 LOGGER = logging.getLogger(__name__)
@@ -75,9 +77,9 @@ class TagMarkup(NamedTuple):
     weight: int
     """The weight of the tag. This integer is used to determine the markup priority of the tag.
     Higher integer values indicate a higher priority."""
-    style: str | Style
-    """The style of the tag. This can be a `rich.Style` or a string which can be interpreted by
-    `rich.Style.parse`."""
+    style: str | rich.style.Style
+    """The style of the tag. This can be a `rich.style.Style` or a string which can be interpreted
+    by `rich.style.Style.parse`."""
 
 
 @dataclass
