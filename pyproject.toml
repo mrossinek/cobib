@@ -5,6 +5,57 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "cobib"
+authors = [
+    {name = "Max Rossmannek", email = "max@rossmannek.de"},
+]
+description = "Console Bibliography"
+requires-python = ">=3.8"
+license = {text = "MIT License"}
+keywords = [
+    "reference-manager", "citation-manager", "bibliography", "cli", "tui",
+    "command-line", "terminal", "console", "bibtex", "doi", "arxiv", "isbn"
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Unix",
+    "Operating System :: Microsoft :: Windows",
+    "Environment :: Console",
+    "Typing :: Typed",
+]
+dynamic = ["dependencies", "readme", "version"]
+
+[project.scripts]
+cobib = "cobib.__main__:_main"
+
+[project.urls]
+Homepage = "https://gitlab.com/cobib/cobib"
+Documentation = "https://cobib.gitlab.io/cobib/cobib.html"
+Repository = "https://gitlab.com/cobib/cobib"
+Issues = "https://gitlab.com/cobib/cobib/-/issues"
+Changelog = "https://gitlab.com/cobib/cobib/-/blob/master/CHANGELOG.md"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+dependencies = {file = "requirements.txt"}
+readme = {file = ["README.md", "CHANGELOG.md"], content-type = "text/markdown"}
+version = {attr = "cobib.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["src/"]
+
+[tool.setuptools.package-data]
+cobib = ["py.typed"]
+
 [tool.pytest.ini_options]
 log_level = "DEBUG"
 
