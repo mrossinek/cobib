@@ -225,7 +225,7 @@ class EditCommand(Command):
         app = get_active_app()
         if app is None:
             return EditCommand._edit(entry_text)
-        with app.suspend():  # type: ignore[attr-defined]
+        with app.suspend():
             return EditCommand._edit(entry_text)
 
     @staticmethod
