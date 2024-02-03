@@ -176,24 +176,6 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         yield Header()
         yield Footer()
 
-    # TODO: remove once https://github.com/Textualize/textual/pull/1541 is merged into Textual
-    @contextmanager
-    def suspend(self) -> Iterator[None]:
-        """Temporarily suspends the application.
-
-        .. warning::
-
-           This method will be removed once support for this has been merged directly into textual.
-           Refer to [this pull request](https://github.com/Textualize/textual/pull/1541) for more
-           details.
-        """
-        driver = self._driver
-        if driver is not None:
-            driver.stop_application_mode()
-            with redirect_stdout(sys.__stdout__), redirect_stderr(sys.__stderr__):
-                yield
-            driver.start_application_mode()
-
     # Event reaction methods
 
     def on_motion_key(self, event: MotionKey) -> None:
