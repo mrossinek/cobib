@@ -17,9 +17,8 @@ import asyncio
 import io
 import logging
 import shlex
-import sys
-from collections.abc import Awaitable, Callable, Coroutine, Iterator
-from contextlib import contextmanager, redirect_stderr, redirect_stdout
+from collections.abc import Awaitable, Callable, Coroutine
+from contextlib import redirect_stderr, redirect_stdout
 from inspect import iscoroutinefunction
 from typing import Any, ClassVar, cast
 

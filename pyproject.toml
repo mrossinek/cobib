@@ -82,13 +82,6 @@ line-length = 100
 src = ["src", "tests"]
 target-version = "py38"
 
-[tool.ruff.extend-per-file-ignores]
-# we explicitly rename imported modules in the __init__ files by design
-"__init__.py" = ["PLC0414"]
-"tests/*" = [
-    "PLR2004",  # allow magic values in the tests
-]
-
 [tool.ruff.lint]
 select = [
     "I",   # isort
@@ -98,6 +91,13 @@ select = [
     "F",   # pyflakes
     "PL",  # pylint
     "RUF", # ruff
+]
+
+[tool.ruff.lint.extend-per-file-ignores]
+# we explicitly rename imported modules in the __init__ files by design
+"__init__.py" = ["PLC0414"]
+"tests/*" = [
+    "PLR2004",  # allow magic values in the tests
 ]
 
 [tool.ruff.lint.pydocstyle]
