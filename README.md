@@ -47,7 +47,7 @@ coBib is packaged in the AUR.
 
 ### Windows
 
-coBib _should_ mostly work on Windows as is, but it is not being tested so no guarantees are given.
+coBib _might_ work on Windows as is, but it is not being tested so no guarantees are given.
 If you are using Windows 10 or later and are running into issues, you should be able to install and
 use coBib's full functionality within the Linux subsystem.
 

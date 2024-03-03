@@ -33,6 +33,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - to support this the `bypass_cache` keyword-argument was added to the
     `Database.read` method
 
+### Removed
+- official Windows support label. It _might_ work but no guarantees are made (#136)
+
 
 ## [4.4.0] - 2023-12-15
 
