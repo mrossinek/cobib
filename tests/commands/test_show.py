@@ -1,6 +1,5 @@
 """Tests for coBib's ShowCommand."""
 
-
 from __future__ import annotations
 
 from itertools import zip_longest

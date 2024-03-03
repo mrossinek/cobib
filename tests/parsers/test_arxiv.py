@@ -1,6 +1,5 @@
 """Tests for coBib's ArxivParser."""
 
-
 from __future__ import annotations
 
 import logging

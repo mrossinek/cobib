@@ -1,6 +1,5 @@
 """Tests for coBib's UndoCommand."""
 
-
 from __future__ import annotations
 
 import contextlib

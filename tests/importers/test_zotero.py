@@ -1,6 +1,5 @@
 """Tests for coBib's ZoteroImporter."""
 
-
 from __future__ import annotations
 
 import json

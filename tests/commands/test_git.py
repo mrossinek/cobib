@@ -1,6 +1,5 @@
 """Tests for coBib's GitCommand."""
 
-
 from __future__ import annotations
 
 import subprocess

@@ -1,6 +1,5 @@
 """Tests for coBib's EditCommand."""
 
-
 from __future__ import annotations
 
 import tempfile
