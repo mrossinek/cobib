@@ -1,6 +1,5 @@
 """Tests for coBib's Journal abbreviations."""
 
-
 from __future__ import annotations
 
 from collections.abc import Generator

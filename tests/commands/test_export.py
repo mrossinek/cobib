@@ -1,6 +1,5 @@
 """Tests for coBib's ExportCommand."""
 
-
 from __future__ import annotations
 
 import os

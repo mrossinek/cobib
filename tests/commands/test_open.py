@@ -1,6 +1,5 @@
 """Tests for coBib's OpenCommand."""
 
-
 from __future__ import annotations
 
 import sys

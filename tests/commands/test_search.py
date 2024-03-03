@@ -1,6 +1,5 @@
 """Tests for coBib's SearchCommand."""
 
-
 from __future__ import annotations
 
 import contextlib

@@ -4,7 +4,6 @@ Since all commands are tested separately in their respective test files, the tes
 with testing the global parser arguments.
 """
 
-
 from __future__ import annotations
 
 import logging

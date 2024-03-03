@@ -1,6 +1,5 @@
 """Tests for coBib's InitCommand."""
 
-
 from __future__ import annotations
 
 import os

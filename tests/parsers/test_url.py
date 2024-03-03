@@ -1,6 +1,5 @@
 """Tests for coBib's URLParser."""
 
-
 from __future__ import annotations
 
 import logging

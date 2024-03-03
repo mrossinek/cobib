@@ -1,6 +1,5 @@
 """Tests for coBib's ISBNParser."""
 
-
 from __future__ import annotations
 
 import json
