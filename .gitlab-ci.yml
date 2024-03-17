@@ -60,6 +60,18 @@ test:
         reports:
             junit: tests/report-py$PYTHON_VERSION.xml
 
+plugin:
+    stage: test
+    script:
+        - tox -e plugin
+    artifacts:
+        when: always
+        expire_in: 30 days
+        paths:
+            - plugin/tests/report-plugin.xml
+        reports:
+            junit: plugin/tests/report-plugin.xml
+
 coverage:
     stage: test
     script:

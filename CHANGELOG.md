@@ -6,6 +6,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- the ability to add custom `commands`, `importers`, and `parsers` through entry points (#135, !139)
+  - (DEV) a dummy plugin show-casing these extensions
+
+### Changed
+- the entire `shell_helper` module has been replaced as follows (!139):
+  - the following deprecated helper methods were removed without replacement:
+    - `_list_commands`
+    - `_list_filters`
+    - `_list_labels`
+  - the following secondary commands have been refactored:
+    - `_lint_database` is now `cobib.commands.lint.LintCommand`
+    - `_unify_labels` is now `cobib.commands.unify_labels.UnifyLabelsCommand`
+    - `_example_config` is now `cobib.config.command.ExampleConfigCommand`
+
+### Removed
+
+- the previously deprecated `console` attribute of all commands has been removed (!139)
+- the previously deprecated `prompt` attribute of all commands has been removed (!139)
+- the `cobib.ui.shell_helper` and `cobib.utils.shell_helper` modules have been removed (!139)
+
 
 ## [4.5.0] - 2024-03-17
 

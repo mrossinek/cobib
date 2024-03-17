@@ -1,0 +1,41 @@
+[build-system]
+requires = [
+    "setuptools>=42",
+    "wheel"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cobib_dummy"
+authors = [
+    {name = "Max Rossmannek", email = "max@rossmannek.de"},
+]
+description = "Console Bibliography Dummy Plugin"
+requires-python = ">=3.8"
+license = {text = "MIT License"}
+dependencies = [
+    "cobib",
+]
+dynamic = ["version", "readme"]
+
+[project.entry-points."cobib.commands"]
+dummy = "cobib_dummy.dummy_command:DummyCommand"
+
+[project.entry-points."cobib.importers"]
+dummy = "cobib_dummy.dummy_importer:DummyImporter"
+
+[project.entry-points."cobib.parsers"]
+dummy = "cobib_dummy.dummy_parser:DummyParser"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.md"], content-type = "text/markdown"}
+version = {attr = "cobib_dummy.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["src/"]
+
+[tool.setuptools.package-data]
+cobib_dummy = ["py.typed"]

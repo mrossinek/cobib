@@ -528,6 +528,24 @@ API key is required. Otherwise you must also use the following argument.
 .BR \-\-api-key " "\fI<API\ key>\fR
 .in +8n
 Provide a custom Zotero API key.
+.TP
+.B cobib lint
+Lints the database file for potential points of formatting improvements.
+.PP
+.in +8n
+.BR \-f ", " \-\-format
+.in +4n
+If you provide this option, coBib will automatically format your database to
+resolve all found lint messages.
+.TP
+.B cobib unify_labels
+Updates all entry labels in your database to follow the default naming pattern.
+.PP
+.in +8n
+.BR \-a ", " \-\-apply
+.in +4n
+If you provide this option, coBib will actually apply the updates rather than
+preview them in dry-mode.
 .SH FILTERS
 In order to limit the output of the \fIlist\fR, \fImodify\fR, \fIsearch\fR, and
 \fIexport\fR commands you can apply additional filters via keyword arguments.
@@ -655,7 +673,7 @@ you must place the configuration file at \fI$HOME/.config/cobib/config.py\fR.
 If you don't have a configuration file yet, you can get started by copying the
 well-documented example configuration to the right location via:
 .in +4n
-    \fIcobib _example_config > ~/.config/cobib/config.py\fR
+    \fIcobib example_config > ~/.config/cobib/config.py\fR
 .in -4n
 If you do have an old configuration file (prior to v3.0) and would like some
 guidance on how to migrate it, please read this short blog post of mine:
@@ -923,52 +941,6 @@ Since v3.3.0 coBib comes with a number of subscribable events. Their
 configuration is detailed in the online documentation,
 https://cobib.gitlab.io/cobib/cobib/config/event.html, and will not be
 repeated here.
-.PP
-.SH SHELL UTILITIES
-In addition to the \fISUBCOMMANDS\fR coBib also provides some "meta"-commands
-for varying purposes.
-.TP
-.B cobib _example_config
-Prints the example configuration.
-This is \fIDEPRECATED\fR and will be available as \fIexample_config\fR starting
-from coBib v5.0
-You can do the following to get started with a custom configuration:
-.in +4n
-    \fIcobib _example_config > ~/.config/cobib/config.py\fR
-.TP
-.B cobib _lint_database
-Lints the database file for potential points of formatting improvements.
-This is \fIDEPRECATED\fR and will be available as \fIlint\fR starting from
-coBib v5.0
-.PP
-.in +8n
-.BR \-f ", " \-\-format
-.in +4n
-If you provide this option, coBib will automatically format your database to
-resolve all found lint messages.
-.TP
-.B cobib _unify_labels
-Updates all entry labels in your database to follow the default naming pattern.
-This is \fIDEPRECATED\fR and will be available as \fIlint\fR starting from
-coBib v5.0
-.PP
-.in +8n
-.BR \-a ", " \-\-apply
-.in +4n
-If you provide this option, coBib will actually apply the updates rather than
-preview them in dry-mode.
-.TP
-.B cobib _list_commands
-Lists all available \fISUBCOMMANDS\fR.
-This is \fIDEPRECATED\fR without replacement.
-.TP
-.B cobib _list_labels
-Lists all labels in your database.
-This is \fIDEPRECATED\fR without replacement.
-.TP
-.B cobib _list_filters
-Lists all available filters.
-This is \fIDEPRECATED\fR without replacement.
 .PP
 .SH ENVIRONMENT
 .TP

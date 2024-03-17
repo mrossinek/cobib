@@ -70,11 +70,9 @@ import argparse
 import asyncio
 import logging
 
-from rich.console import Console, ConsoleRenderable
-from rich.prompt import PromptBase, PromptType
+from rich.console import ConsoleRenderable
 from rich.text import Text
 from rich.tree import Tree
-from textual.app import App
 from typing_extensions import override
 
 from cobib.config import Event, config
@@ -113,13 +111,8 @@ class SearchCommand(Command):
     name = "search"
 
     @override
-    def __init__(
-        self,
-        *args: str,
-        console: Console | App[None] | None = None,
-        prompt: type[PromptBase[PromptType]] | None = None,
-    ) -> None:
-        super().__init__(*args, console=console, prompt=prompt)
+    def __init__(self, *args: str) -> None:
+        super().__init__(*args)
 
         self.entries: list[Entry] = []
         """A filtered list of entries searched over by this command."""

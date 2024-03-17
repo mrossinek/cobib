@@ -63,9 +63,6 @@ import argparse
 import logging
 from zipfile import ZipFile
 
-from rich.console import Console
-from rich.prompt import PromptBase, PromptType
-from textual.app import App
 from typing_extensions import override
 
 from cobib.config import Event
@@ -102,13 +99,8 @@ class ExportCommand(Command):
     name = "export"
 
     @override
-    def __init__(
-        self,
-        *args: str,
-        console: Console | App[None] | None = None,
-        prompt: type[PromptBase[PromptType]] | None = None,
-    ) -> None:
-        super().__init__(*args, console=console, prompt=prompt)
+    def __init__(self, *args: str) -> None:
+        super().__init__(*args)
 
         self.exported_entries: list[Entry] = []
         """A list of `cobib.database.Entry` objects which were exported by this command."""

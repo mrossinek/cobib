@@ -20,7 +20,7 @@ import shlex
 from collections.abc import Awaitable, Callable, Coroutine
 from contextlib import redirect_stderr, redirect_stdout
 from inspect import iscoroutinefunction
-from typing import Any, ClassVar, cast
+from typing import TYPE_CHECKING, Any, ClassVar, cast
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -30,7 +30,6 @@ from textual.screen import Screen
 from textual.widgets import Footer, Header, Input, Static
 from typing_extensions import override
 
-from cobib import commands
 from cobib.config import config
 from cobib.database import Database
 from cobib.ui.components import (
@@ -46,8 +45,12 @@ from cobib.ui.components import (
     SearchView,
     SelectionFilter,
 )
-from cobib.ui.ui import UI
 from cobib.utils.prompt import Confirm
+
+from .ui import UI
+
+if TYPE_CHECKING:
+    from cobib import commands
 
 LOGGER = logging.getLogger(__name__)
 
@@ -378,6 +381,8 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         """
         main = self.query_one(MainContent)
         label = main.get_current_label()
+        from cobib import commands
+
         commands.EditCommand(label).execute()
 
     def _show_entry(self, command: commands.ShowCommand | None = None) -> None:
@@ -390,6 +395,8 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         if command is None:
             main = self.query_one(MainContent)
             label = main.get_current_label()
+            from cobib import commands
+
             command = commands.ShowCommand(label)
         command.execute()
         entry = self.query_one(EntryView)
@@ -407,6 +414,8 @@ class TUI(UI, App[None]):  # type: ignore[misc]
             command: the list of command arguments to be passed to the
                 `cobib.commands.show.ShowCommand`.
         """
+        from cobib import commands
+
         show_cmd = commands.ShowCommand(*command)
         label = show_cmd.largs.label
         main = self.query_one(MainContent)
@@ -425,6 +434,8 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         """Updates the list of entries displayed in the `MainContent`."""
         main = self.screen_stack[0].query_one(MainContent)
         old_table = main.query_one(ListView)
+        from cobib import commands
+
         command = commands.ListCommand(*self._list_args)
         command.execute()
         table = command.render_textual()
@@ -444,6 +455,8 @@ class TUI(UI, App[None]):  # type: ignore[misc]
             command: the list of command arguments to be passed to the
                 `cobib.commands.search.SearchCommand`.
         """
+        from cobib import commands
+
         subcmd = commands.SearchCommand(*command)
         await subcmd.execute()
         tree = subcmd.render_textual()
@@ -496,6 +509,8 @@ class TUI(UI, App[None]):  # type: ignore[misc]
                 await self._update_tree(command[1:])
             elif command[0].lower() == "edit":
                 with self.suspend():
+                    from cobib import commands
+
                     commands.EditCommand(*command[1:]).execute()
             else:
                 self._run_command(command)
@@ -525,6 +540,8 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         with redirect_stdout(io.StringIO()) as stdout:
             with redirect_stderr(io.StringIO()) as stderr:
                 try:
+                    from cobib import commands
+
                     subcmd = getattr(commands, command[0].title() + "Command")(*command[1:])
 
                     if not iscoroutinefunction(subcmd.execute):

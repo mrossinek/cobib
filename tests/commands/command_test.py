@@ -85,7 +85,13 @@ class CommandTest(CmdLineTest):
         # load database
         if request.param.get("database", True):
             self.COBIB_TEST_DIR.mkdir(parents=True, exist_ok=True)
-            copyfile(get_resource("example_literature.yaml"), config.database.file)
+            copyfile(
+                get_resource(
+                    request.param.get("database_filename", "example_literature.yaml"),
+                    request.param.get("database_location", None),
+                ),
+                config.database.file,
+            )
             Database().read()
             if request.param.get("git", True):
                 root = self.COBIB_TEST_DIR
