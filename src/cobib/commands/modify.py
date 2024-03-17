@@ -100,10 +100,7 @@ from collections.abc import Callable
 from copy import copy
 from typing import Any
 
-from rich.console import Console
-from rich.prompt import PromptBase, PromptType
 from text_unidecode import unidecode
-from textual.app import App
 from typing_extensions import override
 
 from cobib.config import Event, config
@@ -150,13 +147,8 @@ class ModifyCommand(Command):
     name = "modify"
 
     @override
-    def __init__(
-        self,
-        *args: str,
-        console: Console | App[None] | None = None,
-        prompt: type[PromptBase[PromptType]] | None = None,
-    ) -> None:
-        super().__init__(*args, console=console, prompt=prompt)
+    def __init__(self, *args: str) -> None:
+        super().__init__(*args)
 
         self.modified_entries: list[Entry] = []
         """A list of `cobib.database.Entry` objects which were modified by this command."""

@@ -32,9 +32,6 @@ import os
 import sys
 from pathlib import Path
 
-from rich.console import Console
-from rich.prompt import PromptBase, PromptType
-from textual.app import App
 from typing_extensions import override
 
 from cobib.config import Event, config
@@ -57,13 +54,8 @@ class InitCommand(Command):
     name = "init"
 
     @override
-    def __init__(
-        self,
-        *args: str,
-        console: Console | App[None] | None = None,
-        prompt: type[PromptBase[PromptType]] | None = None,
-    ) -> None:
-        super().__init__(*args, console=console, prompt=prompt)
+    def __init__(self, *args: str) -> None:
+        super().__init__(*args)
 
         self.file: Path
         """The path to the database file."""

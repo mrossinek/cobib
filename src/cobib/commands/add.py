@@ -138,23 +138,20 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import inspect
 import logging
 from collections import OrderedDict
 from collections.abc import Callable
 from functools import wraps
 from typing import ClassVar
 
-from rich.console import Console
 from rich.prompt import InvalidResponse, PromptBase, PromptType
-from textual.app import App
 from typing_extensions import override
 
-from cobib import parsers
 from cobib.config import Event, config
 from cobib.database import Database, Entry
 from cobib.parsers import BibtexParser
 from cobib.parsers.base_parser import Parser
+from cobib.ui.components.entry_points import entry_points
 from cobib.utils.diff_renderer import Differ
 from cobib.utils.file_downloader import FileDownloader
 from cobib.utils.journal_abbreviations import JournalAbbreviations
@@ -193,19 +190,17 @@ class AddCommand(Command):
 
     name = "add"
 
-    _avail_parsers: ClassVar[dict[str, Callable[[], Parser]]] = {
-        cls.name: cls for _, cls in inspect.getmembers(parsers) if inspect.isclass(cls)
+    _avail_parsers: ClassVar[dict[str, tuple[Callable[[], Parser], bool]]] = {
+        cls.name: (cls.load(), builtin) for (cls, builtin) in entry_points("cobib.parsers")
     }
-    """The available parsers."""
+    """The available parsers. The values are a tuple of the parser `entry_point` and a boolean
+    indicating whether it is built-in (`True`) or from an external source (`False`). In the former
+    case, the parser will attempt to provide a short-hand argument option, for example `-b` for
+    `--bibtex`."""
 
     @override
-    def __init__(
-        self,
-        *args: str,
-        console: Console | App[None] | None = None,
-        prompt: type[PromptBase[PromptType]] | None = None,
-    ) -> None:
-        super().__init__(*args, console=console, prompt=prompt)
+    def __init__(self, *args: str) -> None:
+        super().__init__(*args)
 
         self.new_entries: dict[str, Entry] = OrderedDict()
         """An `OrderedDict` mapping labels to `cobib.database.Entry` instances which were added by
@@ -257,16 +252,19 @@ class AddCommand(Command):
             help="DEPRECATED: use '--disambiguation update' instead!",
         )
         group_add = parser.add_mutually_exclusive_group()
-        for name in cls._avail_parsers.keys():
-            try:
-                group_add.add_argument(
-                    f"-{name[0]}", f"--{name}", type=str, help=f"{name} object identifier"
-                )
-            except argparse.ArgumentError:
+        for name, (_, short_hand) in cls._avail_parsers.items():
+            help_text = f"{name} object identifier"
+            if short_hand:
                 try:
-                    group_add.add_argument(f"--{name}", type=str, help=f"{name} object identifier")
-                except argparse.ArgumentError:
+                    group_add.add_argument(f"-{name[0]}", f"--{name}", type=str, help=help_text)
                     continue
+                except argparse.ArgumentError:
+                    pass
+            try:
+                group_add.add_argument(f"--{name}", type=str, help=help_text)
+            except argparse.ArgumentError:
+                LOGGER.error(f"Could not setup the {name} parser argument for the add command.")
+
         parser.add_argument(
             "tags",
             nargs=argparse.REMAINDER,
@@ -305,7 +303,7 @@ class AddCommand(Command):
         Event.PreAddCommand.fire(self)
 
         edit_entries = False
-        for name, cls in AddCommand._avail_parsers.items():
+        for name, (cls, _) in AddCommand._avail_parsers.items():
             string = getattr(self.largs, name, None)
             if string is None:
                 continue

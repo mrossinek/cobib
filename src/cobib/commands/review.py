@@ -107,11 +107,10 @@ from collections.abc import Callable
 from functools import wraps
 from typing import cast
 
-from rich.console import Console, Group
+from rich.console import Group
 from rich.prompt import InvalidResponse, PromptBase, PromptType
 from rich.syntax import Syntax
 from rich.text import Text
-from textual.app import App
 from typing_extensions import override
 
 from cobib.config import Event, config
@@ -153,13 +152,8 @@ class ReviewCommand(Command):
     name = "review"
 
     @override
-    def __init__(
-        self,
-        *args: str,
-        console: Console | App[None] | None = None,
-        prompt: type[PromptBase[PromptType]] | None = None,
-    ) -> None:
-        super().__init__(*args, console=console, prompt=prompt)
+    def __init__(self, *args: str) -> None:
+        super().__init__(*args)
 
         if self.largs.done is None:
             # NOTE: we cannot make the default of the `done` argument an empty list because this

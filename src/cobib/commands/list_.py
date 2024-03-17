@@ -103,11 +103,9 @@ from collections import defaultdict
 from copy import copy
 from typing import Any
 
-from rich.console import Console, ConsoleRenderable
-from rich.prompt import PromptBase, PromptType
+from rich.console import ConsoleRenderable
 from rich.table import Table
 from rich.text import Text
-from textual.app import App
 from typing_extensions import override
 
 from cobib.config import Event, config
@@ -150,13 +148,8 @@ class ListCommand(Command):
     name = "list"
 
     @override
-    def __init__(
-        self,
-        *args: str,
-        console: Console | App[None] | None = None,
-        prompt: type[PromptBase[PromptType]] | None = None,
-    ) -> None:
-        super().__init__(*args, console=console, prompt=prompt)
+    def __init__(self, *args: str) -> None:
+        super().__init__(*args)
 
         self.entries: list[Entry] = []
         """A list of entries, filtered and sorted according to the provided command arguments."""

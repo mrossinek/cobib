@@ -10,9 +10,7 @@ import shlex
 import sys
 from abc import ABC, abstractmethod
 
-from rich.console import Console, ConsoleRenderable
-from rich.prompt import Prompt, PromptBase, PromptType
-from textual.app import App
+from rich.console import ConsoleRenderable
 from textual.widget import Widget
 
 from cobib.config import Event, config
@@ -38,47 +36,18 @@ class Command(ABC):
     provided to the command. This is done no matter how the command is executed, whether
     programmatically via Python, from the command-line or any other UI."""
 
-    def __init__(
-        self,
-        *args: str,
-        console: Console | App[None] | None = None,
-        prompt: type[PromptBase[PromptType]] | None = None,
-    ) -> None:
+    def __init__(self, *args: str) -> None:
         """Initializes a command instance.
 
         Args:
             *args: the sequence of additional command arguments. These will be passed on to the
                 `argparser` of this command for further parsing.
-            console: a command may be in need of printing something for the user during its
-                execution (and before its final result rendering). If so, it should use the `print`
-                method of this console object.
-            prompt: a command may be in need of prompting the user for an input. If so, it will use
-                this prompt kind. It is important that this is respected, as different UIs may
-                inject specific prompt classes to implement different runtime behavior.
         """
         self.args: tuple[str, ...] = args
         """The raw provided command arguments."""
 
         self.largs: argparse.Namespace = self.__class__._parse_args(args)
         """The parsed (local) arguments."""
-
-        if console is not None:
-            LOGGER.log(
-                45,
-                "The `console` argument to all the commands is DEPRECATED since it no longer has "
-                "any effect.",
-            )
-        self.console: Console | App[None] = console if console is not None else Console()
-        """DEPRECATED The object via which to print output to the user during runtime execution."""
-
-        if prompt is not None:
-            LOGGER.log(
-                45,
-                "The `prompt` argument to all the commands is DEPRECATED since it no longer has "
-                "any effect.",
-            )
-        self.prompt: type[PromptBase[PromptType]] = prompt if prompt is not None else Prompt
-        """DEPRECATED The object via which to prompt the user for input during runtime execution."""
 
     @classmethod
     @abstractmethod

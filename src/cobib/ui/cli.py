@@ -7,7 +7,6 @@ produce beautiful output.
 
 import argparse
 import asyncio
-import inspect
 import logging
 import sys
 from inspect import iscoroutinefunction
@@ -16,9 +15,9 @@ from typing import Any
 from rich.console import Console
 from typing_extensions import override
 
-from cobib import __version__, commands
+from cobib import __version__
 from cobib.config import config
-from cobib.database import Database
+from cobib.ui.components.entry_points import entry_points
 from cobib.ui.tui import TUI
 from cobib.ui.ui import UI
 from cobib.utils.logging import print_changelog
@@ -41,11 +40,15 @@ class CLI(UI):
     def add_extra_parser_arguments(self) -> None:
         self.parser.add_argument("--version", action="version", version=f"%(prog)s v{__version__}")
 
-        subcommands = [cls.name for _, cls in inspect.getmembers(commands) if inspect.isclass(cls)]
         self.parser.add_argument(
-            "command", help="subcommand to be called", choices=subcommands, nargs="?"
+            "command",
+            help="the subcommand to be run",
+            choices=sorted([cls.name for (cls, _) in entry_points("cobib.commands")]),
+            nargs="?",
         )
-        self.parser.add_argument("args", nargs=argparse.REMAINDER)
+        self.parser.add_argument(
+            "args", nargs=argparse.REMAINDER, help="any arguments passed on to the subcommand"
+        )
 
     @override
     def parse_args(self) -> argparse.Namespace:
@@ -71,8 +74,7 @@ class CLI(UI):
         self.init_argument_parser(
             prog="coBib",
             description=(
-                "Cobib input arguments.\nIf no arguments are given, the TUI will start as a "
-                "default."
+                "coBib input arguments.\nIf no subcommand is given, the TUI will be started."
             ),
         )
 
@@ -88,23 +90,16 @@ class CLI(UI):
             if changelog is not None:
                 console.print(changelog)
 
-        if arguments.command == "init":
-            # the database file may not exist yet, thus we ensure to execute the command before
-            # trying to read the database file
-            subcmd = getattr(commands, "InitCommand")(*arguments.args)
-            subcmd.execute()
-            return
-
-        # initialize database
-        Database()
-
         if not arguments.command:
             task = asyncio.create_task(TUI().run_async())  # type: ignore[abstract]
             await task
             # the following is required for the asynchronous TUI to quit properly
             sys.exit()
         else:
-            subcmd = getattr(commands, arguments.command.title() + "Command")(*arguments.args)
+            (cls,) = [
+                cls for (cls, _) in entry_points("cobib.commands") if cls.name == arguments.command
+            ]
+            subcmd = cls.load()(*arguments.args)
             if iscoroutinefunction(subcmd.execute):
                 await subcmd.execute()
             else:

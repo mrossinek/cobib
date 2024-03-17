@@ -2,10 +2,8 @@
 """coBib main body."""
 
 import asyncio
-import sys
 
 from cobib.ui.cli import CLI
-from cobib.ui.shell_helper import ShellHelper
 
 
 async def main() -> None:
@@ -13,11 +11,7 @@ async def main() -> None:
 
     coBib's main function used to parse optional keyword arguments and subcommands.
     """
-    if len(sys.argv) > 1 and any(a[0] == "_" for a in sys.argv):
-        # shell helper function called
-        ShellHelper().run()
-    else:
-        await CLI().run()
+    await CLI().run()
 
 
 def _main() -> None:

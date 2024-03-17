@@ -222,6 +222,13 @@ You can also disable loading of _any_ configuration file be setting this environ
 Finally, be sure to take a look at the man page (`man cobib`) and/or the online documentation for more information.
 
 
+## Plugins
+
+coBib supports the implementation of plugins!
+You can find an example plugin in [this folder](./plugin) or read the docs of
+`cobib_dummy` (when viewing the hosted documentation online).
+
+
 ## Documentation
 
 coBib's documentation is hosted [here](https://cobib.gitlab.io/cobib/cobib.html).

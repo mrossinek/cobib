@@ -57,20 +57,16 @@ normal command-line command:
 from __future__ import annotations
 
 import argparse
-import inspect
 import logging
 from collections import OrderedDict
 from typing import Any, Callable, ClassVar
 
-from rich.console import Console
-from rich.prompt import PromptBase, PromptType
-from textual.app import App
 from typing_extensions import override
 
-from cobib import importers
 from cobib.config import Event, config
 from cobib.database import Database, Entry
 from cobib.importers.base_importer import Importer
+from cobib.ui.components.entry_points import entry_points
 
 from .base_command import ArgumentParser, Command
 
@@ -97,18 +93,13 @@ class ImportCommand(Command):
 
     # NOTE: the Callable type is unable to express the complex signature of the Importer class
     _avail_importers: ClassVar[dict[str, Callable[[Any], Importer]]] = {
-        cls.name: cls for _, cls in inspect.getmembers(importers) if inspect.isclass(cls)
+        cls.name: cls.load() for (cls, _) in entry_points("cobib.importers")
     }
     """The available importers."""
 
     @override
-    def __init__(
-        self,
-        *args: str,
-        console: Console | App[None] | None = None,
-        prompt: type[PromptBase[PromptType]] | None = None,
-    ) -> None:
-        super().__init__(*args, console=console, prompt=prompt)
+    def __init__(self, *args: str) -> None:
+        super().__init__(*args)
 
         self.new_entries: dict[str, Entry] = OrderedDict()
         """An `OrderedDict` mapping labels to `cobib.database.Entry` instances which were imported
@@ -138,7 +129,7 @@ class ImportCommand(Command):
             help="You can pass additional arguments to the chosen importer. To ensure this works as"
             " expected you should add the pseudo-argument '--' before the remaining arguments.",
         )
-        group_import = parser.add_mutually_exclusive_group()
+        group_import = parser.add_mutually_exclusive_group(required=True)
         for name in cls._avail_importers.keys():
             try:
                 group_import.add_argument(f"--{name}", action="store_true", help=f"{name} importer")

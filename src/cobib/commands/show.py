@@ -15,10 +15,8 @@ from __future__ import annotations
 
 import logging
 
-from rich.console import Console, ConsoleRenderable
-from rich.prompt import PromptBase, PromptType
+from rich.console import ConsoleRenderable
 from rich.syntax import Syntax
-from textual.app import App
 from typing_extensions import override
 
 from cobib.config import Event, config
@@ -42,13 +40,8 @@ class ShowCommand(Command):
     name = "show"
 
     @override
-    def __init__(
-        self,
-        *args: str,
-        console: Console | App[None] | None = None,
-        prompt: type[PromptBase[PromptType]] | None = None,
-    ) -> None:
-        super().__init__(*args, console=console, prompt=prompt)
+    def __init__(self, *args: str) -> None:
+        super().__init__(*args)
 
         self.entry_str: str = ""
         """The string-formatted `cobib.database.Entry` shown by this command."""

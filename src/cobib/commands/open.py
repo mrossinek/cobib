@@ -58,10 +58,8 @@ from collections.abc import Callable
 from functools import wraps
 from urllib.parse import ParseResult, urlparse
 
-from rich.console import Console
 from rich.prompt import InvalidResponse, PromptBase, PromptType
 from rich.text import Text
-from textual.app import App
 from typing_extensions import override
 
 from cobib.config import Event, config
@@ -87,13 +85,8 @@ class OpenCommand(Command):
     name = "open"
 
     @override
-    def __init__(
-        self,
-        *args: str,
-        console: Console | App[None] | None = None,
-        prompt: type[PromptBase[PromptType]] | None = None,
-    ) -> None:
-        super().__init__(*args, console=console, prompt=prompt)
+    def __init__(self, *args: str) -> None:
+        super().__init__(*args)
 
         self.opened_entries: set[str] = set()
         """The set of labels corresponding to the entries which were opened by this command."""

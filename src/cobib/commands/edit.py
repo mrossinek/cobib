@@ -52,9 +52,6 @@ import os
 import tempfile
 from pathlib import Path
 
-from rich.console import Console
-from rich.prompt import PromptBase, PromptType
-from textual.app import App
 from typing_extensions import override
 
 from cobib.config import Event, config
@@ -89,13 +86,8 @@ class EditCommand(Command):
     name = "edit"
 
     @override
-    def __init__(
-        self,
-        *args: str,
-        console: Console | App[None] | None = None,
-        prompt: type[PromptBase[PromptType]] | None = None,
-    ) -> None:
-        super().__init__(*args, console=console, prompt=prompt)
+    def __init__(self, *args: str) -> None:
+        super().__init__(*args)
 
         self.new_entry: Entry
         """A `cobib.database.Entry` instance edited by this command."""
