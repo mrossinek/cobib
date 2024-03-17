@@ -929,14 +929,17 @@ In addition to the \fISUBCOMMANDS\fR coBib also provides some "meta"-commands
 for varying purposes.
 .TP
 .B cobib _example_config
-Prints the example configuration. You can do the following to get started with a
-custom configuration:
+Prints the example configuration.
+This is \fIDEPRECATED\fR and will be available as \fIexample_config\fR starting
+from coBib v5.0
+You can do the following to get started with a custom configuration:
 .in +4n
     \fIcobib _example_config > ~/.config/cobib/config.py\fR
-.in -4n
 .TP
 .B cobib _lint_database
 Lints the database file for potential points of formatting improvements.
+This is \fIDEPRECATED\fR and will be available as \fIlint\fR starting from
+coBib v5.0
 .PP
 .in +8n
 .BR \-f ", " \-\-format
@@ -944,14 +947,28 @@ Lints the database file for potential points of formatting improvements.
 If you provide this option, coBib will automatically format your database to
 resolve all found lint messages.
 .TP
+.B cobib _unify_labels
+Updates all entry labels in your database to follow the default naming pattern.
+This is \fIDEPRECATED\fR and will be available as \fIlint\fR starting from
+coBib v5.0
+.PP
+.in +8n
+.BR \-a ", " \-\-apply
+.in +4n
+If you provide this option, coBib will actually apply the updates rather than
+preview them in dry-mode.
+.TP
 .B cobib _list_commands
 Lists all available \fISUBCOMMANDS\fR.
+This is \fIDEPRECATED\fR without replacement.
 .TP
 .B cobib _list_labels
 Lists all labels in your database.
+This is \fIDEPRECATED\fR without replacement.
 .TP
 .B cobib _list_filters
 Lists all available filters.
+This is \fIDEPRECATED\fR without replacement.
 .PP
 .SH ENVIRONMENT
 .TP

@@ -3,6 +3,8 @@
 This class provides access to the commands implemented in the `cobib.utils.shell_helper` module.
 A user can access those from the command-line by prefixing the various function names of that module
 with an underscore, for example: `cobib _example_config`.
+
+This entire module is deprecated and will be removed in version 5.0 of coBib.
 """
 
 import argparse

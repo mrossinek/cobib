@@ -27,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   has any effect (!133)
 - the `prompt` argument to all commands has been deprecated since it no longer
   has any effect (!133)
+- access to the following `shell_helper` commands will change in the next release:
+  - `cobib _lint_database` will become `cobib lint`
+  - `cobib _unify_labels` will become `cobib unify_labels`
+  - `cobib _example_config` will become `cobib example_config`
 
 ### Fixed
 - loading a cached database will be bypassed during `_lint_database` (#133)

@@ -1,6 +1,8 @@
 """coBib's shell helpers.
 
 This module provides a variety of shell helper utilities.
+
+This entire module is deprecated and will be removed in version 5.0 of coBib.
 """
 
 from __future__ import annotations
@@ -85,6 +87,12 @@ def example_config(*args: str) -> list[str]:
     Returns:
         The lines of the example config file.
     """
+    msg = (
+        "The '_example_config' shell helper utility will be refactored to become the "
+        "'example_config' command in version 5.0 of coBib."
+    )
+    LOGGER.warning(msg)
+
     root = RelPath(__file__).parent.parent
     with open(root / "config/example.py", "r", encoding="utf-8") as file:
         return [line.strip() for line in file.readlines()]
@@ -146,6 +154,12 @@ def lint_database(*args: str) -> list[str]:
     Returns:
         The list of INFO log messages raised upon Entry initialization.
     """
+    msg = (
+        "The '_lint_database' shell helper utility will be refactored to become the 'lint' command "
+        "in version 5.0 of coBib."
+    )
+    LOGGER.warning(msg)
+
     parser = argparse.ArgumentParser(prog="lint_database", description="A database format linter.")
     parser.add_argument(
         "-f",
@@ -236,6 +250,12 @@ def unify_labels(*args: str) -> list[str]:
     Returns:
         The list of INFO log messages raised upon label unification.
     """
+    msg = (
+        "The '_unify_labels' shell helper utility will be refactored to become the 'unify_labels' "
+        "command in version 5.0 of coBib."
+    )
+    LOGGER.warning(msg)
+
     parser = argparse.ArgumentParser(prog="unify_labels", description="Label unification")
     parser.add_argument(
         "-a",
