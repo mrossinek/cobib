@@ -89,6 +89,19 @@ cobib = ["py.typed"]
 [tool.pytest.ini_options]
 log_level = "DEBUG"
 
+[tool.coverage.run]
+source = ["src/cobib/"]
+parallel = true
+branch = true
+
+[tool.coverage.report]
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "parser.print_usage\\(sys.stderr\\)",
+    "sys.exit\\(1\\)",
+]
+show_missing = true
+
 [tool.mypy]
 python_version = 3.8
 show_error_codes = true
