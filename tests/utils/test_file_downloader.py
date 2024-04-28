@@ -57,7 +57,7 @@ async def test_download(monkeypatch: pytest.MonkeyPatch) -> None:
         except FileNotFoundError:
             pass
         # disable the PDF assertion method
-        monkeypatch.setattr(FileDownloader, "_assert_pdf", lambda _: True)
+        monkeypatch.setattr(FileDownloader, "_assert_pdf", lambda *_: True)
         path = await FileDownloader().download(
             "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
             "dummy",
@@ -215,7 +215,7 @@ async def test_event_pre_download(monkeypatch: pytest.MonkeyPatch) -> None:
         except FileNotFoundError:
             pass
         # disable the PDF assertion method
-        monkeypatch.setattr(FileDownloader, "_assert_pdf", lambda _: True)
+        monkeypatch.setattr(FileDownloader, "_assert_pdf", lambda *_: True)
         path = await FileDownloader().download(
             "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
             "dummy",
@@ -249,7 +249,7 @@ async def test_event_post_download(monkeypatch: pytest.MonkeyPatch) -> None:
         except FileNotFoundError:
             pass
         # disable the PDF assertion method
-        monkeypatch.setattr(FileDownloader, "_assert_pdf", lambda _: True)
+        monkeypatch.setattr(FileDownloader, "_assert_pdf", lambda *_: True)
         path = await FileDownloader().download(
             "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
             "dummy",

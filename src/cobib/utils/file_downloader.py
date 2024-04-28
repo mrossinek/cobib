@@ -45,17 +45,18 @@ class FileDownloader:
     indeed a PDF file."""
 
     @staticmethod
-    def _assert_pdf(content: bytes) -> bool:
+    def _assert_pdf(url: str, content: bytes) -> bool:
         """Asserts that the `content` starts with the `_PDF_MARKER`.
 
         Args:
+            url: the URL from which the content was downloaded.
             content: the string of bytes to check.
 
         Returns:
             Whether the `content` matches.
         """
         if not content.startswith(FileDownloader._PDF_MARKER):
-            LOGGER.warning("The URL did not provide a PDF file. Aborting download!")
+            LOGGER.warning(f"The URL '{url}' did not provide a PDF file. Aborting download!")
             return False
         return True
 
@@ -141,14 +142,14 @@ class FileDownloader:
             accumulated_length = 0
 
             if total_length is None:
-                if not FileDownloader._assert_pdf(response.content):
+                if not FileDownloader._assert_pdf(url, response.content):
                     FileDownloader._recover(path, backup)
                     progress_bar.stop()
                     return None
                 file.write(response.content)
             else:
                 for data in response.iter_content(chunk_size=4096):
-                    if accumulated_length == 0 and not FileDownloader._assert_pdf(data):
+                    if accumulated_length == 0 and not FileDownloader._assert_pdf(url, data):
                         FileDownloader._recover(path, backup)
                         progress_bar.stop()
                         return None
