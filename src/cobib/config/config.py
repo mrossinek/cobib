@@ -1066,7 +1066,7 @@ class Config(_ConfigBase):
             sys.exit(1)
         else:
             cfg = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(cfg)  # type: ignore
+            spec.loader.exec_module(cfg)  # type: ignore[union-attr]
 
         try:
             # validate config

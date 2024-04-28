@@ -3,11 +3,9 @@
 from __future__ import annotations
 
 import contextlib
-import os
 from copy import copy
 from io import StringIO
 from itertools import zip_longest
-from shutil import copyfile
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -16,9 +14,7 @@ from typing_extensions import override
 
 from cobib.commands import ListCommand
 from cobib.config import Event, config
-from cobib.database import Database
 
-from .. import get_resource
 from .command_test import CommandTest
 
 if TYPE_CHECKING:
@@ -262,34 +258,6 @@ class TestListCommand(CommandTest):
         assert len(renderable.rows) == len(expected_rows)
 
         assert renderable.columns[0]._cells == expected_rows
-
-    # manually overwrite this test because we must populate the database with actual data
-    def test_handle_argument_error(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test handling of ArgumentError.
-
-        Args:
-            caplog: the built-in pytest fixture.
-        """
-        # use temporary config
-        config.database.file = self.COBIB_TEST_DIR / "database.yaml"
-        config.database.git = True
-
-        # load temporary database
-        os.makedirs(self.COBIB_TEST_DIR, exist_ok=True)
-        copyfile(get_resource("example_literature.yaml"), config.database.file)
-        Database().read()
-
-        try:
-            super().test_handle_argument_error(caplog)
-        except SystemExit:
-            pass
-        finally:
-            # clean up file system
-            os.remove(config.database.file)
-            # clean up database
-            Database.reset()
-            # clean up config
-            config.defaults()
 
     def test_event_pre_list_command(self, setup: Any) -> None:
         """Tests the PreListCommand event."""

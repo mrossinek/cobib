@@ -117,8 +117,8 @@ class FileDownloader:
 
             try:
                 response = requests.get(url, timeout=10, stream=True, headers=headers)
-                total_length = response.headers.get("content-length", None)
-                total_length = int(total_length) if total_length is not None else None
+                total_length_str = response.headers.get("content-length", None)
+                total_length = int(total_length_str) if total_length_str is not None else None
             except requests.exceptions.RequestException as err:
                 msg = f"An Exception occurred while downloading the file located at {url}"
                 LOGGER.warning(msg)

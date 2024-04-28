@@ -11,11 +11,13 @@ cobib _example_config
 
 from __future__ import annotations
 
+import argparse
+
 from rich.console import ConsoleRenderable
 from rich.syntax import Syntax
 from typing_extensions import override
 
-from cobib.commands.base_command import ArgumentParser, Command
+from cobib.commands.base_command import Command
 from cobib.utils.rel_path import RelPath
 
 
@@ -36,7 +38,7 @@ class ExampleConfigCommand(Command):
     @override
     @classmethod
     def init_argparser(cls) -> None:
-        cls.argparser = ArgumentParser(prog="example_config")
+        cls.argparser = argparse.ArgumentParser(prog="example_config", exit_on_error=True)
 
     @override
     def execute(self) -> None:

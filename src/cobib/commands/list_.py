@@ -112,7 +112,7 @@ from cobib.config import Event, config
 from cobib.database import Database, Entry
 from cobib.ui.components import ListView
 
-from .base_command import ArgumentParser, Command
+from .base_command import Command
 
 LOGGER = logging.getLogger(__name__)
 """@private module logger."""
@@ -160,8 +160,11 @@ class ListCommand(Command):
     @override
     @classmethod
     def init_argparser(cls) -> None:
-        parser = ArgumentParser(
-            prog="list", description="List subcommand parser.", prefix_chars="+-"
+        parser = argparse.ArgumentParser(
+            prog="list",
+            description="List subcommand parser.",
+            prefix_chars="+-",
+            exit_on_error=True,
         )
         parser.add_argument("-s", "--sort", help="specify column along which to sort the list")
         parser.add_argument(

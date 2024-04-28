@@ -173,7 +173,7 @@ class TestDeleteCommand(CommandTest):
             path = RelPath(tmpdirname + "/dummy.pdf")
             open(path.path, "w", encoding="utf-8").close()
 
-            Database()["knuthwebsite"].file = str(path)
+            Database()["knuthwebsite"].file = str(path)  # type: ignore[assignment]
 
             args = ["knuthwebsite"]
             if preserve_files is not None:

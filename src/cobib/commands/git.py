@@ -58,7 +58,7 @@ from typing_extensions import override
 from cobib.config import Event, config
 from cobib.utils.rel_path import RelPath
 
-from .base_command import ArgumentParser, Command
+from .base_command import Command
 
 LOGGER = logging.getLogger(__name__)
 """@private module logger."""
@@ -76,7 +76,9 @@ class GitCommand(Command):
     @override
     @classmethod
     def init_argparser(cls) -> None:
-        parser = ArgumentParser(prog="git", description="Git subcommand parser.")
+        parser = argparse.ArgumentParser(
+            prog="git", description="Git subcommand parser.", exit_on_error=True
+        )
         parser.add_argument("git_args", nargs=argparse.REMAINDER, help="the arguments to git")
         cls.argparser = parser
 

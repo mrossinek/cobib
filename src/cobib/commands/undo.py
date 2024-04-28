@@ -25,6 +25,7 @@ By default, it is bound to the `u` key.
 
 from __future__ import annotations
 
+import argparse
 import logging
 import subprocess
 import sys
@@ -36,7 +37,7 @@ from cobib.config import Event, config
 from cobib.database import Database
 from cobib.utils.rel_path import RelPath
 
-from .base_command import ArgumentParser, Command
+from .base_command import Command
 
 LOGGER = logging.getLogger(__name__)
 """@private module logger."""
@@ -66,7 +67,9 @@ class UndoCommand(Command):
     @override
     @classmethod
     def init_argparser(cls) -> None:
-        parser = ArgumentParser(prog="undo", description="Undo subcommand parser.")
+        parser = argparse.ArgumentParser(
+            prog="undo", description="Undo subcommand parser.", exit_on_error=True
+        )
         parser.add_argument(
             "-f", "--force", action="store_true", help="allow undoing non auto-committed changes"
         )

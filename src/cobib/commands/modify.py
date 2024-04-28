@@ -94,6 +94,7 @@ normal command-line command:
 
 from __future__ import annotations
 
+import argparse
 import ast
 import logging
 from collections.abc import Callable
@@ -108,7 +109,7 @@ from cobib.database import Database, Entry
 from cobib.utils.logging import get_stream_handler
 from cobib.utils.rel_path import RelPath
 
-from .base_command import ArgumentParser, Command
+from .base_command import Command
 from .list_ import ListCommand
 
 LOGGER = logging.getLogger(__name__)
@@ -176,7 +177,9 @@ class ModifyCommand(Command):
     @override
     @classmethod
     def init_argparser(cls) -> None:
-        parser = ArgumentParser(prog="modify", description="Modify subcommand parser.")
+        parser = argparse.ArgumentParser(
+            prog="modify", description="Modify subcommand parser.", exit_on_error=True
+        )
         parser.add_argument(
             "modification",
             type=ModifyCommand.field_value_pair,
@@ -435,7 +438,7 @@ def evaluate_ast_node(node: ast.expr, locals_: dict[str, Any] | None = None) -> 
         locals_["unidecode"] = unidecode
 
     try:
-        return eval(  # type: ignore
+        return eval(  # type: ignore[no-any-return]
             compile(ast.Expression(node), filename="<string>", mode="eval"), locals_
         )
     except NameError as err:
@@ -466,7 +469,7 @@ def evaluate_as_f_string(value: str, locals_: dict[str, Any] | None = None) -> s
         locals_["unidecode"] = unidecode
 
     result: list[str] = []
-    for part in ast.parse(f"f'''{value}'''").body[0].value.values:  # type: ignore
+    for part in ast.parse(f"f'''{value}'''").body[0].value.values:  # type: ignore[attr-defined]
         typ = type(part)
 
         if typ is ast.Constant:

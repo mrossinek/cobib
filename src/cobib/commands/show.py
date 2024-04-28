@@ -13,6 +13,7 @@ By default, it is bound to the `ENTER` key.
 
 from __future__ import annotations
 
+import argparse
 import logging
 
 from rich.console import ConsoleRenderable
@@ -23,7 +24,7 @@ from cobib.config import Event, config
 from cobib.database import Database
 from cobib.parsers.bibtex import BibtexParser
 
-from .base_command import ArgumentParser, Command
+from .base_command import Command
 
 LOGGER = logging.getLogger(__name__)
 """@private module logger."""
@@ -49,7 +50,9 @@ class ShowCommand(Command):
     @override
     @classmethod
     def init_argparser(cls) -> None:
-        parser = ArgumentParser(prog="show", description="Show subcommand parser.")
+        parser = argparse.ArgumentParser(
+            prog="show", description="Show subcommand parser.", exit_on_error=True
+        )
         parser.add_argument("label", type=str, help="label of the entry")
         cls.argparser = parser
 

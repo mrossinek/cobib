@@ -27,6 +27,7 @@ git-integration by only running the second command.
 
 from __future__ import annotations
 
+import argparse
 import logging
 import os
 import sys
@@ -37,7 +38,7 @@ from typing_extensions import override
 from cobib.config import Event, config
 from cobib.utils.rel_path import RelPath
 
-from .base_command import ArgumentParser, Command
+from .base_command import Command
 
 LOGGER = logging.getLogger(__name__)
 """@private module logger."""
@@ -67,7 +68,9 @@ class InitCommand(Command):
     @override
     @classmethod
     def init_argparser(cls) -> None:
-        parser = ArgumentParser(prog="init", description="Init subcommand parser.")
+        parser = argparse.ArgumentParser(
+            prog="init", description="Init subcommand parser.", exit_on_error=True
+        )
         parser.add_argument("-g", "--git", action="store_true", help="initialize git repository")
         cls.argparser = parser
 

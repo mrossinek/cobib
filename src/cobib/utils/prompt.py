@@ -165,12 +165,12 @@ class Confirm:
     ) -> Callable[[PromptBase[bool], str], bool]:
         @wraps(func)
         def process_response(prompt: PromptBase[bool], value: str) -> bool:
-            return_value: bool = func(prompt, value)
+            return_value = func(prompt, value)
 
             if isinstance(return_value, bool):
                 return return_value
 
-            if cast(str, return_value).strip().lower() == "y":
+            if cast(str, return_value).strip().lower() == "y":  # type: ignore[unreachable]
                 return True
 
             if cast(str, return_value).strip().lower() == "n":

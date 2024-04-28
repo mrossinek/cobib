@@ -110,7 +110,7 @@ class TestMainExecutable(CmdLineTest):
         await self.run_module(monkeypatch, "main", ["cobib", "-l", logfile, *args])
         try:
             assert isinstance(logging.getLogger().handlers[-1], logging.FileHandler)
-            assert logging.getLogger().handlers[-1].baseFilename == logfile  # type: ignore
+            assert logging.getLogger().handlers[-1].baseFilename == logfile  # type: ignore[attr-defined]
         finally:
             os.remove(logfile)
 

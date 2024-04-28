@@ -119,7 +119,7 @@ from cobib.parsers import YAMLParser
 from cobib.utils.prompt import Prompt
 from cobib.utils.rel_path import RelPath
 
-from .base_command import ArgumentParser, Command
+from .base_command import Command
 from .edit import EditCommand
 from .list_ import ListCommand
 
@@ -167,7 +167,9 @@ class ReviewCommand(Command):
     @override
     @classmethod
     def init_argparser(cls) -> None:
-        parser = ArgumentParser(prog="review", description="Review subcommand parser.")
+        parser = argparse.ArgumentParser(
+            prog="review", description="Review subcommand parser.", exit_on_error=True
+        )
         parser.add_argument("field", type=str, nargs="*", help="the field(s) to review")
         parser.add_argument(
             "-c",

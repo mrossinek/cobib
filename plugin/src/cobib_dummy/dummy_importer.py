@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import argparse
+
 from typing_extensions import override
 
 from cobib.database import Entry
-from cobib.importers.base_importer import ArgumentParser, Importer
+from cobib.importers.base_importer import Importer
 
 
 class DummyImporter(Importer):
@@ -14,7 +16,9 @@ class DummyImporter(Importer):
     @override
     @classmethod
     def init_argparser(cls) -> None:
-        parser = ArgumentParser(prog="dummy", description="Dummy importer parser.")
+        parser = argparse.ArgumentParser(
+            prog="dummy", description="Dummy importer parser.", exit_on_error=True
+        )
         cls.argparser = parser
 
     @override

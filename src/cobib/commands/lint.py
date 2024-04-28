@@ -5,6 +5,7 @@ This command allows you to lint your database.
 
 from __future__ import annotations
 
+import argparse
 import logging
 from io import StringIO
 
@@ -15,7 +16,7 @@ from typing_extensions import override
 from cobib.database import Database
 from cobib.utils.rel_path import RelPath
 
-from .base_command import ArgumentParser, Command
+from .base_command import Command
 
 LOGGER = logging.getLogger(__name__)
 """@private module logger."""
@@ -24,7 +25,7 @@ LOGGER = logging.getLogger(__name__)
 class LintFormatter(logging.Formatter):
     """A custom logging.Formatter."""
 
-    def __init__(self, *args, **kwargs) -> None:  # type: ignore
+    def __init__(self, *args, **kwargs) -> None:  # type: ignore[no-untyped-def]
         """Initializes a LintFormatter."""
         super().__init__(*args, **kwargs)
 
@@ -85,7 +86,9 @@ class LintCommand(Command):
     @override
     @classmethod
     def init_argparser(cls) -> None:
-        parser = ArgumentParser(prog="lint", description="Lint subcommand parser.")
+        parser = argparse.ArgumentParser(
+            prog="lint", description="Lint subcommand parser.", exit_on_error=True
+        )
         parser.add_argument(
             "-f",
             "--format",

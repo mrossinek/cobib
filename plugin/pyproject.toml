@@ -11,7 +11,7 @@ authors = [
     {name = "Max Rossmannek", email = "max@rossmannek.de"},
 ]
 description = "Console Bibliography Dummy Plugin"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = {text = "MIT License"}
 dependencies = [
     "cobib",

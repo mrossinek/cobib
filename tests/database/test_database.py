@@ -102,7 +102,7 @@ def test_database_update() -> None:
     """Test the `cobib.database.Database.update` method."""
     entries = {"dummy1": "test1", "dummy2": "test2", "dummy3": "test3"}
     bib = Database()
-    bib.update(entries)  # type: ignore
+    bib.update(entries)  # type: ignore[arg-type]
 
     assert Database._unsaved_entries == {e: e for e in list(entries.keys())}
     for key, val in entries.items():
@@ -113,7 +113,7 @@ def test_database_pop() -> None:
     """Test the `cobib.database.Database.pop` method."""
     entries = {"dummy1": "test1", "dummy2": "test2", "dummy3": "test3"}
     bib = Database()
-    bib.update(entries)  # type: ignore
+    bib.update(entries)  # type: ignore[arg-type]
 
     Database._unsaved_entries = {}
     assert Database._unsaved_entries == {}
@@ -152,9 +152,9 @@ def test_database_disambiguate_label(label_suffix: tuple[str, LabelSuffix], expe
 
     entries = {"dummy": "test", "test": "no"}
     bib = Database()
-    bib.update(entries)  # type: ignore
+    bib.update(entries)  # type: ignore[arg-type]
 
-    new_label = Database().disambiguate_label("test", entries["dummy"])  # type: ignore
+    new_label = Database().disambiguate_label("test", entries["dummy"])  # type: ignore[arg-type]
     assert new_label == expected
 
 

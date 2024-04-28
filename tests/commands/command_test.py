@@ -142,8 +142,6 @@ class CommandTest(CmdLineTest):
             message, _ = proc.communicate()
             # decode it
             split_msg = message.decode("utf-8").split("\n")
-            if split_msg is None:
-                return
 
             if msg is not None:
                 assert msg == "\n".join(split_msg)
@@ -157,24 +155,3 @@ class CommandTest(CmdLineTest):
                 args_str = json.dumps(args, indent=2, default=str)
                 for ref, truth in zip(args_str.split("\n"), split_msg[2:]):
                     assert ref == truth
-
-    def test_handle_argument_error(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test handling of ArgumentError.
-
-        Args:
-            caplog: the built-in pytest fixture.
-        """
-        command_cls = self.get_command()
-        try:
-            command_cls("--dummy").execute()
-        except SystemExit:
-            pass
-        name = command_cls.name
-        for source, level, message in caplog.record_tuples:
-            if ("cobib.commands.base_command", logging.ERROR) == (
-                source,
-                level,
-            ) and f"Error: {name}: error:" in message:
-                break
-        else:
-            pytest.fail("No Error logged from ArgumentParser.")

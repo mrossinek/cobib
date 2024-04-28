@@ -71,7 +71,7 @@ from cobib.parsers.bibtex import BibtexParser
 from cobib.utils.journal_abbreviations import JournalAbbreviations
 from cobib.utils.rel_path import RelPath
 
-from .base_command import ArgumentParser, Command
+from .base_command import Command
 from .list_ import ListCommand
 
 LOGGER = logging.getLogger(__name__)
@@ -108,7 +108,9 @@ class ExportCommand(Command):
     @override
     @classmethod
     def init_argparser(cls) -> None:
-        parser = ArgumentParser(prog="export", description="Export subcommand parser.")
+        parser = argparse.ArgumentParser(
+            prog="export", description="Export subcommand parser.", exit_on_error=True
+        )
         parser.add_argument(
             "-b", "--bibtex", type=argparse.FileType("a"), help="BibLaTeX output file"
         )
@@ -178,7 +180,7 @@ class ExportCommand(Command):
                 if "file" in entry.data.keys() and entry.file is not None:
                     files = entry.file
                     if not isinstance(files, list):
-                        files = [files]
+                        files = [files]  # type: ignore[unreachable]
                     for file in files:
                         path = RelPath(file).path
                         LOGGER.debug(

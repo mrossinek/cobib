@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - the previously deprecated `--update` argument of the `add` command (!168)
 - the previously deprecated `--skip-existing` argument of the `add` command (!168)
 - the previously deprecated `LabelSuffix.CAPTIAL` attribute (!168)
+- Python 3.8 is no longer supported (!173)
 
 
 ## [4.5.0] - 2024-03-17

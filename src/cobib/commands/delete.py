@@ -29,6 +29,7 @@ By default, it is bound to the `d` key.
 
 from __future__ import annotations
 
+import argparse
 import logging
 import os
 
@@ -39,7 +40,7 @@ from cobib.database import Database
 from cobib.utils.prompt import Confirm
 from cobib.utils.rel_path import RelPath
 
-from .base_command import ArgumentParser, Command
+from .base_command import Command
 
 LOGGER = logging.getLogger(__name__)
 """@private module logger."""
@@ -69,7 +70,9 @@ class DeleteCommand(Command):
     @override
     @classmethod
     def init_argparser(cls) -> None:
-        parser = ArgumentParser(prog="delete", description="Delete subcommand parser.")
+        parser = argparse.ArgumentParser(
+            prog="delete", description="Delete subcommand parser.", exit_on_error=True
+        )
         parser.add_argument("labels", type=str, nargs="+", help="labels of the entries")
         preserve_files_group = parser.add_mutually_exclusive_group()
         preserve_files_group.add_argument(

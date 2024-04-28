@@ -97,7 +97,7 @@ class Author(NamedTuple):
             for part in parts[1:-1]:
                 if part[0].islower():
                     if particle:
-                        particle += " " + part
+                        particle += " " + part  # type: ignore[unreachable]
                     else:
                         particle = part
                 else:

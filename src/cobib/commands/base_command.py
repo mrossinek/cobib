@@ -14,7 +14,6 @@ from rich.console import ConsoleRenderable
 from textual.widget import Widget
 
 from cobib.config import Event, config
-from cobib.ui.components import ArgumentParser as ArgumentParser  # noqa: PLC0414
 from cobib.utils.rel_path import RelPath
 
 LOGGER = logging.getLogger(__name__)
@@ -31,7 +30,7 @@ class Command(ABC):
     """The commands `name` is used to extract the available commands for the command-line interface.
     """
 
-    argparser: ArgumentParser
+    argparser: argparse.ArgumentParser
     """Every command has its own `argparse.ArgumentParser` which is used to parse the arguments
     provided to the command. This is done no matter how the command is executed, whether
     programmatically via Python, from the command-line or any other UI."""
@@ -59,7 +58,7 @@ class Command(ABC):
         """
 
     @classmethod
-    def _get_argparser(cls) -> ArgumentParser:
+    def _get_argparser(cls) -> argparse.ArgumentParser:
         """Returns this command's `argparse.ArgumentParser`.
 
         The reason for having this method is to handle the parser initialization such that it only

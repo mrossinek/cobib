@@ -101,11 +101,3 @@ class TestGitCommand(CommandTest):
         GitCommand("--version").execute()
 
         assert "--version" in capsys.readouterr().err
-
-    @pytest.mark.skip("Not applicable for this command.")
-    def test_handle_argument_error(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test handling of ArgumentError.
-
-        Args:
-            caplog: the built-in pytest fixture.
-        """
