@@ -8,7 +8,6 @@ import sys
 from abc import ABC, abstractmethod
 
 from cobib.database import Entry
-from cobib.ui.components import ArgumentParser as ArgumentParser  # noqa: PLC0414
 
 LOGGER = logging.getLogger(__name__)
 """@private module logger."""
@@ -24,7 +23,7 @@ class Importer(ABC):
     """The importers `name` is used to register itself as an input argument to the
     `cobib.commands.import_.ImportCommand`."""
 
-    argparser: ArgumentParser
+    argparser: argparse.ArgumentParser
     """Every importer has its own `argparse.ArgumentParser` which is used to parse the arguments
     provided to it."""
 
@@ -57,7 +56,7 @@ class Importer(ABC):
         """
 
     @classmethod
-    def _get_argparser(cls) -> ArgumentParser:
+    def _get_argparser(cls) -> argparse.ArgumentParser:
         """Returns this importer's `argparse.ArgumentParser`.
 
         The reason for having this method is to handle the parser initialization such that it only

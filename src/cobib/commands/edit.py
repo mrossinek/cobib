@@ -47,6 +47,7 @@ then type out the command mentioned above:
 
 from __future__ import annotations
 
+import argparse
 import logging
 import os
 import tempfile
@@ -60,7 +61,7 @@ from cobib.parsers.yaml import YAMLParser
 from cobib.utils.context import get_active_app
 from cobib.utils.rel_path import RelPath
 
-from .base_command import ArgumentParser, Command
+from .base_command import Command
 
 LOGGER = logging.getLogger(__name__)
 """@private module logger."""
@@ -95,7 +96,9 @@ class EditCommand(Command):
     @override
     @classmethod
     def init_argparser(cls) -> None:
-        parser = ArgumentParser(prog="edit", description="Edit subcommand parser.")
+        parser = argparse.ArgumentParser(
+            prog="edit", description="Edit subcommand parser.", exit_on_error=True
+        )
         parser.add_argument("label", type=str, help="label of the entry")
         parser.add_argument(
             "-a",

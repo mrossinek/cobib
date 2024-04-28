@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import contextlib
-import logging
 import tempfile
 from datetime import datetime
 from io import StringIO
@@ -66,8 +65,7 @@ class TestModifyCommand(CommandTest):
             filters: the filter arguments for the command.
             selection: whether the filters are of `selection` type.
             add_remove:  a tuple indicating whether to use the `add` or `remove` mode. Setting both
-                to `True` is not supported since these options are mutually exclusive. Handling
-                this situation is tested in `test_add_remove_exclusive`.
+                to `True` is not supported since these options are mutually exclusive.
             dry: whether to run in dry mode.
         """
         git = setup.get("git", False)
@@ -175,24 +173,6 @@ class TestModifyCommand(CommandTest):
 
         assert Database()["einstein"].data.get(field, None) == expected
 
-    def test_add_remove_exclusive(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test that `--add` and `--remove` are mutually exclusive.
-
-        Args:
-            caplog: the built-in pytest fixture.
-        """
-        with pytest.raises(SystemExit):
-            ModifyCommand("-a", "-r", "dummy:test", "++label", "einstein").execute()
-
-        for source, level, message in caplog.record_tuples:
-            if ("cobib.commands.base_command", logging.ERROR) == (
-                source,
-                level,
-            ) and "Error: modify: error:" in message:
-                break
-        else:
-            pytest.fail("No Error logged from ArgumentParser.")
-
     @pytest.mark.parametrize(
         ["modification", "expected"],
         [
@@ -248,7 +228,7 @@ class TestModifyCommand(CommandTest):
             path = RelPath(tmpdirname + "/knuthwebsite.pdf")
             open(path.path, "w", encoding="utf-8").close()
 
-            Database()["knuthwebsite"].file = str(path)
+            Database()["knuthwebsite"].file = str(path)  # type: ignore[assignment]
 
             args = ["label:dummy", "-s", "--", "knuthwebsite"]
             if preserve_files is not None:

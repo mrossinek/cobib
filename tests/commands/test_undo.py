@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import contextlib
 import logging
-import os
 import subprocess
 from io import StringIO
 from shutil import rmtree
@@ -14,7 +13,7 @@ import pytest
 from typing_extensions import override
 
 from cobib.commands import AddCommand, UndoCommand
-from cobib.config import Event, config
+from cobib.config import Event
 from cobib.database import Database
 
 from .. import get_resource
@@ -173,30 +172,6 @@ class TestUndoCommand(CommandTest):
         await self.run_module(monkeypatch, "main", ["cobib", "undo"])
 
         self._assert()
-
-    # manually overwrite this test because we must enable git integration
-    def test_handle_argument_error(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test handling of ArgumentError.
-
-        Args:
-            caplog: the built-in pytest fixture.
-        """
-        # use temporary config
-        config.database.file = self.COBIB_TEST_DIR / "database.yaml"
-        config.database.git = True
-
-        # initialize git-tracking
-        self.COBIB_TEST_DIR.mkdir(parents=True, exist_ok=True)
-        open(config.database.file, "w", encoding="utf-8").close()
-        os.system("git init " + str(self.COBIB_TEST_DIR))
-
-        try:
-            super().test_handle_argument_error(caplog)
-        finally:
-            # clean up file system
-            rmtree(self.COBIB_TEST_DIR_GIT)
-            # clean up config
-            config.defaults()
 
     @pytest.mark.parametrize("setup", [{"git": True}], indirect=["setup"])
     def test_event_pre_undo_command(self, setup: Any) -> None:

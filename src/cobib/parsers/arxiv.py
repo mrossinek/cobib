@@ -69,16 +69,16 @@ class ArxivParser(Parser):
             LOGGER.error(err)
             return OrderedDict()
         xml = BeautifulSoup(page.text, features="xml")
-        if xml.feed.entry.title.contents[0] == "Error":
+        if xml.feed.entry.title.contents[0] == "Error":  # type: ignore[union-attr]
             msg = (
-                "The arXiv API returned the following error: " + xml.feed.entry.summary.contents[0]
+                "The arXiv API returned the following error: " + xml.feed.entry.summary.contents[0]  # type: ignore[operator,union-attr]
             )
             LOGGER.warning(msg)
             return OrderedDict()
         label = ""
         entry: dict[str, Any] = {}
         entry["archivePrefix"] = "arXiv"
-        for key in xml.feed.entry.findChildren(recursive=False):
+        for key in xml.feed.entry.findChildren(recursive=False):  # type: ignore[union-attr]
             if "doi" in key.name:
                 entry["doi"] = str(key.contents[0])
             elif key.name == "id":

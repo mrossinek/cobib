@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import logging
 import tempfile
 from itertools import zip_longest
 from pathlib import Path
@@ -90,26 +89,6 @@ class TestZoteroImporter(ImporterTest):
                 assert cached_data["Zotero"]["UserID"] == "8608002"
         finally:
             config.defaults()
-
-    @pytest.mark.asyncio
-    async def test_handle_argument_error(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test handling of ArgumentError.
-
-        Args:
-            caplog: the built-in pytest fixture.
-        """
-        try:
-            await ZoteroImporter("--dummy").fetch()
-        except SystemExit:
-            pass
-        for source, level, message in caplog.record_tuples:
-            if ("cobib.importers.base_importer", logging.ERROR) == (
-                source,
-                level,
-            ) and "Error: zotero: error:" in message:
-                break
-        else:
-            pytest.fail("No Error logged from ArgumentParser.")
 
     @pytest.mark.asyncio
     async def test_event_pre_zotero_import(self) -> None:

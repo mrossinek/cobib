@@ -25,4 +25,4 @@ class CmdLineTest:
         os.environ["COBIB_CONFIG"] = "0"
         monkeypatch.setattr("sys.argv", sys_argv)
         module = runpy.run_module("cobib")
-        await module.get(main)()  # type: ignore
+        await module.get(main)()  # type: ignore[misc]

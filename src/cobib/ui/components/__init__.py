@@ -10,7 +10,6 @@ This module provides various UI-related components such as widgets and other uti
    releases. You have been warned.
 """
 
-from .argument_parser import ArgumentParser as ArgumentParser
 from .entry_view import EntryView as EntryView
 from .help_screen import HelpScreen as HelpScreen
 from .input_screen import InputScreen as InputScreen

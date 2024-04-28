@@ -80,7 +80,7 @@ from cobib.database import Entry
 from cobib.ui.components import SearchView
 from cobib.utils.progress import Progress
 
-from .base_command import ArgumentParser, Command
+from .base_command import Command
 from .list_ import ListCommand
 
 LOGGER = logging.getLogger(__name__)
@@ -129,7 +129,9 @@ class SearchCommand(Command):
     @override
     @classmethod
     def init_argparser(cls) -> None:
-        parser = ArgumentParser(prog="search", description="Search subcommand parser.")
+        parser = argparse.ArgumentParser(
+            prog="search", description="Search subcommand parser.", exit_on_error=True
+        )
         parser.add_argument("query", type=str, nargs="+", help="text to search for")
         ignore_case_group = parser.add_mutually_exclusive_group()
         ignore_case_group.add_argument(

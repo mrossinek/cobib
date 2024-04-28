@@ -10,7 +10,6 @@ from abc import abstractmethod
 from typing import Any
 
 from cobib.config import config
-from cobib.ui.components import ArgumentParser
 from cobib.utils.logging import get_file_handler, get_stream_handler
 
 LOGGER = logging.getLogger(__name__)
@@ -29,7 +28,7 @@ class UI:
         * `-c`, `--config`: provides the path to an alternative configuration file.
     """
 
-    parser: ArgumentParser
+    parser: argparse.ArgumentParser
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initializes a UI object.
@@ -61,7 +60,7 @@ class UI:
         Args:
             **kwargs: arbitrary keyword arguments passed on to the `ArgumentParser` constructor.
         """
-        self.parser = ArgumentParser(**kwargs)
+        self.parser = argparse.ArgumentParser(exit_on_error=True, **kwargs)
         self.parser.add_argument("-v", "--verbose", action="count", default=0)
         self.parser.add_argument(
             "-p",
@@ -80,7 +79,8 @@ class UI:
     def add_extra_parser_arguments(self) -> None:
         """A hook to register additional command-line arguments.
 
-        Subclasses can overwrite this method to add additional arguments to the `ArgumentParser`.
+        Subclasses can overwrite this method to add additional arguments to the
+        `argparse.ArgumentParser`.
         This method is internally called during `init_argument_parser`.
         """
 

@@ -41,6 +41,7 @@ cobib import --zotero -- --user-id <user ID> --api-key <API key>
 
 from __future__ import annotations
 
+import argparse
 import json
 import logging
 import os
@@ -57,7 +58,7 @@ from cobib.parsers import BibtexParser
 from cobib.utils.file_downloader import FileDownloader
 from cobib.utils.rel_path import RelPath
 
-from .base_importer import ArgumentParser, Importer
+from .base_importer import Importer
 
 LOGGER = logging.getLogger(__name__)
 """@private module logger."""
@@ -109,7 +110,9 @@ class ZoteroImporter(Importer):
     @override
     @classmethod
     def init_argparser(cls) -> None:
-        parser = ArgumentParser(prog="zotero", description="Zotero migration parser.")
+        parser = argparse.ArgumentParser(
+            prog="zotero", description="Zotero migration parser.", exit_on_error=True
+        )
         parser.add_argument(
             "--no-cache", action="store_true", help="disable use of cached OAuth tokens"
         )

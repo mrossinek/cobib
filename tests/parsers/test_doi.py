@@ -77,7 +77,7 @@ class TestDOIParser(ParserTest):
             monkeypatch: the built-in pytest fixture.
         """
 
-        def raise_exception(*args, **kwargs):  # type: ignore
+        def raise_exception(*args, **kwargs):  # type: ignore[no-untyped-def]
             """Mock function to raise an Exception."""
             raise requests.exceptions.RequestException()
 

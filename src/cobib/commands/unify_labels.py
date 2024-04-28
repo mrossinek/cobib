@@ -6,6 +6,7 @@ set for `cobib.config.config.DatabaseFormatConfig.label_default`.
 
 from __future__ import annotations
 
+import argparse
 import contextlib
 import logging
 from io import StringIO
@@ -16,7 +17,7 @@ from typing_extensions import override
 
 from cobib.config import config
 
-from .base_command import ArgumentParser, Command
+from .base_command import Command
 from .modify import ModifyCommand
 
 LOGGER = logging.getLogger(__name__)
@@ -43,8 +44,10 @@ class UnifyLabelsCommand(Command):
     @override
     @classmethod
     def init_argparser(cls) -> None:
-        parser = ArgumentParser(
-            prog="unify_labels", description="Label unification subcommand parser."
+        parser = argparse.ArgumentParser(
+            prog="unify_labels",
+            description="Label unification subcommand parser.",
+            exit_on_error=True,
         )
         parser.add_argument(
             "-a",

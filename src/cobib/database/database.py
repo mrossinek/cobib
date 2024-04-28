@@ -8,20 +8,18 @@ import re
 import sys
 from collections import OrderedDict
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar, cast
+from typing import ClassVar, cast
 
 from cobib.config import LabelSuffix, config
 from cobib.utils.rel_path import RelPath
 
-if TYPE_CHECKING:
-    import cobib.database
+from .entry import Entry
 
 LOGGER = logging.getLogger(__name__)
 """@private module logger."""
 
 
-# TODO: once Python 3.9 becomes the default, OrderedDict can be properly sub-typed
-class Database(OrderedDict):  # type: ignore
+class Database(OrderedDict[str, Entry]):
     """coBib's Database class is a runtime interface to the plain-test YAML file.
 
     This class is a *singleton*.
@@ -62,7 +60,7 @@ class Database(OrderedDict):  # type: ignore
             cls.read(bypass_cache=bypass_cache)
         return cls._instance
 
-    def update(self, new_entries: dict[str, cobib.database.Entry]) -> None:  # type: ignore
+    def update(self, new_entries: dict[str, Entry]) -> None:  # type: ignore[explicit-override,override]
         """Updates the database with the given dictionary of entries.
 
         This function wraps `OrderedDict.update` and adds the labels of the changed entries to the
@@ -78,7 +76,7 @@ class Database(OrderedDict):  # type: ignore
             Database._unsaved_entries[label] = label
         super().update(new_entries)
 
-    def pop(self, label: str) -> cobib.database.Entry:  # type: ignore
+    def pop(self, label: str) -> Entry:  # type: ignore[explicit-override,override]
         """Pops the entry pointed to by the given label.
 
         This function wraps `OrderedDict.pop` and adds the removed labels to the unsaved entries
@@ -91,7 +89,7 @@ class Database(OrderedDict):  # type: ignore
         Returns:
             The entry pointed to by the given label.
         """
-        entry: cobib.database.Entry = super().pop(label)
+        entry: Entry = super().pop(label)
         LOGGER.debug("Removing entry: %s", label)
         Database._unsaved_entries[label] = None
         return entry
@@ -114,7 +112,7 @@ class Database(OrderedDict):  # type: ignore
             # during saving
             super().pop(old_label)
 
-    def disambiguate_label(self, label: str, entry: cobib.database.Entry) -> str:
+    def disambiguate_label(self, label: str, entry: Entry) -> str:
         """Disambiguate a given label to ensure it becomes unique.
 
         This function ensures that a label is unique by appending a configurable suffix to a label
@@ -303,7 +301,7 @@ class Database(OrderedDict):  # type: ignore
                 LOGGER.debug('Reached end of entry "%s".', cur_label)
                 overwrite = False
 
-                new_label = cls._unsaved_entries.pop(cur_label)
+                new_label = cast(str, cls._unsaved_entries.pop(cur_label))
                 entry = _instance.get(new_label, None)
                 if entry:
                     LOGGER.debug('Writing modified entry "%s".', new_label)

@@ -40,7 +40,7 @@ class TestShowCommand(CommandTest):
                     continue
                 assert line == truth.strip("\n")
 
-    def test_command(self, setup: Any) -> None:  # type: ignore
+    def test_command(self, setup: Any) -> None:  # type: ignore[explicit-override,override]
         """Test the command itself.
 
         Args:

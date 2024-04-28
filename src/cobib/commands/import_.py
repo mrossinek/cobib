@@ -68,7 +68,7 @@ from cobib.database import Database, Entry
 from cobib.importers.base_importer import Importer
 from cobib.ui.components.entry_points import entry_points
 
-from .base_command import ArgumentParser, Command
+from .base_command import Command
 
 LOGGER = logging.getLogger(__name__)
 """@private module logger."""
@@ -108,7 +108,9 @@ class ImportCommand(Command):
     @override
     @classmethod
     def init_argparser(cls) -> None:
-        parser = ArgumentParser(prog="import", description="Import subcommand parser.")
+        parser = argparse.ArgumentParser(
+            prog="import", description="Import subcommand parser.", exit_on_error=True
+        )
         skip_download_group = parser.add_mutually_exclusive_group()
         skip_download_group.add_argument(
             "--skip-download",

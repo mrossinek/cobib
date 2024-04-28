@@ -176,7 +176,7 @@ from cobib.utils.file_downloader import FileDownloader
 from cobib.utils.journal_abbreviations import JournalAbbreviations
 from cobib.utils.prompt import Prompt
 
-from .base_command import ArgumentParser, Command
+from .base_command import Command
 from .edit import EditCommand
 from .modify import evaluate_as_f_string
 
@@ -226,7 +226,9 @@ class AddCommand(Command):
     @override
     @classmethod
     def init_argparser(cls) -> None:
-        parser = ArgumentParser(prog="add", description="Add subcommand parser.")
+        parser = argparse.ArgumentParser(
+            prog="add", description="Add subcommand parser.", exit_on_error=True
+        )
         parser.add_argument("-l", "--label", type=str, help="the label for the new database entry")
         parser.add_argument(
             "-f",

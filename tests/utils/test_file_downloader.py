@@ -27,7 +27,7 @@ def setup_remove_content_length(monkeypatch: pytest.MonkeyPatch, enable: bool = 
     if not enable:
         return
 
-    def remove_content_length(*args, **kwargs):  # type: ignore
+    def remove_content_length(*args, **kwargs):  # type: ignore[no-untyped-def]
         """Mock function to remove `content-length` from response."""
         response = requests.request("get", *args, timeout=kwargs.pop("timeout", 30), **kwargs)
         response.headers.pop("content-length")
@@ -174,7 +174,7 @@ async def test_gracefully_fail_download(monkeypatch: pytest.MonkeyPatch) -> None
         monkeypatch: the built-in pytest fixture.
     """
 
-    def raise_exception(*args, **kwargs):  # type: ignore
+    def raise_exception(*args, **kwargs):  # type: ignore[no-untyped-def]
         """Mock function to raise an Exception."""
         raise requests.exceptions.RequestException()
 

@@ -65,10 +65,6 @@ class TestGitCommitEvent(CommandTest):
     def test_command(self) -> None:
         pytest.skip("The dummy command has no actual command.")
 
-    @override
-    def test_handle_argument_error(self, caplog: pytest.LogCaptureFixture) -> None:
-        pytest.skip("The dummy command has no argument parser.")
-
     @pytest.mark.parametrize("setup", [{"git": True}], indirect=["setup"])
     def test_event_pre_git_commit(self, setup: Any) -> None:
         """Test the PreGitCommit event.
