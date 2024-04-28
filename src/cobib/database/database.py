@@ -10,7 +10,7 @@ from collections import OrderedDict
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, cast
 
-from cobib.config import config
+from cobib.config import LabelSuffix, config
 from cobib.utils.rel_path import RelPath
 
 if TYPE_CHECKING:
@@ -158,6 +158,36 @@ class Database(OrderedDict):  # type: ignore
                 new_label,
                 label,
             )
+
+    def find_related_labels(self, label: str) -> tuple[set[str], set[str]]:
+        """Finds related labels to the provided one.
+
+        Args:
+            label: the original label for which to find related ones.
+
+        Returns:
+            A pair of sets of strings. The first set contains directly related labels, i.e. ones
+            which match the provided label exactly, modulo the value of their suffix based on
+            `config.database.format.label_suffix`. The second set contains indirectly related
+            labels, i.e. ones which also start with the same text as the original label but do not
+            have a matching suffix.
+        """
+        separator, enumerator = config.database.format.label_suffix
+        trimmed_label, _ = LabelSuffix.trim_label(label, separator, enumerator)
+
+        directly_related_labels = set()
+        indirectly_related_labels = set()
+        for existing_label in self.keys():
+            if not existing_label.startswith(trimmed_label):
+                continue
+
+            raw_label, _ = LabelSuffix.trim_label(existing_label, separator, enumerator)
+            if raw_label == trimmed_label:
+                directly_related_labels.add(existing_label)
+            else:
+                indirectly_related_labels.add(existing_label)
+
+        return directly_related_labels, indirectly_related_labels
 
     @classmethod
     def reset(cls) -> None:
