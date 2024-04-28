@@ -15,7 +15,7 @@ from typing_extensions import override
 
 from cobib.commands import AddCommand
 from cobib.config import Event, config
-from cobib.database import Database
+from cobib.database import Author, Database
 from cobib.utils.rel_path import RelPath
 
 from .. import MockStdin, get_resource
@@ -237,7 +237,6 @@ class TestAddCommand(CommandTest):
                 pass
 
     @pytest.mark.asyncio
-    @pytest.mark.parametrize("deprecated", (True, False))
     @pytest.mark.parametrize(
         ["setup"],
         [
@@ -246,14 +245,11 @@ class TestAddCommand(CommandTest):
         ],
         indirect=["setup"],
     )
-    async def test_add_with_update(
-        self, setup: Any, deprecated: bool, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    async def test_add_with_update(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test update option of AddCommand.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
-            deprecated: whether to test the deprecated or new means.
             caplog: the built-in pytest fixture.
         """
         git = setup.get("git", False)
@@ -292,10 +288,7 @@ class TestAddCommand(CommandTest):
             "Cao2018",
             "--skip-download",
         ]
-        if deprecated:
-            args += ["--update"]
-        else:
-            args += ["--disambiguation", "update"]
+        args += ["--disambiguation", "update"]
         await AddCommand(*args).execute()
 
         if (
@@ -304,14 +297,6 @@ class TestAddCommand(CommandTest):
             "An Exception occurred while trying to query the DOI: 10.1021/acs.chemrev.8b00803.",
         ) in caplog.record_tuples:
             pytest.skip("The requests API encountered an error. Skipping test.")
-
-        if deprecated:
-            assert (
-                "cobib.commands.add",
-                logging.WARNING,
-                "The '--update' argument of the 'add' command is deprecated! "
-                "Instead you should use '--disambiguation update'.",
-            ) in caplog.record_tuples
 
         # assert final state
         entry = Database()["Cao2018"]
@@ -359,9 +344,8 @@ class TestAddCommand(CommandTest):
         ) in caplog.record_tuples
 
     @pytest.mark.asyncio
-    @pytest.mark.parametrize("deprecated", (True, False))
     async def test_continue_after_skip_exists(
-        self, setup: Any, deprecated: bool, caplog: pytest.LogCaptureFixture
+        self, setup: Any, caplog: pytest.LogCaptureFixture
     ) -> None:
         """Test entry addition continues after skipping over existing entry.
 
@@ -369,7 +353,6 @@ class TestAddCommand(CommandTest):
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
-            deprecated: whether to test the deprecated or new means.
             caplog: the built-in pytest fixture.
         """
         with tempfile.NamedTemporaryFile("w") as file:
@@ -378,29 +361,18 @@ class TestAddCommand(CommandTest):
             file.writelines(["@article{dummy,\nauthor = {Dummy},\n}"])
             file.flush()
             args = ["-b", file.name]
-            if deprecated:
-                args += ["--skip-existing"]
-            else:
-                args += ["--disambiguation", "keep"]
+            args += ["--disambiguation", "keep"]
             await AddCommand(*args).execute()
         assert (
             "cobib.commands.add",
             20,
-            "Skipping addition of the already existing entry 'einstein'.",
+            "Keeping the already existing entry 'einstein'.",
         ) in caplog.record_tuples
         assert (
             "cobib.database.database",
             10,
             "Updating entry dummy",
         ) in caplog.record_tuples
-
-        if deprecated:
-            assert (
-                "cobib.commands.add",
-                logging.WARNING,
-                "The '--skip-existing' argument of the 'add' command is deprecated! "
-                "Instead you should use '--disambiguation keep'.",
-            ) in caplog.record_tuples
 
     @pytest.mark.asyncio
     async def test_warning_missing_label(
@@ -525,6 +497,167 @@ class TestAddCommand(CommandTest):
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
+        ["setup", "post_setup"],
+        [
+            [
+                {
+                    "database_filename": "disambiguation_database.yaml",
+                    "database_location": "database",
+                },
+                {"stdin_list": ["replace"]},
+            ],
+        ],
+        indirect=["setup", "post_setup"],
+    )
+    async def test_disambiguate_replace(
+        self, setup: Any, post_setup: Any, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Test the `replace` prompt of the interactive label disambiguation.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            post_setup: an additional setup fixture.
+            caplog: the built-in pytest fixture.
+        """
+        disambiguation_entry = get_resource("disambiguation_entry.yaml", "commands")
+        await AddCommand("-y", disambiguation_entry).execute()
+
+        bib = Database()
+        entry = bib["Author2020"]
+        assert entry.data["title"] == "Some other entry"
+        assert entry.data["author"] == [Author("Some other", "Author")]
+
+        assert (
+            "cobib.commands.add",
+            20,
+            "Overwriting the already existing entry 'Author2020' with the new data.",
+        ) in caplog.record_tuples
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ["setup", "post_setup"],
+        [
+            [
+                {
+                    "database_filename": "disambiguation_database.yaml",
+                    "database_location": "database",
+                },
+                {"stdin_list": ["keep", "keep"]},
+            ],
+        ],
+        indirect=["setup", "post_setup"],
+    )
+    async def test_disambiguate_keep(
+        self, setup: Any, post_setup: Any, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Test the `keep` prompt of the interactive label disambiguation.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            post_setup: an additional setup fixture.
+            caplog: the built-in pytest fixture.
+        """
+        bib = Database()
+        author_2020 = bib["Author2020"]
+        author_2020_a = bib["Author2020_a"]
+
+        disambiguation_entry = get_resource("disambiguation_entry.yaml", "commands")
+        await AddCommand("-y", disambiguation_entry).execute()
+
+        assert bib["Author2020"] == author_2020
+        assert bib["Author2020_a"] == author_2020_a
+        entry = bib["Author2020_b"]
+        assert entry.data["title"] == "Some other entry"
+        assert entry.data["author"] == [Author("Some other", "Author")]
+
+        assert (
+            "cobib.commands.add",
+            20,
+            "Keeping the already existing entry 'Author2020'.",
+        ) in caplog.record_tuples
+        assert (
+            "cobib.commands.add",
+            20,
+            "Keeping the already existing entry 'Author2020_a'.",
+        ) in caplog.record_tuples
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ["setup", "post_setup"],
+        [
+            [
+                {
+                    "database_filename": "disambiguation_database.yaml",
+                    "database_location": "database",
+                },
+                {"stdin_list": ["cancel"]},
+            ],
+        ],
+        indirect=["setup", "post_setup"],
+    )
+    async def test_disambiguate_cancel(
+        self, setup: Any, post_setup: Any, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Test the `cancel` prompt of the interactive label disambiguation.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            post_setup: an additional setup fixture.
+            caplog: the built-in pytest fixture.
+        """
+        bib = Database()
+        original_entry = bib["Author2020"]
+
+        disambiguation_entry = get_resource("disambiguation_entry.yaml", "commands")
+        await AddCommand("-y", disambiguation_entry).execute()
+
+        assert bib["Author2020"] == original_entry
+
+        assert (
+            "cobib.commands.add",
+            30,
+            "Cancelling the addition of the new entry 'Author2020'.",
+        ) in caplog.record_tuples
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ["setup", "post_setup"],
+        [
+            [
+                {
+                    "database_filename": "disambiguation_database.yaml",
+                    "database_location": "database",
+                },
+                {"stdin_list": ["cancel"]},
+            ],
+        ],
+        indirect=["setup", "post_setup"],
+    )
+    async def test_disambiguate_warn_indirect(
+        self, setup: Any, post_setup: Any, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Test the warning about indirectly related labels.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            post_setup: an additional setup fixture.
+            caplog: the built-in pytest fixture.
+        """
+        disambiguation_entry = get_resource("disambiguation_entry.yaml", "commands")
+        await AddCommand("-y", disambiguation_entry, "--label", "Author2020_a").execute()
+
+        assert (
+            "cobib.commands.add",
+            30,
+            (
+                "Found some indirectly related entries to 'Author2020_a': {'Author2020_1'}.\n"
+                "You can use the review command to inspect these like so:\n"
+                "cobib review -- ++label Author2020"
+            ),
+        ) in caplog.record_tuples
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
         ["post_setup"],
         [
             [{"stdin_list": ["disambiguate"]}],
@@ -644,47 +777,6 @@ class TestAddCommand(CommandTest):
         await AddCommand("-b", EXAMPLE_DUPLICATE_ENTRY_BIB).execute()
 
         assert "dummy" in Database().keys()
-
-    @pytest.mark.asyncio
-    @pytest.mark.parametrize(
-        [
-            "args",
-            "msg_string",
-        ],
-        [
-            [
-                ["--skip-existing"],
-                "The '--skip-existing' argument of the 'add' command is deprecated! "
-                "Instead you should use '--disambiguation keep'.",
-            ],
-            [
-                ["--update"],
-                "The '--update' argument of the 'add' command is deprecated! "
-                "Instead you should use '--disambiguation update'.",
-            ],
-        ],
-    )
-    async def test_warn_deprecated_args(
-        self, setup: Any, args: list[str], msg_string: str, caplog: pytest.LogCaptureFixture
-    ) -> None:
-        """Test the warning upon usage of deprecated arguments.
-
-        Args:
-            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
-            args: arguments for the AddCommand.
-            msg_string: the string which the warning message must match.
-            caplog: the built-in pytest fixture.
-        """
-        args = ["-b", EXAMPLE_MULTI_FILE_ENTRY_BIB, *args]
-
-        await AddCommand(*args).execute()
-
-        for source, level, msg in caplog.record_tuples:
-            if source == "cobib.commands.add" and level == 30:
-                if msg == msg_string:
-                    break
-        else:
-            pytest.fail("No Warning logged from AddCommand.")
 
     @pytest.mark.asyncio
     async def test_hook_datetime_added(self, setup: Any) -> None:

@@ -158,6 +158,53 @@ def test_database_disambiguate_label(label_suffix: tuple[str, LabelSuffix], expe
     assert new_label == expected
 
 
+@pytest.mark.parametrize(
+    ["label", "label_suffix", "expected"],
+    [
+        [
+            "Author2020",
+            ("_", LabelSuffix.ALPHA),
+            ({"Author2020", "Author2020_a"}, {"Author2020_1"}),
+        ],
+        [
+            "Author2020",
+            ("_", LabelSuffix.NUMERIC),
+            ({"Author2020", "Author2020_1"}, {"Author2020_a"}),
+        ],
+        [
+            "Author2020",
+            ("_", LabelSuffix.CAPITAL),
+            ({"Author2020"}, {"Author2020_1", "Author2020_a"}),
+        ],
+        [
+            "Author2021",
+            ("_", LabelSuffix.NUMERIC),
+            ({"Author2021", "Author2021_2"}, set()),
+        ],
+    ],
+)
+def test_find_related_labels(
+    label: str, label_suffix: tuple[str, LabelSuffix], expected: tuple[set[str], set[str]]
+) -> None:
+    """Test the `cobib.database.Database.find_related_labels` method.
+
+    Args:
+        label: the label to find related ones to.
+        label_suffix: the value for the configuration setting.
+        expected: the expected output of related labels based on the `disambiguation_database.yaml`.
+    """
+    config.database.file = get_resource("disambiguation_database.yaml", "database")
+    config.database.format.label_suffix = label_suffix
+
+    bib = Database()
+    bib.read()
+
+    direct, indirect = bib.find_related_labels(label)
+    expected_direct, expected_indirect = expected
+    assert expected_direct == direct
+    assert expected_indirect == indirect
+
+
 def test_database_read() -> None:
     """Test the `cobib.database.Database.read` method."""
     bib = Database()

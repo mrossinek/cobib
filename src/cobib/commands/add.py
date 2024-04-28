@@ -86,19 +86,19 @@ While the next command will always attempt the automatic download:
 cobib add --force-download --arxiv <some arXiv ID>
 ```
 
+#### Label Disambiguation
+
 Since v4.0.0 coBib will ask you what to do when encountering a conflict at runtime. That means, when
 a label already exists in your database, you have various choices how to handle it:
 
 1. you can `keep` the existing entry and skip the addition of the new one.
    .. note::
-      This is equivalent to the old `--skip-existing` argument (added in v3.3.0) which is now
-      deprecated and will be removed in a future version.
+      This is equivalent to the old `--skip-existing` argument (added in v3.3.0; deprecated in
+      v4.0.0; removed in v5.0.0).
 
 2. you can `replace` the existing entry.
 
 3. you can `update` the existing entry.
-   ```
-   cobib add --doi <some DOI> --disambiguation update --label <some existing label>```
 
    This will take the existing entry and combine it with all new information found in the freshly
    added entry. Existing fields will be overwritten. If you have an automatically downloaded file
@@ -106,8 +106,8 @@ a label already exists in your database, you have various choices how to handle 
    This feature is especially useful if you want to update an entry which you previously added from
    the arXiv with its newly published version.
    .. note::
-      This is equivalent to the `--update` argument (added in v3.3.0) which is now deprecated and
-      will be removed in a future version.
+      This is equivalent to the `--update` argument (added in v3.3.0; deprecated in v4.0.0; removed
+      in v5.0.0).
 
 4. you can `disambiguate` the entries. This will be done based on the
    `cobib.config.config.DatabaseFormatConfig.label_suffix` setting. It defaults to appending `_a`,
@@ -115,14 +115,33 @@ a label already exists in your database, you have various choices how to handle 
    one.
 
 When running into such a case, coBib will generate a side-by-side comparison of the existing and new
-entry and give you the choice of how to proceed. The default choice is to *cancel* the addition
-(i.e. `keep`) in order to prevent data loss.
+entry and give you the choice of how to proceed. The default choice is to `keep` the existing entry
+in order to prevent data loss.
+
+Since v5.0.0 coBib also handles multiple existing entries that are related to the new one via their
+disambiguation suffix. This means, that the interactive prompt above will loop over all existing
+entries and ask you how to handle them.
+- Answering with `update` or `replace` will immediately apply to the currently compared entry and
+  end the iteration.
+- Answering `keep` will leave the current entry unchanged and proceed to the next.
+- Answering `cancel` will immediately stop the iteration and abort the process of adding this new
+  entry.
+- Answering `disambiguate` will immdetiately stop the iteration and add this new entry under a newly
+  disambiguated label.
+
+.. note::
+   If you `keep` all existing entries, this will automatically trigger the `disambiguate` mode for
+   adding the new entry.
 
 If you already know that you will run into this case, you can bypass the prompt via the
 `--disambiguation` argument and provide the intended answer ahead of time, for example like so:
 ```
 cobib add --doi <some DOI> --disambiguation replace --label <some existing label>
 ```
+
+.. note::
+   If you do this in a scenario where multiple related entries already exist, the provided answer
+   will **ONLY** apply to the exactly matching label.
 
 ### TUI
 
@@ -147,7 +166,7 @@ from typing import ClassVar
 from rich.prompt import InvalidResponse, PromptBase, PromptType
 from typing_extensions import override
 
-from cobib.config import Event, config
+from cobib.config import Event, LabelSuffix, config
 from cobib.database import Database, Entry
 from cobib.parsers import BibtexParser
 from cobib.parsers.base_parser import Parser
@@ -179,8 +198,6 @@ class AddCommand(Command):
           overwrite the `cobib.config.config.FileDownloaderConfig.default_location`.
         * `--skip-download`: skips the automatic download of an associated file.
         * `--force-download`: forces the automatic download of an associated file.
-        * `--skip-existing`: **DEPRECATED** use `--disambiguation keep` instead!
-        * `-u`, `--update`: **DEPRECATED** use `--disambiguation update` instead!
         * in addition to the options above, a *mutually exclusive group* of keyword arguments for
           all available `cobib.parsers` are registered at runtime. Please check the output of
           `cobib add --help` for the exact list.
@@ -240,17 +257,6 @@ class AddCommand(Command):
             default=None,
             help="force the automatic download of an associated file",
         )
-        parser.add_argument(
-            "--skip-existing",
-            action="store_true",
-            help="DEPRECATED: use '--disambiguation keep' instead!",
-        )
-        parser.add_argument(
-            "-u",
-            "--update",
-            action="store_true",
-            help="DEPRECATED: use '--disambiguation update' instead!",
-        )
         group_add = parser.add_mutually_exclusive_group()
         for name, (_, short_hand) in cls._avail_parsers.items():
             help_text = f"{name} object identifier"
@@ -274,30 +280,8 @@ class AddCommand(Command):
 
         cls.argparser = parser
 
-    @classmethod
-    def _parse_args(cls, args: tuple[str, ...]) -> argparse.Namespace:
-        largs = super()._parse_args(args)
-
-        if largs.skip_existing:
-            msg = (
-                "The '--skip-existing' argument of the 'add' command is deprecated! "
-                "Instead you should use '--disambiguation keep'."
-            )
-            LOGGER.warning(msg)
-            largs.disambiguation = "keep"
-
-        if largs.update:
-            msg = (
-                "The '--update' argument of the 'add' command is deprecated! "
-                "Instead you should use '--disambiguation update'."
-            )
-            LOGGER.warning(msg)
-            largs.disambiguation = "update"
-
-        return largs
-
     @override
-    async def execute(self) -> None:  # type: ignore[override]  # noqa: PLR0912
+    async def execute(self) -> None:  # type: ignore[override]  # noqa: PLR0912,PLR0915
         LOGGER.debug("Starting Add command.")
 
         Event.PreAddCommand.fire(self)
@@ -383,52 +367,105 @@ class AddCommand(Command):
                 # to proceed
                 msg = f"You tried to add a new entry '{lbl}' which already exists!"
                 LOGGER.warning(msg)
-                res = self.largs.disambiguation
-                # if the user provided the reply at runtime using the --disambiguation argument, the
-                # following condition is not met
-                if res is None:
-                    parser = BibtexParser()
-                    left = parser.dump(bib[lbl])
-                    right = parser.dump(entry)
-                    diff = Differ(left, right)
-                    diff.compute()
-                    table = diff.render("bibtex")
 
-                    prompt_text = "How would you like to handle this conflict?"
-                    choices = ["keep", "replace", "update", "disambiguate", "help"]
-                    default = "keep"
-
-                    res = await Prompt.ask(
-                        prompt_text,
-                        choices=choices,
-                        default=default,
-                        pre_prompt_message=table,
-                        process_response_wrapper=self._wrap_prompt_process_response,
+                # finding related entries in the database
+                direct, indirect = bib.find_related_labels(lbl)
+                if len(indirect) > 0:
+                    separator, enumerator = config.database.format.label_suffix
+                    trimmed_lbl, _ = LabelSuffix.trim_label(lbl, separator, enumerator)
+                    msg = (
+                        f"Found some indirectly related entries to '{lbl}': {indirect}.\n"
+                        "You can use the review command to inspect these like so:\n"
+                        f"cobib review -- ++label {trimmed_lbl}"
                     )
+                    LOGGER.warning(msg)
 
-                if res == "update":
-                    msg = f"Updating the already existing entry '{lbl}' with the new data."
-                    LOGGER.info(msg)
-                    entry.merge(bib[lbl], ours=True)
-                    overwrite_file = True
-                elif res == "disambiguate":
+                # get the --disambiguation argument (which will be `None` by default)
+                res = self.largs.disambiguation
+
+                parser = BibtexParser()
+
+                # the first label that we would like to check is the current one
+                direct_lbl = lbl
+                direct.remove(lbl)
+                # the remaining ones will be iterated later
+                direct_iter = iter(direct)
+
+                # we loop until we reach the `disambiguate` answer (which implies the end) or we
+                # break out manually below
+                while res != "disambiguate":
+                    if res is None:
+                        # if the user did not provide an answer via the input arguments, this
+                        # renders an interactive prompt for them
+                        left = parser.dump(bib[direct_lbl])
+                        right = parser.dump(entry)
+                        diff = Differ(left, right)
+                        diff.compute()
+                        table = diff.render("bibtex")
+
+                        prompt_text = "How would you like to handle this conflict?"
+                        choices = ["keep", "replace", "update", "cancel", "disambiguate", "help"]
+                        default = "keep"
+
+                        res = await Prompt.ask(
+                            prompt_text,
+                            choices=choices,
+                            default=default,
+                            pre_prompt_message=table,
+                            process_response_wrapper=self._wrap_prompt_process_response,
+                        )
+
+                    if res == "update":
+                        msg = (
+                            f"Updating the already existing entry '{direct_lbl}' with the new data."
+                        )
+                        LOGGER.info(msg)
+                        entry.merge(bib[direct_lbl], ours=True)
+                        self._rename_added_entry(entry, direct_lbl)
+                        overwrite_file = True
+                        break
+
+                    elif res == "replace":
+                        msg = (
+                            f"Overwriting the already existing entry '{direct_lbl}' with the new "
+                            "data."
+                        )
+                        LOGGER.info(msg)
+                        self._rename_added_entry(entry, direct_lbl)
+                        overwrite_file = True
+                        break
+
+                    elif res == "disambiguate":
+                        msg = "Skipping all other related entries and disambiguating the new one."
+                        LOGGER.info(msg)
+                        break
+
+                    elif res == "keep":
+                        res = None
+                        msg = f"Keeping the already existing entry '{direct_lbl}'."
+                        LOGGER.info(msg)
+
+                    elif res == "cancel":  # pragma: no branch
+                        msg = f"Cancelling the addition of the new entry '{lbl}'."
+                        LOGGER.warning(msg)
+                        return
+
+                    try:
+                        direct_lbl = next(direct_iter)
+                    except StopIteration:
+                        res = "disambiguate"
+                        msg = "No more related entries, triggering label disambiguation."
+                        LOGGER.info(msg)
+                        break
+
+                if res == "disambiguate":
                     msg = (
                         "The label will be disambiguated based on the configuration option: "
                         "config.database.format.label_suffix"
                     )
                     LOGGER.warning(msg)
                     new_label = bib.disambiguate_label(lbl, entry)
-                    entry.label = new_label
-                    self.new_entries[new_label] = entry
-                    self.new_entries.pop(lbl)
-                elif res == "replace":
-                    msg = f"Overwriting the already existing entry '{lbl}' with the new data."
-                    LOGGER.info(msg)
-                elif res == "keep":
-                    msg = f"Skipping addition of the already existing entry '{lbl}'."
-                    LOGGER.info(msg)
-                    self.new_entries.pop(lbl)
-                    continue
+                    self._rename_added_entry(entry, new_label)
 
             # download associated file (if requested)
             if "_download" in entry.data.keys():
@@ -464,6 +501,19 @@ class AddCommand(Command):
             msg = f"'{label}' was added to the database."
             LOGGER.log(35, msg)
 
+    def _rename_added_entry(self, entry: Entry, new_label: str) -> None:
+        """Renames the provided entry to the new provided label.
+
+        Args:
+            entry: the entry to be renamed.
+            new_label: its new label.
+        """
+        old_label = entry.label
+        if old_label != new_label:
+            entry.label = new_label
+            self.new_entries[new_label] = entry
+            self.new_entries.pop(old_label)
+
     @staticmethod
     def _wrap_prompt_process_response(
         func: Callable[[PromptBase[PromptType], str], PromptType],
@@ -493,6 +543,7 @@ class AddCommand(Command):
                     "  'keep' the existing entry and discard the new addition (default)\n"
                     "  'replace' the existing entry with the new one\n"
                     "  'update' the existing entry with the new data\n"
+                    "  'cancel' the addition of this new entry\n"
                     "  'disambiguate' the new entry from the existing one by adding a label suffix"
                 )
 

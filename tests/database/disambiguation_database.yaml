@@ -1,0 +1,42 @@
+---
+Author2020:
+  ENTRYTYPE: book
+  author: Author
+  title: Some entry
+  year: 2020
+...
+---
+Author2020_a:
+  ENTRYTYPE: book
+  author: Author
+  title: Some entry a
+  year: 2020
+...
+---
+Author2020_1:
+  ENTRYTYPE: book
+  author: Author
+  title: Some entry 1
+  year: 2020
+...
+---
+Author2021:
+  ENTRYTYPE: book
+  author: Author
+  title: Some entry
+  year: 2021
+...
+---
+Author2021_2:
+  ENTRYTYPE: book
+  author: Author
+  title: Some entry 2
+  year: 2021
+...
+---
+Author2022:
+  ENTRYTYPE: book
+  author: Author
+  title: Some entry
+  year: 2022
+...

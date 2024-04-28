@@ -10,7 +10,7 @@ from typing import Any
 import pytest
 
 from cobib.config import config
-from cobib.config.config import Config
+from cobib.config.config import Config, LabelSuffix
 
 from .. import get_resource
 
@@ -114,3 +114,67 @@ def test_config_validation(setup: Any) -> None:
         setup: a local pytest fixture.
     """
     config.validate()
+
+
+def test_label_suffix_type(setup: Any) -> None:
+    """Test the `LabelSuffix.suffix_type` method.
+
+    Args:
+        setup: a local pytest fixture.
+    """
+    assert LabelSuffix.suffix_type("1") == LabelSuffix.NUMERIC
+    assert LabelSuffix.suffix_type("10") == LabelSuffix.NUMERIC
+    assert LabelSuffix.suffix_type("a") == LabelSuffix.ALPHA
+    assert LabelSuffix.suffix_type("A") == LabelSuffix.CAPITAL
+    assert LabelSuffix.suffix_type("-") is None
+    assert LabelSuffix.suffix_type("_") is None
+    assert LabelSuffix.suffix_type("Mixed") is None
+    assert LabelSuffix.suffix_type("hello123") is None
+    assert LabelSuffix.suffix_type("ä") is None
+
+
+def test_label_suffix_reverse(setup: Any) -> None:
+    """Test the `LabelSuffix.reverse` method.
+
+    Args:
+        setup: a local pytest fixture.
+    """
+    assert LabelSuffix.reverse(LabelSuffix.NUMERIC, "1") == 1
+    assert LabelSuffix.reverse(LabelSuffix.NUMERIC, "12") == 12
+    assert LabelSuffix.reverse(LabelSuffix.ALPHA, "a") == 1
+    assert LabelSuffix.reverse(LabelSuffix.ALPHA, "z") == 26
+    assert LabelSuffix.reverse(LabelSuffix.CAPITAL, "A") == 1
+    assert LabelSuffix.reverse(LabelSuffix.CAPITAL, "Z") == 26
+
+    with pytest.raises(ValueError):
+        LabelSuffix.reverse(LabelSuffix.ALPHA, "ab")
+
+    with pytest.raises(ValueError):
+        LabelSuffix.reverse(LabelSuffix.ALPHA, "1")
+
+    with pytest.raises(ValueError):
+        LabelSuffix.reverse(LabelSuffix, "A")  # type: ignore[arg-type]
+
+
+def test_label_suffix_trim(setup: Any) -> None:
+    """Test the `LabelSuffix.trim` method.
+
+    Args:
+        setup: a local pytest fixture.
+    """
+    assert LabelSuffix.trim_label("Hello2024", "_", LabelSuffix.NUMERIC) == ("Hello2024", 0)
+    assert LabelSuffix.trim_label("Hello2024", "_", LabelSuffix.ALPHA) == ("Hello2024", 0)
+    assert LabelSuffix.trim_label("Hello2024", "_", LabelSuffix.CAPITAL) == ("Hello2024", 0)
+    assert LabelSuffix.trim_label("Hello2024_1", "_", LabelSuffix.NUMERIC) == ("Hello2024", 1)
+    assert LabelSuffix.trim_label("Hello2024_1", "_", LabelSuffix.ALPHA) == ("Hello2024_1", 0)
+    assert LabelSuffix.trim_label("Hello2024_1", "_", LabelSuffix.CAPITAL) == ("Hello2024_1", 0)
+    assert LabelSuffix.trim_label("Hello2024_2", "_", LabelSuffix.NUMERIC) == ("Hello2024", 2)
+    assert LabelSuffix.trim_label("Hello2024_a", "_", LabelSuffix.NUMERIC) == ("Hello2024_a", 0)
+    assert LabelSuffix.trim_label("Hello2024_a", "_", LabelSuffix.ALPHA) == ("Hello2024", 1)
+    assert LabelSuffix.trim_label("Hello2024_b", "_", LabelSuffix.ALPHA) == ("Hello2024", 2)
+    assert LabelSuffix.trim_label("Hello2024_A", "_", LabelSuffix.NUMERIC) == ("Hello2024_A", 0)
+    assert LabelSuffix.trim_label("Hello2024_A", "_", LabelSuffix.CAPITAL) == ("Hello2024", 1)
+    assert LabelSuffix.trim_label("Hello2024_B", "_", LabelSuffix.CAPITAL) == ("Hello2024", 2)
+    assert LabelSuffix.trim_label("some_test", "_", LabelSuffix.NUMERIC) == ("some_test", 0)
+    assert LabelSuffix.trim_label("some_test", "_", LabelSuffix.ALPHA) == ("some_test", 0)
+    assert LabelSuffix.trim_label("some_test", "_", LabelSuffix.CAPITAL) == ("some_test", 0)

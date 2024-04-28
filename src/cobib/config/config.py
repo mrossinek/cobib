@@ -17,9 +17,9 @@ import sys
 from abc import abstractmethod
 from collections.abc import Callable
 from dataclasses import MISSING, dataclass, field, fields
-from enum import Enum, EnumMeta, auto
+from enum import Enum, auto
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, NamedTuple, TextIO
+from typing import TYPE_CHECKING, NamedTuple, TextIO
 
 from rich.style import Style
 from rich.theme import Theme
@@ -510,31 +510,7 @@ class CommandConfig(_ConfigBase):
         self.show.validate()
 
 
-class _DeprecateOnAccess(EnumMeta):
-    """A metaclass to add deprecation warnings to deprecated Enum values upon access."""
-
-    @override
-    def __getattribute__(cls, name: str) -> Any:
-        if name == "CAPTIAL":
-            LOGGER.log(
-                45,
-                "The LabelSuffix.CAPTIAL value is deprecated! Please switch to the correctly "
-                "spelled LabelSuffix.CAPITAL instead.",
-            )
-        return super().__getattribute__(name)
-
-    @override
-    def __getitem__(cls, name: str) -> Any:
-        if name == "CAPTIAL":
-            LOGGER.log(
-                45,
-                "The LabelSuffix.CAPTIAL value is deprecated! Please switch to the correctly "
-                "spelled LabelSuffix.CAPITAL instead.",
-            )
-        return super().__getitem__(name)
-
-
-class LabelSuffix(Enum, metaclass=_DeprecateOnAccess):
+class LabelSuffix(Enum):
     """Suffixes to disambiguate `cobib.database.Entry` labels."""
 
     ALPHA = lambda count: chr(96 + count)
@@ -544,8 +520,121 @@ class LabelSuffix(Enum, metaclass=_DeprecateOnAccess):
 
     NUMERIC = lambda count: str(count)
     """Enumerates with arabic numbers: `1, 2, ...`."""
-    CAPTIAL = lambda count: chr(64 + count)
-    """**Deprecated!** This is a deprecated mistyped name of `LabelSuffix.CAPITAL`."""
+
+    @staticmethod
+    def reverse(type_: LabelSuffix, suffix: str) -> int:
+        """Reverses a label suffix enumerator from a suffix to its integer value.
+
+        Args:
+            type_: the `LabelSuffix` enumerator.
+            suffix: the suffix to reverse.
+
+        Returns:
+            The integer value of the reversed suffix.
+
+        Raises:
+            ValueError: if a non-numeric suffix is longer than 1 character.
+            ValueError: if an alphabetic suffix did not fall within the alphabet.
+            ValueError: if an invalid suffix of some other form is provided.
+        """
+        # TODO: once Python 3.10 becomes the default, change this to a match statement
+
+        if type_ == LabelSuffix.NUMERIC:
+            return int(suffix)
+
+        if len(suffix) > 1:
+            raise ValueError("A non-numeric suffix may not be longer than a single character.")
+
+        if type_ in {LabelSuffix.ALPHA, LabelSuffix.CAPITAL}:
+            # we can convert both of these cases in the same way by using base 36 for `int()`
+            ret = int(suffix, 36) - 9
+            if ret < 0:
+                raise ValueError(
+                    f"'{suffix}' is not a valid alphabetic suffix because its ANSI value falls "
+                    "outside of the alphabetic range, yielding a negative value."
+                )
+            return ret
+
+        raise ValueError(f"'{suffix}' is not a valid suffix.")
+
+    @staticmethod
+    def suffix_type(suffix: str) -> LabelSuffix | None:
+        """Determines the enumerator type for a given suffix.
+
+        Args:
+            suffix: the suffix whose enumerator type to determine.
+
+        Returns:
+            An optional enumerator type. If the suffix was invalid, `None` will be returned.
+        """
+        if not suffix.isascii():
+            # if the input contains a non-ASCII character, it cannot be a label suffix
+            return None
+
+        try:
+            # test if the suffix is numeric by attempting to convert it to a base-10 integer
+            _ = int(suffix)
+        except ValueError:
+            # first ensure that we have only alphabetic characters left
+            if not suffix.isalpha():
+                # this is important, because for example "hello123" will pass `islower()` because
+                # all of the cased characters are indeed lower-cased
+                return None
+
+            if suffix.islower():
+                return LabelSuffix.ALPHA
+            if suffix.isupper():
+                return LabelSuffix.CAPITAL
+        else:
+            return LabelSuffix.NUMERIC
+
+        # the provided suffix did not match any of the builtin enumerators
+        return None
+
+    @staticmethod
+    def trim_label(label: str, separator: str, type_: LabelSuffix) -> tuple[str, int]:
+        """Trims the provided label based on the separator and suffix type.
+
+        Args:
+            label: the label whose suffix to trim.
+            separator: the separator character between the actual label and the suffix.
+            type_: the `LabelSuffix` enumerator.
+
+        Returns:
+            The pair of the trimmed label and numeric value of its original suffix.
+        """
+        # initialize the counter of the suffix
+        suffix_value = 0
+
+        # try split the suffix from the label using the provided separator
+        *pieces, suffix = label.split(separator)
+
+        if pieces:
+            # piece together the left-over raw label without its suffix
+            raw_label = separator.join(pieces)
+            # determine the suffix type of this label
+            suffix_type = LabelSuffix.suffix_type(suffix)
+
+            if suffix_type is not None and suffix_type != type_:
+                # if it does not match the expected suffix type, ignore it
+                LOGGER.info(
+                    f"The suffix type encountered on '{label}' does not match the configured one. "
+                    "Assuming that this is intentional and therefore ignoring this as a suffix."
+                )
+                raw_label = label
+            else:
+                try:
+                    # try to obtain the suffix value by reversing it
+                    suffix_value = LabelSuffix.reverse(type_, suffix)
+                except ValueError:
+                    # if this fails, reset the raw label and assume that this was not an actual
+                    # disambiguation suffix
+                    raw_label = label
+        else:
+            # the original split did not yield any pieces so the `suffix` is the actual `raw_label`
+            raw_label = suffix
+
+        return (raw_label, suffix_value)
 
 
 class AuthorFormat(Enum):

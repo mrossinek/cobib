@@ -21,12 +21,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `_lint_database` is now `cobib.commands.lint.LintCommand`
     - `_unify_labels` is now `cobib.commands.unify_labels.UnifyLabelsCommand`
     - `_example_config` is now `cobib.config.command.ExampleConfigCommand`
+- the interactive disambiguation mechanism during the `add` command now handles
+  multiple matching related entries (#121,!168)
+  - this includes the ability to `cancel` the disambiguation and entry addition
 
 ### Removed
 
 - the previously deprecated `console` attribute of all commands has been removed (!139)
 - the previously deprecated `prompt` attribute of all commands has been removed (!139)
 - the `cobib.ui.shell_helper` and `cobib.utils.shell_helper` modules have been removed (!139)
+- the previously deprecated `--update` argument of the `add` command (!168)
+- the previously deprecated `--skip-existing` argument of the `add` command (!168)
+- the previously deprecated `LabelSuffix.CAPTIAL` attribute (!168)
 
 
 ## [4.5.0] - 2024-03-17
