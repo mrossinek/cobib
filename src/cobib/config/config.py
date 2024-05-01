@@ -607,7 +607,12 @@ class LabelSuffix(Enum):
         suffix_value = 0
 
         # try split the suffix from the label using the provided separator
-        *pieces, suffix = label.split(separator)
+        if separator:
+            *pieces, suffix = label.split(separator)
+        else:
+            # no character is used for separation, we simply fall back to using the last one
+            suffix = label[-1]
+            pieces = [label[:-1]]
 
         if pieces:
             # piece together the left-over raw label without its suffix

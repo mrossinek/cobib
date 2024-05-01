@@ -143,6 +143,9 @@ def test_database_rename() -> None:
         [(".", LabelSuffix.ALPHA), "test.a"],
         [(".", LabelSuffix.CAPITAL), "test.A"],
         [(".", LabelSuffix.NUMERIC), "test.1"],
+        [("", LabelSuffix.ALPHA), "testa"],
+        [("", LabelSuffix.CAPITAL), "testA"],
+        [("", LabelSuffix.NUMERIC), "test1"],
     ],
 )
 def test_database_disambiguate_label(label_suffix: tuple[str, LabelSuffix], expected: str) -> None:
@@ -180,6 +183,11 @@ def test_database_disambiguate_label(label_suffix: tuple[str, LabelSuffix], expe
             "Author2021",
             ("_", LabelSuffix.NUMERIC),
             ({"Author2021", "Author2021_2"}, set()),
+        ],
+        [
+            "Author2022",
+            ("", LabelSuffix.ALPHA),
+            ({"Author2022", "Author2022a"}, set()),
         ],
     ],
 )

@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- the ability to use an empty string as the separator in `config.database.format.label_suffix` (#138)
+
 
 ## [5.0.0] - 2024-04-28
 

@@ -40,3 +40,10 @@ Author2022:
   title: Some entry
   year: 2022
 ...
+---
+Author2022a:
+  ENTRYTYPE: book
+  author: Author
+  title: Some entry a
+  year: 2022
+...
