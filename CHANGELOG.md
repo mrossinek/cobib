@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [5.0.1] - 2024-05-01
+
+Pypi: https://pypi.org/project/cobib/5.0.1/
+
 ### Fixed
 - the ability to use an empty string as the separator in `config.database.format.label_suffix` (#138)
 
@@ -995,7 +1000,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v5.0.0...master
+[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v5.0.1...master
+[5.0.1]: https://gitlab.com/cobib/cobib/-/tags/v5.0.1
 [5.0.0]: https://gitlab.com/cobib/cobib/-/tags/v5.0.0
 [4.5.0]: https://gitlab.com/cobib/cobib/-/tags/v4.5.0
 [4.4.0]: https://gitlab.com/cobib/cobib/-/tags/v4.4.0
