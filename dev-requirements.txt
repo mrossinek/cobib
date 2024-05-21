@@ -8,5 +8,5 @@ pdoc==14.4.0
 mypy==1.10.0
 ruff==0.4.3
 typos==1.21.0
-types-beautifulsoup4==4.12.0.20240504
+types-beautifulsoup4==4.12.0.20240511
 types-requests==2.31.0.20240406
