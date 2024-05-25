@@ -6,6 +6,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- non-exact (or fuzzy) filter matching and search functionality (#107,#130,!177)
+  - the `list` and `search` commands now support the following features to
+    perform non-exact filter matching and searching, respectively:
+    - LaTeX sequences can be decoded to Unicode characters:
+      - using `--decode-latex` from the command-line
+      - setting `config.commands.list_.decode_latex = True`
+      - setting `config.commands.search.decode_latex = True`
+    - Unicode characters can be converted to a close ASCII equivalent:
+      - using `--decode-unicode` from the command-line
+      - setting `config.commands.list_.decode_unicode = True`
+      - setting `config.commands.search.decode_unicode = True`
+    - a number of fuzzy errors can be set (this requires the optional dependency
+      [`regex`](https://pypi.org/project/regex/) to be installed):
+      - using `--fuzziness <int>` from the command-line
+      - setting `config.commands.list_.fuzzines` to some integer
+      - setting `config.commands.search.fuzzines` to some integer
+- (DEV) the following method arguments have been converted to be accepted only
+  as keyword arguments:
+  - in `cobib.database.Entry.matches`: `ignore_case`
+  - in `cobib.database.Entry.search`: `context`, `ignore_case`, and `skip_files`
+- (DEV) the return-type of `cobib.database.Entry.search` has been changed
+
 
 ## [5.0.1] - 2024-05-01
 

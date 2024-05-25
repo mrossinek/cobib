@@ -64,6 +64,10 @@ yaml = "cobib.parsers.yaml:YAMLParser"
 [project.scripts]
 cobib = "cobib.__main__:_main"
 
+[project.optional-dependencies]
+all = ["cobib[fuzzy]"]
+fuzzy = ["regex"]
+
 [project.urls]
 Homepage = "https://gitlab.com/cobib/cobib"
 Documentation = "https://cobib.gitlab.io/cobib/cobib.html"

@@ -14,6 +14,7 @@ from typing_extensions import override
 
 from cobib.commands import SearchCommand
 from cobib.config import Event, config
+from cobib.utils.regex import HAS_OPTIONAL_REGEX
 
 from .command_test import CommandTest
 
@@ -27,6 +28,14 @@ class TestSearchCommand(CommandTest):
     @override
     def get_command(self) -> type[cobib.commands.base_command.Command]:
         return SearchCommand
+
+    @pytest.fixture(autouse=True)
+    def auto_setup(self) -> None:
+        """Additional setup instructions which will be run automatically for this class of tests."""
+        # NOTE: since some of the tests below overwrite some configuration values which affect the
+        # defaults of the command arguments, we automatically reset these defaults to align with the
+        # default configuration values before every single test
+        SearchCommand.init_argparser()
 
     def _assert(self, output: list[str], expected: list[str]) -> None:
         """Common assertion utility method.
@@ -145,6 +154,192 @@ class TestSearchCommand(CommandTest):
             config_overwrite: what to overwrite `config.commands.search.ignore_case` with.
         """
         config.commands.search.ignore_case = config_overwrite
+        # NOTE: the following ensures that the changed configuration value gets populated as the
+        # default value of the commands argument parser
+        SearchCommand.init_argparser()
+
+        cmd = SearchCommand(*args)
+        await cmd.execute()
+        output = cmd.render_porcelain()
+        self._assert(output, expected)
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ["args", "expected", "config_overwrite"],
+        [
+            [["Körper", "-c", "0"], [], False],
+            [
+                ["Körper", "-c", "0"],
+                [
+                    "einstein::1",
+                    r"1::title = {Zur Elektrodynamik bewegter K{\"o}rper},",
+                ],
+                True,
+            ],
+            [
+                ["Körper", "-c", "0", "-l"],
+                [
+                    "einstein::1",
+                    r"1::title = {Zur Elektrodynamik bewegter K{\"o}rper},",
+                ],
+                False,
+            ],
+            [["Körper", "-c", "0", "-L"], [], True],
+            [
+                # combined with --decode-unicode
+                ["Korper", "-c", "0", "-l", "-u"],
+                [
+                    "einstein::1",
+                    r"1::title = {Zur Elektrodynamik bewegter K{\"o}rper},",
+                ],
+                False,
+            ],
+        ],
+    )
+    async def test_decode_latex(
+        self, setup: Any, args: list[str], expected: list[str], config_overwrite: bool
+    ) -> None:
+        """Test the `decode_latex` argument and configuration setting.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            args: the arguments to pass to the command.
+            expected: the expected output.
+            config_overwrite: what to overwrite `config.commands.search.decode_latex` with.
+        """
+        config.commands.search.decode_latex = config_overwrite
+        # NOTE: the following ensures that the changed configuration value gets populated as the
+        # default value of the commands argument parser
+        SearchCommand.init_argparser()
+
+        cmd = SearchCommand(*args)
+        await cmd.execute()
+        output = cmd.render_porcelain()
+        self._assert(output, expected)
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "setup",
+        [
+            {
+                "git": False,
+                "database": True,
+                "database_filename": "unified_database.yaml",
+                "database_location": "commands",
+            },
+        ],
+        indirect=["setup"],
+    )
+    @pytest.mark.parametrize(
+        ["args", "expected", "config_overwrite"],
+        [
+            [
+                ["Pavosevic", "-c", "0"],
+                [
+                    "Pavosevic2023::1",
+                    "1::@unpublished{Pavosevic2023,",
+                ],
+                False,
+            ],
+            [
+                ["Pavosevic", "-c", "0"],
+                [
+                    "Pavosevic2023::2",
+                    "1::@unpublished{Pavosevic2023,",
+                    "2::author = {Pavošević, Fabijan and Tavernelli, Ivano and Rubio, Angel},",
+                ],
+                True,
+            ],
+            [
+                ["Pavosevic", "-c", "0", "-u"],
+                [
+                    "Pavosevic2023::2",
+                    "1::@unpublished{Pavosevic2023,",
+                    "2::author = {Pavošević, Fabijan and Tavernelli, Ivano and Rubio, Angel},",
+                ],
+                False,
+            ],
+            [
+                ["Pavosevic", "-c", "0", "-U"],
+                [
+                    "Pavosevic2023::1",
+                    "1::@unpublished{Pavosevic2023,",
+                ],
+                True,
+            ],
+        ],
+    )
+    async def test_decode_unicode(
+        self, setup: Any, args: list[str], expected: list[str], config_overwrite: bool
+    ) -> None:
+        """Test the `decode_unicode` argument and configuration setting.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            args: the arguments to pass to the command.
+            expected: the expected output.
+            config_overwrite: what to overwrite `config.commands.search.decode_unicode` with.
+        """
+        config.commands.search.decode_unicode = config_overwrite
+        # NOTE: the following ensures that the changed configuration value gets populated as the
+        # default value of the commands argument parser
+        SearchCommand.init_argparser()
+
+        cmd = SearchCommand(*args)
+        await cmd.execute()
+        output = cmd.render_porcelain()
+        self._assert(output, expected)
+
+    @pytest.mark.skipif(not HAS_OPTIONAL_REGEX, reason="Requires the optional regex dependency.")
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ["args", "expected", "config_overwrite"],
+        [
+            [["einstien", "-c", "0", "-z", "1"], [], 0],
+            [["einstien", "-c", "0", "-z", "0"], [], 3],
+            [
+                ["einstien", "-c", "0", "-z", "2"],
+                [
+                    "einstein::1",
+                    "1::@article{einstein,",
+                ],
+                0,
+            ],
+            [
+                ["einstien", "-c", "0", "-z", "3"],
+                [
+                    "einstein::2",
+                    "1::@article{einstein,",
+                    "2::author = {Einstein, Albert},",
+                ],
+                0,
+            ],
+            [
+                ["einstien", "-c", "0"],
+                [
+                    "einstein::2",
+                    "1::@article{einstein,",
+                    "2::author = {Einstein, Albert},",
+                ],
+                3,
+            ],
+        ],
+    )
+    async def test_fuzziness(
+        self, setup: Any, args: list[str], expected: list[str], config_overwrite: int
+    ) -> None:
+        """Test the `fuzziness` argument and configuration setting.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            args: the arguments to pass to the command.
+            expected: the expected output.
+            config_overwrite: what to overwrite `config.commands.search.fuzziness` with.
+        """
+        config.commands.search.fuzziness = config_overwrite
+        # NOTE: the following ensures that the changed configuration value gets populated as the
+        # default value of the commands argument parser
+        SearchCommand.init_argparser()
 
         cmd = SearchCommand(*args)
         await cmd.execute()

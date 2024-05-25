@@ -14,6 +14,7 @@ from typing_extensions import override
 
 from cobib.commands import ListCommand
 from cobib.config import Event, config
+from cobib.utils.regex import HAS_OPTIONAL_REGEX
 
 from .command_test import CommandTest
 
@@ -83,6 +84,41 @@ class TestListCommand(CommandTest):
                 {"author"},
                 False,
             ],
+            # the following cases test the LaTeX and Unicode decoding
+            [
+                ["++title", "Körper"],
+                [],
+                {"title"},
+                False,
+            ],
+            [
+                ["--decode-latex", "++title", "Körper"],
+                ["einstein"],
+                {"title"},
+                False,
+            ],
+            [
+                ["--decode-latex", "--decode-unicode", "++title", "Korper"],
+                ["einstein"],
+                {"title"},
+                False,
+            ],
+            # the following cases test the fuzzy entry matching (if `regex` is available)
+            [
+                ["++journal", "Pyhsik"],  # first ensure that we do not match this typo without `-z`
+                [],
+                {"journal"},
+                False,
+            ],
+            pytest.param(
+                ["-z", "2", "++journal", "Pyhsik"],
+                ["einstein"],
+                {"journal"},
+                False,
+                marks=pytest.mark.skipif(
+                    not HAS_OPTIONAL_REGEX, reason="Requires the optional regex dependency."
+                ),
+            ),
         ],
     )
     def test_filter_entries(
