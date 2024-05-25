@@ -9,6 +9,8 @@ import pytest
 from cobib.config import AuthorFormat, config
 from cobib.database import Author, Entry
 from cobib.parsers.bibtex import BibtexParser
+from cobib.utils.match import Match, Span
+from cobib.utils.regex import HAS_OPTIONAL_REGEX
 from cobib.utils.rel_path import RelPath
 
 from .. import get_resource
@@ -221,7 +223,9 @@ def test_entry_set_month(
         [{("label", True): [r"\D+_\d+"]}, True, False],
     ],
 )
-def test_entry_matches(filter_: dict[tuple[str, bool], Any], or_: bool, ignore_case: bool) -> None:
+def test_entry_matches(
+    filter_: dict[tuple[str, bool], list[str]], or_: bool, ignore_case: bool
+) -> None:
     """Test match filter.
 
     Args:
@@ -232,6 +236,82 @@ def test_entry_matches(filter_: dict[tuple[str, bool], Any], or_: bool, ignore_c
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     # author must match
     assert entry.matches(filter_, or_=or_, ignore_case=ignore_case)
+
+
+@pytest.mark.parametrize(
+    ["filter", "title", "decode_latex", "decode_unicode"],
+    [
+        [
+            "Kör",
+            r"Zur Elektrodynamik bewegter K{\"o}rper",
+            True,
+            False,
+        ],
+        [
+            "Kor",
+            "Zur Elektrodynamik bewegter Körper",
+            False,
+            True,
+        ],
+        [
+            "Kor",
+            r"Zur Elektrodynamik bewegter K{\"o}rper",
+            True,
+            True,
+        ],
+    ],
+)
+def test_matches_decoding(
+    filter: str, title: str, decode_latex: bool, decode_unicode: bool
+) -> None:
+    """Test the `cobib.database.Entry.matches` method's decoding arguments."""
+    entry = Entry(
+        "search_dummy",
+        {
+            "ENTRYTYPE": "article",
+            "title": title,
+        },
+    )
+    assert entry.matches(
+        {
+            ("title", True): [filter],
+        },
+        or_=False,
+        decode_latex=decode_latex,
+        decode_unicode=decode_unicode,
+    )
+
+
+@pytest.mark.parametrize(
+    ["filter_", "expected", "fuzziness"],
+    [
+        [
+            {("journal", True): ["Reviews"]},
+            True,
+            0,
+        ],
+        [
+            {("journal", True): ["Reviesw"]},
+            False,
+            0,
+        ],
+        [
+            {("journal", True): ["Reviesw"]},
+            True,
+            1,
+        ],
+    ],
+)
+def test_matches_fuzziness(
+    filter_: dict[tuple[str, bool], list[str]], expected: bool, fuzziness: int
+) -> None:
+    """Test the `cobib.database.Entry.matches` method's fuzziness arguments."""
+    entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
+    result = entry.matches(filter_, or_=False, fuzziness=fuzziness)
+    if fuzziness > 0 and not HAS_OPTIONAL_REGEX:
+        assert result is False
+    else:
+        assert result is expected
 
 
 def test_match_with_wrong_key() -> None:
@@ -253,8 +333,11 @@ def test_match_with_wrong_key() -> None:
             1,
             False,
             [
-                ["@article{search_dummy,", " abstract = {search_query", "something else"],
-                ["something else", "search_query", "something else"],
+                Match(
+                    "@article{search_dummy,\n abstract = {search_query\nsomething else",
+                    [Span(36, 48)],
+                ),
+                Match("something else\nsearch_query\nsomething else", [Span(15, 27)]),
             ],
         ],
         [
@@ -262,10 +345,13 @@ def test_match_with_wrong_key() -> None:
             1,
             True,
             [
-                ["@article{search_dummy,", " abstract = {search_query", "something else"],
-                ["something else", "Search_Query", "something else"],
-                ["something else", "search_query", "something else"],
-                ["something else", "Search_Query", "something else}"],
+                Match(
+                    "@article{search_dummy,\n abstract = {search_query\nsomething else",
+                    [Span(36, 48)],
+                ),
+                Match("something else\nSearch_Query\nsomething else", [Span(15, 27)]),
+                Match("something else\nsearch_query\nsomething else", [Span(15, 27)]),
+                Match("something else\nSearch_Query\nsomething else}", [Span(15, 27)]),
             ],
         ],
         [
@@ -273,10 +359,13 @@ def test_match_with_wrong_key() -> None:
             1,
             False,
             [
-                ["@article{search_dummy,", " abstract = {search_query", "something else"],
-                ["something else", "Search_Query", "something else"],
-                ["something else", "search_query", "something else"],
-                ["something else", "Search_Query", "something else}"],
+                Match(
+                    "@article{search_dummy,\n abstract = {search_query\nsomething else",
+                    [Span(36, 48)],
+                ),
+                Match("something else\nSearch_Query\nsomething else", [Span(15, 27)]),
+                Match("something else\nsearch_query\nsomething else", [Span(15, 27)]),
+                Match("something else\nSearch_Query\nsomething else}", [Span(15, 27)]),
             ],
         ],
         [
@@ -284,19 +373,25 @@ def test_match_with_wrong_key() -> None:
             2,
             False,
             [
-                [
-                    "@article{search_dummy,",
-                    " abstract = {search_query",
-                    "something else",
-                    "Search_Query",
-                ],
-                [
-                    "Search_Query",
-                    "something else",
-                    "search_query",
-                    "something else",
-                    "Search_Query",
-                ],
+                Match(
+                    (
+                        "@article{search_dummy,\n"
+                        " abstract = {search_query\n"
+                        "something else\n"
+                        "Search_Query"
+                    ),
+                    [Span(36, 48)],
+                ),
+                Match(
+                    (
+                        "Search_Query\n"
+                        "something else\n"
+                        "search_query\n"
+                        "something else\n"
+                        "Search_Query"
+                    ),
+                    [Span(28, 40)],
+                ),
             ],
         ],
         # the following will look almost identical to the second scenarios because otherwise the
@@ -306,10 +401,13 @@ def test_match_with_wrong_key() -> None:
             2,
             True,
             [
-                ["@article{search_dummy,", " abstract = {search_query", "something else"],
-                ["something else", "Search_Query", "something else"],
-                ["something else", "search_query", "something else"],
-                ["something else", "Search_Query", "something else}", "}"],
+                Match(
+                    "@article{search_dummy,\n abstract = {search_query\nsomething else",
+                    [Span(36, 48)],
+                ),
+                Match("something else\nSearch_Query\nsomething else", [Span(15, 27)]),
+                Match("something else\nsearch_query\nsomething else", [Span(15, 27)]),
+                Match("something else\nSearch_Query\nsomething else}\n}", [Span(15, 27)]),
             ],
         ],
         # what we care about here, is that the second match does not include lines which occur
@@ -319,24 +417,30 @@ def test_match_with_wrong_key() -> None:
             10,
             False,
             [
-                [
-                    "@article{search_dummy,",
-                    " abstract = {search_query",
-                    "something else",
-                    "Search_Query",
-                    "something else",
-                ],
-                [
-                    "something else",
-                    "Search_Query",
-                    "something else",
-                    "search_query",
-                    "something else",
-                    "Search_Query",
-                    "something else}",
-                    "}",
-                    "",
-                ],
+                Match(
+                    (
+                        "@article{search_dummy,\n"
+                        " abstract = {search_query\n"
+                        "something else\n"
+                        "Search_Query\n"
+                        "something else"
+                    ),
+                    [Span(36, 48)],
+                ),
+                Match(
+                    (
+                        "something else\n"
+                        "Search_Query\n"
+                        "something else\n"
+                        "search_query\n"
+                        "something else\n"
+                        "Search_Query\n"
+                        "something else}\n"
+                        "}\n"
+                        ""
+                    ),
+                    [Span(43, 55)],
+                ),
             ],
         ],
         [
@@ -344,17 +448,18 @@ def test_match_with_wrong_key() -> None:
             1,
             False,
             [
-                ["@article{search_dummy,", " abstract = {search_query", "something else"],
-                ["something else", "search_query", "something else"],
-                ["something else", "Search_Query", "something else"],
-                ["something else", "Search_Query", "something else}"],
+                Match(
+                    "@article{search_dummy,\n abstract = {search_query\nsomething else",
+                    [Span(43, 48)],
+                ),
+                Match("something else\nsearch_query\nsomething else", [Span(22, 27)]),
+                Match("something else\nSearch_Query\nsomething else", [Span(22, 27)]),
+                Match("something else\nSearch_Query\nsomething else}", [Span(22, 27)]),
             ],
         ],
     ],
 )
-def test_search(
-    query: list[str], context: int, ignore_case: bool, expected: list[list[str]]
-) -> None:
+def test_search(query: list[str], context: int, ignore_case: bool, expected: list[Match]) -> None:
     """Test search method.
 
     Args:
@@ -382,16 +487,84 @@ def test_search(
     assert results == expected
 
 
+@pytest.mark.parametrize(
+    ["query", "title", "decode_latex", "decode_unicode"],
+    [
+        [
+            "Kör",
+            r"Zur Elektrodynamik bewegter K{\"o}rper",
+            True,
+            False,
+        ],
+        [
+            "Kor",
+            "Zur Elektrodynamik bewegter Körper",
+            False,
+            True,
+        ],
+        [
+            "Kor",
+            r"Zur Elektrodynamik bewegter K{\"o}rper",
+            True,
+            True,
+        ],
+    ],
+)
+def test_search_decoding(query: str, title: str, decode_latex: bool, decode_unicode: bool) -> None:
+    """Test the `cobib.database.Entry.search` method's decoding arguments."""
+    entry = Entry(
+        "search_dummy",
+        {
+            "ENTRYTYPE": "article",
+            "title": title,
+        },
+    )
+    results = entry.search(
+        [query], context=0, decode_latex=decode_latex, decode_unicode=decode_unicode
+    )
+    assert results == [Match(f" title = {{{title}}}", [Span(38, 41)])]
+
+
+@pytest.mark.parametrize(
+    ["query", "expected", "fuzziness"],
+    [
+        [
+            "Reviews",
+            [Match(" journal = {Chemical Reviews},", [Span(start=21, end=28)])],
+            0,
+        ],
+        [
+            "Reviesw",
+            [],
+            0,
+        ],
+        [
+            "Reviesw",
+            [Match(" journal = {Chemical Reviews},", [Span(start=21, end=27)])],
+            1,
+        ],
+    ],
+)
+def test_search_fuzziness(query: str, expected: list[Match], fuzziness: int) -> None:
+    """Test the `cobib.database.Entry.search` method's fuzziness arguments."""
+    entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
+    results = entry.search([query], context=0, fuzziness=fuzziness)
+    if fuzziness > 0 and not HAS_OPTIONAL_REGEX:
+        assert results == []
+    else:
+        assert results == expected
+
+
 def test_search_with_file() -> None:
     """Test the `cobib.database.Entry.search` method with associated file."""
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     entry.file = EXAMPLE_YAML_FILE  # type: ignore[assignment]
     results = entry.search(["Chemical"], context=0)
     expected = [
-        [" journal = {Chemical Reviews},"],
-        [" publisher = {American Chemical Society (ACS)},"],
-        ["journal: Chemical Reviews"],
-        ["publisher: American Chemical Society (ACS)"],
+        Match(" journal = {Chemical Reviews},", [Span(12, 20)]),
+        Match(" publisher = {American Chemical Society (ACS)},", [Span(23, 31)]),
+        Match("journal: Chemical Reviews", [Span(9, 17)]),
+        Match("publisher: American Chemical Society (ACS)", [Span(20, 28)]),
     ]
     assert len(results) == len(expected)
     for res, exp in zip(results, expected):
@@ -404,8 +577,8 @@ def test_search_with_skipped_file() -> None:
     entry.file = EXAMPLE_YAML_FILE  # type: ignore[assignment]
     results = entry.search(["Chemical"], context=0, skip_files=True)
     expected = [
-        [" journal = {Chemical Reviews},"],
-        [" publisher = {American Chemical Society (ACS)},"],
+        Match(" journal = {Chemical Reviews},", [Span(12, 20)]),
+        Match(" publisher = {American Chemical Society (ACS)},", [Span(23, 31)]),
     ]
     assert len(results) == len(expected)
     for res, exp in zip(results, expected):
@@ -488,7 +661,6 @@ def test_save(author_format: AuthorFormat, reference_file: str) -> None:
     config.database.format.author_format = author_format
     entry = Entry("Cao_2019", EXAMPLE_ENTRY_DICT)
     entry_str = entry.save()
-    print(entry_str)
     with open(reference_file, "r", encoding="utf-8") as expected:
         for line, truth in zip(entry_str.split("\n"), expected):
             assert line == truth.strip("\n")

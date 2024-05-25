@@ -91,8 +91,49 @@ And the following will *always* be sensitive to case:
 cobib list --no-ignore-case ++author rossmannek
 ```
 
+
+### Non-exact matching
+
 .. note::
-   For more information on the filtering mechanisms see also `cobib.database.Entry.matches`.
+   New in version v5.1.0
+
+Besides case-insensitive filter matching (see above), coBib now also provides more means to perform
+non-exact matching of your filters.
+
+The `--decode-latex` argument will convert LaTeX sequences to Unicode characters (where possible).
+For example, a LaTeX-encoded Umlaut like `\"o` will become `ö`. This can significantly simplify your
+match query, for example:
+```
+cobib list --decode-latex ++title Körper
+```
+will match entries whose title contains `K{\"o}rper`.
+You can enable this behavior by default by setting `config.commands.list_.decode_latex = True`.
+If you have enabled this setting, you can temporarily overwrite it from the command-line with the
+`--no-decode-latex` argument.
+
+Additionally, you can convert Unicode characters to a close ASCII equivalent with `--decode-unicode`
+which can simplify your search further. Reusing the example above, you can now match titles
+containing `K{\"o}rper` as follows:
+```
+cobib list --decode-latex --decode-unicode ++title Korper
+```
+You can enable this behavior by default by setting `config.commands.list_.decode_unicode = True`.
+If you have enabled this setting, you can temporarily overwrite it from the command-line with the
+`--no-decode-unicode` argument.
+
+Finally, if you install the optional [`regex`](https://pypi.org/project/regex/) dependency you can
+even perform fuzzy matching. For example, you can specify the amount of fuzzy errors to allow via
+the `--fuzziness` (`-z` for short) argument. Reusing the sample example again, you can allow for
+typos in your filter like so:
+```
+cobib list --decode-latex --decode-unicode --fuzziness 2 ++title Koprer
+```
+You can specify a default amount of fuzzy errors by setting `config.commands.list_.fuzziness` to the
+desired value.
+
+
+.. note::
+   For more information on the filtering mechanisms see also `cobib.database.entry.Entry.matches`.
 """
 
 from __future__ import annotations
@@ -101,7 +142,7 @@ import argparse
 import logging
 from collections import defaultdict
 from copy import copy
-from typing import Any
+from typing import Any, Final, Literal, get_args
 
 from rich.console import ConsoleRenderable
 from rich.table import Table
@@ -111,6 +152,7 @@ from typing_extensions import override
 from cobib.config import Event, config
 from cobib.database import Database, Entry
 from cobib.ui.components import ListView
+from cobib.utils.regex import HAS_OPTIONAL_REGEX
 
 from .base_command import Command
 
@@ -138,6 +180,17 @@ class ListCommand(Command):
           overwrites the `cobib.config.config.ListCommandConfig.ignore_case` setting.
         * `-I`, `--no-ignore-case`: if specified, the entry matching will be case-sensitive. This
           overwrites the `cobib.config.config.ListCommandConfig.ignore_case` setting.
+        * `--decode-latex`: if specified, all LaTeX sequences will be decoded before matching. This
+          overwrites the `cobib.config.config.ListCommandConfig.decode_latex` setting.
+        * `--no-decode-latex`: if specified, LaTeX sequences will be left unchanged before matching.
+          This overwrites the `cobib.config.config.ListCommandConfig.decode_latex` setting.
+        * `--decode-unicode`: if specified, all Unicode characters will be decoded before matching.
+          This overwrites the `cobib.config.config.ListCommandConfig.decode_unicode` setting.
+        * `--no-decode-unicode`: if specified, Unicode characters will be left unchanged before
+          matching. This overwrites the `cobib.config.config.ListCommandConfig.decode_unicode`
+          setting.
+        * `-z`, `--fuzziness`: you can specify the number of fuzzy errors to allow for entry
+          matching. This requires the optional `regex` dependency to be installed.
         * `-x`, `--or`: if specified, multiple filters will be combined with logical OR rather than
           the default logical AND.
         * in addition to the options above, [Filter keyword arguments](#filters) are registered at
@@ -146,6 +199,21 @@ class ListCommand(Command):
     """
 
     name = "list"
+
+    _RESERVED_FIELDS = Final[
+        Literal[
+            "OR",
+            "sort",
+            "reverse",
+            "limit",
+            "ignore_case",
+            "decode_latex",
+            "decode_unicode",
+            "fuzziness",
+        ]
+    ]
+    """These fields are reserved because they correspond to the names of the command-line arguments.
+    This list of values is used when constructing the filter during `filter_entries`."""
 
     @override
     def __init__(self, *args: str) -> None:
@@ -187,6 +255,44 @@ class ListCommand(Command):
             default=None,
             help="do NOT ignore case for entry matching",
         )
+        latex_group = parser.add_mutually_exclusive_group()
+        latex_group.add_argument(
+            "--decode-latex",
+            action="store_true",
+            default=None,
+            help="decode LaTeX sequences for entry matching",
+        )
+        latex_group.add_argument(
+            "--no-decode-latex",
+            dest="decode_latex",
+            action="store_false",
+            default=None,
+            help="do NOT decode LaTeX sequences for entry matching",
+        )
+        unicode_group = parser.add_mutually_exclusive_group()
+        unicode_group.add_argument(
+            "--decode-unicode",
+            action="store_true",
+            default=None,
+            help="decode Unicode characters for entry matching",
+        )
+        unicode_group.add_argument(
+            "--no-decode-unicode",
+            dest="decode_unicode",
+            action="store_false",
+            default=None,
+            help="do NOT decode Unicode characters for entry matching",
+        )
+        parser.add_argument(
+            "-z",
+            "--fuzziness",
+            type=int,
+            default=config.commands.list_.fuzziness,
+            help=(
+                "how many fuzzy errors to allow for entry matching. This requires the optional "
+                "`regex` dependency to be installed."
+            ),
+        )
         parser.add_argument(
             "-x",
             "--or",
@@ -213,7 +319,16 @@ class ListCommand(Command):
     def _parse_args(cls, args: tuple[str, ...]) -> argparse.Namespace:
         args = tuple(arg for arg in args if arg != "--")
 
-        return super()._parse_args(args)
+        largs = super()._parse_args(args)
+
+        if largs.fuzziness > 0 and not HAS_OPTIONAL_REGEX:  # pragma: no branch
+            LOGGER.warning(  # pragma: no cover
+                "Using the `--fuzziness` argument requires the optional `regex` dependency to be "
+                "installed! Falling back to `fuzziness=0`."
+            )
+            largs.fuzziness = 0  # pragma: no cover
+
+        return largs
 
     @override
     def execute(self) -> None:
@@ -275,7 +390,10 @@ class ListCommand(Command):
         _filter: dict[tuple[str, bool], list[Any]] = defaultdict(list)
 
         for key, val in self.largs.__dict__.items():
-            if key in ["OR", "sort", "reverse", "limit", "ignore_case"] or val is None:
+            # we use get_args twice:
+            #  1. to extract the args from `Final`
+            #  2. and then to extract the args from the `Literal` stored in the first arg of `Final`
+            if key in get_args(get_args(self._RESERVED_FIELDS)[0]) or val is None:
                 # ignore special arguments
                 continue
 
@@ -306,12 +424,34 @@ class ListCommand(Command):
             "The entry matching will be performed case %ssensitive", "in" if ignore_case else ""
         )
 
+        decode_latex = config.commands.list_.decode_latex
+        if self.largs.decode_latex is not None:
+            decode_latex = self.largs.decode_latex
+        LOGGER.debug(
+            "The entry matching will%s decode all LaTeX sequences", "" if decode_latex else " NOT"
+        )
+
+        decode_unicode = config.commands.list_.decode_unicode
+        if self.largs.decode_unicode is not None:
+            decode_unicode = self.largs.decode_unicode
+        LOGGER.debug(
+            "The entry matching will%s decode all Unicode characters",
+            "" if decode_unicode else " NOT",
+        )
+
         if len(filtered_keys) == 0:
             # bypassing the unnecessary calls to `Entry.matches` when no filter was provided
             self.entries = list(Database().values())
         else:
             for key, entry in Database().items():
-                if entry.matches(_filter, self.largs.OR, ignore_case):
+                if entry.matches(
+                    _filter,
+                    self.largs.OR,
+                    ignore_case=ignore_case,
+                    decode_latex=decode_latex,
+                    decode_unicode=decode_unicode,
+                    fuzziness=self.largs.fuzziness,
+                ):
                     LOGGER.debug('Entry "%s" matches the filter.', key)
                     self.entries.append(entry)
 

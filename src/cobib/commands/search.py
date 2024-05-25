@@ -1,4 +1,4 @@
-"""coBib's Search command.
+r"""coBib's Search command.
 
 This command allows you to search your database for one or more regex-interpreted queries.
 While doing so, it uses the `cobib.config.config.SearchCommandConfig.grep` tool to search associated
@@ -47,6 +47,46 @@ While this is not strictly necessary it helps to disambiguate the origin of the 
    is being searched and does _not_ indicate the maximum number of search results (since this can
    still be lower).
 
+
+### Non-exact matching
+
+.. note::
+   New in version v5.1.0
+
+Besides case-insensitive searches (see above), coBib now also provides more means to perform
+non-exact searches.
+
+The `--decode-latex` (`-l` for short) argument will convert LaTeX sequences to Unicode characters
+(where possible). For example, a LaTeX-encoded Umlaut like `\"o` will become `ö`. This can
+significantly simplify your search, for example:
+```
+cobib search --decode-latex Körper
+```
+will match entries that contain `K{\"o}rper`.
+You can enable this behavior by default by setting `config.commands.search.decode_latex = True`.
+If you have enabled this setting, you can temporarily overwrite it from the command-line with the
+`--no-decode-latex` (`-L` for short) argument.
+
+Additionally, you can convert Unicode characters to a close ASCII equivalent with `--decode-unicode`
+(`-u` for short) which can simplify your search further. Reusing the example above, you can now
+search for entries containing `K{\"o}rper` as follows:
+```
+cobib search --decode-latex --decode-unicode Korper
+```
+You can enable this behavior by default by setting `config.commands.search.decode_unicode = True`.
+If you have enabled this setting, you can temporarily overwrite it from the command-line with the
+`--no-decode-unicode` (`-U` for short) argument.
+
+Finally, if you install the optional [`regex`](https://pypi.org/project/regex/) dependency you can
+even perform fuzzy searches. For example, you can specify the amount of fuzzy errors to allow via
+the `--fuzziness` (`-z` for short) argument. Reusing the sample example again, you can allow for
+typos in your search like so:
+```
+cobib search --decode-latex --decode-unicode --fuzziness 2 Koprer
+```
+You can specify a default amount of fuzzy errors by setting `config.commands.search.fuzziness` to
+the desired value.
+
 ### Associated files
 
 The search will also be performed on any associated files of your entries.
@@ -61,7 +101,7 @@ You can also trigger this command from the `cobib.ui.tui.TUI`.
 By default, it is bound to the `/` key.
 
 .. note::
-   For more information on the searching mechanisms see also `cobib.database.Entry.search`.
+   For more information on the searching mechanisms see also `cobib.database.entry.Entry.search`.
 """
 
 from __future__ import annotations
@@ -78,7 +118,9 @@ from typing_extensions import override
 from cobib.config import Event, config
 from cobib.database import Entry
 from cobib.ui.components import SearchView
+from cobib.utils.match import Match
 from cobib.utils.progress import Progress
+from cobib.utils.regex import HAS_OPTIONAL_REGEX
 
 from .base_command import Command
 from .list_ import ListCommand
@@ -99,6 +141,19 @@ class SearchCommand(Command):
           overwrites the `cobib.config.config.SearchCommandConfig.ignore_case` setting.
         * `-I`, `--no-ignore-case`: if specified, the search will be case-sensitive. This
           overwrites the `cobib.config.config.SearchCommandConfig.ignore_case` setting.
+        * `-l`, `--decode-latex`: if specified, all LaTeX sequences will be decoded before searched.
+          This overwrites the `cobib.config.config.SearchCommandConfig.decode_latex` setting.
+        * `-L`, `--no-decode-latex`: if specified, LaTeX sequences will be left unchanged before
+          searched. This overwrites the `cobib.config.config.SearchCommandConfig.decode_latex`
+          setting.
+        * `-u`, `--decode-unicode`: if specified, all Unicode characters will be decoded before
+          searched. This overwrites the `cobib.config.config.SearchCommandConfig.decode_unicode`
+          setting.
+        * `-U`, `--no-decode-unicode`: if specified, Unicode characters will be left unchanged
+          before searched. This overwrites the
+          `cobib.config.config.SearchCommandConfig.decode_unicode` setting.
+        * `-z`, `--fuzziness`: you can specify the number of fuzzy errors to allow for search
+          matches. This requires the optional `regex` dependency to be installed.
         * `-c`, `--context`: you can specify the number of lines of "context" which is the number of
           lines before and after the actual match to be included in the output. This is similar to
           the `-C` option of `grep`. You can configure the default value via the
@@ -117,7 +172,7 @@ class SearchCommand(Command):
         self.entries: list[Entry] = []
         """A filtered list of entries searched over by this command."""
 
-        self.matches: list[list[list[str]]] = []
+        self.matches: list[list[Match]] = []
         """The search matches detected by this command. This is a nested list of the following
         structure: the first list level iterates over the entries; the second list level iterates
         over the matches of any given entry; the third list level iterates the (context) lines of
@@ -148,6 +203,48 @@ class SearchCommand(Command):
             action="store_false",
             default=None,
             help="do NOT ignore case for searching",
+        )
+        latex_group = parser.add_mutually_exclusive_group()
+        latex_group.add_argument(
+            "-l",
+            "--decode-latex",
+            action="store_true",
+            default=None,
+            help="decode LaTeX sequences for searching",
+        )
+        latex_group.add_argument(
+            "-L",
+            "--no-decode-latex",
+            dest="decode_latex",
+            action="store_false",
+            default=None,
+            help="do NOT decode LaTeX sequences for searching",
+        )
+        unicode_group = parser.add_mutually_exclusive_group()
+        unicode_group.add_argument(
+            "-u",
+            "--decode-unicode",
+            action="store_true",
+            default=None,
+            help="decode Unicode characters for searching",
+        )
+        unicode_group.add_argument(
+            "-U",
+            "--no-decode-unicode",
+            dest="decode_unicode",
+            action="store_false",
+            default=None,
+            help="do NOT decode Unicode characters for searching",
+        )
+        parser.add_argument(
+            "-z",
+            "--fuzziness",
+            type=int,
+            default=config.commands.search.fuzziness,
+            help=(
+                "how many fuzzy errors to allow for search matches. This requires the optional "
+                "`regex` dependency to be installed."
+            ),
         )
         parser.add_argument(
             "-c",
@@ -189,6 +286,14 @@ class SearchCommand(Command):
 
         largs = super()._parse_args(tuple(search_args))
         largs.filter = filter_args
+
+        if largs.fuzziness > 0 and not HAS_OPTIONAL_REGEX:  # pragma: no branch
+            LOGGER.warning(  # pragma: no cover
+                "Using the `--fuzziness` argument requires the optional `regex` dependency to be "
+                "installed! Falling back to `fuzziness=0`."
+            )
+            largs.fuzziness = 0  # pragma: no cover
+
         return largs
 
     @override
@@ -204,6 +309,18 @@ class SearchCommand(Command):
             ignore_case = self.largs.ignore_case
         LOGGER.debug("The search will be performed case %ssensitive", "in" if ignore_case else "")
 
+        decode_latex = config.commands.search.decode_latex
+        if self.largs.decode_latex is not None:
+            decode_latex = self.largs.decode_latex
+        LOGGER.debug("The search will%s decode all LaTeX sequences", "" if decode_latex else " NOT")
+
+        decode_unicode = config.commands.search.decode_unicode
+        if self.largs.decode_unicode is not None:
+            decode_unicode = self.largs.decode_unicode
+        LOGGER.debug(
+            "The search will%s decode all Unicode characters", "" if decode_unicode else " NOT"
+        )
+
         progress_bar = Progress.initialize()
         optional_awaitable = progress_bar.start()  # type: ignore[func-returns-value]
         if optional_awaitable is not None:
@@ -216,7 +333,13 @@ class SearchCommand(Command):
             await asyncio.sleep(0)
 
             matches = entry.search(
-                self.largs.query, self.largs.context, ignore_case, self.largs.skip_files
+                self.largs.query,
+                context=self.largs.context,
+                skip_files=self.largs.skip_files,
+                ignore_case=ignore_case,
+                decode_unicode=decode_unicode,
+                decode_latex=decode_latex,
+                fuzziness=self.largs.fuzziness,
             )
             if not matches:
                 self.entries.remove(entry)
@@ -238,18 +361,15 @@ class SearchCommand(Command):
             title = f"{entry.label}::{len(matches)}"
             output.append(title)
 
-            for idx, match in enumerate(matches):
-                for line in match:
-                    output.append(f"{idx+1}::" + line.strip())
+            for idx, match_ in enumerate(matches):
+                prefix = f"{idx+1}::"
+                for line in match_.text.splitlines():
+                    output.append(prefix + line.strip())
 
         return output
 
     @override
     def render_rich(self) -> ConsoleRenderable:
-        ignore_case = config.commands.search.ignore_case
-        if self.largs.ignore_case is not None:
-            ignore_case = self.largs.ignore_case
-
         tree = Tree(".", hide_root=True)
         for entry, matches in zip(self.entries, self.matches):
             subtree = tree.add(
@@ -259,25 +379,15 @@ class SearchCommand(Command):
                 )
             )
 
-            for idx, match in enumerate(matches):
+            for idx, match_ in enumerate(matches):
                 matchtree = subtree.add(str(idx + 1))
-                for line in match:
-                    line_text = Text(line)
-                    line_text.highlight_words(
-                        self.largs.query,
-                        config.theme.search.query,
-                        case_sensitive=not ignore_case,
-                    )
-                    matchtree.add(line_text)
+                for line in match_.stylize().split():
+                    matchtree.add(line)
 
         return tree
 
     @override
     def render_textual(self) -> SearchView:
-        ignore_case = config.commands.search.ignore_case
-        if self.largs.ignore_case is not None:
-            ignore_case = self.largs.ignore_case
-
         tree = SearchView(".")
         for entry, matches in zip(self.entries, self.matches):
             data = entry.label
@@ -290,19 +400,13 @@ class SearchCommand(Command):
                 expand=not config.tui.tree_folding[0],
             )
 
-            for idx, match in enumerate(matches):
+            for idx, match_ in enumerate(matches):
                 matchtree = subtree.add(
                     str(idx + 1),
                     data=data,
                     expand=not config.tui.tree_folding[1],
                 )
-                for line in match:
-                    line_text = Text(line)
-                    line_text.highlight_words(
-                        self.largs.query,
-                        config.theme.search.query,
-                        case_sensitive=not ignore_case,
-                    )
-                    matchtree.add_leaf(line_text, data=data)
+                for line in match_.stylize().split():
+                    matchtree.add_leaf(line, data=data)
 
         return tree

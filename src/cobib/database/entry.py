@@ -3,14 +3,17 @@
 from __future__ import annotations
 
 import logging
-import re
 import subprocess
+from itertools import accumulate
 from typing import TYPE_CHECKING, Any, List, Optional, cast
 
 from pylatexenc.latex2text import LatexNodes2Text
 from pylatexenc.latexencode import UnicodeToLatexEncoder
+from text_unidecode import unidecode
 
 from cobib.config import AuthorFormat, config
+from cobib.utils.match import Match, Span
+from cobib.utils.regex import HAS_OPTIONAL_REGEX, regex
 from cobib.utils.rel_path import RelPath
 
 from .author import Author
@@ -457,7 +460,14 @@ class Entry:
         return parser.dump(formatted_entry) or ""  # `dump` may return `None`
 
     def matches(
-        self, filter_: dict[tuple[str, bool], list[str]], or_: bool, ignore_case: bool = False
+        self,
+        filter_: dict[tuple[str, bool], list[str]],
+        or_: bool,
+        *,
+        ignore_case: bool = False,
+        decode_unicode: bool = False,
+        decode_latex: bool = False,
+        fuzziness: int = 0,
     ) -> bool:
         """Check whether this entry matches the supplied filter.
 
@@ -484,20 +494,44 @@ class Entry:
             or_ : boolean indicating whether logical OR (`true`) or AND (`false`) is used to combine
                 multiple filter items.
             ignore_case: if True, the matching will be case-*in*sensitive.
+            decode_unicode: if True, all Unicode characters will be decoded before matching.
+            decode_latex: if True, all LaTeX sequences will be decoded before matching.
+            fuzziness: the amount of fuzzy errors to allow for matches. Using this feature requires
+                the optional `regex` dependency to be installed.
 
         Returns:
             Boolean indicating whether this entry matches the filter.
         """
         LOGGER.debug("Checking whether entry %s matches.", self.label)
-        re_flags = re.IGNORECASE if ignore_case else 0
+
+        if decode_latex:
+            dec = self._get_latex_to_text_decoder()
+
+        re_flags = regex.IGNORECASE if ignore_case else 0
+
         match_list = []
         stringified_data = self.stringify(encode_latex=False)
+
         for key, values in filter_.items():
             if key[0] not in stringified_data:
                 match_list.append(not key[1])
                 continue
+
+            field_data = stringified_data[key[0]]
+
+            if decode_latex:
+                field_data = dec.latex_to_text(field_data)
+
+            if decode_unicode:
+                field_data = unidecode(field_data)
+
             for val in values:
-                if re.search(rf"{val}", stringified_data[key[0]], flags=re_flags):
+                if fuzziness:
+                    re_compiled = regex.compile(rf"({val}){{e<={fuzziness}}}", flags=re_flags)
+                else:
+                    re_compiled = regex.compile(rf"{val}", flags=re_flags)
+
+                if re_compiled.search(field_data):
                     match_list.append(key[1])
                 else:
                     match_list.append(not key[1])
@@ -505,18 +539,30 @@ class Entry:
             return any(m for m in match_list)
         return all(m for m in match_list)
 
-    def search(
+    def search(  # noqa: PLR0912
         self,
         query: list[str],
+        *,
         context: int = 1,
-        ignore_case: bool = False,
         skip_files: bool = False,
-    ) -> list[list[str]]:
+        ignore_case: bool = False,
+        decode_unicode: bool = False,
+        decode_latex: bool = False,
+        fuzziness: int = 0,
+    ) -> list[Match]:
         """Search entry contents for the query strings.
 
         The entry will *always* be converted to a searchable string using the
-        `cobib.parsers.BibtexParser.dump` method. This text will then be search for each item in
-        `query` and will interpret these as regex patterns.
+        `cobib.parsers.BibtexParser.dump` method.
+
+        .. note::
+           Setting `decode_latex=True` and/or `decode_unicode=True` does *NOT* affect the output of
+           the above in order to ensure that the printed search results still include the original
+           LaTeX sequences and/or Unicode characters. Instead, only the internally searched string
+           will be decoded.
+
+        This text will then be search for each item in `query` and will interpret these as regex
+        patterns.
         If a `file` is associated with this entry, the search will try its best to recursively query
         its contents, too. However, the success of this depends highly on the configured search
         tool, `cobib.config.config.SearchCommandConfig.grep`.
@@ -525,38 +571,100 @@ class Entry:
             query: the list of regex patterns to search for.
             context: the number of context lines to provide for each match. This behaves similarly
                 to the *Context Line Control* available for the UNIX `grep` command (`--context`).
-            ignore_case: if True, the search will be case-*in*sensitive.
             skip_files: if True, associated files will *not* be searched.
+            ignore_case: if True, the search will be case-*in*sensitive.
+            decode_unicode: if True, all Unicode characters will be decoded before search.
+            decode_latex: if True, all LaTeX sequences will be decoded before search.
+            fuzziness: the amount of fuzzy errors to allow for search matches. Using this feature
+                requires the optional `regex` dependency to be installed.
 
         Returns:
             A list of lists containing the context for each match associated with this entry.
         """
+        if fuzziness > 0 and not HAS_OPTIONAL_REGEX:  # pragma: no branch
+            LOGGER.warning(  # pragma: no cover
+                "Using the `fuzziness` option requires the optional `regex` dependency to be "
+                "installed! Falling back to `fuzziness=0`."
+            )
+
         LOGGER.debug("Searching entry %s.", self.label)
-        matches: list[list[str]] = []
+        matches: list[Match] = []
 
         from cobib.parsers.bibtex import BibtexParser
 
-        bibtex = BibtexParser(encode_latex=False).dump(self).split("\n")
-        re_flags = re.IGNORECASE if ignore_case else 0
+        # get searchable text
+        bibtex_raw = BibtexParser(encode_latex=False).dump(self)
+
+        # split into lines and compute their lengths and offsets
+        lines = bibtex_raw.split("\n")
+        line_lengths = [len(line) + 1 for line in lines]  # + 1 to account for the newline character
+        line_offsets = list(accumulate(line_lengths))
+
+        if decode_latex:
+            dec = self._get_latex_to_text_decoder()
+            bibtex_raw = dec.latex_to_text(bibtex_raw)
+
+        if decode_unicode:
+            bibtex_raw = unidecode(bibtex_raw)
+
+        re_flags = regex.IGNORECASE if ignore_case else 0
         for query_str in query:
-            re_compiled = re.compile(rf"{query_str}", flags=re_flags)
-            for idx, line in enumerate(bibtex):
-                if re_compiled.search(line):
-                    # add new match
-                    matches.append([])
-                    # upper context; (we iterate in reverse in order to ensure that we abort on the
-                    # first previous occurrence of the query pattern)
-                    for string in reversed(bibtex[max(idx - context, 0) : min(idx, len(bibtex))]):
-                        if re_compiled.search(string):
-                            break
-                        matches[-1].insert(0, string)
-                    # matching line itself
-                    matches[-1].append(line)
-                    # lower context
-                    for string in bibtex[max(idx + 1, 0) : min(idx + context + 1, len(bibtex))]:
-                        if re_compiled.search(string):
-                            break
-                        matches[-1].append(string)
+            if fuzziness:
+                re_compiled = regex.compile(rf"({query_str}){{e<={fuzziness}}}", flags=re_flags)
+            else:
+                re_compiled = regex.compile(rf"{query_str}", flags=re_flags)
+
+            # find all query matches
+            re_matches = list(re_compiled.finditer(bibtex_raw))
+
+            # determine line index for each match
+            matched_line_indices = []
+            for match_ in re_matches:
+                end = match_.span()[1]
+                for line_idx, offset in enumerate(line_offsets):
+                    if offset > end:
+                        matched_line_indices.append(line_idx)
+                        break
+
+            matched_line_indices_set = set(matched_line_indices)
+            prev_idx = 0
+            for idx, (match_, line_idx) in enumerate(zip(re_matches, matched_line_indices)):
+                try:
+                    next_idx = matched_line_indices[idx + 1]
+                except IndexError:
+                    next_idx = len(lines)
+
+                start = line_idx
+                # NOTE: we iterate in reverse in order to ensure that we abort on the first previous
+                # occurrence of the query pattern
+                for idx2 in reversed(
+                    range(
+                        max(line_idx - context, prev_idx),
+                        min(line_idx, next_idx),
+                    )
+                ):
+                    if idx2 in matched_line_indices_set:
+                        break
+                    start -= 1
+
+                stop = line_idx + 1
+                for idx2 in range(
+                    max(line_idx + 1, prev_idx),
+                    min(line_idx + context + 1, next_idx),
+                ):
+                    if idx2 in matched_line_indices_set:
+                        break
+                    stop += 1
+
+                offset = line_offsets[start - 1] if start > 0 else 0
+                matches.append(
+                    Match(
+                        "\n".join(lines[start:stop]),
+                        [Span(match_.start() - offset, match_.end() - offset)],
+                    )
+                )
+
+                prev_idx = line_idx
 
             if skip_files:
                 LOGGER.debug("Skipping the search in associated files of %s", self.label)
@@ -584,11 +692,15 @@ class Entry:
                 ) as grep:
                     if grep.stdout is None:
                         continue
-                    stdout = grep.stdout
-                    # extract results
-                    results = stdout.read().decode().split("\n--\n")
-                for match in results:
-                    if match:
-                        matches.append([line.strip() for line in match.split("\n") if line.strip()])
+                    stdout = grep.stdout.read().decode()
+                    if not stdout:
+                        continue
+
+                for file_match in stdout.split("\n--\n"):
+                    stripped = file_match.strip()
+                    file_matches = list(re_compiled.finditer(stripped))
+                    matches.append(
+                        Match(stripped, [Span(m.start(), m.end()) for m in file_matches])
+                    )
 
         return matches

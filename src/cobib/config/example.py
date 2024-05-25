@@ -57,6 +57,13 @@ config.commands.import_.skip_download = False
 config.commands.list_.default_columns = ["label", "title"]
 # You can specify whether filter matching should be performed case-insensitive.
 config.commands.list_.ignore_case = False
+# You can specify whether filter matching should decode all Unicode characters.
+config.commands.list_.decode_unicode = False
+# You can specify whether filter matching should decode all LaTeX sequences.
+config.commands.list_.decode_latex = False
+# You can specify the amount of fuzzy errors to allow for filter matching. Using this feature
+# requires the optional `regex` dependency to be installed.
+config.commands.list_.fuzziness = 0
 
 # You can specify whether associated files should be preserved when renaming during modifying.
 config.commands.modify.preserve_files = False
@@ -79,6 +86,13 @@ config.commands.search.grep = "grep"
 config.commands.search.grep_args = []
 # You can specify whether searches should be performed case-insensitive.
 config.commands.search.ignore_case = False
+# You can specify whether searches should decode all Unicode characters.
+config.commands.search.decode_unicode = False
+# You can specify whether searches should decode all LaTeX sequences.
+config.commands.search.decode_latex = False
+# You can specify the amount of fuzzy errors to allow for searches. Using this feature requires the
+# optional `regex` dependency to be installed.
+config.commands.search.fuzziness = 0
 
 # You can specify whether non-ASCII characters should be encoded using LaTeX sequences.
 config.commands.show.encode_latex = True

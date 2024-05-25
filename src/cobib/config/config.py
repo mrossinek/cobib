@@ -25,6 +25,7 @@ from rich.style import Style
 from rich.theme import Theme
 from typing_extensions import override
 
+from cobib.utils.regex import HAS_OPTIONAL_REGEX
 from cobib.utils.rel_path import RelPath
 
 if TYPE_CHECKING:
@@ -351,6 +352,13 @@ class ListCommandConfig(_ConfigBase):
     """Specifies the default columns shown during the `list` command."""
     ignore_case: bool = False
     """Specifies whether filter matching should be performed case-insensitive."""
+    decode_unicode: bool = False
+    """Specifies whether filter matching should decode all Unicode characters."""
+    decode_latex: bool = False
+    """Specifies whether filter matching should decode all LaTeX sequences."""
+    fuzziness: int = 0
+    """The amount of fuzzy errors to allow for filter matching. Using this feature requires the
+    optional `regex` dependency to be installed."""
 
     @override
     def validate(self) -> None:
@@ -363,6 +371,24 @@ class ListCommandConfig(_ConfigBase):
             isinstance(self.ignore_case, bool),
             "config.commands.list_.ignore_case should be a boolean.",
         )
+        self._assert(
+            isinstance(self.decode_unicode, bool),
+            "config.commands.list_.decode_unicode should be a boolean.",
+        )
+        self._assert(
+            isinstance(self.decode_latex, bool),
+            "config.commands.list_.decode_latex should be a boolean.",
+        )
+        self._assert(
+            isinstance(self.fuzziness, int) and self.fuzziness >= 0,
+            "config.commands.list_.fuzziness should be a non-negative integer.",
+        )
+        if self.fuzziness > 0 and not HAS_OPTIONAL_REGEX:  # pragma: no branch
+            LOGGER.warning(  # pragma: no cover
+                "Using `config.commands.list_.fuzziness` requires the optional `regex` "
+                "dependency to be installed! Falling back to `fuzziness=0`."
+            )
+            self.fuzziness = 0  # pragma: no cover
 
 
 @dataclass
@@ -420,6 +446,13 @@ class SearchCommandConfig(_ConfigBase):
     extended regex patterns even without specifying `-E`."""
     ignore_case: bool = False
     """Specifies whether searches should be performed case-insensitive."""
+    decode_unicode: bool = False
+    """Specifies whether searches should decode all Unicode characters."""
+    decode_latex: bool = False
+    """Specifies whether searches should decode all LaTeX sequences."""
+    fuzziness: int = 0
+    """The amount of fuzzy errors to allow for search matches. Using this feature requires the
+    optional `regex` dependency to be installed."""
 
     @property
     def highlights(self) -> SearchHighlightConfig:
@@ -453,6 +486,24 @@ class SearchCommandConfig(_ConfigBase):
             isinstance(self.ignore_case, bool),
             "config.commands.search.ignore_case should be a boolean.",
         )
+        self._assert(
+            isinstance(self.decode_unicode, bool),
+            "config.commands.search.decode_unicode should be a boolean.",
+        )
+        self._assert(
+            isinstance(self.decode_latex, bool),
+            "config.commands.search.decode_latex should be a boolean.",
+        )
+        self._assert(
+            isinstance(self.fuzziness, int) and self.fuzziness >= 0,
+            "config.commands.search.fuzziness should be a non-negative integer.",
+        )
+        if self.fuzziness > 0 and not HAS_OPTIONAL_REGEX:
+            LOGGER.warning(
+                "Using `config.commands.search.fuzziness` requires the optional `regex` "
+                "dependency to be installed! Falling back to `fuzziness=0`."
+            )
+            self.fuzziness = 0
 
 
 @dataclass

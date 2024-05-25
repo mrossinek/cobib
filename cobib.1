@@ -409,6 +409,39 @@ Makes the entry matching case-sensitive.
 This takes precedence over the \fIconfig.commands.list_.ignore_case\fR setting.
 .PP
 .in +8n
+.BR \-\-decode\-latex
+.in +4n
+Makes the entry matching decode all LaTeX sequences.
+This takes precedence over the \fIconfig.commands.list_.decode_latex\fR setting.
+.PP
+.in +8n
+.BR \-\-no\-decode\-latex
+.in +4n
+Makes the entry matching preserve all LaTeX sequences.
+This takes precedence over the \fIconfig.commands.list_.decode_latex\fR setting.
+.PP
+.in +8n
+.BR \-\-decode\-unicode
+.in +4n
+Makes the entry matching decode all Unicode characters.
+This takes precedence over the \fIconfig.commands.list_.decode_unicode\fR
+setting.
+.PP
+.in +8n
+.BR \-\-no\-decode\-unicode
+.in +4n
+Makes the entry matching preserve all Unicode characters.
+This takes precedence over the \fIconfig.commands.list_.decode_unicode\fR
+setting.
+.PP
+.in +8n
+.BR \-z ", " \-\-fuzziness " " \fI<int>\fI
+.in +4n
+Specifies how many fuzzy errors to allow during entry matching.
+The default value is 0 but can be configured via
+\fIconfig.commands.list_.fuzziness\fR.
+.PP
+.in +8n
 .BR \-x ", " \-\-or
 .in +4n
 Concatenate the filters using logical \fIOR\fR rather than the default
@@ -438,7 +471,42 @@ This takes precedence over the \fIconfig.commands.search.ignore_case\fR setting.
 .BR \-I ", " \-\-no\-ignore\-case
 .in +4n
 Makes the search case-insensitive.
-This takes precedence over the \fIconfig.commands.list_.ignore_case\fR setting.
+This takes precedence over the \fIconfig.commands.search.ignore_case\fR setting.
+.PP
+.in +8n
+.BR \-l ", " \-\-decode\-latex
+.in +4n
+Makes the search decode all LaTeX sequences.
+This takes precedence over the \fIconfig.commands.search.decode_latex\fR
+setting.
+.PP
+.in +8n
+.BR \-L ", " \-\-no\-decode\-latex
+.in +4n
+Makes the search preserve all LaTeX sequences.
+This takes precedence over the \fIconfig.commands.search.decode_latex\fR
+setting.
+.PP
+.in +8n
+.BR \-u ", " \-\-decode\-unicode
+.in +4n
+Makes the search decode all Unicode characters.
+This takes precedence over the \fIconfig.commands.search.decode_unicode\fR
+setting.
+.PP
+.in +8n
+.BR \-U ", " \-\-no\-decode\-unicode
+.in +4n
+Makes the search preserve all Unicode characters.
+This takes precedence over the \fIconfig.commands.search.decode_unicode\fR
+setting.
+.PP
+.in +8n
+.BR \-z ", " \-\-fuzziness " " \fI<int>\fI
+.in +4n
+Specifies how many fuzzy errors to allow during search.
+The default value is 0 but can be configured via
+\fIconfig.commands.search.fuzziness\fR.
 .PP
 .in +8n
 .BR \-\-skip\-files
@@ -746,6 +814,16 @@ Specifies the default columns displayed during the \fIlist\fR command.
 .IR config.commands.list_.ignore_case = False
 Specifies whether filter matching should be performed case-insensitive.
 .TP
+.IR config.commands.list_.decode_unicode = False
+Specifies whether filter matching should decode all Unicode characters.
+.TP
+.IR config.commands.list_.decode_latex = False
+Specifies whether filter matching should decode all LaTeX sequences.
+.TP
+.IR config.commands.list_.fuzziness = 0
+Specifies the amount of fuzzy errors to allow for filter matching. Using this
+feature requires the optional \fIregex\fR dependency to be installed.
+.TP
 .IR config.commands.modify.preserve_files = False
 Specifies whether associates files should be preserved during renaming.
 .TP
@@ -768,6 +846,16 @@ Allows the specification of additional arguments for the \fIgrep\fR command.
 .TP
 .IR config.commands.search.ignore_case = False
 This boolean setting indicates whether search defaults to be case-insensitive.
+.TP
+.IR config.commands.search.decode_unicode = False
+Specifies whether searches should decode all Unicode characters.
+.TP
+.IR config.commands.search.decode_latex = False
+Specifies whether searches should decode all LaTeX sequences.
+.TP
+.IR config.commands.search.fuzziness = 0
+Specifies the amount of fuzzy errors to allow for searches. Using this feature
+requires the optional \fIregex\fR dependency to be installed.
 .TP
 .IR config.commands.show.encode_latex = True
 This boolean setting indicates whether non-ASCII characters should be encoded
