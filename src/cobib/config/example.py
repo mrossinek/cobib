@@ -17,7 +17,7 @@ import os
 import sys
 
 # To get started you must import coBib's configuration.
-from cobib.config import LabelSuffix, TagMarkup, config
+from cobib.config import AuthorFormat, LabelSuffix, TagMarkup, config
 
 # Now, you are all set to apply your own settings.
 
@@ -77,9 +77,11 @@ config.commands.search.grep = "grep"
 # of strings in the following setting. Note, that GNU's grep understands extended regex patterns
 # even without specifying `-E`.
 config.commands.search.grep_args = []
-
 # You can specify whether searches should be performed case-insensitive.
 config.commands.search.ignore_case = False
+
+# You can specify whether non-ASCII characters should be encoded using LaTeX sequences.
+config.commands.show.encode_latex = True
 
 
 # DATABASE
@@ -103,6 +105,14 @@ config.database.git = False
 # DATABASE.FORMAT
 # You can also specify some aspects about the format of the database.
 
+# You can specify how the `author` fields should be stored. The available options are provided by
+# the `AuthorFormat` Enum.
+#   - `AuthorFormat.YAML` (the default): this will split the author information into a list of
+#     author objects for which the first and last names as well as titles will each have their own
+#     field.
+#   - `AuthorField.BIBLATEX`: this will keep the author information as plain LaTeX.
+config.database.format.author_format = AuthorFormat.YAML
+
 # You can specify a default label format which will be used for the database entry keys. The format
 # of this option follows the f-string like formatting of modifications (see also the documentation
 # of the [ModifyCommand](https://cobib.gitlab.io/cobib/cobib/commands/modify.html)). The default
@@ -122,6 +132,10 @@ config.database.format.label_default = "{unidecode(label)}"
 #   - CAPITAL: A, B, ...
 #   - NUMERIC: 1, 2, ...
 config.database.format.label_suffix = ("_", LabelSuffix.ALPHA)
+
+# You can specify which fields should be left verbatim and, thus, remain unaffected by any special
+# character conversions.
+config.database.format.verbatim_fields = ["file", "url"]
 
 # You can specify whether latex warnings should not be ignored during the escaping of special
 # characters. This is a simple option which gets passed on to the internally used `pylatexenc`
