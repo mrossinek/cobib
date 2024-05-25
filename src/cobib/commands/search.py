@@ -48,13 +48,13 @@ While this is not strictly necessary it helps to disambiguate the origin of the 
    still be lower).
 
 
-### Non-exact matching
+### Approximate searching
 
 .. note::
    New in version v5.1.0
 
 Besides case-insensitive searches (see above), coBib now also provides more means to perform
-non-exact searches.
+approximate searches.
 
 The `--decode-latex` (`-l` for short) argument will convert LaTeX sequences to Unicode characters
 (where possible). For example, a LaTeX-encoded Umlaut like `\"o` will become `ö`. This can

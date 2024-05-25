@@ -92,13 +92,13 @@ cobib list --no-ignore-case ++author rossmannek
 ```
 
 
-### Non-exact matching
+### Approximate matching
 
 .. note::
    New in version v5.1.0
 
 Besides case-insensitive filter matching (see above), coBib now also provides more means to perform
-non-exact matching of your filters.
+approximate matching of your filters.
 
 The `--decode-latex` argument will convert LaTeX sequences to Unicode characters (where possible).
 For example, a LaTeX-encoded Umlaut like `\"o` will become `ö`. This can significantly simplify your

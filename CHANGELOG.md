@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- non-exact (or fuzzy) filter matching and search functionality (#107,#130,!177)
+- approximate (or fuzzy) filter matching and search functionality (#107,#130,!177)
   - the `list` and `search` commands now support the following features to
-    perform non-exact filter matching and searching, respectively:
+    perform approximate filter matching and searching, respectively:
     - LaTeX sequences can be decoded to Unicode characters:
       - using `--decode-latex` from the command-line
       - setting `config.commands.list_.decode_latex = True`
