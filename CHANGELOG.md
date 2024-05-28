@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [5.1.0] - 2024-05-28
+
+Pypi: https://pypi.org/project/cobib/5.1.0/
+
+### Prelude
+
+Check out my blog post to learn more about the features of this new release:
+https://mrossinek.gitlab.io/programming/cobib-becomes-fuzzy/
+
 ### Added
 - approximate (or fuzzy) filter matching and search functionality (#107,#130,!177)
   - the `list` and `search` commands now support the following features to
@@ -1023,7 +1033,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v5.0.1...master
+[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v5.1.0...master
+[5.1.0]: https://gitlab.com/cobib/cobib/-/tags/v5.1.0
 [5.0.1]: https://gitlab.com/cobib/cobib/-/tags/v5.0.1
 [5.0.0]: https://gitlab.com/cobib/cobib/-/tags/v5.0.0
 [4.5.0]: https://gitlab.com/cobib/cobib/-/tags/v4.5.0
