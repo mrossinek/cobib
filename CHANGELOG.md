@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [5.1.1] - 2024-05-28
+
+Pypi: https://pypi.org/project/cobib/5.1.1/
+
+### Fixed
+
+- when printing the changelog, do not remove list indents
+
+
 ## [5.1.0] - 2024-05-28
 
 Pypi: https://pypi.org/project/cobib/5.1.0/
@@ -1033,7 +1042,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v5.1.0...master
+[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v5.1.1...master
+[5.1.1]: https://gitlab.com/cobib/cobib/-/tags/v5.1.1
 [5.1.0]: https://gitlab.com/cobib/cobib/-/tags/v5.1.0
 [5.0.1]: https://gitlab.com/cobib/cobib/-/tags/v5.0.1
 [5.0.0]: https://gitlab.com/cobib/cobib/-/tags/v5.0.0

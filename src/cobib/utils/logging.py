@@ -142,7 +142,7 @@ def print_changelog(version: str, cached_version_path: str | None) -> Panel | No
     lines: list[str] = []
     started = False
     for line in description.splitlines():
-        line = line.strip()  # noqa: PLW2901
+        line = line.rstrip()  # noqa: PLW2901
         if line.startswith(f"## [{current_version}]"):
             started = True
         elif line.startswith(f"## [{cached_version}]"):
