@@ -1,7 +1,7 @@
 ## [0.2] - 2019-09-02
 
 Note: this release was not marked MAJOR because this is still a WIP and early
-alpha release.
+      alpha release.
 
 ### Added
 - complete rewrite to use a plain-text `yaml` database instead of `sqlite3` !1
