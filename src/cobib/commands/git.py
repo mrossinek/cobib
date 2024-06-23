@@ -56,6 +56,7 @@ import subprocess
 from typing_extensions import override
 
 from cobib.config import Event, config
+from cobib.utils.git import is_inside_work_tree
 from cobib.utils.rel_path import RelPath
 
 from .base_command import Command
@@ -102,7 +103,7 @@ class GitCommand(Command):
 
         file = RelPath(config.database.file).path
         root = file.parent
-        if not (root / ".git").exists():
+        if not is_inside_work_tree(root):
             msg = (
                 "You have configured, but not initialized coBib's git-tracking."
                 "\nPlease consult `cobib init --help` for more information on how to do so."
