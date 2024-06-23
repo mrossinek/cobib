@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- support database locations in nested folders of a git repository (!204)
+
 
 ## [5.1.1] - 2024-05-28
 

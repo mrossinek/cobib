@@ -14,6 +14,7 @@ from rich.console import ConsoleRenderable
 from textual.widget import Widget
 
 from cobib.config import Event, config
+from cobib.utils.git import is_inside_work_tree
 from cobib.utils.rel_path import RelPath
 
 LOGGER = logging.getLogger(__name__)
@@ -170,7 +171,7 @@ class Command(ABC):
         file = RelPath(config.database.file).path
         root = file.parent
 
-        if not (root / ".git").exists():
+        if not is_inside_work_tree(root):
             if git_tracked:
                 msg = (
                     "You have configured coBib to track your database with git."

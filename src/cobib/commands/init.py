@@ -36,6 +36,7 @@ from pathlib import Path
 from typing_extensions import override
 
 from cobib.config import Event, config
+from cobib.utils.git import is_inside_work_tree
 from cobib.utils.rel_path import RelPath
 
 from .base_command import Command
@@ -84,7 +85,7 @@ class InitCommand(Command):
         self.root = self.file.parent
 
         file_exists = self.file.exists()
-        git_tracked = (self.root / ".git").exists()
+        git_tracked = is_inside_work_tree(self.root)
 
         if file_exists:
             if git_tracked:
