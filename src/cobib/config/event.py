@@ -869,7 +869,7 @@ class Event(Enum):
                     if isinstance(exp, ForwardRef):
                         result.append(_FORWARD_REFS[str(exp)] in str(pro))
                     elif pro == "None":
-                        result.append(exp == type(None))
+                        result.append(exp is type(None))
                     else:
                         result.append(exp == pro)
             return result
