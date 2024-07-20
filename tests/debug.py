@@ -11,6 +11,8 @@ config.database.cache = None
 config.database.file = str((root / "example_literature.yaml").resolve())
 config.database.git = False
 
+config.theme.syntax.line_numbers = False
+
 config.utils.file_downloader.url_map[r"(.+)://quantum-journal.org/papers/([^/]+)"] = (
     r"\1://quantum-journal.org/papers/\2/pdf/"
 )

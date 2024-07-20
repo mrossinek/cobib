@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- new configuration settings to customize the appearance of coBib (!222):
+  - `cobib.config.theme.dark`: to specify whether a dark or light theme is used
+  - `cobib.config.theme.design`: to customize the colors themselves
+  - the following settings to customize the appearance of `rich.Syntax` displays:
+    - `cobib.config.theme.syntax.theme`
+    - `cobib.config.theme.syntax.background_color`
+    - `cobib.config.theme.syntax.line_numbers`
+
 ### Changed
 - the keybinding to recursively toggle all folds in the TUI's search result view
   was changed from `ENTER` to `BACKSPACE` (!218)

@@ -11,6 +11,8 @@ from rich.style import Style
 from rich.syntax import Syntax
 from rich.table import Table
 
+from cobib.config import config
+
 Coordinate = namedtuple("Coordinate", ["row", "col"])
 
 
@@ -117,7 +119,8 @@ class DiffData:
         syntax = Syntax(
             "".join(self.lines),
             lexer,
-            background_color="default",
+            theme=config.theme.syntax.get_theme(),
+            background_color=config.theme.syntax.get_background_color(),
             highlight_lines=self.highlight_lines,
             line_numbers=True,
             word_wrap=True,

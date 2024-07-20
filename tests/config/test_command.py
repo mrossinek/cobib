@@ -9,6 +9,7 @@ import pytest
 from rich.syntax import Syntax
 from typing_extensions import override
 
+from cobib.config import config
 from cobib.config.command import ExampleConfigCommand
 from tests.commands.command_test import CommandTest
 
@@ -56,7 +57,12 @@ class TestPrintExampleConfig(CommandTest):
             get_resource("example.py", "../src/cobib/config"), "r", encoding="utf-8"
         ) as expected:
             syntax = Syntax(
-                expected.read().strip(), "python", background_color="default", word_wrap=False
+                expected.read().strip(),
+                "python",
+                theme=config.theme.syntax.get_theme(),
+                background_color=config.theme.syntax.get_background_color(),
+                line_numbers=False,
+                word_wrap=False,
             )
             assert syntax.code == truth.code
             assert syntax.background_color == truth.background_color

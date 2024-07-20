@@ -134,6 +134,7 @@ class TestShowCommand(CommandTest):
             monkeypatch: the built-in pytest fixture.
             capsys: the built-in pytest fixture.
         """
+        config.theme.syntax.line_numbers = False
         await self.run_module(monkeypatch, "main", ["cobib", "show", "einstein"])
         self._assert(capsys.readouterr().out.strip().split("\n"))
 

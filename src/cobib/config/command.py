@@ -18,6 +18,7 @@ from rich.syntax import Syntax
 from typing_extensions import override
 
 from cobib.commands.base_command import Command
+from cobib.config import config
 from cobib.utils.rel_path import RelPath
 
 
@@ -51,8 +52,13 @@ class ExampleConfigCommand(Command):
         return self._contents
 
     @override
-    def render_rich(self, *, background_color: str = "default") -> ConsoleRenderable:
+    def render_rich(self) -> ConsoleRenderable:
         syntax = Syntax(
-            "\n".join(self._contents), "python", background_color=background_color, word_wrap=False
+            "\n".join(self._contents),
+            "python",
+            theme=config.theme.syntax.get_theme(),
+            background_color=config.theme.syntax.get_background_color(),
+            line_numbers=False,
+            word_wrap=False,
         )
         return syntax

@@ -327,7 +327,14 @@ class ReviewCommand(Command):
                     LOGGER.error(f"The entry '{label}' could not be dumped as YAML. Skipping it.")
                     continue
 
-                syntax = Syntax(dump, "yaml", background_color="default", word_wrap=True)
+                syntax = Syntax(
+                    dump,
+                    "yaml",
+                    theme=config.theme.syntax.get_theme(),
+                    background_color=config.theme.syntax.get_background_color(),
+                    line_numbers=config.theme.syntax.line_numbers,
+                    word_wrap=True,
+                )
 
                 prompt_text = "What action what you like to perform?"
                 choices = ["done", "skip", "edit", "inline", "finish", "help"]

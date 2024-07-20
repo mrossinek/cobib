@@ -78,6 +78,13 @@ class ShowCommand(Command):
         return self.entry_str.split("\n")
 
     @override
-    def render_rich(self, *, background_color: str = "default") -> ConsoleRenderable:
-        syntax = Syntax(self.entry_str, "bibtex", background_color=background_color, word_wrap=True)
+    def render_rich(self) -> ConsoleRenderable:
+        syntax = Syntax(
+            self.entry_str,
+            "bibtex",
+            theme=config.theme.syntax.get_theme(),
+            background_color=config.theme.syntax.get_background_color(),
+            line_numbers=config.theme.syntax.line_numbers,
+            word_wrap=True,
+        )
         return syntax
