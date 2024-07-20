@@ -39,8 +39,8 @@ class ListView(DataTable[Text]):
         Binding("up", "motion('up', 'cursor_up')", "Up", show=False),
         Binding("left", "motion('left', 'cursor_left')", "Left", show=False),
         Binding("right", "motion('right', 'cursor_right')", "Right", show=False),
-        Binding("home", "motion('home', 'scroll_home')", "Home", show=False),
-        Binding("end", "motion('end', 'scroll_end')", "End", show=False),
+        Binding("home", "motion('home', 'scroll_top')", "Home", show=False),
+        Binding("end", "motion('end', 'scroll_bottom')", "End", show=False),
         Binding("pageup", "motion('pageup', 'page_up')", "Page Up", show=False),
         Binding("pagedown", "motion('pagedown', 'page_down')", "Page Down", show=False),
     ]
