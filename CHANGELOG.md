@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- the keybinding to recursively toggle all folds in the TUI's search result view
+  was changed from `ENTER` to `BACKSPACE` (!218)
+
 ### Fixed
 - the behavior of the `Home` and `End` keybindings in the TUI's list view (!217)
 

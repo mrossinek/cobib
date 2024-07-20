@@ -26,7 +26,7 @@ class SearchView(Tree[Union[str, Text]]):
     id = "cobib-search-view"
 
     BINDINGS: ClassVar[list[Binding | tuple[str, str] | tuple[str, str, str]]] = [
-        Binding("enter", "toggle_all", "Toggle All"),
+        Binding("backspace", "toggle_all", "Toggle All"),
         Binding("j", "motion('down', 'cursor_down')", "Down", show=False),
         Binding("k", "motion('up', 'cursor_up')", "Up", show=False),
         Binding("h", "motion('left', 'cursor_left')", "Left", show=False),
@@ -44,7 +44,7 @@ class SearchView(Tree[Union[str, Text]]):
     | Key(s) | Description |
     | :- | :- |
     | space | Toggle the expand/collapsed space of the current item. |
-    | enter | Toggle the expand/collapsed space of the current item and all its children. |
+    | backspace | Toggle the expand/collapsed space of the current item and all its children. |
     | j, down | Moves one row down. |
     | k, up | Moves one row up. |
     | h, left | Moves to the left. |
