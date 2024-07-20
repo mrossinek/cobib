@@ -11,36 +11,56 @@ from cobib.database import Author
     ["string", "expected", "formatted"],
     [
         # Test cases taken from https://www.bibtex.com/f/author-field/
-        ["Michael Joseph Jackson", Author("Michael Joseph", "Jackson"), "Jackson, Michael Joseph"],
-        ["Jackson, Michael Joseph", Author("Michael Joseph", "Jackson"), "Jackson, Michael Joseph"],
-        ["Jackson, Michael J", Author("Michael J", "Jackson"), "Jackson, Michael J"],
-        ["Jackson, M J", Author("M J", "Jackson"), "Jackson, M J"],
+        [
+            "Michael Joseph Jackson",
+            Author("Michael Joseph", "Jackson"),  # type: ignore[list-item]
+            "Jackson, Michael Joseph",
+        ],
+        [
+            "Jackson, Michael Joseph",
+            Author("Michael Joseph", "Jackson"),  # type: ignore[list-item]
+            "Jackson, Michael Joseph",
+        ],
+        [
+            "Jackson, Michael J",
+            Author("Michael J", "Jackson"),  # type: ignore[list-item]
+            "Jackson, Michael J",
+        ],
+        [
+            "Jackson, M J",
+            Author("M J", "Jackson"),  # type: ignore[list-item]
+            "Jackson, M J",
+        ],
         [
             "Stoner, Jr, Winifred Sackville",
-            Author("Winifred Sackville", "Stoner", suffix="Jr"),
+            Author("Winifred Sackville", "Stoner", suffix="Jr"),  # type: ignore[list-item]
             "Stoner, Jr, Winifred Sackville",
         ],
         [
             "Ludwig van Beethoven",
-            Author("Ludwig", "Beethoven", particle="van"),
+            Author("Ludwig", "Beethoven", particle="van"),  # type: ignore[list-item]
             "van Beethoven, Ludwig",
         ],
         [
             "van Beethoven, Ludwig",
-            Author("Ludwig", "Beethoven", particle="van"),
+            Author("Ludwig", "Beethoven", particle="van"),  # type: ignore[list-item]
             "van Beethoven, Ludwig",
         ],
-        ["van Beethoven, L", Author("L", "Beethoven", particle="van"), "van Beethoven, L"],
+        [
+            "van Beethoven, L",
+            Author("L", "Beethoven", particle="van"),  # type: ignore[list-item]
+            "van Beethoven, L",
+        ],
         ["{Barnes and Noble, Inc.}", "{Barnes and Noble, Inc.}", "{Barnes and Noble, Inc.}"],
         ["{FCC H2020 Project}", "{FCC H2020 Project}", "{FCC H2020 Project}"],
         [
             "von Mustermann, Jr, Max",
-            Author("Max", "Mustermann", "von", "Jr"),
+            Author("Max", "Mustermann", "von", "Jr"),  # type: ignore[list-item]
             "von Mustermann, Jr, Max",
         ],
         [
             "Double Surname, Many First Names",
-            Author("Many First Names", "Double Surname"),
+            Author("Many First Names", "Double Surname"),  # type: ignore[list-item]
             "Double Surname, Many First Names",
         ],
     ],
