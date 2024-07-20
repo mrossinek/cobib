@@ -17,9 +17,9 @@ from typing_extensions import override
 
 from cobib import __version__
 from cobib.config import config
-from cobib.ui.components.entry_points import entry_points
 from cobib.ui.tui import TUI
 from cobib.ui.ui import UI
+from cobib.utils.entry_points import entry_points
 from cobib.utils.logging import print_changelog
 
 LOGGER = logging.getLogger(__name__)

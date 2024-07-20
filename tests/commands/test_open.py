@@ -287,7 +287,7 @@ class TestOpenCommand(CommandTest):
             monkeypatch: the built-in pytest fixture.
             capsys: the built-in pytest fixture.
         """
-        config.commands.open.fields = ["note"]
+        config.commands.open.fields = ["dummy"]
 
         with open(
             get_resource("example_multi_file_entry.yaml", "commands"), "r", encoding="utf-8"
@@ -295,7 +295,7 @@ class TestOpenCommand(CommandTest):
             with open(config.database.file, "a", encoding="utf-8") as database:
                 for line in multi_file_entry.readlines():
                     if line == "  file:\n":
-                        database.write("  note:\n")
+                        database.write("  dummy:\n")
                     else:
                         database.write(line)
 
@@ -308,8 +308,8 @@ class TestOpenCommand(CommandTest):
         true_out = capsys.readouterr().out.split("\n")
 
         expected_out = [
-            "  1: [note] " + self.TMP_FILE_A,
-            "  2: [note] " + self.TMP_FILE_B,
+            "  1: [dummy] " + self.TMP_FILE_A,
+            "  2: [dummy] " + self.TMP_FILE_B,
             "[all,help,cancel]: ",
         ]
 
@@ -332,7 +332,7 @@ class TestOpenCommand(CommandTest):
             monkeypatch: the built-in pytest fixture.
             caplog: the built-in pytest fixture.
         """
-        config.commands.open.fields = ["note"]
+        config.commands.open.fields = ["dummy"]
 
         with open(
             get_resource("example_multi_file_entry.yaml", "commands"), "r", encoding="utf-8"
@@ -340,7 +340,7 @@ class TestOpenCommand(CommandTest):
             with open(config.database.file, "a", encoding="utf-8") as database:
                 for line in multi_file_entry.readlines():
                     if line == "  file:\n":
-                        database.write("  note: /tmp/a.txt\n")
+                        database.write("  dummy: /tmp/a.txt\n")
                         database.write("...\n")
                         break
                     database.write(line)

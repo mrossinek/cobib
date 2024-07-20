@@ -66,7 +66,7 @@ from typing_extensions import override
 from cobib.config import Event, config
 from cobib.database import Database, Entry
 from cobib.importers.base_importer import Importer
-from cobib.ui.components.entry_points import entry_points
+from cobib.utils.entry_points import entry_points
 
 from .base_command import Command
 

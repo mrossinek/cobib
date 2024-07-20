@@ -25,7 +25,7 @@ from cobib.config import config
 from .motion_key import MotionKey
 
 
-class ListView(DataTable[Text]):
+class ListView(DataTable[Text], inherit_bindings=False):
     """coBib's list results viewer widget."""
 
     id = "cobib-list-view"
