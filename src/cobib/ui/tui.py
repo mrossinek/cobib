@@ -128,6 +128,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
     | / | Searches the database for the provided string. |
     | digit | Immediately selects the preset filter given by that digit (0 = reset). |
     | a | Prompts for a new entry to be added to the database. |
+    | c | Starts a review process. |
     | d | Deletes the current (or selected) entries. |
     | e | Edits the current entry. |
     | f | Allows filtering the table using `++/--` keywords. |
@@ -508,10 +509,9 @@ class TUI(UI, App[None]):  # type: ignore[misc]
             elif command[0].lower() == "search":
                 await self._update_tree(command[1:])
             elif command[0].lower() == "edit":
-                with self.suspend():
-                    from cobib import commands
+                from cobib import commands
 
-                    commands.EditCommand(*command[1:]).execute()
+                commands.EditCommand(*command[1:]).execute()
             else:
                 self._run_command(command)
 

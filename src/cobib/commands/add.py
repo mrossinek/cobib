@@ -170,8 +170,8 @@ from cobib.config import Event, LabelSuffix, config
 from cobib.database import Database, Entry
 from cobib.parsers import BibtexParser
 from cobib.parsers.base_parser import Parser
-from cobib.ui.components.entry_points import entry_points
 from cobib.utils.diff_renderer import Differ
+from cobib.utils.entry_points import entry_points
 from cobib.utils.file_downloader import FileDownloader
 from cobib.utils.journal_abbreviations import JournalAbbreviations
 from cobib.utils.prompt import Prompt
