@@ -124,7 +124,10 @@ class TestModifyCommand(CommandTest):
     @pytest.mark.parametrize(
         ["modification", "expected"],
         [
-            ["author: and Knuth", [Author("Albert", "Einstein"), "Knuth"]],
+            [
+                "author: and Knuth",
+                [Author("Albert", "Einstein"), "Knuth"],  # type: ignore[list-item]
+            ],
             ["dummy:test", "test"],
             ["number:2", 12],
             ["number:a", "10a"],

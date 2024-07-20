@@ -5,7 +5,7 @@ coverage==7.6.0
 aiohttp==3.9.5
 msgpack==1.0.8
 pdoc==14.5.1
-mypy==1.10.1
+mypy==1.11.0
 ruff==0.5.3
 typos==1.23.2
 types-beautifulsoup4==4.12.0.20240511
