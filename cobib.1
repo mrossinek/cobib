@@ -935,6 +935,15 @@ for more details.
 .PP
 .BR THEME
 .TP
+.IR config.theme.dark = True
+Specifies whether a dark or light color scheme is used.
+.TP
+.IR config.theme.design = DEFAULT_COLORS
+This setting allows you to specify the \fIColorSystem\fR of the entire TUI.
+Since this is tightly coupled to textual's documentation, the explanation of
+this setting is best viewed online:
+https://cobib.gitlab.io/cobib/cobib/config/config.html#ThemeConfig.design
+.TP
 .IR config.theme.search.label = 'blue'
 Specifies the color used to highlight the entry labels when displaying search
 rsults.
@@ -942,6 +951,15 @@ rsults.
 .IR config.theme.search.label = 'red'
 Specifies the color used to highlight the query matches when displaying search
 results.
+.TP
+.IR config.theme.syntax.theme = None
+Specifies the pygments scheme to use for \fIrich.Syntax\fR displays.
+.TP
+.IR config.theme.syntax.background_color = None
+Specifies the background color to use for \fIrich.Syntax\fR displays.
+.TP
+.IR config.theme.syntax.line_numbers = True
+Specifies whether \fIrich.Syntax\fR displays render line numbers.
 .TP
 .IR config.theme.tags.new = (10,\ 'bright_cyan')
 Specifies the weight and color used to highlight the labels of entries which

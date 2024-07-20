@@ -201,6 +201,9 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         [1]: https://textual.textualize.io/api/events/#textual.events.Mount
         """
         self.screen.styles.layout = "horizontal"
+        self.design.update(config.theme.design)
+        self.dark = config.theme.dark
+        self.call_later(self.refresh_css)
         await self._update_table()
         self._show_entry()
 
@@ -402,11 +405,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         command.execute()
         entry = self.query_one(EntryView)
         static = entry.query_one(Static)
-        static.update(
-            command.render_rich(
-                background_color=entry.background_colors[1].rich_color.name,
-            )
-        )
+        static.update(command.render_rich())
 
     def _jump_to_entry(self, command: list[str]) -> None:
         """Jumps the cursor in the current view to the entry provided by the command arguments.

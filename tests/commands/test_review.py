@@ -49,6 +49,8 @@ class TestReviewCommand(CommandTest):
 
         monkeypatch.setattr("sys.stdin", MockStdin(request.param.get("stdin_list", None)))
 
+        config.theme.syntax.line_numbers = False
+
         yield request.param
 
     def _assert(  # type: ignore[no-untyped-def]

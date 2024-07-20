@@ -23,8 +23,11 @@ from typing import TYPE_CHECKING, NamedTuple, TextIO
 
 from rich.style import Style
 from rich.theme import Theme
+from textual.app import DEFAULT_COLORS
+from textual.design import ColorSystem
 from typing_extensions import override
 
+from cobib.utils.context import get_active_app
 from cobib.utils.regex import HAS_OPTIONAL_REGEX
 from cobib.utils.rel_path import RelPath
 
@@ -210,18 +213,123 @@ class SearchHighlightConfig(_ConfigBase):
 
 
 @dataclass
+class SyntaxConfig(_ConfigBase):
+    """The `config.theme.syntax` section.
+
+    These attributes configure the default values used for displaying `rich.Syntax` elements.
+    """
+
+    theme: str | None = None
+    """The theme to use for any `rich.Syntax` display.
+
+    If this is `None`, it defaults to `"ansi_dark"` or `"ansi_light"`, depending on the value of
+    `cobib.config.ThemeConfig.dark`.
+
+    Otherwise, this should be the name of a supported pygments theme. For more details refer to
+    [rich's documentation](https://rich.readthedocs.io/en/latest/syntax.html#theme).
+
+    This attribute should be accessed via the `SyntaxConfig.get_theme` method.
+    """
+
+    background_color: str | None = None
+    """The background color to use for any `rich.Syntax` display.
+
+    If this is `None`, its default value depends on whether a `textual.App` is running. If not, it
+    simply uses `"default"` which should result in a _transparent_ background with respect to the
+    terminal's background color. Otherwise, it will use the `$panel` color of the `textual.App`. For
+    more details refer to [textual's
+    documentation](https://textual.textualize.io/guide/design/#base-colors).
+
+    This attribute should be accessed via the `SyntaxConfig.get_background_color` method.
+    """
+
+    line_numbers: bool = True
+    """Whether to show line numbers in `rich.Syntax` displays.
+
+    .. note::
+       This setting is ignored by the `cobib.utils.diff_renderer.DiffData.render` method. It will
+       *always* show line numbers.
+    """
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the THEME.SYNTAX configuration section.")
+        self._assert(
+            self.theme is None or isinstance(self.theme, str),
+            "config.theme.syntax.theme should either be `None` or a string.",
+        )
+        self._assert(
+            self.background_color is None or isinstance(self.background_color, str),
+            "config.theme.syntax.background_color should either be `None` or a string.",
+        )
+        self._assert(
+            isinstance(self.line_numbers, bool),
+            "config.theme.syntax.line_numbers should be a boolean.",
+        )
+
+    def get_theme(self) -> str:
+        """Returns the `SyntaxConfig.theme` value."""
+        if self.theme is not None:
+            return self.theme
+
+        return "ansi_dark" if config.theme.dark else "ansi_light"
+
+    def get_background_color(self) -> str:
+        """Returns the `SyntaxConfig.background_color` value."""
+        if self.background_color is not None:
+            return self.background_color
+
+        if get_active_app() is None:
+            return "default"
+
+        return config.theme.css_variables["panel"]
+
+
+@dataclass
 class ThemeConfig(_ConfigBase):
     """The `config.theme` section."""
 
+    dark: bool = True
+    """Whether a dark or light theme should be used."""
+    design: dict[str, ColorSystem] = field(default_factory=lambda: DEFAULT_COLORS)
+    """A dictionary mapping theme names to `textual.design.ColorSystem`s.
+
+    Here is a simple example how you can add an intense splash of color to the default ones:
+
+    ```python
+    from textual.app import DEFAULT_COLORS
+    from textual.color import Color
+
+    a_splash_of_pink = DEFAULT_COLORS.copy()
+    a_splash_of_pink["dark"].primary = Color.parse("#ff00ff")
+    a_splash_of_pink["light"].primary = Color.parse("#ff00ff")
+    config.theme.design = a_splash_of_pink
+    ```
+
+    Refer to [textual's documentation](https://textual.textualize.io/guide/design) for more details.
+    """
     search: SearchHighlightConfig = field(default_factory=lambda: SearchHighlightConfig())
     """The nested section for theme settings related to the `search` command."""
+    syntax: SyntaxConfig = field(default_factory=lambda: SyntaxConfig())
+    """The nested section for theme settings related to `rich.Syntax` displays."""
     tags: TagsThemeConfig = field(default_factory=lambda: TagsThemeConfig())
     """The nested section for the markup of special tags."""
 
     @override
     def validate(self) -> None:
         LOGGER.debug("Validating the THEME configuration section.")
+        self._assert(isinstance(self.dark, bool), "config.theme.dark should be a boolean.")
+        self._assert(isinstance(self.design, dict), "config.theme.design should be a dictionary.")
+        for name, colors in self.design.items():
+            self._assert(
+                isinstance(colors, ColorSystem),
+                (
+                    f"The '{name}' entry in config.theme.design should be a "
+                    "`textual.design.ColorSystem` instance."
+                ),
+            )
         self.search.validate()
+        self.syntax.validate()
         self.tags.validate()
 
     def build(self) -> Theme:
@@ -230,6 +338,18 @@ class ThemeConfig(_ConfigBase):
         theme.update(self.search.styles)
         theme.update(self.tags.styles)
         return Theme(theme)
+
+    @property
+    def css_variables(self) -> dict[str, str]:
+        """The actual CSS color variables generated from the active theme of `ThemeConfig.design`.
+
+        The active theme is either `"dark"` or `"light"` depending on `ThemeConfig.dark`.
+
+        Returns:
+            A dictionary mapping from color names to values. See [textual's
+            documentation](https://textual.textualize.io/guide/design) for more details.
+        """
+        return self.design["dark" if self.dark else "light"].generate()
 
 
 @dataclass
