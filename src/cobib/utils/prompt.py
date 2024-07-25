@@ -230,7 +230,7 @@ class TextualPrompt(PromptBase[str]):
             # One reason it might be the current screen already is if the pre_prompt has pushed it.
             console.pop_screen()
 
-        await_mount = console.push_screen("input", _catch_dismissed_value)
+        await_mount = console.push_screen("input", _catch_dismissed_value)  # type: ignore[arg-type]
         inp_screen.mount(popup, before=-1)
         await await_mount
 

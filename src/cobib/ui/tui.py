@@ -264,7 +264,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         if submit:
             await self._process_input(value)
         else:
-            await_mount = self.push_screen("input", self._process_input)
+            await_mount = self.push_screen("input", self._process_input)  # type: ignore[arg-type]
             inp_screen = cast(InputScreen, self.get_screen("input"))
             await await_mount
             inp = inp_screen.query_one(Input)
@@ -336,7 +336,10 @@ class TUI(UI, App[None]):  # type: ignore[misc]
                 prompted interactively. When `0`, all filters will be reset.
         """
         if idx is None:
-            await_mount = self.push_screen("preset_filter", self._process_input)
+            await_mount = self.push_screen(
+                "preset_filter",
+                self._process_input,  # type: ignore[arg-type]
+            )
             await await_mount
         else:
             idx = int(idx)
