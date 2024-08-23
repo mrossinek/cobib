@@ -11,7 +11,6 @@ This module provides various UI-related components such as widgets and other uti
 """
 
 from .entry_view import EntryView as EntryView
-from .help_screen import HelpScreen as HelpScreen
 from .input_screen import InputScreen as InputScreen
 from .list_view import ListView as ListView
 from .log_screen import LogScreen as LogScreen

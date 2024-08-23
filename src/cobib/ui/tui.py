@@ -34,7 +34,6 @@ from cobib.config import config
 from cobib.database import Database
 from cobib.ui.components import (
     EntryView,
-    HelpScreen,
     InputScreen,
     ListView,
     LoggingHandler,
@@ -91,30 +90,140 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         }
     """
 
-    _PRESET_FILTER_BINDINGS: ClassVar[list[tuple[str, str, str]]] = [
-        (f"{i}", f"preset_filter({i})", f"Preset #{i}") for i in range(10)
+    _PRESET_FILTER_BINDINGS: ClassVar[list[Binding]] = [
+        Binding(
+            f"{i}",
+            f"preset_filter({i})",
+            f"Preset #{i}",
+            tooltip=(
+                "Resets the list view to no filter"
+                if i == 0
+                else f"Immediately selects the {i}-th preset filter"
+            ),
+        )
+        for i in range(10)
     ]
     BINDINGS: ClassVar[list[Binding | tuple[str, str] | tuple[str, str, str]]] = [
-        ("q", "quit", "Quit"),
-        ("question_mark", "push_screen('help')", "Help"),
-        ("underscore", "toggle_layout", "Layout"),
-        ("colon", "prompt(':')", "Prompt"),
-        ("v", "select", "Select"),
-        ("slash", "prompt('/')", "Search"),
-        ("a", "prompt('add ')", "Add"),
-        ("c", "prompt('review ', False, True)", "Review"),
-        ("d", "delete", "Delete"),
-        ("e", "edit", "Edit"),
-        ("f", "filter", "Filter"),
-        ("i", "prompt('import ')", "Import"),
-        ("m", "prompt('modify ', False, True)", "Modify"),
-        ("o", "open", "Open"),
-        ("p", "preset_filter()", "Preset"),
-        ("r", "prompt('redo', True)", "Redo"),
-        ("s", "sort", "Sort"),
-        ("u", "prompt('undo', True)", "Undo"),
-        ("x", "prompt('export ', False, True)", "Export"),
-        ("z", "push_screen('log')", "Log"),
+        Binding(
+            "q",
+            "quit",
+            "Quit",
+            tooltip="Quit's the application",
+        ),
+        Binding(
+            "question_mark",
+            "toggle_help",
+            "Help",
+            tooltip="Toggles the help panel",
+        ),
+        Binding(
+            "underscore",
+            "toggle_layout",
+            "Layout",
+            tooltip="Toggles between the horizontal and vertical layout",
+        ),
+        Binding(
+            "colon",
+            "prompt(':')",
+            "Prompt",
+            tooltip="Starts the prompt for an arbitrary coBib command",
+        ),
+        Binding(
+            "v",
+            "select",
+            "Select",
+            tooltip="Selects the current entry",
+        ),
+        Binding(
+            "slash",
+            "prompt('/')",
+            "Search",
+            tooltip="Searches the database for the provided string",
+        ),
+        Binding(
+            "a",
+            "prompt('add ')",
+            "Add",
+            tooltip="Prompts for a new entry to be added to the database",
+        ),
+        Binding(
+            "c",
+            "prompt('review ', False, True)",
+            "Review",
+            tooltip="Starts a review process",
+        ),
+        Binding(
+            "d",
+            "delete",
+            "Delete",
+            tooltip="Deletes the current (or selected) entries",
+        ),
+        Binding(
+            "e",
+            "edit",
+            "Edit",
+            tooltip="Edits the current entry",
+        ),
+        Binding(
+            "f",
+            "filter",
+            "Filter",
+            tooltip="Allows filtering the table using `++/--` keywords",
+        ),
+        Binding(
+            "i",
+            "prompt('import ')",
+            "Import",
+            tooltip="Imports entries from another source",
+        ),
+        Binding(
+            "m",
+            "prompt('modify ', False, True)",
+            "Modify",
+            tooltip="Prompts for a modification (respects selection)",
+        ),
+        Binding(
+            "o",
+            "open",
+            "Open",
+            tooltip="Opens the current (or selected) entries",
+        ),
+        Binding(
+            "p",
+            "preset_filter()",
+            "Preset",
+            tooltip="Allows selecting a preset filter (see `config.tui.preset_filters`)",
+        ),
+        Binding(
+            "r",
+            "prompt('redo', True)",
+            "Redo",
+            tooltip="Redoes the last undone change. Requires git-tracking!",
+        ),
+        Binding(
+            "s",
+            "sort",
+            "Sort",
+            tooltip="Prompts for the field to sort by (use -r to list in reverse)",
+        ),
+        Binding(
+            "u",
+            "prompt('undo', True)",
+            "Undo",
+            tooltip="Undes the last change. Requires git-tracking!",
+        ),
+        Binding(
+            "x",
+            "prompt('export ', False, True)",
+            "Export",
+            tooltip="Exports the current (or selected) entries",
+        ),
+        Binding(
+            "z",
+            "push_screen('log')",
+            "Log",
+            tooltip="Toggles the log screen",
+        ),
         *_PRESET_FILTER_BINDINGS,
     ]
     """
@@ -143,8 +252,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
     | z | Toggles the log screen. |
     """
 
-    SCREENS: ClassVar[dict[str, Screen[Any] | Callable[[], Screen[Any]]]] = {
-        "help": HelpScreen,
+    SCREENS: ClassVar[dict[str, Callable[[], Screen[Any]]]] = {
         "log": LogScreen,
         "input": InputScreen,
         "preset_filter": PresetFilterScreen,
@@ -208,6 +316,13 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         self._show_entry()
 
     # Action methods
+
+    def action_toggle_help(self) -> None:
+        """Action to toggle the help panel."""
+        if self.screen.query("HelpPanel"):
+            self.action_hide_help_panel()
+        else:
+            self.action_show_help_panel()
 
     async def action_quit(self) -> None:
         """Action to display the quit dialog."""
