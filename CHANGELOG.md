@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [5.1.3] - 2024-08-23
+
+Pypi: https://pypi.org/project/cobib/5.1.3/
+
 ### Fixed
 - the behavior of the `Home` and `End` keybindings in the TUI's list view (!217)
 
@@ -1053,7 +1058,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v5.1.2...master
+[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v5.1.3...master
+[5.1.3]: https://gitlab.com/cobib/cobib/-/tags/v5.1.3
 [5.1.2]: https://gitlab.com/cobib/cobib/-/tags/v5.1.2
 [5.1.1]: https://gitlab.com/cobib/cobib/-/tags/v5.1.1
 [5.1.0]: https://gitlab.com/cobib/cobib/-/tags/v5.1.0
