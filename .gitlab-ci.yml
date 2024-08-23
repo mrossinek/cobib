@@ -125,3 +125,4 @@ pages:
     when: manual
     only:
         - master
+        - tags
