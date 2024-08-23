@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - the keybinding to recursively toggle all folds in the TUI's search result view
   was changed from `ENTER` to `BACKSPACE` (!218)
 - (DEV) `cobib.ui.components.entry_points` was moved to `cobib.utils.entry_points`
+- replaced the custom help screen with textual's new builtin help panel (!240)
 
 ### Fixed
 - the behavior of the `Home` and `End` keybindings in the TUI's list view (!217)
