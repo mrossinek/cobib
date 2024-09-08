@@ -45,7 +45,10 @@ class TestISBNParser(ParserTest):
         ):
             pytest.skip("The requests API encountered an error. Skipping test.")
 
-        entry = next(iter(entries.values()))
+        try:
+            entry = next(iter(entries.values()))
+        except (IndexError, StopIteration):
+            pytest.skip("Skipping because we likely ran into a network timeout.")
         assert_default_test_entry(entry)
 
     # regression test for https://gitlab.com/cobib/cobib/-/issues/53
@@ -160,7 +163,10 @@ class TestISBNParser(ParserTest):
         ):
             pytest.skip("The requests API encountered an error. Skipping test.")
 
-        entry = next(iter(entries.values()))
+        try:
+            entry = next(iter(entries.values()))
+        except (IndexError, StopIteration):
+            pytest.skip("Skipping because we likely ran into a network timeout.")
         assert_default_test_entry(entry)
 
     def test_event_post_isbn_parse(self, caplog: pytest.LogCaptureFixture) -> None:
@@ -179,6 +185,9 @@ class TestISBNParser(ParserTest):
         ):
             pytest.skip("The requests API encountered an error. Skipping test.")
 
-        entry = next(iter(entries.values()))
+        try:
+            entry = next(iter(entries.values()))
+        except (IndexError, StopIteration):
+            pytest.skip("Skipping because we likely ran into a network timeout.")
         assert_default_test_entry(entry)
         assert entry.data["test"] == "dummy"

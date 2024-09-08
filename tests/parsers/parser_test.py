@@ -24,31 +24,25 @@ class ParserTest:
     EXAMPLE_ENTRY_DICT: ClassVar[dict[str, Any]] = {
         "ENTRYTYPE": "article",
         "author": [
-            Author(first="Yudong", last="Cao"),
-            Author(first="Jonathan", last="Romero"),
-            Author(first="Jonathan P.", last="Olson"),
-            Author(first="Matthias", last="Degroote"),
-            Author(first="Peter D.", last="Johnson"),
-            Author(first="Mária", last="Kieferová"),
-            Author(first="Ian D.", last="Kivlichan"),
-            Author(first="Tim", last="Menke"),
-            Author(first="Borja", last="Peropadre"),
-            Author(first="Nicolas P. D.", last="Sawaya"),
-            Author(first="Sukin", last="Sim"),
-            Author(first="Libor", last="Veis"),
-            Author(first="Alán", last="Aspuru-Guzik"),
+            Author(first="Max", last="Rossmannek"),
+            Author(first="Fabijan", last="Pavošević"),
+            Author(first="Angel", last="Rubio"),
+            Author(first="Ivano", last="Tavernelli"),
         ],
-        "doi": "10.1021/acs.chemrev.8b00803",
-        "issn": "1520-6890",
-        "journal": "Chemical Reviews",
-        "month": "aug",
-        "number": 19,
-        "pages": "10856–10915",  # noqa: RUF001
+        "doi": "10.1021/acs.jpclett.3c00330",
+        "issn": "1948-7185",
+        "journal": "The Journal of Physical Chemistry Letters",
+        "month": "apr",
+        "number": 14,
+        "pages": "3491–3497",  # noqa: RUF001
         "publisher": "American Chemical Society (ACS)",
-        "title": "Quantum Chemistry in the Age of Quantum Computing",
-        "url": ["http://dx.doi.org/10.1021/acs.chemrev.8b00803"],
-        "volume": 119,
-        "year": 2019,
+        "title": (
+            "Quantum Embedding Method for the Simulation of Strongly Correlated Systems on Quantum "
+            "Computers"
+        ),
+        "url": ["http://dx.doi.org/10.1021/acs.jpclett.3c00330"],
+        "volume": 14,
+        "year": 2023,
     }
     """The matching dictionary to the example files also included here."""
 

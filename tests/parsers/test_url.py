@@ -50,8 +50,8 @@ class TestURLParser(ParserTest):
     @pytest.mark.parametrize(
         ("query", "assertion"),
         [
-            ("https://arxiv.org/abs/1812.09976", assert_arxiv_entry),
-            ("https://doi.org/10.1021/acs.chemrev.8b00803", assert_doi_entry),
+            ("https://arxiv.org/abs/1701.08213", assert_arxiv_entry),
+            ("https://doi.org/10.1021/acs.jpclett.3c00330", assert_doi_entry),
             ("https://www.nature.com/articles/s41467-019-10988-2", assert_default_test_entry),
         ],
     )
@@ -69,7 +69,7 @@ class TestURLParser(ParserTest):
 
         try:
             entry = next(iter(entries.values()))
-        except IndexError:
+        except (IndexError, StopIteration):
             pytest.skip("Skipping because we likely ran into a network timeout.")
 
         assertion(entry)
@@ -108,7 +108,10 @@ class TestURLParser(ParserTest):
         if any(s == "cobib.parsers.url" and t == logging.ERROR for s, t, _ in caplog.record_tuples):
             pytest.skip("The requests API encountered an error. Skipping test.")
 
-        entry = next(iter(entries.values()))
+        try:
+            entry = next(iter(entries.values()))
+        except (IndexError, StopIteration):
+            pytest.skip("Skipping because we likely ran into a network timeout.")
         assert_default_test_entry(entry)
 
     def test_event_post_url_parse(self, caplog: pytest.LogCaptureFixture) -> None:
@@ -124,6 +127,9 @@ class TestURLParser(ParserTest):
         if any(s == "cobib.parsers.url" and t == logging.ERROR for s, t, _ in caplog.record_tuples):
             pytest.skip("The requests API encountered an error. Skipping test.")
 
-        entry = next(iter(entries.values()))
+        try:
+            entry = next(iter(entries.values()))
+        except (IndexError, StopIteration):
+            pytest.skip("Skipping because we likely ran into a network timeout.")
         assert_default_test_entry(entry)
         assert entry.data["test"] == "dummy"

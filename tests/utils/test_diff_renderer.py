@@ -5,31 +5,31 @@ from rich.table import Table
 
 from cobib.utils.diff_renderer import Differ
 
-LEFT = """@article{Cao2018,
+LEFT = """@article{Rossmannek2023,
   archivePrefix = {arXiv},
-  arxivid = {1812.09976v2},
-  author = {Yudong Cao and Jonathan Romero and Jonathan P. Olson and Matthias Degroote and Peter D. Johnson and M{\'a}ria Kieferov{\'a} and Ian D. Kivlichan and Tim Menke and Borja Peropadre and Nicolas P. D. Sawaya and Sukin Sim and Libor Veis and Al{\'a}n Aspuru-Guzik},
-  doi = {10.1021/acs.chemrev.8b00803},
-  eprint = {http://arxiv.org/abs/1812.09976v2},
-  primaryClass = {quant-ph},
-  title = {Quantum Chemistry in the Age of Quantum Computing},
-  url = {http://dx.doi.org/10.1021/acs.chemrev.8b00803},
-  year = {2018}
+  arxivid = {2302.03052},
+  author = {Rossmannek, Max and Pavo{\v s}evi{\'c}, Fabijan and Rubio, Angel and Tavernelli, Ivano},
+  doi = {10.1021/acs.jpclett.3c00330},
+  eprint = {http://arxiv.org/abs/2302.03052},
+  primaryClass = {physics.chem-ph},
+  title = {Quantum embedding method for the simulation of strongly correlated systems on quantum computers},
+  url = {http://dx.doi.org/10.1021/acs.jpclett.3c00330},
+  year = {2023}
 }"""  # noqa: E501
 
 
-RIGHT = """@article{Cao_2019,
-  author = {Yudong Cao and Jonathan Romero and Jonathan P. Olson and Matthias Degroote and Peter D. Johnson and M{\'a}ria Kieferov{\'a} and Ian D. Kivlichan and Tim Menke and Borja Peropadre and Nicolas P. D. Sawaya and Sukin Sim and Libor Veis and Al{\'a}n Aspuru-Guzik},
-  doi = {10.1021/acs.chemrev.8b00803},
-  journal = {Chemical Reviews},
-  month = {8},
-  number = {19},
-  pages = {10856--10915},
+RIGHT = """@article{Rossmannek_2023,
+  author = {Rossmannek, Max and Pavo{\v{s}}evi{\'c}, Fabijan and Rubio, Angel and Tavernelli, Ivano},
+  doi = {10.1021/acs.jpclett.3c00330},
+  journal = {The Journal of Physical Chemistry Letters},
+  month = {4},
+  number = {14},
+  pages = {3491--3497},
   publisher = {American Chemical Society ({ACS})},
-  title = {Quantum Chemistry in the Age of Quantum Computing},
-  url = {https://doi.org/10.1021%2Facs.chemrev.8b00803},
-  volume = {119},
-  year = {2019}
+  title = {Quantum Embedding Method for the Simulation of Strongly Correlated Systems on Quantum Computers},
+  url = {https://doi.org/10.1021%2Facs.jpclett.3c00330},
+  volume = {14},
+  year = {2023}
 }"""  # noqa: E501
 
 
