@@ -1,20 +1,19 @@
 ---
-Cao_2019:
+Rossmannek_2023:
   ENTRYTYPE: article
-  author: Cao, Yudong and Romero, Jonathan and Olson, Jonathan P. and Degroote, Matthias
-    and Johnson, Peter D. and Kieferov{\'a}, M{\'a}ria and Kivlichan, Ian D. and Menke,
-    Tim and Peropadre, Borja and Sawaya, Nicolas P. D. and Sim, Sukin and Veis, Libor
-    and Aspuru-Guzik, Al{\'a}n
-  doi: 10.1021/acs.chemrev.8b00803
-  issn: 1520-6890
-  journal: Chemical Reviews
-  month: aug
-  number: 19
-  pages: 10856-10915
+  author: Rossmannek, Max and Pavo{\v{s}}evi{\'c}, Fabijan and Rubio, Angel and Tavernelli,
+    Ivano
+  doi: 10.1021/acs.jpclett.3c00330
+  issn: 1948-7185
+  journal: The Journal of Physical Chemistry Letters
+  month: apr
+  number: 14
+  pages: 3491{\textendash}3497
   publisher: American Chemical Society (ACS)
-  title: Quantum Chemistry in the Age of Quantum Computing
+  title: Quantum Embedding Method for the Simulation of Strongly Correlated Systems
+    on Quantum Computers
   url:
-  - http://dx.doi.org/10.1021/acs.chemrev.8b00803
-  volume: 119
-  year: 2019
+  - http://dx.doi.org/10.1021/acs.jpclett.3c00330
+  volume: 14
+  year: 2023
 ...

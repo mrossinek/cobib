@@ -86,12 +86,12 @@ class TestBibtexParser(ParserTest):
 
         @Event.PostBibtexParse.subscribe
         def hook(bib: Dict[str, Entry]) -> None:
-            bib["Cao_2019"].data["month"] = "August"
+            bib["Rossmannek_2023"].data["month"] = "April"
 
         assert Event.PostBibtexParse.validate()
 
         reference = self.EXAMPLE_ENTRY_DICT.copy()
-        reference["month"] = "August"
+        reference["month"] = "April"
 
         with open(self.EXAMPLE_BIBTEX_FILE, "r", encoding="utf-8") as file:
             bibtex_str = file.read()
@@ -104,13 +104,13 @@ class TestBibtexParser(ParserTest):
 
         @Event.PreBibtexDump.subscribe
         def hook(entry: Entry) -> None:
-            entry.label = "Cao2019"
+            entry.label = "Rossmannek2023"
 
         assert Event.PreBibtexDump.validate()
 
-        entry = Entry("Cao_2019", self.EXAMPLE_ENTRY_DICT.copy())
+        entry = Entry("Rossmannek_2023", self.EXAMPLE_ENTRY_DICT.copy())
         entry_str = BibtexParser().dump(entry)
-        assert entry_str.split("\n")[0] == "@article{Cao2019,"
+        assert entry_str.split("\n")[0] == "@article{Rossmannek2023,"
 
     def test_event_post_bibtex_dump(self) -> None:
         """Tests the PostBibtexDump event."""
@@ -121,6 +121,6 @@ class TestBibtexParser(ParserTest):
 
         assert Event.PostBibtexDump.validate()
 
-        entry = Entry("Cao_2019", self.EXAMPLE_ENTRY_DICT.copy())
+        entry = Entry("Rossmannek_2023", self.EXAMPLE_ENTRY_DICT.copy())
         entry_str = BibtexParser().dump(entry)
         assert entry_str == "Hello world!"

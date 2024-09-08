@@ -197,14 +197,14 @@ class TestAddCommand(CommandTest):
         if skip_download is not None:
             should_download = not skip_download
 
-        path = RelPath(f"{'/tmp' if folder is None else folder}/Cao2018.pdf")
+        path = RelPath(f"{'/tmp' if folder is None else folder}/Bravyi2017.pdf")
         try:
             # ensure file does not exist yet
             os.remove(path.path)
         except FileNotFoundError:
             pass
         try:
-            args = ["-a", "1812.09976"]
+            args = ["-a", "1701.08213"]
             if folder:
                 args += ["-p", folder]
             if skip_download is not None:
@@ -215,14 +215,14 @@ class TestAddCommand(CommandTest):
             if (
                 "cobib.parsers.arxiv",
                 logging.ERROR,
-                "An Exception occurred while trying to query the arXiv ID: 1812.09976.",
+                "An Exception occurred while trying to query the arXiv ID: 1701.08213.",
             ) in caplog.record_tuples:
                 pytest.skip("The requests API encountered an error. Skipping test.")
 
-            entry = Database()["Cao2018"]
-            assert entry.label == "Cao2018"
+            entry = Database()["Bravyi2017"]
+            assert entry.label == "Bravyi2017"
             assert entry.data["archivePrefix"] == "arXiv"
-            assert entry.data["arxivid"].startswith("1812.09976")
+            assert entry.data["arxivid"].startswith("1701.08213")
             assert "_download" not in entry.data.keys()
 
             if should_download:
@@ -253,27 +253,30 @@ class TestAddCommand(CommandTest):
             caplog: the built-in pytest fixture.
         """
         git = setup.get("git", False)
-        await AddCommand("-a", "1812.09976", "--skip-download").execute()
+        await AddCommand("-a", "2302.03052", "--skip-download").execute()
 
         if (
             "cobib.parsers.arxiv",
             logging.ERROR,
-            "An Exception occurred while trying to query the arXiv ID: 1812.09976.",
+            "An Exception occurred while trying to query the arXiv ID: 2302.03052.",
         ) in caplog.record_tuples:
             pytest.skip("The requests API encountered an error. Skipping test.")
 
         # assert initial state
-        entry = Database()["Cao2018"]
+        entry = Database()["Rossmannek2023"]
 
-        assert entry.data["author"][0].first == "Yudong"
-        assert entry.data["author"][0].last == "Cao"
-        assert entry.data["title"].startswith("Quantum Chemistry in the Age of Quantum Computing")
-        assert entry.data["arxivid"].startswith("1812.09976")
-        assert entry.data["doi"] == "10.1021/acs.chemrev.8b00803"
-        assert entry.data["primaryClass"] == "quant-ph"
+        assert entry.data["author"][0].first == "Max"
+        assert entry.data["author"][0].last == "Rossmannek"
+        assert entry.data["title"].startswith(
+            "Quantum Embedding Method for the Simulation of Strongly Correlated Systems on Quantum "
+            "Computers"
+        )
+        assert entry.data["arxivid"].startswith("2302.03052")
+        assert entry.data["doi"] == "10.1021/acs.jpclett.3c00330"
+        assert entry.data["primaryClass"] == "physics.chem-ph"
         assert entry.data["archivePrefix"] == "arXiv"
         assert entry.data["abstract"] != ""
-        assert entry.data["year"] == 2018
+        assert entry.data["year"] == 2023
 
         assert "journal" not in entry.data.keys()
         assert "month" not in entry.data.keys()
@@ -283,9 +286,9 @@ class TestAddCommand(CommandTest):
 
         args = [
             "-d",
-            "10.1021/acs.chemrev.8b00803",
+            "10.1021/acs.jpclett.3c00330",
             "-l",
-            "Cao2018",
+            "Rossmannek2023",
             "--skip-download",
         ]
         args += ["--disambiguation", "update"]
@@ -294,29 +297,32 @@ class TestAddCommand(CommandTest):
         if (
             "cobib.parsers.doi",
             logging.ERROR,
-            "An Exception occurred while trying to query the DOI: 10.1021/acs.chemrev.8b00803.",
+            "An Exception occurred while trying to query the DOI: 10.1021/acs.jpclett.3c00330.",
         ) in caplog.record_tuples:
             pytest.skip("The requests API encountered an error. Skipping test.")
 
         # assert final state
-        entry = Database()["Cao2018"]
+        entry = Database()["Rossmannek2023"]
 
-        assert entry.data["author"][0].first == "Yudong"
-        assert entry.data["author"][0].last == "Cao"
-        assert entry.data["title"].startswith("Quantum Chemistry in the Age of Quantum Computing")
-        assert entry.data["arxivid"].startswith("1812.09976")
-        assert entry.data["primaryClass"] == "quant-ph"
+        assert entry.data["author"][0].first == "Max"
+        assert entry.data["author"][0].last == "Rossmannek"
+        assert entry.data["title"].startswith(
+            "Quantum Embedding Method for the Simulation of Strongly Correlated Systems on Quantum "
+            "Computers"
+        )
+        assert entry.data["arxivid"].startswith("2302.03052")
+        assert entry.data["primaryClass"] == "physics.chem-ph"
         assert entry.data["archivePrefix"] == "arXiv"
         assert entry.data["abstract"] != ""
 
-        assert entry.data["issn"] == "1520-6890"
-        assert entry.data["journal"] == "Chemical Reviews"
-        assert entry.data["doi"] == "10.1021/acs.chemrev.8b00803"
-        assert entry.data["month"] == "aug"
-        assert entry.data["number"] == 19
-        assert entry.data["pages"] == "10856–10915"  # noqa: RUF001
-        assert entry.data["volume"] == 119
-        assert entry.data["year"] == 2019
+        assert entry.data["issn"] == "1948-7185"
+        assert entry.data["journal"] == "The Journal of Physical Chemistry Letters"
+        assert entry.data["doi"] == "10.1021/acs.jpclett.3c00330"
+        assert entry.data["month"] == "apr"
+        assert entry.data["number"] == 14
+        assert entry.data["pages"] == "3491–3497"  # noqa: RUF001
+        assert entry.data["volume"] == 14
+        assert entry.data["year"] == 2023
 
         if git:
             # assert the git commit message
@@ -683,7 +689,7 @@ class TestAddCommand(CommandTest):
         """
         database = Database()
 
-        for label in ("Cao2018", "Cao2018_a"):
+        for label in ("Bravyi2017", "Bravyi2017_a"):
             try:
                 path = RelPath(f"/tmp/{label}.pdf")
                 try:
@@ -693,27 +699,26 @@ class TestAddCommand(CommandTest):
                     pass
 
                 # by repeatedly calling the same add command, we trigger the label disambiguation
-                await AddCommand("-a", "1812.09976").execute()
+                await AddCommand("-a", "1701.08213").execute()
 
                 if (
                     "cobib.parsers.arxiv",
                     logging.ERROR,
-                    "An Exception occurred while trying to query the arXiv ID: 1812.09976.",
+                    "An Exception occurred while trying to query the arXiv ID: 1701.08213.",
                 ) in caplog.record_tuples:
                     pytest.skip("The requests API encountered an error. Skipping test.")
 
                 entry = database[label]
-                assert entry.data["author"][0].first == "Yudong"
-                assert entry.data["author"][0].last == "Cao"
+                assert entry.data["author"][0].first == "Sergey"
+                assert entry.data["author"][0].last == "Bravyi"
                 assert entry.data["title"].startswith(
-                    "Quantum Chemistry in the Age of Quantum Computing"
+                    "Tapering off qubits to simulate fermionic Hamiltonians"
                 )
-                assert entry.data["arxivid"].startswith("1812.09976")
-                assert entry.data["doi"] == "10.1021/acs.chemrev.8b00803"
+                assert entry.data["arxivid"].startswith("1701.08213")
                 assert entry.data["primaryClass"] == "quant-ph"
                 assert entry.data["archivePrefix"] == "arXiv"
                 assert entry.data["abstract"] != ""
-                assert entry.data["year"] == 2018
+                assert entry.data["year"] == 2017
                 assert os.path.exists(path.path)
 
             finally:

@@ -19,7 +19,7 @@ class TestYAMLParser(ParserTest):
 
     def test_to_yaml(self) -> None:
         """Test to yaml conversion."""
-        entry = Entry("Cao_2019", self.EXAMPLE_ENTRY_DICT)
+        entry = Entry("Rossmannek_2023", self.EXAMPLE_ENTRY_DICT)
         yaml_str = YAMLParser().dump(entry)
         with open(self.EXAMPLE_YAML_FILE, "r", encoding="utf-8") as file:
             assert yaml_str == file.read()
@@ -73,8 +73,9 @@ class TestYAMLParser(ParserTest):
         assert (
             "cobib.parsers.yaml",
             30,
-            "An entry with label 'Cao_2019' was already encountered earlier on in the YAML file! "
-            "Please check the file manually as this cannot be resolved automatically by coBib.",
+            "An entry with label 'Rossmannek_2023' was already encountered earlier on in the YAML "
+            "file! Please check the file manually as this cannot be resolved automatically by "
+            "coBib.",
         ) in caplog.record_tuples
 
     def test_raise_missing_file(self) -> None:
@@ -101,7 +102,7 @@ class TestYAMLParser(ParserTest):
 
         @Event.PostYAMLParse.subscribe
         def hook(bib: Dict[str, Entry]) -> None:
-            bib["Cao_2019"].data["month"] = "August"
+            bib["Rossmannek_2023"].data["month"] = "August"
 
         reference = self.EXAMPLE_ENTRY_DICT.copy()
         reference["month"] = "August"
@@ -117,13 +118,13 @@ class TestYAMLParser(ParserTest):
 
         @Event.PreYAMLDump.subscribe
         def hook(entry: Entry) -> None:
-            entry.label = "Cao2019"
+            entry.label = "Rossmannek2023"
 
         assert Event.PreYAMLDump.validate()
 
-        entry = Entry("Cao_2019", self.EXAMPLE_ENTRY_DICT.copy())
+        entry = Entry("Rossmannek_2023", self.EXAMPLE_ENTRY_DICT.copy())
         entry_str = YAMLParser().dump(entry)
-        assert cast(str, entry_str).split("\n")[1] == "Cao2019:"
+        assert cast(str, entry_str).split("\n")[1] == "Rossmannek2023:"
 
     def test_event_post_yaml_dump(self) -> None:
         """Tests the PostYAMLDump event."""
@@ -134,6 +135,6 @@ class TestYAMLParser(ParserTest):
 
         assert Event.PostYAMLDump.validate()
 
-        entry = Entry("Cao_2019", self.EXAMPLE_ENTRY_DICT.copy())
+        entry = Entry("Rossmannek_2023", self.EXAMPLE_ENTRY_DICT.copy())
         entry_str = YAMLParser().dump(entry)
         assert entry_str == "Hello world!"
