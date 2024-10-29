@@ -95,6 +95,15 @@ You can configure the tool which is used to perform this search via the
 
 If you do not want to search through associated files, you can specify the `--skip-files` argument.
 
+### Associated notes
+
+.. note::
+   New in version v5.2.0
+
+The `cobib.database.entry.Entry.note` field links to plain-text files and, thus, is treated
+separately from the files mentioned above. This makes these special associated notes more useful as
+their content can be searched without external tools.
+
 ### TUI
 
 You can also trigger this command from the `cobib.ui.tui.TUI`.

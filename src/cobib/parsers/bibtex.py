@@ -35,14 +35,19 @@ class BibtexParser(Parser):
 
     name = "bibtex"
 
-    def __init__(self, encode_latex: bool = True) -> None:
+    def __init__(self, encode_latex: bool = True, inline_note: bool = False) -> None:
         """Initializes a parser instance.
 
         Args:
             encode_latex: whether to encode non-ASCII characters using LaTeX sequences.
+            inline_note: whether to inline the content of the entry's associated note file.
         """
         self.encode_latex = encode_latex
         """Whether to encode non-ASCII characters using LaTeX sequences. For more details see
+        `cobib.database.entry.Entry.stringify`."""
+
+        self.inline_note = inline_note
+        """Whether to inline the content of the entry's associated note file. For more details see
         `cobib.database.entry.Entry.stringify`."""
 
     @override
@@ -79,7 +84,9 @@ class BibtexParser(Parser):
         Event.PreBibtexDump.fire(entry)
 
         database = bibtexparser.bibdatabase.BibDatabase()
-        stringified_entry = entry.stringify(encode_latex=self.encode_latex)
+        stringified_entry = entry.stringify(
+            encode_latex=self.encode_latex, inline_note=self.inline_note
+        )
         stringified_entry["ID"] = stringified_entry.pop("label")
         if "month" in stringified_entry.keys():
             # convert month to bibtexexpression

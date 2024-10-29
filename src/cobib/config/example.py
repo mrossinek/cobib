@@ -70,6 +70,9 @@ config.commands.list_.fuzziness = 0
 # You can specify whether associated files should be preserved when renaming during modifying.
 config.commands.modify.preserve_files = False
 
+# You can specify the default filetype to be used for associated notes.
+config.commands.note.default_filetype = "txt"
+
 # You can specify a custom command which will be used to `open` files associated with your entries.
 config.commands.open.command = "xdg-open" if sys.platform.lower() == "linux" else "open"
 # You can specify the names of the data fields which are to be checked for openable URLs.

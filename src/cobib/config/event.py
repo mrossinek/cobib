@@ -103,6 +103,7 @@ else:
         "ForwardRef('commands.InitCommand')": "cobib.commands.init.InitCommand",
         "ForwardRef('commands.ListCommand')": "cobib.commands.list_.ListCommand",
         "ForwardRef('commands.ModifyCommand')": "cobib.commands.modify.ModifyCommand",
+        "ForwardRef('commands.NoteCommand')": "cobib.commands.note.NoteCommand",
         "ForwardRef('commands.OpenCommand')": "cobib.commands.open.OpenCommand",
         "ForwardRef('commands.RedoCommand')": "cobib.commands.redo.RedoCommand",
         "ForwardRef('commands.ReviewCommand')": "cobib.commands.review.ReviewCommand",
@@ -356,6 +357,29 @@ class Event(Enum):
 
     Returns:
         Nothing. But the modified entries are still accessible before written to the database.
+    """
+
+    PreNoteCommand: Event = Callable[["commands.NoteCommand"], None]  # type: ignore[assignment]
+    """
+    Fires:
+        Before starting the `cobib.commands.note.NoteCommand`.
+
+    Arguments:
+        - `cobib.commands.note.NoteCommand`: the command instance that is about to run.
+
+    Returns:
+        Nothing. But the command attributes can be modified, affecting the execution.
+    """
+    PostNoteCommand: Event = Callable[["commands.NoteCommand"], None]  # type: ignore[assignment]
+    """
+    Fires:
+        Before finishing the `cobib.commands.note.NoteCommand`.
+
+    Arguments:
+        - `cobib.commands.note.NoteCommand`: the command instance that just ran.
+
+    Returns:
+        Nothing. While the entry whose note was edited is accessible, modifying it has no effect.
     """
 
     PreOpenCommand: Event = Callable[["commands.OpenCommand"], None]  # type: ignore[assignment]

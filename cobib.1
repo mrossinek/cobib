@@ -263,6 +263,25 @@ If specified, associated files will \fInot\fR be preserved and be renamed if
 the modification happens to rename the entry. This takes precedence over the
 \fIconfig.commands.modify.preserve_files\fR setting.
 .TP
+.B cobib note \fI<label>\fR \fI<action>\fR
+Applies an action to the note of the provided entry. The available \fIactions\fR
+are:
+.PP
+.in +8n
+.BR show
+.in +4n
+Shows the note's contents.
+.PP
+.in +8n
+.BR edit
+.in +4n
+Opens the note file in the \fIconfig.commands.edit.editor\fR for editing.
+.PP
+.in +8n
+.BR delete
+.in +4n
+Deletes the note.
+.TP
 .B cobib review \fI<field>\fR \fI<args>\fR ...
 Performs an interactive review of your database.
 You can optionally review one or more specific fields of the entries by
@@ -826,6 +845,9 @@ feature requires the optional \fIregex\fR dependency to be installed.
 .TP
 .IR config.commands.modify.preserve_files = False
 Specifies whether associates files should be preserved during renaming.
+.TP
+.IR config.commands.note.default_filetype = 'txt'
+Specifies the default filetype to use for associated notes.
 .TP
 .IR config.commands.open.command = 'xdg-open' " (on Linux); " 'open' " (on Mac OS)"
 Specifies the program used to open associated files.

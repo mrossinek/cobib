@@ -529,6 +529,22 @@ class ModifyCommandConfig(_ConfigBase):
 
 
 @dataclass
+class NoteCommandConfig(_ConfigBase):
+    """The `config.commands.note` section."""
+
+    default_filetype: str = "txt"
+    """Specifies the default filetype for notes."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the COMMANDS.NOTE configuration section.")
+        self._assert(
+            isinstance(self.default_filetype, str),
+            "config.commands.note.default_filetype should be a string.",
+        )
+
+
+@dataclass
 class OpenCommandConfig(_ConfigBase):
     """The `config.commands.open` section."""
 
@@ -660,6 +676,8 @@ class CommandConfig(_ConfigBase):
     of its name, since this attribute would otherwise clash with the builtin `list` keyword."""
     modify: ModifyCommandConfig = field(default_factory=lambda: ModifyCommandConfig())
     """The nested section for settings related to the `modify` command."""
+    note: NoteCommandConfig = field(default_factory=lambda: NoteCommandConfig())
+    """The nested section for settings related to the `note` command."""
     open: OpenCommandConfig = field(default_factory=lambda: OpenCommandConfig())
     """The nested section for settings related to the `open` command."""
     search: SearchCommandConfig = field(default_factory=lambda: SearchCommandConfig())
@@ -676,6 +694,7 @@ class CommandConfig(_ConfigBase):
         self.import_.validate()
         self.list_.validate()
         self.modify.validate()
+        self.note.validate()
         self.open.validate()
         self.search.validate()
         self.show.validate()
