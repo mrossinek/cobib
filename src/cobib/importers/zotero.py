@@ -174,8 +174,10 @@ class ZoteroImporter(Importer):
             _, new_entry = bibtex_parser.parse(biblatex).popitem()
 
             # Zotero-specific `journal` keyword handling
-            new_entry.data.pop("shortjournal")
-            new_entry.data["journal"] = new_entry.data.pop("journaltitle")
+            new_entry.data.pop("shortjournal", None)
+            journaltitle = new_entry.data.pop("journaltitle", None)
+            if journaltitle is not None:
+                new_entry.data["journal"] = journaltitle
 
             # check attachment
             try:
