@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - the behavior of the `Home` and `End` keybindings in the TUI's list view (!217)
+- gracefully handles Zotero imported entries without a `journal` field (#145)
 
 
 ## [5.1.3] - 2024-08-23
