@@ -78,9 +78,10 @@ You can indicate which entries of a review you have already completed with the `
 ```
 cobib review --done Author2023 -- ++year 2023
 ```
-The example above will review all entries from the year 2023, except for `Autho2023`. It is unlikely
-that you will ever use this option manually if you have `cobib.config.config.DatabaseConfig.git`
-enabled, because that will allow you to resume a previously started review more easily.
+The example above will review all entries from the year 2023, except for `Author2023`. It is
+unlikely that you will ever use this option manually if you have
+`cobib.config.config.DatabaseConfig.git` enabled, because that will allow you to resume a previously
+started review more easily.
 
 
 ### TUI
