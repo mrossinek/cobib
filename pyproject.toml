@@ -23,6 +23,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "License :: OSI Approved :: MIT License",
     "Operating System :: Unix",
     "Environment :: Console",
@@ -92,6 +93,7 @@ cobib = ["py.typed"]
 
 [tool.pytest.ini_options]
 log_level = "DEBUG"
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.coverage.run]
 source = ["src/cobib/"]
