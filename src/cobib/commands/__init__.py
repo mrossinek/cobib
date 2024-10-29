@@ -15,6 +15,7 @@ from .init import InitCommand as InitCommand
 from .lint import LintCommand as LintCommand
 from .list_ import ListCommand as ListCommand
 from .modify import ModifyCommand as ModifyCommand
+from .note import NoteCommand as NoteCommand
 from .open import OpenCommand as OpenCommand
 from .redo import RedoCommand as RedoCommand
 from .review import ReviewCommand as ReviewCommand

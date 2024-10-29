@@ -14,6 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `cobib.config.theme.syntax.theme`
     - `cobib.config.theme.syntax.background_color`
     - `cobib.config.theme.syntax.line_numbers`
+- the `note` command (#139,!206).
+  Please refer to its online documentation or the man-page for more details on
+  how to use it.
+  This new command comes with:
+  - the `cobib.config.commands.note.default_filetype` setting
+  - the `PreNoteCommand` and `PostNoteCommand` event hooks
+- (DEV) the `add_files` argument to the `BaseCommand.git` function
 
 ### Changed
 - the keybinding to recursively toggle all folds in the TUI's search result view

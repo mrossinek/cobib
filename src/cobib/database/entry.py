@@ -301,6 +301,30 @@ class Entry:
         LOGGER.debug("Adding '%s' as the file to '%s'.", self.data["file"], self.label)
 
     @property
+    def note(self) -> str | None:
+        """The associated note of this entry.
+
+        The setter of this property will convert the string to a path relative to the user's home
+        directory.
+        """
+        return cast(Optional[str], self.data.get("note", None))
+
+    @note.setter
+    def note(self, note: str | None) -> None:
+        """Sets the associated note of this entry.
+
+        Args:
+            note: a string encoding the path to the note. It will be converted to a path relative to
+                the user's home directory. If `None`, it deletes the existing note.
+        """
+        if note is None:
+            _ = self.data.pop("note")
+            LOGGER.debug("Deleted the note of '%s'.", self.label)
+        else:
+            self.data["note"] = str(RelPath(note))
+            LOGGER.debug("Adding '%s' as the note to '%s'.", self.data["note"], self.label)
+
+    @property
     def url(self) -> list[str]:
         """The associated URL(s) of this entry."""
         return cast(List[str], self.data.get("url", []))
@@ -368,13 +392,16 @@ class Entry:
                 extra={"entry": self.label, "field": "month"},
             )
 
-    def stringify(self, *, encode_latex: bool = True, markup: bool = False) -> dict[str, str]:
+    def stringify(
+        self, *, encode_latex: bool = True, inline_note: bool = False, markup: bool = False
+    ) -> dict[str, str]:
         """Returns an identical entry to self but with all fields converted to strings.
 
         Args:
             encode_latex: whether to encode non-ASCII characters using LaTeX sequences. If this is
                 `True`, a `pylatexenc.latexencode.UnicodeToLatexEncoder` will be used to replace
                 Unicode characters with LaTeX commands.
+            inline_note: whether to inline the content of the entry's associated note file.
             markup: whether or not to add markup based on the configured special tags.
 
         Returns:
@@ -389,6 +416,8 @@ class Entry:
                 value = getattr(self, field)  # noqa: PLW2901
             if field == "author":
                 data[field] = str(value)
+            elif inline_note and field == "note":
+                data[field] = open(RelPath(value).path, "r", encoding="utf-8").read().strip()
             elif isinstance(value, list) and hasattr(
                 config.database.stringify.list_separator, field
             ):
@@ -593,7 +622,7 @@ class Entry:
         from cobib.parsers.bibtex import BibtexParser
 
         # get searchable text
-        bibtex_raw = BibtexParser(encode_latex=False).dump(self)
+        bibtex_raw = BibtexParser(encode_latex=False, inline_note=True).dump(self)
 
         # split into lines and compute their lengths and offsets
         lines = bibtex_raw.split("\n")

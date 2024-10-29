@@ -17,6 +17,7 @@ from .log_screen import LogScreen as LogScreen
 from .logging_handler import LoggingHandler as LoggingHandler
 from .main_content import MainContent as MainContent
 from .motion_key import MotionKey as MotionKey
+from .note_view import NoteView as NoteView
 from .preset_filter_screen import PresetFilterScreen as PresetFilterScreen
 from .search_view import SearchView as SearchView
 from .selection_filter import SelectionFilter as SelectionFilter

@@ -147,7 +147,13 @@ class Command(ABC):
         """
         return None
 
-    def git(self, force: bool = False, *, allow_empty: bool = False) -> None:
+    def git(
+        self,
+        force: bool = False,
+        *,
+        allow_empty: bool = False,
+        add_files: list[str] | None = None,
+    ) -> None:
         """Generates a git commit to track the commands changes.
 
         This function only has an effect when `cobib.config.config.DatabaseConfig.git` is enabled
@@ -163,6 +169,7 @@ class Command(ABC):
                 `cobib.commands.init.InitCommand`.
             allow_empty: whether to allow an empty commit to be created. Normally, this is a
                 mistake, but some commands may want to enforce a commit.
+            add_files: an optional list of files to also stage via `git add` before committing.
         """
         git_tracked = config.database.git
         if not git_tracked and not force:
@@ -193,7 +200,7 @@ class Command(ABC):
             git_commit_args.append("--allow-empty")
         commands = [
             f"cd {root}",
-            f"git add -- {file}",
+            f"git add -- {file} {' '.join(add_files) if add_files is not None else ''}",
             f"git commit {' '.join(git_commit_args)} --message {shlex.quote(msg)}",
         ]
         LOGGER.debug("Auto-commit to git from %s command.", self.name)

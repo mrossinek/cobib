@@ -40,6 +40,7 @@ from cobib.ui.components import (
     LogScreen,
     MainContent,
     MotionKey,
+    NoteView,
     PresetFilterScreen,
     SearchView,
     SelectionFilter,
@@ -183,6 +184,12 @@ class TUI(UI, App[None]):  # type: ignore[misc]
             tooltip="Prompts for a modification (respects selection)",
         ),
         Binding(
+            "n",
+            "note",
+            "Note",
+            tooltip="Edits the current entry's note",
+        ),
+        Binding(
             "o",
             "open",
             "Open",
@@ -243,6 +250,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
     | f | Allows filtering the table using `++/--` keywords. |
     | i | Imports entries from another source. |
     | m | Prompts for a modification (respects selection). |
+    | n | Edits the current entry's note. |
     | o | Opens the current (or selected) entries. |
     | p | Allows selecting a preset filter (see `config.tui.preset_filters`). |
     | r | Redoes the last undone change. Requires git-tracking! |
@@ -250,6 +258,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
     | u | Undes the last change. Requires git-tracking! |
     | x | Exports the current (or selected) entries. |
     | z | Toggles the log screen. |
+    | enter | Loads the view of an entry, including its note (if it exists). |
     """
 
     SCREENS: ClassVar[dict[str, Callable[[], Screen[Any]]]] = {
@@ -326,6 +335,17 @@ class TUI(UI, App[None]):  # type: ignore[misc]
 
     async def action_quit(self) -> None:
         """Action to display the quit dialog."""
+        entry = self.query_one(EntryView)
+        note = entry.query_one(NoteView)
+        if note.unsaved:
+            msg = (
+                "You have unsaved changes on your open note! You must save or reset them before "
+                "being able to quit the TUI!\n"
+                "To do so, focus the note area (by clicking or navigating to the corresponding "
+                "entry and hitting 'n') and hit 'Ctrl+s' to save or 'Ctrl+r' to reset the note."
+            )
+            self.notify(msg, title="Error", severity="error", timeout=5)
+            return
 
         async def _prompt_quit() -> None:
             res = await Confirm.ask("Are you sure you want to quit?", default=True)
@@ -345,14 +365,19 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         if layout is None:
             return
         main = self.query_one(MainContent)
+        entry = self.query_one(EntryView)
         if layout.name.lower().startswith("horizontal"):
             self.screen.styles.layout = "vertical"
             main.styles.height = "2fr"
             main.styles.width = "1fr"
+            entry.styles.grid_size_rows = 1
+            entry.styles.grid_size_columns = 2
         elif layout.name.lower().startswith("vertical"):
             self.screen.styles.layout = "horizontal"
             main.styles.width = "2fr"
             main.styles.height = "1fr"
+            entry.styles.grid_size_rows = 2
+            entry.styles.grid_size_columns = 1
         self.refresh(layout=True)
 
     async def action_prompt(
@@ -425,6 +450,17 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         """
         self._edit_entry()
         await self._update_table()
+
+    def action_note(self) -> None:
+        """The note action.
+
+        This action triggers the `cobib.commands.note.NoteCommand`.
+        """
+        self._show_entry(load_note=True, edit_note=True)
+
+    def action_load(self) -> None:
+        """Loads the entry and its corresponding note into the EntryView."""
+        self._show_entry(load_note=True)
 
     def action_open(self) -> None:
         """The open action.
@@ -507,12 +543,21 @@ class TUI(UI, App[None]):  # type: ignore[misc]
 
         commands.EditCommand(label).execute()
 
-    def _show_entry(self, command: commands.ShowCommand | None = None) -> None:
+    def _show_entry(
+        self,
+        command: commands.ShowCommand | None = None,
+        *,
+        load_note: bool = False,
+        edit_note: bool = False,
+    ) -> None:
         """Renders the entry currently under the cursor in the `EntryView` widget.
 
         Args:
             command: the `cobib.commands.show.ShowCommand` to execute. If this is `None`, a new
                 instance will be constructed to show the entry at the current cursor location.
+            load_note: whether to also load any associated note into the `TextArea` widget of the
+                `EntryView`.
+            edit_note: whether to edit the `TextArea`.
         """
         if command is None:
             main = self.query_one(MainContent)
@@ -524,6 +569,10 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         entry = self.query_one(EntryView)
         static = entry.query_one(Static)
         static.update(command.render_rich())
+        if load_note:
+            label = command.largs.label
+            text_area = entry.query_one(NoteView)
+            text_area.load_note(label, edit=edit_note)
 
     def _jump_to_entry(self, command: list[str]) -> None:
         """Jumps the cursor in the current view to the entry provided by the command arguments.
@@ -546,7 +595,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
                     "view. Displaying it only in the side panel."
                 )
                 LOGGER.info(msg)
-        self._show_entry(show_cmd)
+        self._show_entry(show_cmd, load_note=True)
 
     async def _update_table(self) -> None:
         """Updates the list of entries displayed in the `MainContent`."""
@@ -629,6 +678,10 @@ class TUI(UI, App[None]):  # type: ignore[misc]
                 from cobib import commands
 
                 commands.EditCommand(*command[1:]).execute()
+            elif command[0].lower() == "note":
+                from cobib import commands
+
+                commands.NoteCommand(*command[1:]).execute()
             else:
                 self._run_command(command)
 
