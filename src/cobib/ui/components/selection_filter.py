@@ -20,8 +20,13 @@ from typing_extensions import override
 class SelectionFilter(LineFilter):
     """coBib's selection filter."""
 
-    def __init__(self) -> None:
-        """Initializes the filter."""
+    def __init__(self, enabled: bool = True) -> None:
+        """Initializes the filter.
+
+        Args:
+            enabled: whether the filter will be applied.
+        """
+        super().__init__(enabled)
         self.active: bool = False
         """Indicates whether the filter is active, i.e. the selection is not empty."""
         self.selection: set[str] = set()

@@ -6,6 +6,6 @@ requests
 requests_oauthlib
 rich
 ruamel.yaml
-textual>=0.77
+textual>=0.80
 typing_extensions
 text-unidecode
