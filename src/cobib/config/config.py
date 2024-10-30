@@ -589,6 +589,10 @@ class SearchCommandConfig(_ConfigBase):
     fuzziness: int = 0
     """The amount of fuzzy errors to allow for search matches. Using this feature requires the
     optional `regex` dependency to be installed."""
+    skip_files: bool = False
+    """Specifies whether searches should skip looking through associated files."""
+    skip_notes: bool = False
+    """Specifies whether searches should skip looking through associated notes."""
 
     @property
     def highlights(self) -> SearchHighlightConfig:
@@ -640,6 +644,14 @@ class SearchCommandConfig(_ConfigBase):
                 "dependency to be installed! Falling back to `fuzziness=0`."
             )
             self.fuzziness = 0
+        self._assert(
+            isinstance(self.skip_files, bool),
+            "config.commands.search.skip_files should be a boolean.",
+        )
+        self._assert(
+            isinstance(self.skip_notes, bool),
+            "config.commands.search.skip_notes should be a boolean.",
+        )
 
 
 @dataclass

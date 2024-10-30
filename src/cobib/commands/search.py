@@ -94,6 +94,9 @@ You can configure the tool which is used to perform this search via the
 `cobib.config.config.SearchCommandConfig.grep` setting (defaults to `grep`).
 
 If you do not want to search through associated files, you can specify the `--skip-files` argument.
+You can also make this the default via the `cobib.config.config.SearchCommandConfig.skip_files`
+setting. If you do so, you can overwrite this at runtime with the opposite argument:
+`--include-files`.
 
 ### Associated notes
 
@@ -103,6 +106,11 @@ If you do not want to search through associated files, you can specify the `--sk
 The `cobib.database.entry.Entry.note` field links to plain-text files and, thus, is treated
 separately from the files mentioned above. This makes these special associated notes more useful as
 their content can be searched without external tools.
+
+If you do not want to search through associated notes, you can specify the `--skip-notes` argument.
+You can also make this the default via the `cobib.config.config.SearchCommandConfig.skip_notes`
+setting. If you do so, you can overwrite this at runtime with the opposite argument:
+`--include-notes`.
 
 ### TUI
 
@@ -167,7 +175,14 @@ class SearchCommand(Command):
           lines before and after the actual match to be included in the output. This is similar to
           the `-C` option of `grep`. You can configure the default value via the
           `cobib.config.config.SearchCommandConfig.context` setting.
-        * `--skip-files`: if specified, associated files will **not** be searched.
+        * `--skip-files`: if specified, associated files will **not** be searched. This overwrites
+            the `cobib.config.config.SearchCommandConfig.skip_files` setting.
+        * `--include-files`: if specified, associated files will be searched. This overwrites
+            the `cobib.config.config.SearchCommandConfig.skip_files` setting.
+        * `--skip-notes`: if specified, associated notes will **not** be searched. This overwrites
+            the `cobib.config.config.SearchCommandConfig.skip_notes` setting.
+        * `--include-notes`: if specified, associated notes will be searched. This overwrites
+            the `cobib.config.config.SearchCommandConfig.skip_notes` setting.
         * in addition to the above, you can add `filters` to narrow the search down to a subset of
           your database. For more information refer to `cobib.commands.list_`.
     """
@@ -262,11 +277,33 @@ class SearchCommand(Command):
             default=config.commands.search.context,
             help="number of context lines to provide for each match",
         )
-        parser.add_argument(
+        files_group = parser.add_mutually_exclusive_group()
+        files_group.add_argument(
             "--skip-files",
             action="store_true",
             default=None,
             help="do NOT search through associated files",
+        )
+        files_group.add_argument(
+            "--include-files",
+            dest="skip_files",
+            action="store_false",
+            default=None,
+            help="DO search through associated files",
+        )
+        notes_group = parser.add_mutually_exclusive_group()
+        notes_group.add_argument(
+            "--skip-notes",
+            action="store_true",
+            default=None,
+            help="do NOT search through associated notes",
+        )
+        notes_group.add_argument(
+            "--include-notes",
+            dest="skip_notes",
+            action="store_false",
+            default=None,
+            help="DO search through associated notes",
         )
         parser.add_argument(
             "filter",
@@ -330,6 +367,20 @@ class SearchCommand(Command):
             "The search will%s decode all Unicode characters", "" if decode_unicode else " NOT"
         )
 
+        skip_files = config.commands.search.skip_files
+        if self.largs.skip_files is not None:
+            skip_files = self.largs.skip_files
+        LOGGER.debug(
+            "The search will%s look through associated files", " NOT" if skip_files else ""
+        )
+
+        skip_notes = config.commands.search.skip_notes
+        if self.largs.skip_notes is not None:
+            skip_notes = self.largs.skip_notes
+        LOGGER.debug(
+            "The search will%s look through associated notes", " NOT" if skip_notes else ""
+        )
+
         progress_bar = Progress.initialize()
         optional_awaitable = progress_bar.start()  # type: ignore[func-returns-value]
         if optional_awaitable is not None:
@@ -344,7 +395,8 @@ class SearchCommand(Command):
             matches = entry.search(
                 self.largs.query,
                 context=self.largs.context,
-                skip_files=self.largs.skip_files,
+                skip_files=skip_files,
+                skip_notes=skip_notes,
                 ignore_case=ignore_case,
                 decode_unicode=decode_unicode,
                 decode_latex=decode_latex,

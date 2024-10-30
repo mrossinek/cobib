@@ -574,6 +574,7 @@ class Entry:
         *,
         context: int = 1,
         skip_files: bool = False,
+        skip_notes: bool = False,
         ignore_case: bool = False,
         decode_unicode: bool = False,
         decode_latex: bool = False,
@@ -601,6 +602,7 @@ class Entry:
             context: the number of context lines to provide for each match. This behaves similarly
                 to the *Context Line Control* available for the UNIX `grep` command (`--context`).
             skip_files: if True, associated files will *not* be searched.
+            skip_notes: if True, associated notes will *not* be searched.
             ignore_case: if True, the search will be case-*in*sensitive.
             decode_unicode: if True, all Unicode characters will be decoded before search.
             decode_latex: if True, all LaTeX sequences will be decoded before search.
@@ -622,7 +624,7 @@ class Entry:
         from cobib.parsers.bibtex import BibtexParser
 
         # get searchable text
-        bibtex_raw = BibtexParser(encode_latex=False, inline_note=True).dump(self)
+        bibtex_raw = BibtexParser(encode_latex=False, inline_note=not skip_notes).dump(self)
 
         # split into lines and compute their lengths and offsets
         lines = bibtex_raw.split("\n")
