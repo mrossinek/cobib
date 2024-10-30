@@ -5,6 +5,7 @@ from __future__ import annotations
 import contextlib
 from io import StringIO
 from itertools import zip_longest
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -14,7 +15,9 @@ from typing_extensions import override
 
 from cobib.commands import SearchCommand
 from cobib.config import Event, config
+from cobib.database import Database
 from cobib.utils.regex import HAS_OPTIONAL_REGEX
+from cobib.utils.rel_path import RelPath
 
 from .command_test import CommandTest
 
@@ -373,6 +376,106 @@ class TestSearchCommand(CommandTest):
                 "2::journal = {Annalen der Physik},",
             ],
         )
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ["skip_files_arg", "include_files_arg"],
+        [
+            (True, False),
+            (False, True),
+            (None, None),
+        ],
+    )
+    @pytest.mark.parametrize(
+        ["skip_notes_arg", "include_notes_arg"],
+        [
+            (True, False),
+            (False, True),
+            (None, None),
+        ],
+    )
+    @pytest.mark.parametrize("skip_files_conf", [True, False])
+    @pytest.mark.parametrize("skip_notes_conf", [True, False])
+    async def test_associated_files(
+        self,
+        setup: Any,
+        skip_files_arg: bool,
+        include_files_arg: bool,
+        skip_notes_arg: bool,
+        include_notes_arg: bool,
+        skip_files_conf: bool,
+        skip_notes_conf: bool,
+    ) -> None:
+        """Test the search behavior for associated files and notes.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            skip_files_arg: whether to skip searching associated files.
+            include_files_arg: whether to skip searching associated files.
+            skip_notes_arg: whether to skip searching associated notes.
+            include_notes_arg: whether to skip searching associated notes.
+            skip_files_conf: what to overwrite `config.commands.search.skip_files` with.
+            skip_notes_conf: what to overwrite `config.commands.search.skip_notes` with.
+        """
+        config.commands.search.skip_files = skip_files_conf
+        include_files = not skip_files_conf
+
+        config.commands.search.skip_notes = skip_notes_conf
+        include_notes = not skip_notes_conf
+
+        label = "einstein"
+        entry = Database()[label]
+
+        db_path = RelPath(config.database.file).path.parent
+
+        file_path = Path(f"{db_path}/{label}.md")
+        with open(file_path, "w", encoding="utf-8") as file:
+            file.write(f"Dummy file for the '{label}' entry.")
+        entry.file = [str(file_path)]
+
+        note_path = Path(f"{db_path}/{label}.{config.commands.note.default_filetype}")
+        with open(note_path, "w", encoding="utf-8") as file:
+            file.write(f"Dummy note for the '{label}' entry.")
+        entry.note = str(note_path)
+
+        args = ["Dummy"]
+        if skip_files_arg:
+            args.append("--skip-files")
+            include_files = False
+        if include_files_arg:
+            args.append("--include-files")
+            include_files = True
+        if skip_notes_arg:
+            args.append("--skip-notes")
+            include_notes = False
+        if include_notes_arg:
+            args.append("--include-notes")
+            include_notes = True
+
+        cmd = SearchCommand(*args)
+        await cmd.execute()
+        output = cmd.render_porcelain()
+
+        expected = [f"einstein::{int(include_files) + int(include_notes)}"]
+        if include_notes:
+            expected.extend(
+                [
+                    "1::journal = {Annalen der Physik},",
+                    "1::note = {Dummy note for the 'einstein' entry.},",
+                    "1::number = {10},",
+                ]
+            )
+        if include_files:
+            expected.append(f"{1+int(include_notes)}::Dummy file for the 'einstein' entry.")
+
+        if not include_files and not include_notes:
+            expected = []
+
+        try:
+            self._assert(output, expected)
+        finally:
+            file_path.unlink(missing_ok=True)
+            note_path.unlink(missing_ok=True)
 
     @pytest.mark.asyncio
     async def test_render_rich(self, setup: Any) -> None:

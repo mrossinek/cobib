@@ -531,6 +531,25 @@ The default value is 0 but can be configured via
 .BR \-\-skip\-files
 .in +4n
 Skips searching the associated files.
+This takes precedence over the \fIconfig.commands.search.skip_files\fR setting.
+.PP
+.in +8n
+.BR \-\-include\-files
+.in +4n
+Enables searching the associated files.
+This takes precedence over the \fIconfig.commands.search.skip_files\fR setting.
+.PP
+.in +8n
+.BR \-\-skip\-notes
+.in +4n
+Skips searching the associated notes.
+This takes precedence over the \fIconfig.commands.search.skip_notes\fR setting.
+.PP
+.in +8n
+.BR \-\-include\-notes
+.in +4n
+Enables searching the associated notes.
+This takes precedence over the \fIconfig.commands.search.skip_notes\fR setting.
 .TP
 .B cobib export \fI<args>\fR ...
 Exports the database.
@@ -878,6 +897,12 @@ Specifies whether searches should decode all LaTeX sequences.
 .IR config.commands.search.fuzziness = 0
 Specifies the amount of fuzzy errors to allow for searches. Using this feature
 requires the optional \fIregex\fR dependency to be installed.
+.TP
+.IR config.commands.search.skip_files = False
+Specifies whether searches should skip looking through associated files.
+.TP
+.IR config.commands.search.skip_notes = False
+Specifies whether searches should skip looking through associated notes.
 .TP
 .IR config.commands.show.encode_latex = True
 This boolean setting indicates whether non-ASCII characters should be encoded

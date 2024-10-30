@@ -22,6 +22,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - the `PreNoteCommand` and `PostNoteCommand` event hooks
 - (DEV) the `add_files` argument to the `BaseCommand.git` function
 - Python 3.13 is now officially tested and supported
+- new configuration settings for the search command (#146,!269)
+  - For dealing with skipping/including associated files during searches:
+    - `cobib.config.commands.search.skip_files` sets the default
+    - `--skip-files` overwrites this at runtime (this is not actually new)
+    - `--include-files` overwrites this at runtime (the opposite)
+  - For dealing with skipping/including associated notes during searches:
+    - `cobib.config.commands.search.skip_notes` sets the default
+    - `--skip-notes` overwrites this at runtime (this is not actually new)
+    - `--include-notes` overwrites this at runtime (the opposite)
 
 ### Changed
 - the keybinding to recursively toggle all folds in the TUI's search result view

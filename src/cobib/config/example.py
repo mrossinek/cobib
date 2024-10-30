@@ -98,6 +98,10 @@ config.commands.search.decode_latex = False
 # You can specify the amount of fuzzy errors to allow for searches. Using this feature requires the
 # optional `regex` dependency to be installed.
 config.commands.search.fuzziness = 0
+# You can specify whether searches should skip looking through associated files.
+config.commands.search.skip_files = False
+# You can specify whether searches should skip looking through associated notes.
+config.commands.search.skip_notes = False
 
 # You can specify whether non-ASCII characters should be encoded using LaTeX sequences.
 config.commands.show.encode_latex = True
