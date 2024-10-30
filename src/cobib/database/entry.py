@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import subprocess
 from itertools import accumulate
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, List, Optional, cast
 
 from pylatexenc.latex2text import LatexNodes2Text
@@ -321,7 +322,24 @@ class Entry:
             _ = self.data.pop("note")
             LOGGER.debug("Deleted the note of '%s'.", self.label)
         else:
-            self.data["note"] = str(RelPath(note))
+            msg = (
+                "A problem occurred when reading the 'note' field of the '%s' entry!\n"
+                "The 'note' field is a new special field which should only contain a path to the "
+                "associated note file. However, the current contents cannot be interpreted as a "
+                "path and, thus, the `note` command will not work as intended! Move the current "
+                "contents of the 'note' field to a differently named one."
+            )
+            try:
+                path = Path(note)
+            except TypeError:
+                LOGGER.error(msg, self.label, extra={"entry": self.label, "field": "url"})
+                self.data["note"] = False
+                return
+            if not path.exists():
+                LOGGER.warning(msg, self.label, extra={"entry": self.label, "field": "url"})
+                self.data["note"] = False
+                return
+            self.data["note"] = str(RelPath(path))
             LOGGER.debug("Adding '%s' as the note to '%s'.", self.data["note"], self.label)
 
     @property
