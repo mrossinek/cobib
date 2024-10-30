@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Prelude
+
+With the addition of the new `note` command, the database entry fields called
+`"note"` have obtained a special meaning. Use the `lint` command to check
+whether your database is affected by this. If it is, you should rename those
+fields.
+
 ### Added
 - new configuration settings to customize the appearance of coBib (!222):
   - `cobib.config.theme.dark`: to specify whether a dark or light theme is used

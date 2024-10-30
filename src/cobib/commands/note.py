@@ -139,6 +139,16 @@ class NoteCommand(Command):
             LOGGER.error(msg)
             return
 
+        # NOTE: We hack into the note field and provide an otherwise impossible value in order to
+        # detect faulty data in this field from versions prior to the existence of the note command.
+        if entry.note is False:  # type: ignore[comparison-overlap]
+            LOGGER.error(  # type: ignore[unreachable]
+                "The 'note' field of the '%s' entry is faulty! Check the logs during the loading of"
+                " the database or the `lint` command for more details.",
+                entry.label,
+            )
+            return
+
         path = self.note_path(entry)
 
         task_desc = ""

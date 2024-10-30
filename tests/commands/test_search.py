@@ -474,6 +474,7 @@ class TestSearchCommand(CommandTest):
         try:
             self._assert(output, expected)
         finally:
+            Database.reset()
             file_path.unlink(missing_ok=True)
             note_path.unlink(missing_ok=True)
 
