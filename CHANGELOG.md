@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Pinned `textual<0.86` because of the incompatible changes to the design system
+
 
 ## [5.2.1] - 2024-10-30
 
