@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [5.2.2] - 2024-12-06
+
+Pypi: https://pypi.org/project/cobib/5.2.2/
+
 ### **Breaking Change**
 
 - The `config.theme.dark` and `config.theme.design` settings have been replaced
@@ -1129,7 +1134,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v5.2.1...master
+[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v5.2.2...master
+[5.2.2]: https://gitlab.com/cobib/cobib/-/tags/v5.2.2
 [5.2.1]: https://gitlab.com/cobib/cobib/-/tags/v5.2.1
 [5.2.0]: https://gitlab.com/cobib/cobib/-/tags/v5.2.0
 [5.1.3]: https://gitlab.com/cobib/cobib/-/tags/v5.1.3
