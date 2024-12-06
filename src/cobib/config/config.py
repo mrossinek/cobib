@@ -22,9 +22,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING, NamedTuple, TextIO
 
 from rich.style import Style
-from rich.theme import Theme
-from textual.app import DEFAULT_COLORS
-from textual.design import ColorSystem
+from rich.theme import Theme as RichTheme
+from textual.theme import BUILTIN_THEMES
+from textual.theme import Theme as TextualTheme
 from typing_extensions import override
 
 from cobib.utils.context import get_active_app
@@ -223,7 +223,7 @@ class SyntaxConfig(_ConfigBase):
     """The theme to use for any `rich.Syntax` display.
 
     If this is `None`, it defaults to `"ansi_dark"` or `"ansi_light"`, depending on the value of
-    `cobib.config.ThemeConfig.dark`.
+    `cobib.config.ThemeConfig.textual_theme.dark`.
 
     Otherwise, this should be the name of a supported pygments theme. For more details refer to
     [rich's documentation](https://rich.readthedocs.io/en/latest/syntax.html#theme).
@@ -272,7 +272,7 @@ class SyntaxConfig(_ConfigBase):
         if self.theme is not None:
             return self.theme
 
-        return "ansi_dark" if config.theme.dark else "ansi_light"
+        return "ansi_dark" if config.theme.textual_theme.dark else "ansi_light"
 
     def get_background_color(self) -> str:
         """Returns the `SyntaxConfig.background_color` value."""
@@ -289,21 +289,17 @@ class SyntaxConfig(_ConfigBase):
 class ThemeConfig(_ConfigBase):
     """The `config.theme` section."""
 
-    dark: bool = True
-    """Whether a dark or light theme should be used."""
-    design: dict[str, ColorSystem] = field(default_factory=lambda: DEFAULT_COLORS)
-    """A dictionary mapping theme names to `textual.design.ColorSystem`s.
+    theme: str | TextualTheme = "textual-dark"
+    """The name of a builtin theme or a `textual.theme.Theme`.
 
     Here is a simple example how you can add an intense splash of color to the default ones:
 
     ```python
-    from textual.app import DEFAULT_COLORS
-    from textual.color import Color
+    from textual.theme import BUILTIN_THEMES
 
-    a_splash_of_pink = DEFAULT_COLORS.copy()
-    a_splash_of_pink["dark"].primary = Color.parse("#ff00ff")
-    a_splash_of_pink["light"].primary = Color.parse("#ff00ff")
-    config.theme.design = a_splash_of_pink
+    a_splash_of_pink = BUILTIN_THEMES["textual-dark"]
+    a_splash_of_pink.primary = "#ff00ff"
+    config.theme.theme = a_splash_of_pink
     ```
 
     Refer to [textual's documentation](https://textual.textualize.io/guide/design) for more details.
@@ -318,38 +314,35 @@ class ThemeConfig(_ConfigBase):
     @override
     def validate(self) -> None:
         LOGGER.debug("Validating the THEME configuration section.")
-        self._assert(isinstance(self.dark, bool), "config.theme.dark should be a boolean.")
-        self._assert(isinstance(self.design, dict), "config.theme.design should be a dictionary.")
-        for name, colors in self.design.items():
-            self._assert(
-                isinstance(colors, ColorSystem),
-                (
-                    f"The '{name}' entry in config.theme.design should be a "
-                    "`textual.design.ColorSystem` instance."
-                ),
-            )
+        self._assert(
+            isinstance(self.theme, (str, TextualTheme)),
+            "config.theme.theme must be the name of or an actual textual.theme.Theme",
+        )
         self.search.validate()
         self.syntax.validate()
         self.tags.validate()
 
-    def build(self) -> Theme:
+    def build(self) -> RichTheme:
         """Returns the built `rich.Theme` from the configured styles."""
         theme: dict[str, str | Style] = {}
         theme.update(self.search.styles)
         theme.update(self.tags.styles)
-        return Theme(theme)
+        return RichTheme(theme)
+
+    @property
+    def textual_theme(self) -> TextualTheme:
+        """Returns the `textual.theme.Theme`."""
+        return self.theme if isinstance(self.theme, TextualTheme) else BUILTIN_THEMES[self.theme]
 
     @property
     def css_variables(self) -> dict[str, str]:
-        """The actual CSS color variables generated from the active theme of `ThemeConfig.design`.
-
-        The active theme is either `"dark"` or `"light"` depending on `ThemeConfig.dark`.
+        """The actual CSS color variables generated from the active theme of `ThemeConfig.theme`.
 
         Returns:
             A dictionary mapping from color names to values. See [textual's
             documentation](https://textual.textualize.io/guide/design) for more details.
         """
-        return self.design["dark" if self.dark else "light"].generate()
+        return self.textual_theme.to_color_system().generate()
 
 
 @dataclass

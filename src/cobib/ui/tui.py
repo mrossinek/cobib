@@ -318,8 +318,9 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         [1]: https://textual.textualize.io/api/events/#textual.events.Mount
         """
         self.screen.styles.layout = "horizontal"
-        self.design.update(config.theme.design)
-        self.dark = config.theme.dark
+        if not isinstance(config.theme.theme, str):
+            self.register_theme(config.theme.theme)
+        self.theme = config.theme.textual_theme.name
         self.call_later(self.refresh_css)
         await self._update_table()
         self._show_entry()
