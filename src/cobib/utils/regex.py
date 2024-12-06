@@ -24,4 +24,4 @@ else:
     HAS_OPTIONAL_REGEX = True
     LOGGER.info("Found the `regex` package.")
 
-__all__ = ["regex", "HAS_OPTIONAL_REGEX"]
+__all__ = ["HAS_OPTIONAL_REGEX", "regex"]
