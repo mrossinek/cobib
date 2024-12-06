@@ -16,8 +16,6 @@ config.database.git = True
 import os
 import sys
 
-from textual.app import DEFAULT_COLORS
-
 # To get started you must import coBib's configuration.
 from cobib.config import AuthorFormat, LabelSuffix, TagMarkup, config
 
@@ -189,21 +187,16 @@ config.parsers.yaml.use_c_lib_yaml = True
 
 # THEME
 
-# You can configure whether a dark or light theme should be used.
-config.theme.dark = True
-
 # You can configure textual's underlying `ColorSystem`.
-config.theme.design = DEFAULT_COLORS
+config.theme.theme = "textual-dark"
 # You should check textual's documentation online (https://textual.textualize.io/guide/design/),
 # but here is a simple example to add an intense splash of color to the default color scheme:
 #
-#     from textual.app import DEFAULT_COLORS
-#     from textual.color import Color
+#     from textual.theme import BUILTIN_THEMES
 #
-#     a_splash_of_pink = DEFAULT_COLORS.copy()
-#     a_splash_of_pink["dark"].primary = Color.parse("#ff00ff")
-#     a_splash_of_pink["light"].primary = Color.parse("#ff00ff")
-#     config.theme.design = a_splash_of_pink
+#     a_splash_of_pink = BUILTIN_THEMES["textual-dark"]
+#     a_splash_of_pink.primary = "#ff00ff"
+#     config.theme.theme = a_splash_of_pink
 
 # You can configure the search label and query highlights.
 config.theme.search.label = "blue"

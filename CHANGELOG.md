@@ -6,9 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### **Breaking Change**
+
+- The `config.theme.dark` and `config.theme.design` settings have been replaced
+  by the new `config.theme.theme` setting, which can be either the name of one
+  of textual's builtin themes, or a custom `textual.theme.Theme` instance
+  (#147,!279). Due to how recent these settings have been introduced (as part of
+  5.2.0), I am opting for a quick removal in this bugfix release rather than a
+  proper version bump (in the sense that they have likely not been adopted, yet)
+  and the severness of the bug that this is causing outweighs the needs here.
+
 ### Fixed
 
-- Pinned `textual<0.86` because of the incompatible changes to the design system
+- compatibility with `textual>=0.86`
 
 
 ## [5.2.1] - 2024-10-30
