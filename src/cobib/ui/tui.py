@@ -231,6 +231,12 @@ class TUI(UI, App[None]):  # type: ignore[misc]
             "Log",
             tooltip="Toggles the log screen",
         ),
+        Binding(
+            "enter",
+            "load",
+            "Load",
+            tooltip="Loads an entry and its associated note into the TUI's view",
+        ),
         *_PRESET_FILTER_BINDINGS,
     ]
     """

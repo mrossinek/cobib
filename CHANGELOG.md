@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- the interactive handling of notes inside the TUI (#148,!288)
+
 
 ## [5.2.2] - 2024-12-06
 

@@ -119,7 +119,6 @@ class ListView(DataTable[Text], inherit_bindings=False):
     """
     | Key(s) | Description |
     | :- | :- |
-    | space | Toggle the expand/collapsed space of the current item. |
     | j, down | Moves one row down. |
     | k, up | Moves one row up. |
     | h, left | Moves to the left. |

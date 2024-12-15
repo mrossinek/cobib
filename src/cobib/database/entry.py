@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 import subprocess
 from itertools import accumulate
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, List, Optional, cast
 
 from pylatexenc.latex2text import LatexNodes2Text
@@ -330,16 +329,16 @@ class Entry:
                 "contents of the 'note' field to a differently named one."
             )
             try:
-                path = Path(note)
+                path = RelPath(note)
             except TypeError:
-                LOGGER.error(msg, self.label, extra={"entry": self.label, "field": "url"})
+                LOGGER.error(msg, self.label, extra={"entry": self.label, "field": "note"})
                 self.data["note"] = False
                 return
             if not path.exists():
-                LOGGER.warning(msg, self.label, extra={"entry": self.label, "field": "url"})
+                LOGGER.warning(msg, self.label, extra={"entry": self.label, "field": "note"})
                 self.data["note"] = False
                 return
-            self.data["note"] = str(RelPath(path))
+            self.data["note"] = str(path)
             LOGGER.debug("Adding '%s' as the note to '%s'.", self.data["note"], self.label)
 
     @property

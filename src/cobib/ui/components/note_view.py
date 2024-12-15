@@ -164,7 +164,7 @@ class NoteView(TextArea):
             force_reload: whether to discard any unsaved changes.
         """
         if self.border_title != label or force_reload:
-            if self.unsaved:
+            if self.unsaved and not force_reload:
                 msg = (
                     "You have unsaved changes on your open note! You must save or reset them before"
                     " being able to load a different note!\n"
