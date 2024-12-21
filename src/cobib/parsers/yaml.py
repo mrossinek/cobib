@@ -65,7 +65,7 @@ class YAMLParser(Parser):
         except (OSError, FileNotFoundError) as exc:
             try:
                 LOGGER.debug("Attempting to load YAML data from string: %s.", string)
-                stream = io.StringIO(string)  # type: ignore[arg-type]
+                stream = io.StringIO(string)  # type: ignore[arg-type,assignment]
                 bib = self._load_all(stream)
                 stream.close()
             except (TypeError, AttributeError):

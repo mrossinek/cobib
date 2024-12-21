@@ -13,54 +13,54 @@ from cobib.database import Author
         # Test cases taken from https://www.bibtex.com/f/author-field/
         [
             "Michael Joseph Jackson",
-            Author("Michael Joseph", "Jackson"),  # type: ignore[list-item]
+            Author("Michael Joseph", "Jackson"),
             "Jackson, Michael Joseph",
         ],
         [
             "Jackson, Michael Joseph",
-            Author("Michael Joseph", "Jackson"),  # type: ignore[list-item]
+            Author("Michael Joseph", "Jackson"),
             "Jackson, Michael Joseph",
         ],
         [
             "Jackson, Michael J",
-            Author("Michael J", "Jackson"),  # type: ignore[list-item]
+            Author("Michael J", "Jackson"),
             "Jackson, Michael J",
         ],
         [
             "Jackson, M J",
-            Author("M J", "Jackson"),  # type: ignore[list-item]
+            Author("M J", "Jackson"),
             "Jackson, M J",
         ],
         [
             "Stoner, Jr, Winifred Sackville",
-            Author("Winifred Sackville", "Stoner", suffix="Jr"),  # type: ignore[list-item]
+            Author("Winifred Sackville", "Stoner", suffix="Jr"),
             "Stoner, Jr, Winifred Sackville",
         ],
         [
             "Ludwig van Beethoven",
-            Author("Ludwig", "Beethoven", particle="van"),  # type: ignore[list-item]
+            Author("Ludwig", "Beethoven", particle="van"),
             "van Beethoven, Ludwig",
         ],
         [
             "van Beethoven, Ludwig",
-            Author("Ludwig", "Beethoven", particle="van"),  # type: ignore[list-item]
+            Author("Ludwig", "Beethoven", particle="van"),
             "van Beethoven, Ludwig",
         ],
         [
             "van Beethoven, L",
-            Author("L", "Beethoven", particle="van"),  # type: ignore[list-item]
+            Author("L", "Beethoven", particle="van"),
             "van Beethoven, L",
         ],
         ["{Barnes and Noble, Inc.}", "{Barnes and Noble, Inc.}", "{Barnes and Noble, Inc.}"],
         ["{FCC H2020 Project}", "{FCC H2020 Project}", "{FCC H2020 Project}"],
         [
             "von Mustermann, Jr, Max",
-            Author("Max", "Mustermann", "von", "Jr"),  # type: ignore[list-item]
+            Author("Max", "Mustermann", "von", "Jr"),
             "von Mustermann, Jr, Max",
         ],
         [
             "Double Surname, Many First Names",
-            Author("Many First Names", "Double Surname"),  # type: ignore[list-item]
+            Author("Many First Names", "Double Surname"),
             "Double Surname, Many First Names",
         ],
     ],
