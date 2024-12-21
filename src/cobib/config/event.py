@@ -81,7 +81,17 @@ import logging
 from enum import Enum
 from itertools import zip_longest
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Dict, ForwardRef, Optional, Tuple, get_type_hints
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    ForwardRef,
+    Optional,
+    Tuple,
+    cast,
+    get_type_hints,
+)
 
 from cobib.utils.rel_path import RelPath
 
@@ -147,7 +157,7 @@ class Event(Enum):
         obj._annotation_ = annotation
         return obj
 
-    PreAddCommand: Event = Callable[["commands.AddCommand"], None]  # type: ignore[assignment]
+    PreAddCommand = cast("Event", Callable[["commands.AddCommand"], None])
     """
     Fires:
         Before starting the `cobib.commands.add.AddCommand`.
@@ -158,7 +168,7 @@ class Event(Enum):
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
     """
-    PostAddCommand: Event = Callable[["commands.AddCommand"], None]  # type: ignore[assignment]
+    PostAddCommand = cast("Event", Callable[["commands.AddCommand"], None])
     """
     Fires:
         Before finishing the `cobib.commands.add.AddCommand`.
@@ -174,7 +184,7 @@ class Event(Enum):
         manual entry addition is requested.
     """
 
-    PreDeleteCommand: Event = Callable[["commands.DeleteCommand"], None]  # type: ignore[assignment]
+    PreDeleteCommand = cast("Event", Callable[["commands.DeleteCommand"], None])
     """
     Fires:
         Before starting the `cobib.commands.delete.DeleteCommand`.
@@ -185,7 +195,7 @@ class Event(Enum):
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
     """
-    PostDeleteCommand: Event = Callable[["commands.DeleteCommand"], None]  # type: ignore[assignment]
+    PostDeleteCommand = cast("Event", Callable[["commands.DeleteCommand"], None])
     """
     Fires:
         Before finishing the `cobib.commands.delete.DeleteCommand`.
@@ -197,7 +207,7 @@ class Event(Enum):
         Nothing. While the deleted entry labels are accessible, modifying them has no effect.
     """
 
-    PreEditCommand: Event = Callable[["commands.EditCommand"], None]  # type: ignore[assignment]
+    PreEditCommand = cast("Event", Callable[["commands.EditCommand"], None])
     """
     Fires:
         Before starting the `cobib.commands.edit.EditCommand`.
@@ -208,7 +218,7 @@ class Event(Enum):
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
     """
-    PostEditCommand: Event = Callable[["commands.EditCommand"], None]  # type: ignore[assignment]
+    PostEditCommand = cast("Event", Callable[["commands.EditCommand"], None])
     """
     Fires:
         Before finishing the `cobib.commands.edit.EditCommand`.
@@ -220,7 +230,7 @@ class Event(Enum):
         Nothing. While the edited entry is accessible, modifying it has no effect.
     """
 
-    PreExportCommand: Event = Callable[["commands.ExportCommand"], None]  # type: ignore[assignment]
+    PreExportCommand = cast("Event", Callable[["commands.ExportCommand"], None])
     """
     Fires:
         Before starting the `cobib.commands.export.ExportCommand`.
@@ -231,7 +241,7 @@ class Event(Enum):
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
     """
-    PostExportCommand: Event = Callable[["commands.ExportCommand"], None]  # type: ignore[assignment]
+    PostExportCommand = cast("Event", Callable[["commands.ExportCommand"], None])
     """
     Fires:
         Before finishing the `cobib.commands.export.ExportCommand`.
@@ -243,7 +253,7 @@ class Event(Enum):
         Nothing. The files to which has been exported are still accessible and open.
     """
 
-    PreGitCommand: Event = Callable[["commands.GitCommand"], None]  # type: ignore[assignment]
+    PreGitCommand = cast("Event", Callable[["commands.GitCommand"], None])
     """
     Fires:
         Before starting the `cobib.commands.git.GitCommand`.
@@ -254,7 +264,7 @@ class Event(Enum):
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
     """
-    PostGitCommand: Event = Callable[["commands.GitCommand"], None]  # type: ignore[assignment]
+    PostGitCommand = cast("Event", Callable[["commands.GitCommand"], None])
     """
     Fires:
         Before finishing the `cobib.commands.git.GitCommand`.
@@ -266,7 +276,7 @@ class Event(Enum):
         Nothing.
     """
 
-    PreImportCommand: Event = Callable[["commands.ImportCommand"], None]  # type: ignore[assignment]
+    PreImportCommand = cast("Event", Callable[["commands.ImportCommand"], None])
     """
     Fires:
         Before starting the `cobib.commands.import_.ImportCommand`.
@@ -277,7 +287,7 @@ class Event(Enum):
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
     """
-    PostImportCommand: Event = Callable[["commands.ImportCommand"], None]  # type: ignore[assignment]
+    PostImportCommand = cast("Event", Callable[["commands.ImportCommand"], None])
     """
     Fires:
         Before finishing the `cobib.commands.import_.ImportCommand`.
@@ -290,7 +300,7 @@ class Event(Enum):
         persistent in the database.
     """
 
-    PreInitCommand: Event = Callable[["commands.InitCommand"], None]  # type: ignore[assignment]
+    PreInitCommand = cast("Event", Callable[["commands.InitCommand"], None])
     """
     Fires:
         Before starting the `cobib.commands.init.InitCommand`.
@@ -301,7 +311,7 @@ class Event(Enum):
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
     """
-    PostInitCommand: Event = Callable[["commands.InitCommand"], None]  # type: ignore[assignment]
+    PostInitCommand = cast("Event", Callable[["commands.InitCommand"], None])
     """
     Fires:
         Before finishing the `cobib.commands.init.InitCommand`.
@@ -313,7 +323,7 @@ class Event(Enum):
         Nothing.
     """
 
-    PreListCommand: Event = Callable[["commands.ListCommand"], None]  # type: ignore[assignment]
+    PreListCommand = cast("Event", Callable[["commands.ListCommand"], None])
     """
     Fires:
         Before starting the `cobib.commands.list_.ListCommand`.
@@ -324,7 +334,7 @@ class Event(Enum):
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
     """
-    PostListCommand: Event = Callable[["commands.ListCommand"], None]  # type: ignore[assignment]
+    PostListCommand = cast("Event", Callable[["commands.ListCommand"], None])
     """
     Fires:
         Before finishing the `cobib.commands.list_.ListCommand`.
@@ -336,7 +346,7 @@ class Event(Enum):
         Nothing.
     """
 
-    PreModifyCommand: Event = Callable[["commands.ModifyCommand"], None]  # type: ignore[assignment]
+    PreModifyCommand = cast("Event", Callable[["commands.ModifyCommand"], None])
     """
     Fires:
         Before starting the `cobib.commands.modify.ModifyCommand`.
@@ -347,7 +357,7 @@ class Event(Enum):
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
     """
-    PostModifyCommand: Event = Callable[["commands.ModifyCommand"], None]  # type: ignore[assignment]
+    PostModifyCommand = cast("Event", Callable[["commands.ModifyCommand"], None])
     """
     Fires:
         Before finishing the `cobib.commands.modify.ModifyCommand`.
@@ -359,7 +369,7 @@ class Event(Enum):
         Nothing. But the modified entries are still accessible before written to the database.
     """
 
-    PreNoteCommand: Event = Callable[["commands.NoteCommand"], None]  # type: ignore[assignment]
+    PreNoteCommand = cast("Event", Callable[["commands.NoteCommand"], None])
     """
     Fires:
         Before starting the `cobib.commands.note.NoteCommand`.
@@ -370,7 +380,7 @@ class Event(Enum):
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
     """
-    PostNoteCommand: Event = Callable[["commands.NoteCommand"], None]  # type: ignore[assignment]
+    PostNoteCommand = cast("Event", Callable[["commands.NoteCommand"], None])
     """
     Fires:
         Before finishing the `cobib.commands.note.NoteCommand`.
@@ -382,7 +392,7 @@ class Event(Enum):
         Nothing. While the entry whose note was edited is accessible, modifying it has no effect.
     """
 
-    PreOpenCommand: Event = Callable[["commands.OpenCommand"], None]  # type: ignore[assignment]
+    PreOpenCommand = cast("Event", Callable[["commands.OpenCommand"], None])
     """
     Fires:
         Before starting the `cobib.commands.open.OpenCommand`.
@@ -393,7 +403,7 @@ class Event(Enum):
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
     """
-    PostOpenCommand: Event = Callable[["commands.OpenCommand"], None]  # type: ignore[assignment]
+    PostOpenCommand = cast("Event", Callable[["commands.OpenCommand"], None])
     """
     Fires:
         Before finishing the `cobib.commands.open.OpenCommand`.
@@ -405,7 +415,7 @@ class Event(Enum):
         Nothing.
     """
 
-    PreRedoCommand: Event = Callable[["commands.RedoCommand"], None]  # type: ignore[assignment]
+    PreRedoCommand = cast("Event", Callable[["commands.RedoCommand"], None])
     """
     Fires:
         Before starting the `cobib.commands.redo.RedoCommand`.
@@ -416,7 +426,7 @@ class Event(Enum):
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
     """
-    PostRedoCommand: Event = Callable[["commands.RedoCommand"], None]  # type: ignore[assignment]
+    PostRedoCommand = cast("Event", Callable[["commands.RedoCommand"], None])
     """
     Fires:
         Before finishing the `cobib.commands.redo.RedoCommand`.
@@ -428,7 +438,7 @@ class Event(Enum):
         Nothing.
     """
 
-    PreReviewCommand: Event = Callable[["commands.ReviewCommand"], None]  # type: ignore[assignment]
+    PreReviewCommand = cast("Event", Callable[["commands.ReviewCommand"], None])
     """
     Fires:
         Before starting the `cobib.commands.review.ReviewCommand`.
@@ -441,7 +451,7 @@ class Event(Enum):
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
     """
-    PostReviewCommand: Event = Callable[["commands.ReviewCommand"], None]  # type: ignore[assignment]
+    PostReviewCommand = cast("Event", Callable[["commands.ReviewCommand"], None])
     """
     Fires:
         Before finishing the `cobib.commands.review.ReviewCommand`.
@@ -453,7 +463,7 @@ class Event(Enum):
         Nothing.
     """
 
-    PreSearchCommand: Event = Callable[["commands.SearchCommand"], None]  # type: ignore[assignment]
+    PreSearchCommand = cast("Event", Callable[["commands.SearchCommand"], None])
     """
     Fires:
         Before starting the `cobib.commands.search.SearchCommand`.
@@ -464,7 +474,7 @@ class Event(Enum):
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
     """
-    PostSearchCommand: Event = Callable[["commands.SearchCommand"], None]  # type: ignore[assignment]
+    PostSearchCommand = cast("Event", Callable[["commands.SearchCommand"], None])
     """
     Fires:
         Before finishing the `cobib.commands.search.SearchCommand`.
@@ -476,7 +486,7 @@ class Event(Enum):
         Nothing. But the search results are still accessible before being rendered for the user.
     """
 
-    PreShowCommand: Event = Callable[["commands.ShowCommand"], None]  # type: ignore[assignment]
+    PreShowCommand = cast("Event", Callable[["commands.ShowCommand"], None])
     """
     Fires:
         Before starting the `cobib.commands.show.ShowCommand`.
@@ -487,7 +497,7 @@ class Event(Enum):
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
     """
-    PostShowCommand: Event = Callable[["commands.ShowCommand"], None]  # type: ignore[assignment]
+    PostShowCommand = cast("Event", Callable[["commands.ShowCommand"], None])
     """
     Fires:
         Before finishing the `cobib.commands.show.ShowCommand`.
@@ -499,7 +509,7 @@ class Event(Enum):
         Nothing. But the string-represented entry is still accessible before being rendered.
     """
 
-    PreUndoCommand: Event = Callable[["commands.UndoCommand"], None]  # type: ignore[assignment]
+    PreUndoCommand = cast("Event", Callable[["commands.UndoCommand"], None])
     """
     Fires:
         Before starting the `cobib.commands.undo.UndoCommand`.
@@ -510,7 +520,7 @@ class Event(Enum):
     Returns:
         Nothing. But the command attributes can be modified, affecting the execution.
     """
-    PostUndoCommand: Event = Callable[["commands.UndoCommand"], None]  # type: ignore[assignment]
+    PostUndoCommand = cast("Event", Callable[["commands.UndoCommand"], None])
     """
     Fires:
         Before finishing the `cobib.commands.undo.UndoCommand`.
@@ -522,7 +532,7 @@ class Event(Enum):
         Nothing.
     """
 
-    PreBibtexParse: Event = Callable[[str], Optional[str]]  # type: ignore[assignment]
+    PreBibtexParse = cast("Event", Callable[[str], Optional[str]])
     """
     Fires:
         Before starting `cobib.parsers.bibtex.BibtexParser.parse`.
@@ -536,7 +546,7 @@ class Event(Enum):
     Note:
         If a registered hook returns a new string, no subsequent hooks will be run!
     """
-    PostBibtexParse: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment]
+    PostBibtexParse = cast("Event", Callable[[Dict[str, "Entry"]], None])
     """
     Fires:
         Before finishing `cobib.parsers.bibtex.BibtexParser.parse`.
@@ -548,7 +558,7 @@ class Event(Enum):
         Nothing. But the dictionary can be modified in-place such that the changes will be
         propagated to the database.
     """
-    PreBibtexDump: Event = Callable[["Entry"], None]  # type: ignore[assignment]
+    PreBibtexDump = cast("Event", Callable[["Entry"], None])
     """
     Fires:
         Before starting `cobib.parsers.bibtex.BibtexParser.dump`.
@@ -560,7 +570,7 @@ class Event(Enum):
         Nothing. But the object can be modified in-place. Changes will *not* become persistent in
         the database.
     """
-    PostBibtexDump: Event = Callable[[str], Optional[str]]  # type: ignore[assignment]
+    PostBibtexDump = cast("Event", Callable[[str], Optional[str]])
     """
     Fires:
         Before finishing `cobib.parsers.bibtex.BibtexParser.dump`.
@@ -575,7 +585,7 @@ class Event(Enum):
         If a registered hook returns a new string, no subsequent hooks will be run!
     """
 
-    PreYAMLParse: Event = Callable[[str], Optional[str]]  # type: ignore[assignment]
+    PreYAMLParse = cast("Event", Callable[[str], Optional[str]])
     """
     Fires:
         Before starting `cobib.parsers.yaml.YAMLParser.parse`.
@@ -589,7 +599,7 @@ class Event(Enum):
     Note:
         If a registered hook returns a new string, no subsequent hooks will be run!
     """
-    PostYAMLParse: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment]
+    PostYAMLParse = cast("Event", Callable[[Dict[str, "Entry"]], None])
     """
     Fires:
         Before finishing `cobib.parsers.yaml.YAMLParser.parse`.
@@ -601,7 +611,7 @@ class Event(Enum):
         Nothing. But the dictionary can be modified in-place such that the changes will be
         propagated to the database.
     """
-    PreYAMLDump: Event = Callable[["Entry"], None]  # type: ignore[assignment]
+    PreYAMLDump = cast("Event", Callable[["Entry"], None])
     """
     Fires:
         Before starting `cobib.parsers.yaml.YAMLParser.dump`.
@@ -613,7 +623,7 @@ class Event(Enum):
         Nothing. But the object can be modified in-place. Changes will *not* become persistent in
         the database.
     """
-    PostYAMLDump: Event = Callable[[str], Optional[str]]  # type: ignore[assignment]
+    PostYAMLDump = cast("Event", Callable[[str], Optional[str]])
     """
     Fires:
         Before finishing `cobib.parsers.yaml.YAMLParser.dump`.
@@ -628,7 +638,7 @@ class Event(Enum):
         If a registered hook returns a new string, no subsequent hooks will be run!
     """
 
-    PreArxivParse: Event = Callable[[str], Optional[str]]  # type: ignore[assignment]
+    PreArxivParse = cast("Event", Callable[[str], Optional[str]])
     """
     Fires:
         Before starting `cobib.parsers.arxiv.ArxivParser.parse`.
@@ -642,7 +652,7 @@ class Event(Enum):
     Note:
         If a registered hook returns a new string, no subsequent hooks will be run!
     """
-    PostArxivParse: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment]
+    PostArxivParse = cast("Event", Callable[[Dict[str, "Entry"]], None])
     """
     Fires:
         Before finishing `cobib.parsers.arxiv.ArxivParser.parse`.
@@ -655,7 +665,7 @@ class Event(Enum):
         propagated to the database.
     """
 
-    PreDOIParse: Event = Callable[[str], Optional[str]]  # type: ignore[assignment]
+    PreDOIParse = cast("Event", Callable[[str], Optional[str]])
     """
     Fires:
         Before starting `cobib.parsers.doi.DOIParser.parse`.
@@ -669,7 +679,7 @@ class Event(Enum):
     Note:
         If a registered hook returns a new string, no subsequent hooks will be run!
     """
-    PostDOIParse: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment]
+    PostDOIParse = cast("Event", Callable[[Dict[str, "Entry"]], None])
     """
     Fires:
         Before finishing `cobib.parsers.doi.DOIParser.parse`.
@@ -682,7 +692,7 @@ class Event(Enum):
         propagated to the database.
     """
 
-    PreISBNParse: Event = Callable[[str], Optional[str]]  # type: ignore[assignment]
+    PreISBNParse = cast("Event", Callable[[str], Optional[str]])
     """
     Fires:
         Before starting `cobib.parsers.isbn.ISBNParser.parse`.
@@ -696,7 +706,7 @@ class Event(Enum):
     Note:
         If a registered hook returns a new string, no subsequent hooks will be run!
     """
-    PostISBNParse: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment]
+    PostISBNParse = cast("Event", Callable[[Dict[str, "Entry"]], None])
     """
     Fires:
         Before finishing `cobib.parsers.isbn.ISBNParser.parse`.
@@ -709,7 +719,7 @@ class Event(Enum):
         propagated to the database.
     """
 
-    PreURLParse: Event = Callable[[str], Optional[str]]  # type: ignore[assignment]
+    PreURLParse = cast("Event", Callable[[str], Optional[str]])
     """
     Fires:
         Before starting `cobib.parsers.url.URLParser.parse`.
@@ -723,7 +733,7 @@ class Event(Enum):
     Note:
         If a registered hook returns a new string, no subsequent hooks will be run!
     """
-    PostURLParse: Event = Callable[[Dict[str, "Entry"]], None]  # type: ignore[assignment]
+    PostURLParse = cast("Event", Callable[[Dict[str, "Entry"]], None])
     """
     Fires:
         Before finishing `cobib.parsers.url.URLParser.parse`.
@@ -736,7 +746,7 @@ class Event(Enum):
         propagated to the database.
     """
 
-    PreZoteroImport: Event = Callable[["importers.ZoteroImporter"], None]  # type: ignore[assignment]
+    PreZoteroImport = cast("Event", Callable[["importers.ZoteroImporter"], None])
     """
     Fires:
         Before starting `cobib.importers.zotero.ZoteroImporter.fetch`.
@@ -747,7 +757,7 @@ class Event(Enum):
     Returns:
         Nothing. But the importer attributes can be modified, affecting the execution.
     """
-    PostZoteroImport: Event = Callable[["importers.ZoteroImporter"], None]  # type: ignore[assignment]
+    PostZoteroImport = cast("Event", Callable[["importers.ZoteroImporter"], None])
     """
     Fires:
         Before finishing `cobib.importers.zotero.ZoteroImporter.fetch`.
@@ -762,10 +772,13 @@ class Event(Enum):
         - The entry labels will not have been mapped or disambiguated at this point.
     """
 
-    PreFileDownload: Event = Callable[  # type: ignore[assignment]
-        [str, str, Optional[str], Optional[Dict[str, str]]],
-        Optional[Tuple[str, str, Optional[str], Optional[Dict[str, str]]]],
-    ]
+    PreFileDownload = cast(
+        "Event",
+        Callable[
+            [str, str, Optional[str], Optional[Dict[str, str]]],
+            Optional[Tuple[str, str, Optional[str], Optional[Dict[str, str]]]],
+        ],
+    )
     """
     Fires:
         Before starting `cobib.utils.file_downloader.FileDownloader.download`.
@@ -782,7 +795,7 @@ class Event(Enum):
     Note:
         If a registered hook returns a new tuple of arguments, no subsequent hooks will be run!
     """
-    PostFileDownload: Event = Callable[[RelPath], Optional[RelPath]]  # type: ignore[assignment]
+    PostFileDownload = cast("Event", Callable[[RelPath], Optional[RelPath]])
     """
     Fires:
         Before finishing `cobib.utils.file_downloader.FileDownloader.download` if and only if the
@@ -798,7 +811,7 @@ class Event(Enum):
         If a registered hook returns a new path, no subsequent hooks will be run!
     """
 
-    PreGitCommit: Event = Callable[[str, Optional[Dict[str, Any]]], Optional[str]]  # type: ignore[assignment]
+    PreGitCommit = cast("Event", Callable[[str, Optional[Dict[str, Any]]], Optional[str]])
     """
     Fires:
         Before starting `cobib.commands.base_command.Command.git` (i.e. whenever an automatic
@@ -815,7 +828,7 @@ class Event(Enum):
     Note:
         If a registered hook returns a new commit message, no subsequent hooks will be run!
     """
-    PostGitCommit: Event = Callable[[Path, Path], None]  # type: ignore[assignment]
+    PostGitCommit = cast("Event", Callable[[Path, Path], None])
     """
     Fires:
         Before finishing `cobib.commands.base_command.Command.git` (i.e. whenever an automatic

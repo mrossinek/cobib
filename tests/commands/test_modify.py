@@ -126,7 +126,7 @@ class TestModifyCommand(CommandTest):
         [
             [
                 "author: and Knuth",
-                [Author("Albert", "Einstein"), "Knuth"],  # type: ignore[list-item]
+                [Author("Albert", "Einstein"), "Knuth"],
             ],
             ["dummy:test", "test"],
             ["number:2", 12],
