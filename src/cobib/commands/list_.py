@@ -69,6 +69,19 @@ There are some aspects to take note of here:
    overwrite this to logical `OR`s. This will apply to all filters of the specified command.
 2. All entries are treated as `str`. Thus, `++year 20` will match anything *containing* `20`.
 
+.. note::
+   Due to the string matching mentioned above, it is possible to match on the pure existence (or
+   lack of) a certain field by means of matching against an empty string. For example, the following
+   will list all those entries which do **not** have a `journal` field:
+   ```
+   cobib list --journal ""
+   ```
+   In contrast, the following list all those fields which **do** have a `journal` field but
+   irrespective of its content:
+   ```
+   cobib list ++journal ""
+   ```
+
 As of version v3.2.0, the filter arguments are evaluated as regex patterns allowing you to do things
 like the following:
 ```

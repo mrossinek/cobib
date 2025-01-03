@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - the ability to remove fields entirely via the `modify` command (#142,!299)
+- a hint in the documentation how to filter for (non-)existence of fields (#141)
 
 
 ## [5.2.3] - 2024-12-15
