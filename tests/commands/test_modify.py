@@ -176,6 +176,50 @@ class TestModifyCommand(CommandTest):
 
         assert Database()["einstein"].data.get(field, None) == expected
 
+    def test_remove_field(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
+        """Test entire removal of field using the remove mode.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
+        # modify some data
+        args = ["number:", "++label", "einstein"]
+
+        ModifyCommand(*args).execute()
+
+        assert Database()["einstein"].data.get("number", None) == ""
+
+        assert (
+            "cobib.commands.modify",
+            30,
+            "You have specified an empty modification value without the `--remove` "
+            "flag! This will only overwrite the field with an empty value, if you "
+            "wish to also delete it, you must add that flag.",
+        ) in caplog.record_tuples
+
+        ModifyCommand("-r", *args).execute()
+
+        assert Database()["einstein"].data.get("number", None) is None
+
+    def test_remove_label_handling(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
+        """Test handling of the `label` field during removal.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
+        # modify some data
+        args = ["-r", "label:", "++label", "einstein"]
+
+        ModifyCommand(*args).execute()
+
+        assert (
+            "cobib.commands.modify",
+            40,
+            "The `label` field may not be empty and cannot be removed!",
+        ) in caplog.record_tuples
+
     @pytest.mark.parametrize(
         ["modification", "expected"],
         [
