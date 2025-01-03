@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- the ability to remove fields entirely via the `modify` command (#142,!299)
+
 
 ## [5.2.3] - 2024-12-15
 

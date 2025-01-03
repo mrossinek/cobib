@@ -240,7 +240,8 @@ new value.
 Specifying this flag will remove the modification's value from the specified
 field of the entry rather than overwriting it. In doing so, items will be
 removed from lists, numbers will be subtracted, and anything else will be left
-unchanged.
+unchanged. However, as of v5.3.0 you can combine this with an empty
+\fI<value>\fR to outright remove a field from the modified entries.
 .PP
 .in +8n
 .BR \-s ", " \-\-selection

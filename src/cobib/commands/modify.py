@@ -23,6 +23,12 @@ will log a warning but continue gracefully.
 
    The options `--add` and `--remove` are mutually exclusive for obvious reasons.
 
+And as of v5.3.0 you can also remove a field entirely using the `--remove` option. To do so, simply
+specify an empty value as part of the modification:
+```
+cobib modify year: --remove --selection -- Label2025
+```
+
 As with other commands, you can also use filters (see also `cobib.commands.list_`) rather than a
 manual selection to specify the entries which to modify:
 ```
@@ -99,7 +105,7 @@ import ast
 import logging
 from collections.abc import Callable
 from copy import copy
-from typing import Any
+from typing import Any, cast
 
 from text_unidecode import unidecode
 from typing_extensions import override
@@ -279,6 +285,18 @@ class ModifyCommand(Command):
                 entry = bib[label]
                 local_value = evaluate_as_f_string(value, {"label": label, **entry.data.copy()})
 
+                if not local_value:
+                    if field == "label":
+                        LOGGER.error("The `label` field may not be empty and cannot be removed!")
+                        return
+
+                    if not self.largs.remove:
+                        LOGGER.warning(
+                            "You have specified an empty modification value without the `--remove` "
+                            "flag! This will only overwrite the field with an empty value, if you "
+                            "wish to also delete it, you must add that flag."
+                        )
+
                 if hasattr(entry, field):
                     prev_value = getattr(entry, field, None)
                 else:
@@ -314,10 +332,16 @@ class ModifyCommand(Command):
                         new_value = str(prev_value) + local_value
                 elif self.largs.remove:
                     try:
-                        if isinstance(prev_value, list):
+                        if not local_value:
+                            LOGGER.info(
+                                "An empty modification value was provided together with the "
+                                "`--remove` flag. Removing the entire field."
+                            )
+                            new_value = None
+                        elif isinstance(prev_value, list):
                             try:
                                 new_value = copy(prev_value)  # type: ignore[assignment]
-                                new_value.remove(local_value)  # type: ignore[attr-defined]
+                                new_value.remove(local_value)  # type: ignore[union-attr]
                             except ValueError:
                                 LOGGER.warning(
                                     "Could not remove '%s' from the field '%s' of entry '%s'.",
@@ -339,11 +363,11 @@ class ModifyCommand(Command):
                             field,
                             label,
                         )
-                        new_value = prev_value  # type: ignore[assignment]
+                        new_value = prev_value
 
                 # guard against overwriting existing data if label gets changed
                 if field == "label":
-                    new_value = bib.disambiguate_label(new_value, entry)
+                    new_value = bib.disambiguate_label(cast(str, new_value), entry)
 
                 if new_value == prev_value:
                     LOGGER.info(
@@ -351,7 +375,11 @@ class ModifyCommand(Command):
                     )
                     continue
 
-                if hasattr(entry, field):
+                if new_value is None:
+                    if self.largs.dry:
+                        LOGGER.info("%s: removing the field '%s'", entry.label, field)
+                    entry.data.pop(field)
+                elif hasattr(entry, field):
                     if self.largs.dry:
                         LOGGER.info(
                             "%s: changing field '%s' from %s to %s",
