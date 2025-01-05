@@ -248,10 +248,23 @@ You can then browse the documentation from `docs/cobib.html`.
 ## History
 
 I have started this project when I was looking into alternatives to popular reference managers such as Mendeley,
-which has more features than I use on a regular basis and does not allow me to work from the command line which is where I spent most of the time that I spent on the computer.
+which has more features than I use on a regular basis and does not allow me to work from the command line which is where I spend most of the time that I spend on the computer.
 
 Hence, I have decided to make it my own task of implementing a simple, yet fast, reference manager.
 coBib is written in Python and uses a YAML file to store its bibliography in a plain text format.
+
+### Alternatives
+
+Besides coBib there are many other tools for managing your bibliography.
+Below is a selection (alphabetical) of open source tools that I am aware of:
+
+- [bibiman](https://codeberg.org/lukeflo/bibiman): CLI, TUI
+- [bibman](https://codeberg.org/KMIJPH/bibman): CLI, TUI
+- [jabref](https://github.com/JabRef/jabref): GUI
+- [papis](https://github.com/papis/papis): CLI, TUI, local web app
+- [pubs](https://github.com/pubs/pubs): CLI
+- [xapers](https://finestructure.net/xapers): CLI, TUI
+- [zotero](https://github.com/zotero/zotero): GUI, remote web app
 
 ### Changelog
 
