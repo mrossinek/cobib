@@ -236,6 +236,11 @@ class TextualPrompt(PromptBase[str]):
 
         inp_screen.query_one(Input).value = cls.input_text
         await dismiss_event.wait()
+
+        # NOTE: if we do not do this, after (e.g.) a cancelled `quit` prompt, the Escape key will
+        # not be enabled on any input screen
+        inp_screen.escape_enabled = True  # type: ignore[attr-defined]
+
         return value
 
     @override
