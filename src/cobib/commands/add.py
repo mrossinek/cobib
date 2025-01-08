@@ -273,6 +273,8 @@ class AddCommand(Command):
             except argparse.ArgumentError:
                 LOGGER.error(f"Could not setup the {name} parser argument for the add command.")
 
+        # NOTE: argparse.REMAINDER is undocumented since Python 3.9 and considered a legacy feature.
+        # See also https://bugs.python.org/issue17050
         parser.add_argument(
             "tags",
             nargs=argparse.REMAINDER,

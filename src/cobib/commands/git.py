@@ -80,6 +80,8 @@ class GitCommand(Command):
         parser = argparse.ArgumentParser(
             prog="git", description="Git subcommand parser.", exit_on_error=True
         )
+        # NOTE: argparse.REMAINDER is undocumented since Python 3.9 and considered a legacy feature.
+        # See also https://bugs.python.org/issue17050
         parser.add_argument("git_args", nargs=argparse.REMAINDER, help="the arguments to git")
         cls.argparser = parser
 

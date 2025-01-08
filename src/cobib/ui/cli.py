@@ -46,6 +46,8 @@ class CLI(UI):
             choices=sorted([cls.name for (cls, _) in entry_points("cobib.commands")]),
             nargs="?",
         )
+        # NOTE: argparse.REMAINDER is undocumented since Python 3.9 and considered a legacy feature.
+        # See also https://bugs.python.org/issue17050
         self.parser.add_argument(
             "args", nargs=argparse.REMAINDER, help="any arguments passed on to the subcommand"
         )
@@ -59,7 +61,7 @@ class CLI(UI):
             if subcmd_args != arguments.args:
                 LOGGER.log(
                     35,
-                    "The arguments provided after the subcommand name did did not match the parsed "
+                    "The arguments provided after the subcommand name did not match the parsed "
                     "ones. This can occur in rare cases when the '--' pseudo-argument is involved. "
                     "Taking an educated guess and overwriting them. Please file a bug report if "
                     "this is a wrong assumption: https://gitlab.com/cobib/cobib/-/issues/new",
