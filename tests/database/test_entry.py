@@ -384,13 +384,7 @@ def test_match_with_wrong_key() -> None:
                     [Span(36, 48)],
                 ),
                 Match(
-                    (
-                        "Search_Query\n"
-                        "something else\n"
-                        "search_query\n"
-                        "something else\n"
-                        "Search_Query"
-                    ),
+                    ("Search_Query\nsomething else\nsearch_query\nsomething else\nSearch_Query"),
                     [Span(28, 40)],
                 ),
             ],

@@ -61,7 +61,7 @@ class LintFormatter(logging.Formatter):
                 _, line = next(raw_db)
             while not line.strip().startswith(field):
                 line_no, line = next(raw_db)
-            return f"{self._database_path}:{line_no+1} {record.getMessage()}"
+            return f"{self._database_path}:{line_no + 1} {record.getMessage()}"
         except AttributeError:
             return ""
 

@@ -466,7 +466,7 @@ class TestSearchCommand(CommandTest):
                 ]
             )
         if include_files:
-            expected.append(f"{1+int(include_notes)}::Dummy file for the 'einstein' entry.")
+            expected.append(f"{1 + int(include_notes)}::Dummy file for the 'einstein' entry.")
 
         if not include_files and not include_notes:
             expected = []
