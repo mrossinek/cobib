@@ -504,7 +504,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
             if idx == 0:
                 await self._process_input("list -r")
             elif idx <= len(config.tui.preset_filters):
-                await self._process_input(f"list {config.tui.preset_filters[idx-1]}")
+                await self._process_input(f"list {config.tui.preset_filters[idx - 1]}")
 
     async def action_filter(self) -> None:
         """The filter action.

@@ -423,7 +423,7 @@ class SearchCommand(Command):
             output.append(title)
 
             for idx, match_ in enumerate(matches):
-                prefix = f"{idx+1}::"
+                prefix = f"{idx + 1}::"
                 for line in match_.text.splitlines():
                     output.append(prefix + line.strip())
 
