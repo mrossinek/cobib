@@ -86,7 +86,7 @@ class TestISBNParser(ParserTest):
             """Mock function to raise an Exception."""
             raise requests.exceptions.RequestException()
 
-        monkeypatch.setattr(requests, "get", raise_exception)
+        monkeypatch.setattr(requests.Session, "get", raise_exception)
         ISBNParser().parse("978-1-449-35573-9")
 
         if any(

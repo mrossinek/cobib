@@ -61,7 +61,8 @@ class ArxivParser(Parser):
         arxiv_id = match.group(1)
         LOGGER.info("Gathering BibTex data for arXiv ID: %s.", arxiv_id)
         try:
-            page = requests.get(ARXIV_URL + arxiv_id, timeout=10)
+            session = requests.Session()
+            page = session.get(ARXIV_URL + arxiv_id, timeout=10)
             if page.encoding is None:
                 page.encoding = "utf-8"
         except requests.exceptions.RequestException as err:

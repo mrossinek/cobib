@@ -63,7 +63,8 @@ class URLParser(Parser):
                 return entries
 
         try:
-            page = requests.get(string, timeout=10)
+            session = requests.Session()
+            page = session.get(string, timeout=10)
             if page.encoding is None:
                 page.encoding = "utf-8"
         except requests.exceptions.RequestException as err:
