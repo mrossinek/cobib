@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [5.3.0] - 2025-02-08
+
+Pypi: https://pypi.org/project/cobib/5.3.0/
+
 ### Added
 
 - the ability to remove fields entirely via the `modify` command (#142,!299)
@@ -1157,7 +1162,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v5.2.3...master
+[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v5.3.0...master
+[5.3.0]: https://gitlab.com/cobib/cobib/-/tags/v5.3.0
 [5.2.3]: https://gitlab.com/cobib/cobib/-/tags/v5.2.3
 [5.2.2]: https://gitlab.com/cobib/cobib/-/tags/v5.2.2
 [5.2.1]: https://gitlab.com/cobib/cobib/-/tags/v5.2.1
