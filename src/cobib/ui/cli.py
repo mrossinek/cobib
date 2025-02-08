@@ -80,8 +80,8 @@ class CLI(UI):
             ),
         )
 
-    @override
-    async def run(self) -> None:  # type: ignore[override]
+    async def run(self) -> None:
+        """Runs the CLI interface."""
         arguments = self.parse_args()
 
         console = Console(theme=config.theme.build())
@@ -93,7 +93,7 @@ class CLI(UI):
                 console.print(changelog)
 
         if not arguments.command:
-            task = asyncio.create_task(TUI().run_async())  # type: ignore[abstract]
+            task = asyncio.create_task(TUI().run_async())
             await task
             # the following is required for the asynchronous TUI to quit properly
             sys.exit()

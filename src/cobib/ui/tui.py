@@ -17,12 +17,13 @@ import asyncio
 import io
 import logging
 import shlex
-from collections.abc import Awaitable, Callable, Coroutine
+from collections.abc import Awaitable, Callable, Coroutine, Iterable
 from contextlib import redirect_stderr, redirect_stdout
+from functools import partial
 from inspect import iscoroutinefunction
 from typing import TYPE_CHECKING, Any, ClassVar, cast
 
-from textual.app import App, ComposeResult
+from textual.app import App, ComposeResult, SystemCommand
 from textual.binding import Binding
 from textual.keys import Keys
 from textual.logging import TextualHandler
@@ -58,7 +59,7 @@ LOGGER = logging.getLogger(__name__)
 # NOTE: pylint and mypy are unable to understand that the `App` interface actually implements `run`
 
 
-class TUI(UI, App[None]):  # type: ignore[misc]
+class TUI(UI, App[None]):
     """The TUI class.
 
     This class does not support any extra command-line arguments compared to the base class.
@@ -302,6 +303,23 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         yield Header()
         yield Footer()
 
+    @override
+    def get_system_commands(
+        self,
+        screen: Screen,  # type: ignore[type-arg]
+    ) -> Iterable[SystemCommand]:
+        yield from super().get_system_commands(screen)
+        yield SystemCommand(
+            "Switch layout",
+            "Switch between the horizontal and vertical layouts",
+            self.action_toggle_layout,
+        )
+        yield SystemCommand(
+            "Command prompt",
+            "Execute a coBib CLI command prompt",
+            partial(self.action_prompt, ":"),
+        )
+
     # Event reaction methods
 
     def on_motion_key(self, event: MotionKey) -> None:
@@ -359,9 +377,7 @@ class TUI(UI, App[None]):  # type: ignore[misc]
             if res:
                 self.exit()
 
-        task = asyncio.create_task(_prompt_quit())
-        self._background_tasks.add(task)
-        task.add_done_callback(self._background_tasks.discard)
+        self.run_worker(_prompt_quit())
 
     def action_toggle_layout(self) -> None:
         """The layout toggling action.
@@ -411,12 +427,24 @@ class TUI(UI, App[None]):  # type: ignore[misc]
         if submit:
             await self._process_input(value)
         else:
-            await_mount = self.push_screen("input", self._process_input)  # type: ignore[arg-type]
-            inp_screen = cast(InputScreen, self.get_screen("input"))
-            await await_mount
-            inp = inp_screen.query_one(Input)
-            inp.value = value
-            inp.action_end()
+            self.run_worker(self._prompt_action(value))
+
+    async def _prompt_action(self, value: str) -> None:
+        """Triggers the actual prompt screen asynchronously.
+
+        This function should be called from a [worker](https://textual.textualize.io/guide/workers/)
+        in order to ensure that the prompt screen works as intended both, when triggered directly,
+        and from the command palette.
+
+        Args:
+            value: the string with which to pre-populate the input field.
+        """
+        await_mount = self.push_screen("input", self._process_input)  # type: ignore[arg-type]
+        inp_screen = cast(InputScreen, self.get_screen("input"))
+        await await_mount
+        inp = inp_screen.query_one(Input)
+        inp.value = value
+        inp.action_end()
 
     async def action_select(self) -> None:
         """The selection action.

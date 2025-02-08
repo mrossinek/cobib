@@ -96,14 +96,14 @@ class SearchView(Tree[Union[str, Text]]):
         ),
         Binding(
             "home",
-            "motion('home', 'scroll_top')",
+            "motion('home', 'scroll_home')",
             "Home",
             tooltip="Jumps to the first row",
             show=False,
         ),
         Binding(
             "end",
-            "motion('end', 'scroll_bottom')",
+            "motion('end', 'scroll_end')",
             "End",
             tooltip="Jumps to the last row",
             show=False,

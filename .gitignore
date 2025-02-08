@@ -12,6 +12,7 @@ __pycache__
 .mypy_cache
 htmlcov
 htmlmypy
+snapshot_report.html
 
 # Logging data
 textual.log

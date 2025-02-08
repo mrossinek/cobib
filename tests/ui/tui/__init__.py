@@ -1,0 +1,1 @@
+"""coBib's TUI tests."""

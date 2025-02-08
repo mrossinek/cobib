@@ -56,6 +56,7 @@ test:
         when: always
         expire_in: 30 days
         paths:
+            - tests/snapshot_report.html
             - tests/report-py$PYTHON_VERSION.xml
         reports:
             junit: tests/report-py$PYTHON_VERSION.xml
@@ -95,6 +96,7 @@ coverage:
         paths:
             - coverage.xml
             - htmlcov
+            - tests/snapshot_report.html
         reports:
           coverage_report:
             coverage_format: cobertura

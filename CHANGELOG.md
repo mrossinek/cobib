@@ -10,9 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - the ability to remove fields entirely via the `modify` command (#142,!299)
 - a hint in the documentation how to filter for (non-)existence of fields (#141)
+- the coBib command `prompt` to the TUI's command palette (!310)
 
 ### Fixed
 - the `Escape` key during an input prompt triggered after a `Confirm` prompt (e.g. a cancelled `quit`)
+- the behavior of the `Home` and `End` keybindings in the TUI's search view (!310)
+- the ability to `quit` the application from the command palette (!310)
 
 
 ## [5.2.3] - 2024-12-15
