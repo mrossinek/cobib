@@ -69,7 +69,11 @@ class LoggingHandler(logging.Handler):
 
     @override
     def emit(self, record: logging.LogRecord) -> None:
-        log_screen = cast(LogScreen, self._app.get_screen("log"))
+        try:
+            log_screen = cast(LogScreen, self._app.get_screen("log"))
+        except KeyError:
+            self.close()
+            return
         log_screen.rich_log.write(self.format(record))
         if record.levelno >= logging.ERROR and not log_screen.is_current:
             self._app.push_screen("log")

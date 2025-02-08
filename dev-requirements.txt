@@ -1,6 +1,7 @@
 pytest==8.3.4
 pytest-asyncio==0.25.3
 pytest-cov==6.0.0
+pytest-textual-snapshot==1.1.0
 coverage==7.6.10
 aiohttp==3.11.12
 msgpack==1.1.0

@@ -1,0 +1,125 @@
+---
+Dummy1:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 1
+...
+---
+Dummy2:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 2
+...
+---
+Dummy3:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 3
+...
+---
+Dummy4:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 4
+...
+---
+Dummy5:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 5
+...
+---
+Dummy6:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 6
+...
+---
+Dummy7:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 7
+...
+---
+Dummy8:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 8
+...
+---
+Dummy9:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 9
+...
+---
+Dummy10:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 10
+...
+---
+Dummy11:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 11
+...
+---
+Dummy12:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 12
+...
+---
+Dummy13:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 13
+...
+---
+Dummy14:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 14
+...
+---
+Dummy15:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 15
+...
+---
+Dummy16:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 16
+...
+---
+Dummy17:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 17
+...
+---
+Dummy18:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 18
+...
+---
+Dummy19:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 19
+...
+---
+Dummy20:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 20
+...
+---
+Dummy21:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 21
+...
+---
+Dummy22:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 22
+...
+---
+Dummy23:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 23
+...
+---
+Dummy24:
+  ENTRYTYPE: article
+  title: Dummy scrolling entry 24
+...
+---
+DummyLong:
+  ENTRYTYPE: article
+  title: A long title with which one can test the horizontal scrolling motion
+...

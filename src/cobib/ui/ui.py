@@ -6,7 +6,6 @@ including the TUI.
 
 import argparse
 import logging
-from abc import abstractmethod
 from typing import Any
 
 from cobib.config import config
@@ -114,7 +113,3 @@ class UI:
         config.load(arguments.config)
 
         return arguments
-
-    @abstractmethod
-    def run(self) -> None:
-        """Runs the actual UI instance."""

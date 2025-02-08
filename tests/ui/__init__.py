@@ -1,0 +1,1 @@
+"""coBib's UI tests."""
