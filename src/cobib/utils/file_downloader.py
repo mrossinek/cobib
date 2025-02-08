@@ -117,7 +117,8 @@ class FileDownloader:
             LOGGER.info("Downloading %s to %s", url, path)
 
             try:
-                response = requests.get(url, timeout=10, stream=True, headers=headers)
+                session = requests.Session()
+                response = session.get(url, timeout=10, stream=True, headers=headers)
                 total_length_str = response.headers.get("content-length", None)
                 total_length = int(total_length_str) if total_length_str is not None else None
             except requests.exceptions.RequestException as err:

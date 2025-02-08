@@ -144,7 +144,8 @@ class ZoteroImporter(Importer):
 
         Event.PreZoteroImport.fire(self)
 
-        raw_result = requests.get(self.protected_url, headers=self.authentication, timeout=30)
+        session = requests.Session()
+        raw_result = session.get(self.protected_url, headers=self.authentication, timeout=30)
         if raw_result.encoding is None:
             raw_result.encoding = "utf-8"
 
