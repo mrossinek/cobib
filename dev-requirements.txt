@@ -7,7 +7,7 @@ aiohttp==3.11.12
 msgpack==1.1.0
 pdoc==15.0.1
 mypy==1.14.1
-ruff==0.9.6
+ruff==0.9.9
 typos==1.29.4
 types-beautifulsoup4==4.12.0.20241020
 types-requests==2.32.0.20241016
