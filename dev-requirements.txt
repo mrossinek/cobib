@@ -10,5 +10,5 @@ mypy==1.14.1
 ruff==0.9.9
 typos==1.29.10
 types-beautifulsoup4==4.12.0.20250204
-types-requests==2.32.0.20241016
+types-requests==2.32.0.20250306
 types-regex==2024.11.6.20250318
