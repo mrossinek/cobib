@@ -15,6 +15,6 @@ def get_active_app() -> App[None] | None:
     """
     ctx = copy_context()
     app = [var for var in ctx.values() if isinstance(var, App)]
-    if len(app):
+    if app:
         return app[0]
     return None
