@@ -5,7 +5,7 @@ pytest-textual-snapshot==1.1.0
 coverage==7.7.1
 aiohttp==3.11.16
 msgpack==1.1.0
-pdoc==15.0.2
+pdoc==15.0.3
 mypy==1.15.0
 ruff==0.11.6
 typos==1.29.10
