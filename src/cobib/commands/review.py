@@ -325,8 +325,11 @@ class ReviewCommand(Command):
 
                 dump = yml.dump(entry)
                 if dump is None:
-                    LOGGER.error(f"The entry '{label}' could not be dumped as YAML. Skipping it.")
-                    continue
+                    # NOTE: this should not be possible!
+                    LOGGER.error(  # pragma: no cover
+                        f"The entry '{label}' could not be dumped as YAML. Skipping it."
+                    )
+                    continue  # pragma: no cover
 
                 syntax = Syntax(
                     dump,
@@ -396,14 +399,14 @@ class ReviewCommand(Command):
                         input_text=str(entry.data[inline]),
                         pre_prompt_message=Group(warning, syntax),
                     )
-                    if res.isnumeric():
+                    if res.isnumeric():  # pragma: no branch
                         res = int(res)
                     entry.data[inline] = res
                     entry.merge(bib[label], ours=True)
                     bib.update({label: entry})
                     inline = None
 
-                elif res == "finish":
+                elif res == "finish":  # pragma: no branch
                     LOGGER.info("Finishing review early.")
                     break
 
@@ -444,7 +447,8 @@ class ReviewCommand(Command):
                 return_value = func(prompt, value)
             except InvalidResponse as exc:
                 if not value.startswith("inline"):
-                    raise exc
+                    # NOTE: this should not be possible!
+                    raise exc  # pragma: no cover
                 return_value = cast(PromptType, value)
 
             if return_value == "help":

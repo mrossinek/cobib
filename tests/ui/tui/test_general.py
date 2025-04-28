@@ -2,31 +2,44 @@
 
 from __future__ import annotations
 
+import logging
+import tempfile
 from collections.abc import Generator
 from copy import copy
+from pathlib import Path
+from shutil import copyfile, rmtree
 from sys import version_info
-from typing import Any
+from typing import Any, cast
 
 import pytest
+from textual.pilot import Pilot
 from textual.theme import BUILTIN_THEMES
 
-from cobib.config import config
+from cobib.config import TagMarkup, config
+from cobib.database import Database
+from cobib.ui.components import InputScreen, LogScreen
 from cobib.ui.tui import TUI
 
 from ... import get_resource
 
 TERMINAL_SIZE = (160, 48)
+TMPDIR = Path(tempfile.gettempdir()).resolve()
 
 
 class TestTUIGeneral:
     """General tests for the TUI."""
 
+    COBIB_TEST_DIR = TMPDIR / "cobib_test"
+    """Path to the temporary coBib test directory."""
+
     @staticmethod
     @pytest.fixture(autouse=True)
     def setup() -> Generator[Any, None, None]:
         """Load testing config."""
+        InputScreen.cursor_blink = False
         config.load(get_resource("debug.py"))
         yield
+        Database.read()
         config.defaults()
 
     def test_main(self, snap_compare: Any) -> None:
@@ -46,6 +59,28 @@ class TestTUIGeneral:
         a_splash_of_pink = copy(BUILTIN_THEMES["textual-dark"])
         a_splash_of_pink.primary = "#ff00ff"
         config.theme.theme = a_splash_of_pink
+        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE)
+
+    def test_config_syntax(self, snap_compare: Any) -> None:
+        """Tests the config option to update the syntax theme.
+
+        Args:
+            snap_compare: the `pytest-textual-snapshot` fixture.
+        """
+        config.theme.syntax.theme = "vim"
+        config.theme.syntax.background_color = "#222222"
+        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE)
+
+    def test_config_user_tags(self, snap_compare: Any) -> None:
+        """Tests the config option to update the theme.
+
+        Args:
+            snap_compare: the `pytest-textual-snapshot` fixture.
+        """
+        config.theme.tags.user_tags = {"test": TagMarkup(50, "black on yellow")}
+        config.theme.tags.validate()
+        bib = Database()
+        bib["einstein"].tags = ["test"]
         assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE)
 
     @pytest.mark.asyncio
@@ -77,6 +112,23 @@ class TestTUIGeneral:
         else:
             assert app.return_code is None
 
+    @pytest.mark.asyncio
+    async def test_quit_after_cancel(self) -> None:
+        """Tests the quit action's input prompt after previously cancelling it."""
+        app = TUI()
+
+        async with app.run_test() as pilot:
+            await pilot.press("q")
+            await pilot.press("escape")
+            await pilot.press("n")
+            await pilot.press("enter")
+            await pilot.press("q")
+            await pilot.press("y")
+            await pilot.press("enter")
+            await pilot.pause()
+
+        assert app.return_code == 0
+
     @pytest.mark.skipif(
         version_info.minor < 12,
         reason="Textual datatable style updates appear inconsistent for Python < 3.12",
@@ -91,6 +143,37 @@ class TestTUIGeneral:
         """
         assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, press=["underscore"] * repeat)
 
+    @pytest.mark.parametrize("close", [False, True])
+    def test_log(self, snap_compare: Any, close: bool) -> None:
+        """Tests the log toggle action.
+
+        Args:
+            snap_compare: the `pytest-textual-snapshot` fixture.
+            close: whether to close the LogScreen again.
+        """
+
+        async def run_before(pilot: Pilot[None]) -> None:
+            app = cast(TUI, pilot.app)
+            formatter = logging.Formatter(fmt="[%(levelname)s] %(message)s")
+            app.logging_handler.setFormatter(formatter)
+            log_screen = cast(LogScreen, app.get_screen("log"))
+            log_screen.rich_log.clear()
+            logger = logging.getLogger("cobib.ui.tui")
+            logger.log(logging.DEBUG, "debug message")
+            logger.log(logging.INFO, "info message")
+            logger.log(35, "hint message")
+            logger.log(logging.WARNING, "warning message")
+            logger.log(45, "deprecation message")
+            logger.log(logging.ERROR, "error message")
+            logger.log(logging.CRITICAL, "critical message")
+            if close:
+                await pilot.press("z")
+            await pilot.pause()
+
+        assert snap_compare(
+            TUI(verbosity=logging.DEBUG), terminal_size=TERMINAL_SIZE, run_before=run_before
+        )
+
     @pytest.mark.parametrize("repeat", [1, 2])
     def test_help(self, snap_compare: Any, repeat: int) -> None:
         """Tests the help toggle action.
@@ -101,20 +184,76 @@ class TestTUIGeneral:
         """
         assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, press=["question_mark"] * repeat)
 
-    @pytest.mark.parametrize("repeat", [1, 2])
-    def test_select(self, snap_compare: Any, repeat: int) -> None:
-        """Tests the select action.
+    @pytest.mark.parametrize("escape", [False, True])
+    def test_prompt_action(self, snap_compare: Any, escape: bool) -> None:
+        """Tests the coBib command prompt popup.
 
         Args:
             snap_compare: the `pytest-textual-snapshot` fixture.
-            repeat: the number of times to repeat the action trigger.
+            escape: whether to also press the `escape` key.
         """
-        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, press=["v"] * repeat)
+        press = ["colon"]
+        if escape:
+            press += ["escape"]
+        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, press=press)
 
-    def test_prompt(self, snap_compare: Any) -> None:
-        """Tests the prompt popup.
+    def test_prompt_ask(self, snap_compare: Any) -> None:
+        """Tests the prompt input screen when asked an interactive question using the `open` action.
 
         Args:
             snap_compare: the `pytest-textual-snapshot` fixture.
         """
-        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, press=["colon"])
+        old_database_file = config.database.file
+        new_database_file = str(self.COBIB_TEST_DIR / "database.yaml")
+        config.database.file = new_database_file
+        self.COBIB_TEST_DIR.mkdir(parents=True, exist_ok=True)
+        copyfile(get_resource("example_literature.yaml", None), config.database.file)
+
+        with open(
+            get_resource("example_multi_file_entry.yaml", "commands"), "r", encoding="utf-8"
+        ) as multi_file_entry:
+            with open(config.database.file, "a", encoding="utf-8") as database:
+                database.write(multi_file_entry.read())
+        Database.read()
+
+        try:
+            assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, press=["o"])
+        finally:
+            config.database.file = old_database_file
+            Database.read()
+            rmtree(self.COBIB_TEST_DIR)
+
+    def test_prompt_elaborate(self, snap_compare: Any) -> None:
+        """Tests the prompt in a more elaborate way via the `review` command.
+
+        Args:
+            snap_compare: the `pytest-textual-snapshot` fixture.
+        """
+
+        async def run_before(pilot: Pilot[None]) -> None:
+            await pilot.press("c", "enter")  # starts a review process
+            await pilot.press("h", "e", "l", "p", "enter")  # triggers the help popup
+            await pilot.pause()
+
+        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, run_before=run_before)
+
+    @pytest.mark.parametrize("command", ["init", "git", "faulty"])
+    def test_catch_invalid_command(self, snap_compare: Any, command: str) -> None:
+        """Tests the graceful catching of commands that cannot run within the TUI.
+
+        Args:
+            snap_compare: the `pytest-textual-snapshot` fixture.
+            command: the command to trigger via the TUI's prompt action.
+        """
+
+        async def run_before(pilot: Pilot[None]) -> None:
+            app = cast(TUI, pilot.app)
+            formatter = logging.Formatter(fmt="[%(levelname)s] %(message)s")
+            app.logging_handler.setFormatter(formatter)
+            log_screen = cast(LogScreen, app.get_screen("log"))
+            log_screen.rich_log.clear()
+            await app.action_prompt(command)
+            await pilot.press("enter")
+            await pilot.pause()
+
+        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, run_before=run_before)

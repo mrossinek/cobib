@@ -333,6 +333,8 @@ class SearchCommand(Command):
         largs = super()._parse_args(tuple(search_args))
         largs.filter = filter_args
 
+        # NOTE: we ignore coverage below because the CI has an additional job running the unittests
+        # without optional dependencies available.
         if largs.fuzziness > 0 and not HAS_OPTIONAL_REGEX:  # pragma: no branch
             LOGGER.warning(  # pragma: no cover
                 "Using the `--fuzziness` argument requires the optional `regex` dependency to be "

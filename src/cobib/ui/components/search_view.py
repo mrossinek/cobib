@@ -151,15 +151,19 @@ class SearchView(Tree[Union[str, Text]]):
         Args:
             key: the key which was pressed.
             action: the built-in action to trigger.
+
+        Raises:
+            RuntimeError: when an invalid motion action is triggered.
         """
         func = getattr(self, f"action_{action}", None)
-        if func is not None:
-            func()
+        if func is None:
+            raise RuntimeError("Invalid motion action: %s!", action)  # pragma: no cover
+        func()
         self.post_message(MotionKey(key))
 
     def action_toggle_all(self) -> None:
         """Toggles the expansion of the current node and all of its children recursively."""
-        if self.cursor_node is not None:
+        if self.cursor_node is not None:  # pragma: no branch
             self.cursor_node.toggle_all()
 
     def get_current_label(self) -> str | None:
@@ -169,7 +173,8 @@ class SearchView(Tree[Union[str, Text]]):
             The label of the entry currently under the cursor.
         """
         if self.cursor_node is None:
-            return None
+            # NOTE: this should not be possible for the context of calling this function
+            return None  # pragma: no cover
         return str(self.cursor_node.data)
 
     def jump_to_label(self, label: str) -> None:

@@ -27,8 +27,6 @@ class SelectionFilter(LineFilter):
             enabled: whether the filter will be applied.
         """
         super().__init__(enabled)
-        self.active: bool = False
-        """Indicates whether the filter is active, i.e. the selection is not empty."""
         self.selection: set[str] = set()
         """The set of selected labels."""
         self.selection_style = Style(color="white", bgcolor="magenta")

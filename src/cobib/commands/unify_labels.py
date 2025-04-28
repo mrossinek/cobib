@@ -82,9 +82,9 @@ class UnifyLabelsCommand(Command):
 
     @override
     def render_rich(self) -> ConsoleRenderable:
-        text = Text("\n".join(self._contents))
-        text.highlight_words(["ERROR"], "bold red")
-        text.highlight_words(["WARNING"], "bold yellow")
-        text.highlight_words(["HINT"], "green")
-        text.highlight_words(["INFO"], "blue")
-        return text
+        text = Text("\n".join(self._contents))  # pragma: no cover
+        text.highlight_words(["ERROR"], "bold red")  # pragma: no cover
+        text.highlight_words(["WARNING"], "bold yellow")  # pragma: no cover
+        text.highlight_words(["HINT"], "green")  # pragma: no cover
+        text.highlight_words(["INFO"], "blue")  # pragma: no cover
+        return text  # pragma: no cover

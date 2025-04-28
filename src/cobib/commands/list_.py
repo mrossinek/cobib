@@ -334,6 +334,8 @@ class ListCommand(Command):
 
         largs = super()._parse_args(args)
 
+        # NOTE: we ignore coverage below because the CI has an additional job running the unittests
+        # without optional dependencies available.
         if largs.fuzziness > 0 and not HAS_OPTIONAL_REGEX:  # pragma: no branch
             LOGGER.warning(  # pragma: no cover
                 "Using the `--fuzziness` argument requires the optional `regex` dependency to be "
@@ -414,10 +416,10 @@ class ListCommand(Command):
             filtered_keys.add(key)
 
             if not isinstance(val, list):
-                val = [val]  # noqa: PLW2901
+                val = [val]  # noqa: PLW2901  # pragma: no cover
             # iterate values to be filtered by
             for i in val:
-                for idx, obj in enumerate(self.args):
+                for idx, obj in enumerate(self.args):  # pragma: no branch
                     if i == obj:
                         # once we find the current value in the CLI argument list we can determine
                         # whether this filter is INclusive (`++`) or EXclusive (`--`)

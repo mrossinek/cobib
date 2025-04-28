@@ -193,7 +193,7 @@ class Database(OrderedDict[str, Entry]):
 
         This clears the contents of the singleton instance and resets the `_read` class attribute.
         """
-        if cls._instance is not None:
+        if cls._instance is not None:  # pragma: no branch
             cls._instance.clear()
         cls._read = False
 
@@ -213,7 +213,7 @@ class Database(OrderedDict[str, Entry]):
                 cache no matter its age or the user configuration.
         """
         if cls._instance is None:
-            cls(bypass_cache=bypass_cache)
+            cls.__new__(cls, bypass_cache=bypass_cache)
             return
         _instance = cls._instance
 
@@ -268,7 +268,7 @@ class Database(OrderedDict[str, Entry]):
         to `write`.
         """
         if cls._instance is None:
-            cls()
+            cls()  # pragma: no cover
         _instance = cast(Database, cls._instance)
 
         from cobib.parsers.yaml import YAMLParser
@@ -321,8 +321,8 @@ class Database(OrderedDict[str, Entry]):
         if cls._unsaved_entries:
             for label in cls._unsaved_entries.copy().values():
                 if label is None:
-                    # should never occur but we avoid a type exception
-                    continue
+                    # NOTE: this should never occur but we avoid a type exception
+                    continue  # pragma: no cover
                 LOGGER.debug('Adding new entry "%s".', label)
                 entry_str = _instance[label].save(parser=yml)
                 buffer.append(entry_str)
@@ -429,7 +429,7 @@ class Database(OrderedDict[str, Entry]):
 
         try:
             cache_outdated = cls._is_cache_outdated(cache_file)
-            if not cache_outdated:
+            if not cache_outdated:  # pragma: no branch
                 LOGGER.info("The cache is already up-to-date")
                 return
         except FileNotFoundError:

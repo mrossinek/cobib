@@ -46,19 +46,19 @@ class URLParser(Parser):
         if re.search(ARXIV_REGEX, string):
             LOGGER.debug("URL contains an arXiv ID")
             entries = ArxivParser().parse(string)
-            if entries:
+            if entries:  # pragma: no branch
                 LOGGER.debug("Successfully extracted metadata from URL with ArxivParser")
                 return entries
         if re.search(DOI_REGEX, string):
             LOGGER.debug("URL contains a DOI")
             entries = DOIParser().parse(string)
-            if entries:
+            if entries:  # pragma: no branch
                 LOGGER.debug("Successfully extracted metadata from URL with DOIParser")
                 return entries
         if re.search(ISBN_REGEX, string):
             LOGGER.debug("URL contains an ISBN")
             entries = ISBNParser().parse(string)
-            if entries:
+            if entries:  # pragma: no branch
                 LOGGER.debug("Successfully extracted metadata from URL with ISBNParser")
                 return entries
 

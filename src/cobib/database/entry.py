@@ -115,7 +115,7 @@ class Entry:
     def __eq__(self, other: object) -> bool:
         """Checks equality of two entries."""
         if not isinstance(other, Entry):
-            return False
+            return False  # pragma: no cover
         return self.label == other.label and self.data == other.data
 
     def merge(self, other: Entry, *, ours: bool = False) -> None:
@@ -190,7 +190,8 @@ class Entry:
                 author_string += str(author)
             return author_string
 
-        return ""
+        # NOTE: this should never occur
+        return ""  # pragma: no cover
 
     @author.setter
     def author(self, authors: str | list[str] | list[dict[str, str]] | list[Author]) -> None:
@@ -395,7 +396,7 @@ class Entry:
         else:
             if isinstance(month, int):
                 self.data["month"] = months[month - 1]
-            elif isinstance(month, str):
+            elif isinstance(month, str):  # pragma: no branch
                 if month.isnumeric():
                     self.data["month"] = months[int(month) - 1]
                 else:
@@ -471,7 +472,7 @@ class Entry:
             if key == "author":
                 if config.database.format.author_format == AuthorFormat.BIBLATEX:
                     formatted_entry.data[key] = enc.unicode_to_latex(self.author)
-                elif config.database.format.author_format == AuthorFormat.YAML:
+                elif config.database.format.author_format == AuthorFormat.YAML:  # pragma: no branch
                     formatted_entry.data[key] = value
                 continue
 
@@ -629,6 +630,8 @@ class Entry:
         Returns:
             A list of lists containing the context for each match associated with this entry.
         """
+        # NOTE: we ignore coverage below because the CI has an additional job running the unittests
+        # without optional dependencies available.
         if fuzziness > 0 and not HAS_OPTIONAL_REGEX:  # pragma: no branch
             LOGGER.warning(  # pragma: no cover
                 "Using the `fuzziness` option requires the optional `regex` dependency to be "

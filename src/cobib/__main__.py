@@ -16,7 +16,7 @@ async def main() -> None:
 
 def _main() -> None:
     """The main method wrapping the async method with `asyncio.run`."""
-    asyncio.run(main())
+    asyncio.run(main())  # pragma: no cover
 
 
 if __name__ == "__main__":

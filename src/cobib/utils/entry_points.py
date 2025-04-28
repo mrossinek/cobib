@@ -42,4 +42,6 @@ def entry_points(filter: str) -> set[tuple[EntryPoint, bool]]:
             (cls, cls.module.startswith(filter))  # type: ignore[attr-defined,misc]
             for cls in _entry_points(group=filter)  # type: ignore[call-arg]
         }
-    return {(cls, cls.value.startswith(filter)) for cls in _entry_points()[filter]}
+    return {  # pragma: no cover
+        (cls, cls.value.startswith(filter)) for cls in _entry_points()[filter]
+    }

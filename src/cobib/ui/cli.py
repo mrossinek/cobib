@@ -55,18 +55,19 @@ class CLI(UI):
     @override
     def parse_args(self) -> argparse.Namespace:
         arguments = super().parse_args()
-        if arguments.command is not None:
+        # NOTE: we ignore the branching coverage because we test the TUI separately
+        if arguments.command is not None:  # pragma: no branch
             sys_args = list(sys.argv)
             subcmd_args = sys_args[sys_args.index(arguments.command) + 1 :]
             if subcmd_args != arguments.args:
-                LOGGER.log(
+                LOGGER.log(  # pragma: no cover
                     35,
                     "The arguments provided after the subcommand name did not match the parsed "
                     "ones. This can occur in rare cases when the '--' pseudo-argument is involved. "
                     "Taking an educated guess and overwriting them. Please file a bug report if "
                     "this is a wrong assumption: https://gitlab.com/cobib/cobib/-/issues/new",
                 )
-                arguments.args = subcmd_args
+                arguments.args = subcmd_args  # pragma: no cover
         return arguments
 
     @override
@@ -90,13 +91,17 @@ class CLI(UI):
             # print latest changelog
             changelog = print_changelog(__version__, config.logging.version)
             if changelog is not None:
-                console.print(changelog)
+                # NOTE: we are testing the changelog rendering separately
+                console.print(changelog)  # pragma: no cover
 
         if not arguments.command:
-            task = asyncio.create_task(TUI().run_async())
-            await task
+            # NOTE: we ignore the coverage below because we test the TUI separately
+            task = asyncio.create_task(  # pragma: no cover
+                TUI(verbosity=self._stream_handler.level).run_async()
+            )
+            await task  # pragma: no cover
             # the following is required for the asynchronous TUI to quit properly
-            sys.exit()
+            sys.exit()  # pragma: no cover
         else:
             (cls,) = [
                 cls for (cls, _) in entry_points("cobib.commands") if cls.name == arguments.command

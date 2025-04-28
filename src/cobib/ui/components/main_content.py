@@ -72,7 +72,8 @@ class MainContent(ContentSwitcher):
             widget: the widget to be mounted.
         """
         if widget.id is None:
-            return
+            # NOTE: this should not be possible for the context of calling this function
+            return  # pragma: no cover
         old_child = self.get_child_by_id(widget.id)
         await old_child.remove()
         self.mount(widget)

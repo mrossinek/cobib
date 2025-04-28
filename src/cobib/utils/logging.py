@@ -19,11 +19,17 @@ from typing_extensions import override
 
 from .rel_path import RelPath
 
+HINT = 35
+"""The logging level value for HINT messages."""
+
+DEPRECATED = 45
+"""The logging level value for DEPRECATION messages."""
+
 # NOTE: we add a custom HINT level which has a higher priority than WARNING and, thus, can be used
 # to provide information to the user that might be useful to see at runtime.
-logging.addLevelName(35, "HINT")
+logging.addLevelName(HINT, "HINT")
 # NOTE: we also add a custom level DEPRECATED which has an even higher priority.
-logging.addLevelName(45, "DEPRECATED")
+logging.addLevelName(DEPRECATED, "DEPRECATED")
 
 
 class _StderrHandler(logging.StreamHandler):  # type: ignore[type-arg]

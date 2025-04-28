@@ -77,9 +77,13 @@ class InputScreen(ModalScreen[str]):
     escape_enabled: bool = True
     """Enables the `escape` key binding."""
 
+    cursor_blink: bool = True
+    """Whether or not the Input's cursor should blink or not. This will be disabled in CI."""
+
     @override
     def compose(self) -> ComposeResult:
         inp = Input(id="input")
+        inp.cursor_blink = self.cursor_blink
         yield inp
 
     async def action_escape(self) -> None:

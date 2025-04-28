@@ -184,12 +184,12 @@ class NoteCommand(Command):
             if path.path.exists():
                 # NOTE: it should be impossible to get here unless the .unlink() call above fails
                 # for some reason
-                msg = (
+                msg = (  # pragma: no cover
                     f"Could not delete the note file associated with '{self.largs.label}'. Check "
                     f"the following path: '{path}'"
                 )
-                LOGGER.warning(msg)
-                return
+                LOGGER.warning(msg)  # pragma: no cover
+                return  # pragma: no cover
             try:
                 entry.note = None
             except KeyError:
@@ -234,8 +234,8 @@ class NoteCommand(Command):
         if app is None:
             NoteCommand._edit(path)
         else:
-            with app.suspend():
-                NoteCommand._edit(path)
+            with app.suspend():  # pragma: no cover
+                NoteCommand._edit(path)  # pragma: no cover
 
     @staticmethod
     def _edit(path: RelPath) -> None:

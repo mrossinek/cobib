@@ -103,7 +103,6 @@ branch = true
 [tool.coverage.report]
 exclude_also = [
     "if TYPE_CHECKING:",
-    "parser.print_usage\\(sys.stderr\\)",
     "sys.exit\\(1\\)",
 ]
 show_missing = true
@@ -174,3 +173,6 @@ captial = "captial"
 # Do not fix this substring which occurs as part of a regex. This can be removed
 # once typos supports inline-overrides.
 earch = "earch"
+
+[tool.typos.files]
+extend-exclude = ["**/__snapshots__/**/*.svg"]

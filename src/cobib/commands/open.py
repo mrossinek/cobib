@@ -162,9 +162,11 @@ class OpenCommand(Command):
                         self._open_url(label, url)
 
                 else:
-                    msg = f"The entry '{label}' has no field '{choice}' associated with it."
-                    LOGGER.warning(msg)
-                    continue
+                    msg = (  # pragma: no cover
+                        f"The entry '{label}' has no field '{choice}' associated with it."
+                    )
+                    LOGGER.warning(msg)  # pragma: no cover
+                    continue  # pragma: no cover
 
             else:
                 # we query the user what to do
@@ -202,7 +204,7 @@ class OpenCommand(Command):
                     LOGGER.debug("User selected the %s set of urls.", choice)
                     for url in things_to_open[choice]:
                         self._open_url(label, url)
-                elif choice.isdigit():
+                elif choice.isdigit():  # pragma: no branch
                     LOGGER.debug("User selected url %s", choice)
                     self._open_url(label, url_list[int(choice) - 1])
 

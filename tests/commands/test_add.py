@@ -634,6 +634,51 @@ class TestAddCommand(CommandTest):
                     "database_filename": "disambiguation_database.yaml",
                     "database_location": "database",
                 },
+                {"stdin_list": ["help", "cancel"]},
+            ],
+        ],
+        indirect=["setup", "post_setup"],
+    )
+    async def test_disambiguate_help(
+        self,
+        setup: Any,
+        post_setup: Any,
+        caplog: pytest.LogCaptureFixture,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        """Test the `help` prompt of the interactive label disambiguation.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            post_setup: an additional setup fixture.
+            caplog: the built-in pytest fixture.
+            capsys: the built-in pytest fixture.
+        """
+        bib = Database()
+        original_entry = bib["Author2020"]
+
+        disambiguation_entry = get_resource("disambiguation_entry.yaml", "commands")
+        await AddCommand("-y", disambiguation_entry).execute()
+
+        assert bib["Author2020"] == original_entry
+
+        assert (
+            "cobib.commands.add",
+            10,
+            "User requested help.",
+        ) in caplog.record_tuples
+
+        assert "These are your options:" in capsys.readouterr().out
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ["setup", "post_setup"],
+        [
+            [
+                {
+                    "database_filename": "disambiguation_database.yaml",
+                    "database_location": "database",
+                },
                 {"stdin_list": ["cancel"]},
             ],
         ],

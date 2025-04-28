@@ -266,12 +266,16 @@ class AddCommand(Command):
                 try:
                     group_add.add_argument(f"-{name[0]}", f"--{name}", type=str, help=help_text)
                     continue
-                except argparse.ArgumentError:
-                    pass
-            try:
-                group_add.add_argument(f"--{name}", type=str, help=help_text)
-            except argparse.ArgumentError:
-                LOGGER.error(f"Could not setup the {name} parser argument for the add command.")
+                except argparse.ArgumentError:  # pragma: no cover
+                    pass  # pragma: no cover
+            # NOTE: we ignore coverage for the special handling around here because this is tested
+            # via the dummy plugin unittests in the CI.
+            try:  # pragma: no cover
+                group_add.add_argument(f"--{name}", type=str, help=help_text)  # pragma: no cover
+            except argparse.ArgumentError:  # pragma: no cover
+                LOGGER.error(  # pragma: no cover
+                    f"Could not setup the {name} parser argument for the add command."
+                )
 
         # NOTE: argparse.REMAINDER is undocumented since Python 3.9 and considered a legacy feature.
         # See also https://bugs.python.org/issue17050
@@ -485,7 +489,7 @@ class AddCommand(Command):
                         )
                     )
                     path = await task
-                    if path is not None:
+                    if path is not None:  # pragma: no branch
                         entry.file = str(path)  # type: ignore[assignment]
             # check journal abbreviation
             if "journal" in entry.data.keys():

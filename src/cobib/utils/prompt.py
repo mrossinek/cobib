@@ -65,6 +65,21 @@ class Prompt:
         if app is not None:
             ask_prompt = TextualPrompt
             ask_prompt.input_text = input_text
+            # NOTE: we make sure that if some trailing popup was present on the InputScreen, that it
+            # gets removed (theoretically, this can only happen when multiple TUI instances have
+            # been triggered within the same Python runtime environment, such as during the tests).
+            input_screen = app.get_screen("input")
+            await input_screen.query(Static).remove()
+
+        # NOTE: we ensure that there are no remaining wrappers in place:
+        if hasattr(ask_prompt.pre_prompt, "__wrapped__"):
+            ask_prompt.pre_prompt = (  # type: ignore[method-assign]
+                ask_prompt.pre_prompt.__wrapped__
+            )
+        if hasattr(ask_prompt.process_response, "__wrapped__"):
+            ask_prompt.process_response = (  # type: ignore[method-assign]
+                ask_prompt.process_response.__wrapped__
+            )
 
         if process_response_wrapper is not None:
             ask_prompt.process_response = process_response_wrapper(  # type: ignore[assignment]
@@ -117,6 +132,7 @@ class Prompt:
                 prompt.console.print(message)
             else:
                 input_screen = app.get_screen("input")
+                _ = app.push_screen("input")
                 input_screen.mount(Static(message, id="panel"), before=-1)
 
         return pre_prompt
@@ -141,6 +157,21 @@ class Confirm:
         app = get_active_app()
         if app is not None:
             confirm_prompt = TextualPrompt
+            # NOTE: we make sure that if some trailing popup was present on the InputScreen, that it
+            # gets removed (theoretically, this can only happen when multiple TUI instances have
+            # been triggered within the same Python runtime environment, such as during the tests).
+            input_screen = app.get_screen("input")
+            await input_screen.query(Static).remove()
+
+        # NOTE: we ensure that there are no remaining wrappers in place:
+        if hasattr(confirm_prompt.pre_prompt, "__wrapped__"):
+            confirm_prompt.pre_prompt = (  # type: ignore[method-assign]
+                confirm_prompt.pre_prompt.__wrapped__
+            )
+        if hasattr(confirm_prompt.process_response, "__wrapped__"):
+            confirm_prompt.process_response = (  # type: ignore[method-assign]
+                confirm_prompt.process_response.__wrapped__
+            )
 
         confirm_prompt.process_response = Confirm._wrap_process_response(  # type: ignore[assignment]
             confirm_prompt.process_response  # type: ignore[arg-type]
@@ -234,7 +265,9 @@ class TextualPrompt(PromptBase[str]):
         inp_screen.mount(popup, before=-1)
         await await_mount
 
-        inp_screen.query_one(Input).value = cls.input_text
+        inp_field = inp_screen.query_exactly_one(Input)
+        inp_field.value = cls.input_text
+        inp_field.focus()
         await dismiss_event.wait()
 
         # NOTE: if we do not do this, after (e.g.) a cancelled `quit` prompt, the Escape key will

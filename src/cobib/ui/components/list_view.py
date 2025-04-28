@@ -167,10 +167,14 @@ class ListView(DataTable[Text], inherit_bindings=False):
         Args:
             key: the key which was pressed.
             action: the built-in action to trigger.
+
+        Raises:
+            RuntimeError: when an invalid motion action is triggered.
         """
         func = getattr(self, f"action_{action}", None)
-        if func is not None:
-            func()
+        if func is None:
+            raise RuntimeError("Invalid motion action: %s!", action)  # pragma: no cover
+        func()
         self.post_message(MotionKey(key))
 
     def get_current_label(self) -> str | None:

@@ -88,7 +88,7 @@ class Command(ABC):
         try:
             largs = cls._get_argparser().parse_args(args)
         except argparse.ArgumentError as exc:
-            LOGGER.error(exc.message)
+            LOGGER.error(exc.message)  # pragma: no cover
             sys.exit(1)
 
         return largs
@@ -124,7 +124,7 @@ class Command(ABC):
         Returns:
             A list of strings where each entry should be considered one line of output.
         """
-        return []
+        return []  # pragma: no cover
 
     def render_rich(self) -> ConsoleRenderable | None:
         """Renders the command results as a `rich` object.
@@ -145,7 +145,7 @@ class Command(ABC):
         Returns:
             An optional `Widget` to be rendered in the TUI.
         """
-        return None
+        return None  # pragma: no cover
 
     def git(
         self,
@@ -179,7 +179,7 @@ class Command(ABC):
         root = file.parent
 
         if not is_inside_work_tree(root):
-            if git_tracked:
+            if git_tracked:  # pragma: no branch
                 msg = (
                     "You have configured coBib to track your database with git."
                     "\nPlease run `cobib init --git`, to initialize this tracking."

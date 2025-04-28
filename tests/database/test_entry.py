@@ -168,46 +168,40 @@ def test_entry_set_url(caplog: pytest.LogCaptureFixture) -> None:
 @pytest.mark.parametrize(
     ["month", "expected"],
     [
-        [(1, "January"), "jan"],
-        [(2, "February"), "feb"],
-        [(3, "March"), "mar"],
-        [(4, "April"), "apr"],
-        [(5, "May"), "may"],
-        [(6, "June"), "jun"],
-        [(7, "July"), "jul"],
-        [(8, "August"), "aug"],
-        [(9, "September"), "sep"],
-        [(10, "October"), "oct"],
-        [(11, "November"), "nov"],
-        [(12, "December"), "dec"],
+        [(1, "1", "January"), "jan"],
+        [(2, "2", "February"), "feb"],
+        [(3, "3", "March"), "mar"],
+        [(4, "4", "April"), "apr"],
+        [(5, "5", "May"), "may"],
+        [(6, "6", "June"), "jun"],
+        [(7, "7", "July"), "jul"],
+        [(8, "8", "August"), "aug"],
+        [(9, "9", "September"), "sep"],
+        [(10, "10", "October"), "oct"],
+        [(11, "11", "November"), "nov"],
+        [(12, "12", "December"), "dec"],
     ],
 )
 def test_entry_set_month(
-    month: tuple[int, str], expected: str, caplog: pytest.LogCaptureFixture
+    month: tuple[int, str, str], expected: str, caplog: pytest.LogCaptureFixture
 ) -> None:
     """Test month setting.
 
     Args:
-        month: a pair containing the month index and full name.
+        month: a triple containing the month index (as integer and string) and the full name.
         expected: the expected three-letter code of the month.
         caplog: the built-in pytest fixture.
     """
     entry = Entry("Rossmannek_2023", EXAMPLE_ENTRY_DICT)
     assert entry.data["month"] == "apr"
-    entry.month = month[0]  # type: ignore[assignment]
-    assert entry.data["month"] == expected
-    assert (
-        "cobib.database.entry",
-        20,
-        f"Converting field 'month' of entry 'Rossmannek_2023' from '{month[0]}' to '{expected}'.",
-    ) in caplog.record_tuples
-    entry.month = month[1]
-    assert entry.data["month"] == expected
-    assert (
-        "cobib.database.entry",
-        20,
-        f"Converting field 'month' of entry 'Rossmannek_2023' from '{month[1]}' to '{expected}'.",
-    ) in caplog.record_tuples
+    for m in month:
+        entry.month = m  # type: ignore[assignment]
+        assert entry.data["month"] == expected
+        assert (
+            "cobib.database.entry",
+            20,
+            f"Converting field 'month' of entry 'Rossmannek_2023' from '{m}' to '{expected}'.",
+        ) in caplog.record_tuples
 
 
 @pytest.mark.parametrize(

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import sys
 
 from typing_extensions import override
 
@@ -18,8 +19,11 @@ class DummyCommand(Command):
         parser = argparse.ArgumentParser(
             prog="dummy", description="Dummy subcommand parser.", exit_on_error=True
         )
+        parser.add_argument(
+            "-e", "--stderr", action="store_true", help="print to stderr rather than stdout"
+        )
         cls.argparser = parser
 
     @override
     def execute(self) -> None:
-        print("DummyCommand.execute")
+        print("DummyCommand.execute", file=sys.stderr if self.largs.stderr else sys.stdout)

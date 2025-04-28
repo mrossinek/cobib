@@ -120,8 +120,8 @@ class DeleteCommand(Command):
                         try:
                             LOGGER.debug("Attempting to remove associated file '%s'.", str(path))
                             os.remove(path.path)
-                        except FileNotFoundError:
-                            pass
+                        except FileNotFoundError:  # pragma: no cover
+                            pass  # pragma: no cover
 
                 self.deleted_entries.add(label)
             except KeyError:
