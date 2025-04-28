@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import tempfile
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -64,7 +63,7 @@ class TestExportCommand(CommandTest):
                             next(file)
         finally:
             # clean up file system
-            os.remove(TMPDIR / "cobib_test_export.bib")
+            (TMPDIR / "cobib_test_export.bib").unlink()
 
     def _assert_zip(self, args: list[str]) -> None:
         """Assertion utility method for zip output.
@@ -82,12 +81,9 @@ class TestExportCommand(CommandTest):
                     with open(get_resource("debug.py"), "r", encoding="utf-8") as truth:
                         assert extracted.read() == truth.read()
         finally:
-            try:
-                # clean up file system
-                os.remove(TMPDIR / "cobib_test_export.zip")
-                os.remove(TMPDIR / "debug.py")
-            except FileNotFoundError:
-                pass
+            # clean up file system
+            (TMPDIR / "cobib_test_export.zip").unlink(missing_ok=True)
+            (TMPDIR / "debug.py").unlink(missing_ok=True)
 
     @pytest.mark.parametrize(
         ["args"],
@@ -148,7 +144,7 @@ class TestExportCommand(CommandTest):
                     assert expected in line
         finally:
             # clean up file system
-            os.remove(TMPDIR / "cobib_test_export.bib")
+            (TMPDIR / "cobib_test_export.bib").unlink()
 
     def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test warning for missing label.
@@ -218,10 +214,10 @@ class TestExportCommand(CommandTest):
 
         @Event.PostExportCommand.subscribe
         def hook(command: ExportCommand) -> None:
-            os.remove(str(TMPDIR / "cobib_test_export.bib"))
+            (TMPDIR / "cobib_test_export.bib").unlink()
 
         assert Event.PostExportCommand.validate()
 
         ExportCommand(*args).execute()
 
-        assert not os.path.exists(str(TMPDIR / "cobib_test_export.bib"))
+        assert not (TMPDIR / "cobib_test_export.bib").exists()

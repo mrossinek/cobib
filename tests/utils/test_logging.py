@@ -74,17 +74,16 @@ def test_print_changelog(
 
 def test_safe_cache_access() -> None:
     """Regression test against #94."""
-    # create an empty temporary directory
-    tmp_dir = tempfile.mkdtemp()
-    # use a path which surely does not exist
-    tmp_cache_file = Path(tmp_dir) / "cache/version"
-    try:
-        # try to read the version from a file whose parent directory does not exist
-        print_changelog("0.2", str(tmp_cache_file))
-        # if the test regresses, this will fail with a `FileNotFoundError`
-    finally:
-        if tmp_cache_file.exists():
-            tmp_cache_file.unlink()
-        if tmp_cache_file.parent.exists():
-            tmp_cache_file.parent.rmdir()
-        Path(tmp_dir).rmdir()
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        # use a path which surely does not exist
+        tmp_cache_file = Path(tmp_dir) / "cache/version"
+        try:
+            # try to read the version from a file whose parent directory does not exist
+            print_changelog("0.2", str(tmp_cache_file))
+            # if the test regresses, this will fail with a `FileNotFoundError`
+        finally:
+            if tmp_cache_file.exists():
+                tmp_cache_file.unlink()
+            if tmp_cache_file.parent.exists():
+                tmp_cache_file.parent.rmdir()
+            Path(tmp_dir).rmdir()

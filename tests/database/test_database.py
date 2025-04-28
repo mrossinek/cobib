@@ -249,7 +249,7 @@ def test_database_save_add() -> None:
             with pytest.raises(StopIteration):
                 next(file)
     finally:
-        os.remove(config.database.file)
+        config.database.file.unlink()
         config.database.file = EXAMPLE_LITERATURE
 
 
@@ -283,7 +283,7 @@ def test_database_save_modify() -> None:
                 with pytest.raises(StopIteration):
                     next(file)
     finally:
-        os.remove(config.database.file)
+        config.database.file.unlink()
         config.database.file = EXAMPLE_LITERATURE
 
 
@@ -310,7 +310,7 @@ def test_database_save_delete() -> None:
                 with pytest.raises(StopIteration):
                     next(file)
     finally:
-        os.remove(config.database.file)
+        config.database.file.unlink()
         config.database.file = EXAMPLE_LITERATURE
 
 

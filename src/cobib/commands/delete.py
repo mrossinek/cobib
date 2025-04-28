@@ -31,7 +31,6 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
 
 from typing_extensions import override
 
@@ -117,11 +116,8 @@ class DeleteCommand(Command):
                 if not preserve_files:
                     for file in entry.file:
                         path = RelPath(file)
-                        try:
-                            LOGGER.debug("Attempting to remove associated file '%s'.", str(path))
-                            os.remove(path.path)
-                        except FileNotFoundError:  # pragma: no cover
-                            pass  # pragma: no cover
+                        LOGGER.debug("Attempting to remove associated file '%s'.", str(path))
+                        path.path.unlink(missing_ok=True)
 
                 self.deleted_entries.add(label)
             except KeyError:

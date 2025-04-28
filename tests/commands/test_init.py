@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import os
 from datetime import datetime
+from pathlib import Path
 from shutil import rmtree
 from typing import TYPE_CHECKING, Any
 
@@ -60,12 +60,12 @@ class TestInitCommand(CommandTest):
                 assert file.read() == "test"
         else:
             # check creation time of temporary database file
-            ctime = os.stat(config.database.file).st_ctime
+            ctime = Path(config.database.file).stat().st_ctime
             # assert these times are close
             assert ctime - now < 0.1 or now - ctime < 0.1
         if setup["git"] and not setup["database"]:
             # check creation time of temporary database git folder
-            ctime = os.stat(self.COBIB_TEST_DIR_GIT).st_ctime
+            ctime = self.COBIB_TEST_DIR_GIT.stat().st_ctime
             # assert these times are close
             assert ctime - now < 0.1 or now - ctime < 0.1
             # and assert that it is indeed a folder
@@ -104,11 +104,11 @@ class TestInitCommand(CommandTest):
             # now assert that the command did everything as usual though
 
             # check creation time of temporary database file
-            ctime = os.stat(config.database.file).st_ctime
+            ctime = Path(config.database.file).stat().st_ctime
             # assert these times are close
             assert ctime - now < 0.1 or now - ctime < 0.1
             # check creation time of temporary database git folder
-            ctime = os.stat(self.COBIB_TEST_DIR_GIT).st_ctime
+            ctime = self.COBIB_TEST_DIR_GIT.stat().st_ctime
             # assert these times are close
             assert ctime - now < 0.1 or now - ctime < 0.1
             # and assert that it is indeed a folder
@@ -141,7 +141,7 @@ class TestInitCommand(CommandTest):
         await self.run_module(monkeypatch, "main", ["cobib", "init"])
         # try running init
         # check creation time of temporary database file
-        ctime = os.stat(config.database.file).st_ctime
+        ctime = Path(config.database.file).stat().st_ctime
         # assert these times are close
         assert ctime - now < 0.1 or now - ctime < 0.1
 
@@ -163,10 +163,10 @@ class TestInitCommand(CommandTest):
 
         @Event.PostInitCommand.subscribe
         def hook(command: InitCommand) -> None:
-            os.remove(command.file)
+            command.file.unlink()
 
         assert Event.PostInitCommand.validate()
 
         InitCommand().execute()
 
-        assert not os.path.exists(self.COBIB_TEST_DIR_GIT / "literature.yaml")
+        assert not (self.COBIB_TEST_DIR_GIT / "literature.yaml").exists()

@@ -7,7 +7,6 @@ with testing the global parser arguments.
 from __future__ import annotations
 
 import logging
-import os
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -105,14 +104,14 @@ class TestMainExecutable(CmdLineTest):
             monkeypatch: the built-in pytest fixture.
             args: the list of values with which to monkeypatch `sys.argv`.
         """
-        logfile = str(Path(tempfile.gettempdir()) / "cobib_test_logging.log")
+        logfile = Path(tempfile.gettempdir()) / "cobib_test_logging.log"
         # we choose the open command as an arbitrary choice which has minimal side effects
-        await self.run_module(monkeypatch, "main", ["cobib", "-l", logfile, *args])
+        await self.run_module(monkeypatch, "main", ["cobib", "-l", str(logfile), *args])
         try:
             assert isinstance(logging.getLogger().handlers[-1], logging.FileHandler)
-            assert logging.getLogger().handlers[-1].baseFilename == logfile  # type: ignore[attr-defined]
+            assert logging.getLogger().handlers[-1].baseFilename == str(logfile)  # type: ignore[attr-defined]
         finally:
-            os.remove(logfile)
+            logfile.unlink()
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(

@@ -77,7 +77,7 @@ class CommandTest(CmdLineTest):
         config.commands.edit.editor = "cat"
         config.commands.open.command = "cat"
         config.database.cache = None
-        config.database.file = str(self.COBIB_TEST_DIR / "database.yaml")
+        config.database.file = self.COBIB_TEST_DIR / "database.yaml"
         config.database.git = request.param.get("git", False)
         config.utils.file_downloader.default_location = "/tmp"
         config.logging.version = None
@@ -107,14 +107,11 @@ class CommandTest(CmdLineTest):
         yield request.param
 
         # clean up file system
-        try:
-            os.remove(config.database.file)
-            if request.param.get("git", False):
-                rmtree(self.COBIB_TEST_DIR_GIT)
-            # remove all handlers from root logger as to not accumulate them during the test suite
-            logging.getLogger().handlers = []
-        except FileNotFoundError:
-            pass
+        Path(config.database.file).unlink(missing_ok=True)
+        if request.param.get("git", False):
+            rmtree(self.COBIB_TEST_DIR_GIT, ignore_errors=True)
+        # remove all handlers from root logger as to not accumulate them during the test suite
+        logging.getLogger().handlers = []
 
         # clean up database
         if request.param.get("database", True):

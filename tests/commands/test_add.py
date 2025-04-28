@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import os
 import tempfile
 from collections.abc import Generator
 from datetime import datetime
@@ -198,11 +197,7 @@ class TestAddCommand(CommandTest):
             should_download = not skip_download
 
         path = RelPath(f"{'/tmp' if folder is None else folder}/Bravyi2017.pdf")
-        try:
-            # ensure file does not exist yet
-            os.remove(path.path)
-        except FileNotFoundError:
-            pass
+        path.path.unlink(missing_ok=True)
         try:
             args = ["-a", "1701.08213"]
             if folder:
@@ -227,14 +222,11 @@ class TestAddCommand(CommandTest):
 
             if should_download:
                 assert f"Successfully downloaded {path}" in capsys.readouterr().out
-                assert os.path.exists(path.path)
+                assert path.path.exists()
             else:
-                assert not os.path.exists(path.path)
+                assert not path.path.exists()
         finally:
-            try:
-                os.remove(path.path)
-            except FileNotFoundError:
-                pass
+            path.path.unlink(missing_ok=True)
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -737,11 +729,8 @@ class TestAddCommand(CommandTest):
         for label in ("Bravyi2017", "Bravyi2017_a"):
             try:
                 path = RelPath(f"/tmp/{label}.pdf")
-                try:
-                    # ensure file does not exist yet
-                    os.remove(path.path)
-                except FileNotFoundError:
-                    pass
+                # ensure file does not exist yet
+                path.path.unlink(missing_ok=True)
 
                 # by repeatedly calling the same add command, we trigger the label disambiguation
                 await AddCommand("-a", "1701.08213").execute()
@@ -764,13 +753,10 @@ class TestAddCommand(CommandTest):
                 assert entry.data["archivePrefix"] == "arXiv"
                 assert entry.data["abstract"] != ""
                 assert entry.data["year"] == 2017
-                assert os.path.exists(path.path)
+                assert path.path.exists()
 
             finally:
-                try:
-                    os.remove(path.path)
-                except FileNotFoundError:
-                    pass
+                path.path.unlink(missing_ok=True)
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
