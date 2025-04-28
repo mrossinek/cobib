@@ -23,6 +23,22 @@ def test_config_load() -> None:
     assert config.database.file == str(EXAMPLE_LITERATURE)
 
 
+def test_config_load_failure(caplog: pytest.LogCaptureFixture) -> None:
+    """Test handling of an uninterpretable config.
+
+    Args:
+        caplog: the built-in pytest fixture.
+    """
+    path = get_resource("example_literature.yaml")
+    with pytest.raises(SystemExit):
+        config.load(path)
+    assert (
+        "cobib.config.config",
+        logging.ERROR,
+        f"The config at {path} could not be interpreted as a Python module.",
+    ) in caplog.record_tuples
+
+
 def test_config_load_from_open_file() -> None:
     """Test loading another config from an open file."""
     with open(get_resource("debug.py"), "r", encoding="utf-8") as file:
@@ -32,10 +48,14 @@ def test_config_load_from_open_file() -> None:
 
 def test_config_load_nothing() -> None:
     """Test that nothing changes when no XDG files are present."""
+    prev = Config.XDG_CONFIG_FILE
     Config.XDG_CONFIG_FILE = ""
-    config.load()
-    # we manually call validate because load exits early
-    config.validate()
+    try:
+        config.load()
+        # we manually call validate because load exits early
+        config.validate()
+    finally:
+        Config.XDG_CONFIG_FILE = prev
 
 
 def test_config_disable_load() -> None:
@@ -69,9 +89,13 @@ def test_config_load_from_env_var() -> None:
 
 def test_config_load_xdg() -> None:
     """Test loading a config from XDG path."""
+    prev = Config.XDG_CONFIG_FILE
     Config.XDG_CONFIG_FILE = get_resource("debug.py")
-    config.load()
-    assert config.database.file == str(EXAMPLE_LITERATURE)
+    try:
+        config.load()
+        assert config.database.file == str(EXAMPLE_LITERATURE)
+    finally:
+        Config.XDG_CONFIG_FILE = prev
 
 
 def test_config_example() -> None:

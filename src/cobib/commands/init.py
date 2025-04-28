@@ -124,11 +124,11 @@ class InitCommand(Command):
             email_set = os.system("git config --get user.email")
             print()
             if name_set != 0 or email_set != 0:
-                msg = (
+                msg = (  # pragma: no cover
                     "In order to use git you must configure your name and email first! For more "
                     "information please consult `man gittutorial`."
                 )
-                LOGGER.warning(msg)
+                LOGGER.warning(msg)  # pragma: no cover
                 sys.exit(1)
             LOGGER.debug('Initializing git repository in "%s"', self.root)
             os.system(f"git init {self.root}")

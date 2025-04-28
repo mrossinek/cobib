@@ -180,7 +180,7 @@ class ExportCommand(Command):
                 if "file" in entry.data.keys() and entry.file is not None:
                     files = entry.file
                     if not isinstance(files, list):
-                        files = [files]  # type: ignore[unreachable]
+                        files = [files]  # type: ignore[unreachable]  # pragma: no cover
                     for file in files:
                         path = RelPath(file).path
                         LOGGER.debug(

@@ -125,7 +125,7 @@ class NoteView(TextArea):
 
     def action_escape(self) -> None:
         """The `Esc` key action to unfocus this widget."""
-        main = self.app.query_one(MainContent)
+        main = self.app.query_exactly_one(MainContent)
         main_content = None if main.current is None else main.get_child_by_id(main.current)
         self.screen.set_focus(main_content)
 
@@ -133,7 +133,10 @@ class NoteView(TextArea):
         """The `Ctrl+r` key action to reset any unsaved changes."""
         label = self.border_title
         if not isinstance(label, str):
-            raise RuntimeError("Expecting to extract a label from the border title!")
+            # NOTE: theoretically, this should never happen
+            raise RuntimeError(  # pragma: no cover
+                "Expecting to extract a label from the border title!"
+            )
 
         LOGGER.info(f"Discarding any unsaved changes to the note of entry '{label}'.")
         self.load_note(label, escape=True, force_reload=True)
@@ -144,6 +147,8 @@ class NoteView(TextArea):
 
     def action_external(self) -> None:
         """The `Ctrl+x` key action to open the note in an external editor."""
+        # NOTE: we are unable to test this in CI at this time, because the textual Pilot interface
+        # does not support suspend.
         self._save_contents("edit")
 
     def load_note(
@@ -203,7 +208,10 @@ class NoteView(TextArea):
         """
         label = self.border_title
         if not isinstance(label, str):
-            raise RuntimeError("Expecting to extract a label from the border title!")
+            # NOTE: theoretically, this should never happen
+            raise RuntimeError(  # pragma: no cover
+                "Expecting to extract a label from the border title!"
+            )
 
         from cobib.commands import NoteCommand
 

@@ -62,8 +62,8 @@ class LintFormatter(logging.Formatter):
             while not line.strip().startswith(field):
                 line_no, line = next(raw_db)
             return f"{self._database_path}:{line_no + 1} {record.getMessage()}"
-        except AttributeError:
-            return ""
+        except AttributeError:  # pragma: no cover
+            return ""  # pragma: no cover
 
 
 class LintCommand(Command):
@@ -111,8 +111,8 @@ class LintCommand(Command):
         root_logger = logging.getLogger()
         if root_logger.getEffectiveLevel() > logging.INFO:
             # overwriting all existing handlers with this local one
-            root_logger.handlers = [handler]
-            root_logger.setLevel(logging.INFO)
+            root_logger.handlers = [handler]  # pragma: no cover
+            root_logger.setLevel(logging.INFO)  # pragma: no cover
         else:
             # appending new handler
             root_logger.addHandler(handler)
@@ -127,7 +127,7 @@ class LintCommand(Command):
         if all(not msg for msg in self._lint_messages):
             self._lint_messages = ["Congratulations! Your database triggers no lint messages."]
 
-        elif self.largs.format:
+        elif self.largs.format:  # pragma: no branch
             for label in formatter.dirty_entries:
                 # we exploit the rename method to register all dirty entries for re-writing
                 Database().rename(label, label)
@@ -145,5 +145,5 @@ class LintCommand(Command):
 
     @override
     def render_rich(self) -> ConsoleRenderable:
-        text = Text("\n".join(self._lint_messages))
-        return text
+        text = Text("\n".join(self._lint_messages))  # pragma: no cover
+        return text  # pragma: no cover

@@ -16,6 +16,8 @@ from typing import TYPE_CHECKING, cast
 from rich.text import Text
 from typing_extensions import override
 
+from cobib.utils.logging import DEPRECATED, HINT
+
 from .log_screen import LogScreen
 
 if TYPE_CHECKING:
@@ -55,13 +57,17 @@ class LoggingHandler(logging.Handler):
         style = ""
         if record.levelno >= logging.CRITICAL:
             style = "bold red"
+        elif record.levelno >= DEPRECATED:
+            style = "bold yellow"
         elif record.levelno >= logging.ERROR:
             style = "red"
+        elif record.levelno >= HINT:
+            style = "bold green"
         elif record.levelno >= logging.WARNING:
             style = "yellow"
         elif record.levelno >= logging.INFO:
             style = "green"
-        elif record.levelno >= logging.DEBUG:
+        elif record.levelno >= logging.DEBUG:  # pragma: no branch
             style = "blue"
 
         text = Text(message, style)

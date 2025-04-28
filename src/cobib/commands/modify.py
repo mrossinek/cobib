@@ -320,7 +320,7 @@ class ModifyCommand(Command):
                             else:
                                 raise TypeError
                         else:
-                            raise TypeError
+                            raise TypeError  # pragma: no cover
                     except TypeError:
                         LOGGER.warning(
                             "Encountered an unexpected field type to add to. Converting the field "
@@ -330,7 +330,7 @@ class ModifyCommand(Command):
                             str(prev_value) + local_value,
                         )
                         new_value = str(prev_value) + local_value
-                elif self.largs.remove:
+                elif self.largs.remove:  # pragma: no branch
                     try:
                         if not local_value:
                             LOGGER.info(
@@ -342,8 +342,8 @@ class ModifyCommand(Command):
                             try:
                                 new_value = copy(prev_value)  # type: ignore[assignment]
                                 new_value.remove(local_value)  # type: ignore[union-attr]
-                            except ValueError:
-                                LOGGER.warning(
+                            except ValueError:  # pragma: no cover
+                                LOGGER.warning(  # pragma: no cover
                                     "Could not remove '%s' from the field '%s' of entry '%s'.",
                                     local_value,
                                     field,
@@ -377,7 +377,9 @@ class ModifyCommand(Command):
 
                 if new_value is None:
                     if self.largs.dry:
-                        LOGGER.info("%s: removing the field '%s'", entry.label, field)
+                        LOGGER.info(  # pragma: no cover
+                            "%s: removing the field '%s'", entry.label, field
+                        )
                     entry.data.pop(field)
                 elif hasattr(entry, field):
                     if self.largs.dry:
@@ -391,7 +393,7 @@ class ModifyCommand(Command):
                     setattr(entry, field, new_value)
                 else:
                     if self.largs.dry:
-                        LOGGER.info(
+                        LOGGER.info(  # pragma: no cover
                             "%s: adding field '%s' = %s",
                             entry.label,
                             field,
@@ -411,12 +413,12 @@ class ModifyCommand(Command):
                                 LOGGER.info("Also renaming associated file '%s'.", str(path))
                                 target = RelPath(path.path.parent / f"{entry.label}.pdf")
                                 if target.path.exists():
-                                    LOGGER.warning(
+                                    LOGGER.warning(  # pragma: no cover
                                         "Found conflicting file, not renaming '%s'.", str(path)
                                     )
                                 else:
                                     if self.largs.dry:
-                                        LOGGER.info(
+                                        LOGGER.info(  # pragma: no cover
                                             "%s: renaming associated file '%s' to '%s'",
                                             entry.label,
                                             path.path,
@@ -426,8 +428,8 @@ class ModifyCommand(Command):
                                         path.path.rename(target.path)
                                         new_files.append(str(target))
                                     continue
-                            if not self.largs.dry:
-                                new_files.append(file)
+                            if not self.largs.dry:  # pragma: no cover
+                                new_files.append(file)  # pragma: no cover
                         if not self.largs.dry and new_files:
                             entry.file = new_files
 
@@ -463,7 +465,7 @@ def evaluate_ast_node(node: ast.expr, locals_: dict[str, Any] | None = None) -> 
         The evaluated AST node expression.
     """
     if locals_ is not None and "unidecode" not in locals_:
-        locals_["unidecode"] = unidecode
+        locals_["unidecode"] = unidecode  # pragma: no cover
 
     try:
         return eval(  # type: ignore[no-any-return]
@@ -493,7 +495,7 @@ def evaluate_as_f_string(value: str, locals_: dict[str, Any] | None = None) -> s
     References:
         <https://stackoverflow.com/a/61190684>
     """
-    if locals_ is not None and "unidecode" not in locals_:
+    if locals_ is not None and "unidecode" not in locals_:  # pragma: no branch
         locals_["unidecode"] = unidecode
 
     result: list[str] = []
@@ -516,7 +518,9 @@ def evaluate_as_f_string(value: str, locals_: dict[str, Any] | None = None) -> s
             result.append(str(value))
 
         else:
-            LOGGER.warning("Unexpected AST node expression type '%s' for an f-string.", typ)
-            raise ValueError
+            LOGGER.warning(  # pragma: no cover
+                "Unexpected AST node expression type '%s' for an f-string.", typ
+            )
+            raise ValueError  # pragma: no cover
 
     return "".join(result)

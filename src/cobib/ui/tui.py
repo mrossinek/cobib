@@ -46,6 +46,7 @@ from cobib.ui.components import (
     SearchView,
     SelectionFilter,
 )
+from cobib.utils.entry_points import entry_points
 from cobib.utils.prompt import Confirm
 
 from .ui import UI
@@ -274,15 +275,20 @@ class TUI(UI, App[None]):
         "preset_filter": PresetFilterScreen,
     }
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
+    def __init__(self, *args: Any, verbosity: int = logging.INFO, **kwargs: Any) -> None:
         """Initializes the TUI.
 
         Args:
             *args: any positional arguments for textual's underlying `App` class.
+            verbosity: the verbosity level of the internal logger.
             **kwargs: any keyword arguments for textual's underlying `App` class.
         """
         super().__init__(*args, **kwargs)
         self.console.push_theme(config.theme.build())
+        for handler in self.root_logger.handlers[:]:
+            if isinstance(handler, TextualHandler):
+                self.root_logger.removeHandler(handler)
+                handler.close()
         self.root_logger.addHandler(TextualHandler())
         self.title = "coBib"
         self.sub_title = "The Console Bibliography Manager"
@@ -290,7 +296,7 @@ class TUI(UI, App[None]):
         self._filter: SelectionFilter = SelectionFilter()
         self._filters.append(self._filter)
         self._background_tasks: set[asyncio.Task] = set()  # type: ignore[type-arg]
-        LoggingHandler(self, level=logging.INFO)
+        self.logging_handler = LoggingHandler(self, level=min(verbosity, logging.INFO))
 
     @override
     def compose(self) -> ComposeResult:
@@ -360,8 +366,8 @@ class TUI(UI, App[None]):
 
     async def action_quit(self) -> None:
         """Action to display the quit dialog."""
-        entry = self.query_one(EntryView)
-        note = entry.query_one(NoteView)
+        entry = self.query_exactly_one(EntryView)
+        note = entry.query_exactly_one(NoteView)
         if note.unsaved:
             msg = (
                 "You have unsaved changes on your open note! You must save or reset them before "
@@ -386,16 +392,17 @@ class TUI(UI, App[None]):
         """
         layout = self.screen.styles.layout
         if layout is None:
-            return
-        main = self.query_one(MainContent)
-        entry = self.query_one(EntryView)
+            # NOTE: this should not really be possible
+            return  # pragma: no cover
+        main = self.query_exactly_one(MainContent)
+        entry = self.query_exactly_one(EntryView)
         if layout.name.lower().startswith("horizontal"):
             self.screen.styles.layout = "vertical"
             main.styles.height = "2fr"
             main.styles.width = "1fr"
             entry.styles.grid_size_rows = 1
             entry.styles.grid_size_columns = 2
-        elif layout.name.lower().startswith("vertical"):
+        elif layout.name.lower().startswith("vertical"):  # pragma: no branch
             self.screen.styles.layout = "horizontal"
             main.styles.width = "2fr"
             main.styles.height = "1fr"
@@ -403,9 +410,7 @@ class TUI(UI, App[None]):
             entry.styles.grid_size_columns = 1
         self.refresh(layout=True)
 
-    async def action_prompt(
-        self, value: str, submit: bool = False, check_selection: bool = False
-    ) -> None:
+    async def action_prompt(self, value: str, submit: bool = False) -> None:
         """The prompt action.
 
         This action triggers an interactive user input via which an arbitrary coBib command can be
@@ -418,11 +423,11 @@ class TUI(UI, App[None]):
             value: the string with which to pre-populate the input field.
             submit: if set, the user will not be prompted and the input will be submitted
                 immediately (i.e. `value` gets parsed directly).
-            check_selection: whether or not to check for a visual selection.
         """
-        if check_selection and self._filter.selection:
-            self._filter.active = True
-            value += "-s "
+        # NOTE: we used to optionally insert the `-s` argument when a selection was active AND a
+        # check_selection keyword argument to this method was explicitly enabled, but this no longer
+        # occurred anywhere in the code and, thus, this logic was removed. If this was a mistake,
+        # this note should help in identifying the commit that removed the logic.
 
         if submit:
             await self._process_input(value)
@@ -442,7 +447,7 @@ class TUI(UI, App[None]):
         await_mount = self.push_screen("input", self._process_input)  # type: ignore[arg-type]
         inp_screen = cast(InputScreen, self.get_screen("input"))
         await await_mount
-        inp = inp_screen.query_one(Input)
+        inp = inp_screen.query_exactly_one(Input)
         inp.value = value
         inp.action_end()
 
@@ -451,7 +456,7 @@ class TUI(UI, App[None]):
 
         This action adds the entry currently under the cursor to the visual selection.
         """
-        main = self.query_one(MainContent)
+        main = self.query_exactly_one(MainContent)
         label = main.get_current_label()
 
         if label in self._filter.selection:
@@ -461,14 +466,14 @@ class TUI(UI, App[None]):
 
         main.notify_style_update()
         main.refresh()
-        self.query_one(EntryView).query_one(Static).refresh()
+        self.query_exactly_one(EntryView).query_exactly_one(Static).refresh()
 
     def action_delete(self) -> None:
         """The delete action.
 
         This action triggers the `cobib.commands.delete.DeleteCommand`.
         """
-        main = self.query_one(MainContent)
+        main = self.query_exactly_one(MainContent)
         labels: list[str]
         if self._filter.selection:
             labels = list(self._filter.selection)
@@ -483,6 +488,8 @@ class TUI(UI, App[None]):
 
         This action triggers the `cobib.commands.edit.EditCommand`.
         """
+        # NOTE: we are unable to test this in CI at this time, because the textual Pilot interface
+        # does not support suspend.
         self._edit_entry()
         await self._update_table()
 
@@ -502,7 +509,7 @@ class TUI(UI, App[None]):
 
         This action triggers the `cobib.commands.open.OpenCommand`.
         """
-        main = self.query_one(MainContent)
+        main = self.query_exactly_one(MainContent)
         labels: list[str]
         if self._filter.selection:
             labels = list(self._filter.selection)
@@ -531,7 +538,7 @@ class TUI(UI, App[None]):
             idx = int(idx)
             if idx == 0:
                 await self._process_input("list -r")
-            elif idx <= len(config.tui.preset_filters):
+            elif idx <= len(config.tui.preset_filters):  # pragma: no branch
                 await self._process_input(f"list {config.tui.preset_filters[idx - 1]}")
 
     async def action_filter(self) -> None:
@@ -555,7 +562,11 @@ class TUI(UI, App[None]):
             # NOTE: we need to pop twice in order to remove both: the `-s` option and the key which
             # was sorted by
             self._list_args.pop(sort_arg_idx)
-            self._list_args.pop(sort_arg_idx)
+            try:
+                self._list_args.pop(sort_arg_idx)
+            except IndexError:
+                # if the previous sort was aborted
+                pass
         except ValueError:
             pass
 
@@ -572,7 +583,9 @@ class TUI(UI, App[None]):
         Suspension of the App is handled directly by the edit command using
         `cobib.utils.context.get_active_app`.
         """
-        main = self.query_one(MainContent)
+        # NOTE: we are unable to test this in CI at this time, because the textual Pilot interface
+        # does not support suspend.
+        main = self.query_exactly_one(MainContent)
         label = main.get_current_label()
         from cobib import commands
 
@@ -595,18 +608,18 @@ class TUI(UI, App[None]):
             edit_note: whether to edit the `TextArea`.
         """
         if command is None:
-            main = self.query_one(MainContent)
+            main = self.query_exactly_one(MainContent)
             label = main.get_current_label()
             from cobib import commands
 
             command = commands.ShowCommand(label)
         command.execute()
-        entry = self.query_one(EntryView)
-        static = entry.query_one(Static)
+        entry = self.query_exactly_one(EntryView)
+        static = entry.query_exactly_one(Static)
         static.update(command.render_rich())
         if load_note:
             label = command.largs.label
-            text_area = entry.query_one(NoteView)
+            text_area = entry.query_exactly_one(NoteView)
             text_area.load_note(label, edit=edit_note)
 
     def _jump_to_entry(self, command: list[str]) -> None:
@@ -620,7 +633,7 @@ class TUI(UI, App[None]):
 
         show_cmd = commands.ShowCommand(*command)
         label = show_cmd.largs.label
-        main = self.query_one(MainContent)
+        main = self.query_exactly_one(MainContent)
         try:
             main.jump_to_label(label)
         except KeyError:
@@ -629,13 +642,15 @@ class TUI(UI, App[None]):
                     f"The entry with label '{label}' exists in the database but not in the current "
                     "view. Displaying it only in the side panel."
                 )
-                LOGGER.info(msg)
-        self._show_entry(show_cmd, load_note=True)
+                LOGGER.log(35, msg)
+                self._show_entry(show_cmd, load_note=True)
+        else:
+            self._show_entry(show_cmd, load_note=True)
 
     async def _update_table(self) -> None:
         """Updates the list of entries displayed in the `MainContent`."""
-        main = self.screen_stack[0].query_one(MainContent)
-        old_table = main.query_one(ListView)
+        main = self.screen_stack[0].query_exactly_one(MainContent)
+        old_table = main.query_exactly_one(ListView)
         from cobib import commands
 
         command = commands.ListCommand(*self._list_args)
@@ -643,7 +658,7 @@ class TUI(UI, App[None]):
         table = command.render_textual()
         await main.replace_widget(table)
         table.focus()
-        if old_table is not None:
+        if old_table is not None:  # pragma: no branch
             table.cursor_coordinate = old_table.cursor_coordinate
             table.scroll_x = old_table.scroll_x
             table.scroll_y = old_table.scroll_y
@@ -662,7 +677,7 @@ class TUI(UI, App[None]):
         subcmd = commands.SearchCommand(*command)
         await subcmd.execute()
         tree = subcmd.render_textual()
-        main = self.query_one(MainContent)
+        main = self.query_exactly_one(MainContent)
         await main.replace_widget(tree)
         tree.focus()
         self.refresh(layout=True)
@@ -683,12 +698,13 @@ class TUI(UI, App[None]):
 
         command = shlex.split(value)
 
-        if self._filter.active:
+        if self._filter.selection:
+            if "-s" not in command:  # pragma: no branch
+                command += ["-s"]
             command += ["--"]
             command.extend(list(self._filter.selection))
-            self._filter.active = False
 
-        if command and command[0]:
+        if command and command[0]:  # pragma: no branch
             if command[0].lower() == "init":
                 LOGGER.error(
                     "You cannot run the 'init' command from within the TUI!\n"
@@ -709,14 +725,6 @@ class TUI(UI, App[None]):
                 await self._update_table()
             elif command[0].lower() == "search":
                 await self._update_tree(command[1:])
-            elif command[0].lower() == "edit":
-                from cobib import commands
-
-                commands.EditCommand(*command[1:]).execute()
-            elif command[0].lower() == "note":
-                from cobib import commands
-
-                commands.NoteCommand(*command[1:]).execute()
             else:
                 self._run_command(command)
 
@@ -742,12 +750,22 @@ class TUI(UI, App[None]):
         Args:
             command: a list of strings consisting of the command keyword and its arguments.
         """
+        matching_commands = [
+            cls for (cls, _) in entry_points("cobib.commands") if cls.name == command[0]
+        ]
+        if len(matching_commands) == 0:
+            msg = (
+                f"Did not find a command registered by the name of '{command[0]}'; "
+                "Aborting execution!"
+            )
+            LOGGER.critical(msg)
+            return
+        cmd_entry_point = matching_commands[0]
+
         with redirect_stdout(io.StringIO()) as stdout:
             with redirect_stderr(io.StringIO()) as stderr:
                 try:
-                    from cobib import commands
-
-                    subcmd = getattr(commands, command[0].title() + "Command")(*command[1:])
+                    subcmd = cmd_entry_point.load()(*command[1:])
 
                     if not iscoroutinefunction(subcmd.execute):
                         subcmd.execute()
@@ -774,8 +792,16 @@ class TUI(UI, App[None]):
 
         stdout_val = stdout.getvalue().strip()
         if stdout_val:
-            self.notify(stdout_val, title="Output", severity="information", timeout=5)
+            # NOTE: we are ignoring coverage below, but this behavior is tested as part of the test
+            # suite of the example plugin
+            self.notify(  # pragma: no cover
+                stdout_val, title="Output", severity="information", timeout=5
+            )
 
         stderr_val = stderr.getvalue().strip()
         if stderr_val:
-            self.notify(stderr_val, title="Error", severity="error", timeout=10)
+            # NOTE: we are ignoring coverage below, but this behavior is tested as part of the test
+            # suite of the example plugin
+            self.notify(  # pragma: no cover
+                stderr_val, title="Error", severity="error", timeout=10
+            )

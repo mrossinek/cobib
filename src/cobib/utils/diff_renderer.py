@@ -75,7 +75,7 @@ class DiffData:
         position += self._get_cumulative_count()
         col, row = -1, 0
         cumulative_count = 0
-        for line in self.lines:
+        for line in self.lines:  # pragma: no branch
             cumulative_count += len(line)
             if cumulative_count > position:
                 col = position - (cumulative_count - len(line))
@@ -165,7 +165,7 @@ class Differ:
         """A utility to process a `difflib.unified_diff` header."""
         result = Differ._unified_diff_header.search(line)
 
-        if result is not None:
+        if result is not None:  # pragma: no branch
             offset_left, _, offset_right, _ = result.groups()
 
             self.left.current_offset = int(offset_left)

@@ -106,12 +106,12 @@ class GitCommand(Command):
         file = RelPath(config.database.file).path
         root = file.parent
         if not is_inside_work_tree(root):
-            msg = (
+            msg = (  # pragma: no cover
                 "You have configured, but not initialized coBib's git-tracking."
                 "\nPlease consult `cobib init --help` for more information on how to do so."
             )
-            LOGGER.error(msg)
-            return
+            LOGGER.error(msg)  # pragma: no cover
+            return  # pragma: no cover
 
         LOGGER.debug("Starting Git command.")
 

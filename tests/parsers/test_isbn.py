@@ -72,6 +72,22 @@ class TestISBNParser(ParserTest):
             (source, level) for source, level, _ in caplog.record_tuples
         ]
 
+    def test_invalid_isbn(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Test parsing an invalid ISBN.
+
+        Args:
+            caplog: the built-in pytest fixture.
+        """
+        entries = ISBNParser().parse("1701.08213")
+        assert not entries
+        assert entries == {}
+
+        assert (
+            "cobib.parsers.isbn",
+            logging.WARNING,
+            "'1701.08213' is not a valid ISBN.",
+        ) in caplog.record_tuples
+
     def test_catching_api_error(
         self, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
     ) -> None:

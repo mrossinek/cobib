@@ -69,9 +69,10 @@ no-optionals:
         when: always
         expire_in: 30 days
         paths:
-            - tests/report-no-optionals.xml
+            - report-no-optionals.xml
+            - tests/snapshot_report.html
         reports:
-            junit: tests/report-no-optinals.xml
+            junit: report-no-optinals.xml
 
 plugin:
     stage: test
@@ -81,9 +82,10 @@ plugin:
         when: always
         expire_in: 30 days
         paths:
-            - plugin/tests/report-plugin.xml
+            - plugin/report-plugin.xml
+            - plugin/snapshot_report.html
         reports:
-            junit: plugin/tests/report-plugin.xml
+            junit: plugin/report-plugin.xml
 
 coverage:
     stage: test
@@ -95,8 +97,9 @@ coverage:
         expire_in: 30 days
         paths:
             - coverage.xml
+            - cobertura.xml
             - htmlcov
-            - tests/snapshot_report.html
+            - snapshot_report.html
         reports:
           coverage_report:
             coverage_format: cobertura

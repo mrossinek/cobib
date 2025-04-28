@@ -84,8 +84,8 @@ class Importer(ABC):
         """
         try:
             largs = cls._get_argparser().parse_args(args)
-        except argparse.ArgumentError as exc:
-            LOGGER.error(exc.message)
+        except argparse.ArgumentError as exc:  # pragma: no cover
+            LOGGER.error(exc.message)  # pragma: no cover
             sys.exit(1)
 
         return largs

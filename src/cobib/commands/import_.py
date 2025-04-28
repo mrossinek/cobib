@@ -135,8 +135,10 @@ class ImportCommand(Command):
         for name in cls._avail_importers.keys():
             try:
                 group_import.add_argument(f"--{name}", action="store_true", help=f"{name} importer")
-            except argparse.ArgumentError:
-                continue
+            except argparse.ArgumentError:  # pragma: no cover
+                # NOTE: we ignore coverage for the special handling around here because this is
+                # tested via the dummy plugin unittests in the CI.
+                continue  # pragma: no cover
         cls.argparser = parser
 
     @override
@@ -187,3 +189,5 @@ class ImportCommand(Command):
         bib.update(self.new_entries)
 
         bib.save()
+
+        self.git()

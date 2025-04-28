@@ -9,3 +9,5 @@ config.logging.version = None
 root = Path(__file__).parent
 config.database.cache = None
 config.database.file = str((root / "testing.yaml").resolve())
+
+config.theme.syntax.line_numbers = False

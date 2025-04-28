@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- the `verbosity` keyword argument to the `TUI` such that the log screen of the
+  TUI respects the `--verbose` level provided from the command-line
+- the `cobib.utils.logging.DEPRECATED` and `cobib.utils.logging.HINT` constants
+  to indicate the custom logging level numeric values
+
+### Fixed
+- the `import` command will now correctly generate a `git` commit
+- the TUI no longer crashes when using `:show` to jump to an unknown label
+- the TUI no longer crashes when trying to execute an unknown command
+- the TUI now respects the `cobib.commands` entry points
+- the TUI now respects the active visual selection correctly for commands triggered via the prompt
+- the TUI no longer crashes when trying to sort after aborting a previous sort
+
 
 ## [5.3.0] - 2025-02-08
 

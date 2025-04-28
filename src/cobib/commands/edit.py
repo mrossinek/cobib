@@ -159,11 +159,11 @@ class EditCommand(Command):
         if entry_text is None:
             # No entry found to be edited. This should never occur unless the YAMLParser experiences
             # an unexpected error.
-            LOGGER.error(
+            LOGGER.error(  # pragma: no cover
                 f"Encountered an unexpected case while trying to edit {self.largs.label} which "
                 "might result from a problem with the YAML parser."
             )
-            return
+            return  # pragma: no cover
 
         new_text = self.edit(entry_text)
 
@@ -191,12 +191,14 @@ class EditCommand(Command):
                         LOGGER.info("Also renaming associated file '%s'.", str(path))
                         target = RelPath(path.path.parent / f"{self.new_entry.label}.pdf")
                         if target.path.exists():
-                            LOGGER.warning("Found conflicting file, not renaming '%s'.", str(path))
+                            LOGGER.warning(  # pragma: no cover
+                                "Found conflicting file, not renaming '%s'.", str(path)
+                            )
                         else:
                             path.path.rename(target.path)
                             new_files.append(str(target))
                             continue
-                    new_files.append(file)
+                    new_files.append(file)  # pragma: no cover
                 self.new_entry.file = new_files
 
         Event.PostEditCommand.fire(self)
@@ -220,6 +222,8 @@ class EditCommand(Command):
         app = get_active_app()
         if app is None:
             return EditCommand._edit(entry_text)
+        # NOTE: we are unable to test this in CI at this time, because the textual Pilot interface
+        # does not support suspend.
         with app.suspend():
             return EditCommand._edit(entry_text)
 

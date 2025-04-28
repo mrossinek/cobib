@@ -9,7 +9,7 @@ This screen renders the log messages.
 
 from __future__ import annotations
 
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -47,8 +47,12 @@ class LogScreen(ModalScreen[None]):
         }
     """
 
-    rich_log = RichLog(id="log")
-    """The internal `RichLog` widget in which the actual log messages are rendered."""
+    @override
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+
+        self.rich_log = RichLog(id="log")
+        """The internal `RichLog` widget in which the actual log messages are rendered."""
 
     @override
     def compose(self) -> ComposeResult:
@@ -63,4 +67,5 @@ class LogScreen(ModalScreen[None]):
 
         Since this is the action of the `LogScreen`, it simply pops the screen.
         """
+        assert self.is_current
         self.app.pop_screen()

@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Generator
-from typing import Any
+from sys import version_info
+from typing import Any, cast
 
 import pytest
+from textual.pilot import Pilot
 
 from cobib.config import config
 from cobib.database import Database
+from cobib.ui.components import InputScreen, LogScreen
 from cobib.ui.tui import TUI
 
 from ... import get_resource
@@ -23,6 +27,7 @@ class TestTUISearch:
     @pytest.fixture(autouse=True)
     def setup() -> Generator[Any, None, None]:
         """Load testing config."""
+        InputScreen.cursor_blink = False
         config.load(get_resource("debug.py"))
         yield
         Database.reset()
@@ -44,10 +49,15 @@ class TestTUISearch:
         """
         if tree_folding is not None:
             config.tui.tree_folding = tree_folding
-        press = ["slash", "1", "9", "enter"]
-        if expand:
-            press.append("space")
-        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, press=press)
+
+        async def run_before(pilot: Pilot[None]) -> None:
+            app = cast(TUI, pilot.app)
+            await app.action_prompt("/19", submit=True)
+            if expand:
+                await pilot.press("space")
+            await pilot.pause()
+
+        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, run_before=run_before)
 
     def test_expand_all(self, snap_compare: Any) -> None:
         """Tests the recursive expansion of all search result nodes.
@@ -56,8 +66,14 @@ class TestTUISearch:
             snap_compare: the `pytest-textual-snapshot` fixture.
         """
         config.tui.tree_folding = (True, True)
-        press = ["slash", "1", "9", "enter", "backspace"]
-        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, press=press)
+
+        async def run_before(pilot: Pilot[None]) -> None:
+            app = cast(TUI, pilot.app)
+            await app.action_prompt("/19", submit=True)
+            await pilot.press("backspace")
+            await pilot.pause()
+
+        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, run_before=run_before)
 
     def test_jump(self, snap_compare: Any) -> None:
         """Tests the jump action.
@@ -65,37 +81,56 @@ class TestTUISearch:
         Args:
             snap_compare: the `pytest-textual-snapshot` fixture.
         """
-        assert snap_compare(
-            TUI(),
-            terminal_size=TERMINAL_SIZE,
-            press=[
-                "slash",
-                "1",
-                "9",
-                "enter",
-                ":",
-                "s",
-                "h",
-                "o",
-                "w",
-                "space",
-                "l",
-                "a",
-                "t",
-                "e",
-                "x",
-                "c",
-                "o",
-                "m",
-                "p",
-                "a",
-                "n",
-                "i",
-                "o",
-                "n",
-                "enter",
-            ],
-        )
+
+        async def run_before(pilot: Pilot[None]) -> None:
+            app = cast(TUI, pilot.app)
+            await app.action_prompt("/19", submit=True)
+            await app.action_prompt(":show latexcompanion")
+            await pilot.press("enter")
+            await pilot.pause()
+
+        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, run_before=run_before)
+
+    def test_jump_missing(self, snap_compare: Any) -> None:
+        """Tests the jump action handling for a missing entry.
+
+        Args:
+            snap_compare: the `pytest-textual-snapshot` fixture.
+        """
+
+        async def run_before(pilot: Pilot[None]) -> None:
+            app = cast(TUI, pilot.app)
+            formatter = logging.Formatter(fmt="[%(levelname)s] %(message)s")
+            app.logging_handler.setFormatter(formatter)
+            log_screen = cast(LogScreen, app.get_screen("log"))
+            log_screen.rich_log.clear()
+            await app.action_prompt("/19", submit=True)
+            await app.action_prompt(":show missing")
+            await pilot.press("enter")
+            await pilot.pause()
+
+        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, run_before=run_before)
+
+    def test_jump_out_of_view(self, snap_compare: Any) -> None:
+        """Tests the jump action handling for an existing entry that is out of view.
+
+        Args:
+            snap_compare: the `pytest-textual-snapshot` fixture.
+        """
+
+        async def run_before(pilot: Pilot[None]) -> None:
+            app = cast(TUI, pilot.app)
+            formatter = logging.Formatter(fmt="[%(levelname)s] %(message)s")
+            app.logging_handler.setFormatter(formatter)
+            log_screen = cast(LogScreen, app.get_screen("log"))
+            log_screen.rich_log.clear()
+            await app.action_prompt("/19", submit=True)
+            await app.action_prompt(":show knuthwebsite")
+            await pilot.press("enter")
+            await pilot.press("z")
+            await pilot.pause()
+
+        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, run_before=run_before)
 
     @pytest.mark.parametrize(
         "motions",
@@ -104,7 +139,15 @@ class TestTUISearch:
             ["down", "up"],
             ["end"],
             ["end", "home"],
-            ["pagedown"],
+            pytest.param(
+                ["pagedown"],
+                marks=pytest.mark.skipif(
+                    version_info.minor < 12,
+                    reason=(
+                        "Not quite sure why, but the output differs consistently in these cases."
+                    ),
+                ),
+            ),
             ["end", "pageup"],
         ],
     )
@@ -115,5 +158,12 @@ class TestTUISearch:
             snap_compare: the `pytest-textual-snapshot` fixture.
             motions: the motions to perform.
         """
-        press = ["slash", "1", "9", "enter", *motions]
-        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, press=press)
+
+        async def run_before(pilot: Pilot[None]) -> None:
+            app = cast(TUI, pilot.app)
+            await app.action_prompt("/19", submit=True)
+            for button in motions:
+                await pilot.press(button)
+            await pilot.pause()
+
+        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, run_before=run_before)

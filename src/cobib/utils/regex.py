@@ -14,12 +14,14 @@ HAS_OPTIONAL_REGEX = False
 
 try:
     import regex
-except ModuleNotFoundError:
-    LOGGER.info(
+except ModuleNotFoundError:  # pragma: no cover
+    # NOTE: we ignore coverage below because the CI has an additional job running the unittests
+    # without optional dependencies available.
+    LOGGER.info(  # pragma: no cover
         "Could not find the `regex` package. Falling back to the builtin `re` module. Certain "
         "functionality may not be available without the optional `regex` dependency installed."
     )
-    import re as regex  # type: ignore[no-redef]
+    import re as regex  # type: ignore[no-redef]  # pragma: no cover
 else:
     HAS_OPTIONAL_REGEX = True
     LOGGER.info("Found the `regex` package.")

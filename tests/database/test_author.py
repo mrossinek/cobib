@@ -51,6 +51,21 @@ from cobib.database import Author
             Author("L", "Beethoven", particle="van"),
             "van Beethoven, L",
         ],
+        [
+            "Walther von der Vogelweide",
+            Author("Walther", "Vogelweide", particle="von der"),
+            "von der Vogelweide, Walther",
+        ],
+        [
+            "von der Vogelweide, Walther",
+            Author("Walther", "Vogelweide", particle="von der"),
+            "von der Vogelweide, Walther",
+        ],
+        [
+            "von der Vogelweide, W",
+            Author("W", "Vogelweide", particle="von der"),
+            "von der Vogelweide, W",
+        ],
         ["{Barnes and Noble, Inc.}", "{Barnes and Noble, Inc.}", "{Barnes and Noble, Inc.}"],
         ["{FCC H2020 Project}", "{FCC H2020 Project}", "{FCC H2020 Project}"],
         [

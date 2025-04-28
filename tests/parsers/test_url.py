@@ -15,6 +15,7 @@ from cobib.parsers import URLParser
 from .parser_test import ParserTest
 from .test_arxiv import assert_default_test_entry as assert_arxiv_entry
 from .test_doi import assert_default_test_entry as assert_doi_entry
+from .test_isbn import assert_default_test_entry as assert_isbn_entry
 
 
 def assert_default_test_entry(entry: Entry) -> None:
@@ -50,6 +51,7 @@ class TestURLParser(ParserTest):
     @pytest.mark.parametrize(
         ("query", "assertion"),
         [
+            ("978-1-449-35573-9", assert_isbn_entry),
             ("https://arxiv.org/abs/1701.08213", assert_arxiv_entry),
             ("https://doi.org/10.1021/acs.jpclett.3c00330", assert_doi_entry),
             ("https://www.nature.com/articles/s41467-019-10988-2", assert_default_test_entry),

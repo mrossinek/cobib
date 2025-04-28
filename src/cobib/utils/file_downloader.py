@@ -136,7 +136,7 @@ class FileDownloader:
             )
             optional_awaitable = progress_bar.start()  # type: ignore[func-returns-value]
             if optional_awaitable is not None:
-                await optional_awaitable
+                await optional_awaitable  # pragma: no cover
 
             task = progress_bar.add_task("Downloading...", total=total_length)
 
@@ -180,7 +180,7 @@ class FileDownloader:
             The mapped URL.
         """
         for pattern_url, repl_url in config.utils.file_downloader.url_map.items():
-            if re.match(pattern_url, url):
+            if re.match(pattern_url, url):  # pragma: no branch
                 new_url: str = re.sub(pattern_url, repl_url, url)
                 LOGGER.info(
                     "Matched the file's URL to your pattern URL %s and replaced it to become %s",

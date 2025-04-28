@@ -418,3 +418,12 @@ def test_database_cache_outdated() -> None:
 
         with pytest.raises(CacheError, match="the cached database is outdated"):
             Database.read_cache()
+
+
+def test_database_bypass_cache() -> None:
+    """Test handling of the `bypass_cache` keyword argument."""
+    Database._instance = None
+    config.database.file = TMPDIR / "cobib_test_database_file.yaml"
+    copyfile(EXAMPLE_LITERATURE, config.database.file)
+    Database.read(bypass_cache=True)
+    assert "bypass_cache" not in Database()

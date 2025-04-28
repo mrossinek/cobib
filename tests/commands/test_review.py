@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import contextlib
+import logging
 from collections.abc import Generator
 from io import StringIO
+from shutil import rmtree
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -492,7 +494,7 @@ class TestReviewCommand(CommandTest):
         post_setup: Any,
         caplog: pytest.LogCaptureFixture,
     ) -> None:
-        """Test the skipping action.
+        """Test the resume action.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
@@ -541,6 +543,7 @@ class TestReviewCommand(CommandTest):
     @pytest.mark.parametrize(
         ["sha", "setup"],
         [
+            ["HEAD", {"git": False}],
             ["HEAD", {"git": True}],
             ["test", {"git": True}],
         ],
@@ -549,18 +552,30 @@ class TestReviewCommand(CommandTest):
     async def test_command_resume_graceful(
         self,
         setup: Any,
-        post_setup: Any,
         caplog: pytest.LogCaptureFixture,
         sha: str,
     ) -> None:
-        """Test the skipping action.
+        """Test the graceful handling of the resume action.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
-            post_setup: an additional setup fixture.
             caplog: the built-in pytest fixture.
             sha: the git commit sha to use.
         """
+        git = setup.get("git", False)
+
+        if not git:
+            await ReviewCommand("--resume", sha).execute()
+            for source, level, message in caplog.record_tuples:
+                if ("cobib.commands.review", logging.ERROR) == (
+                    source,
+                    level,
+                ) and "git-tracking" in message:
+                    break
+            else:
+                pytest.fail("No Error logged from ReviewCommand.")
+            return
+
         cmd = ReviewCommand("--resume", sha)
         await cmd.execute()
 
@@ -586,6 +601,34 @@ class TestReviewCommand(CommandTest):
     @pytest.mark.parametrize(
         ["setup"],
         [
+            [{"git": True}],
+        ],
+        indirect=["setup"],
+    )
+    async def test_warn_insufficient_setup(
+        self, setup: Any, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Test warning in case of insufficient setup.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
+        rmtree(self.COBIB_TEST_DIR_GIT)
+        await ReviewCommand("--resume", "HEAD").execute()
+        for source, level, message in caplog.record_tuples:
+            if ("cobib.commands.review", logging.ERROR) == (
+                source,
+                level,
+            ) and "configured, but not initialized" in message:
+                break
+        else:
+            pytest.fail("No Error logged from ReviewCommand.")
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ["setup"],
+        [
             [{"git": False}],
             [{"git": True}],
         ],
@@ -605,7 +648,7 @@ class TestReviewCommand(CommandTest):
         caplog: pytest.LogCaptureFixture,
         capsys: pytest.CaptureFixture[str],
     ) -> None:
-        """Test the editing action.
+        """Test the command with specific fields to review.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
@@ -708,7 +751,7 @@ class TestReviewCommand(CommandTest):
         capsys: pytest.CaptureFixture[str],
         context: bool,
     ) -> None:
-        """Test the editing action.
+        """Test the context option.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
@@ -829,7 +872,7 @@ class TestReviewCommand(CommandTest):
         capsys: pytest.CaptureFixture[str],
         args: list[str],
     ) -> None:
-        """Test the editing action.
+        """Test the inline action.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.

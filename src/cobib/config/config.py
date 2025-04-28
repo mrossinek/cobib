@@ -496,6 +496,8 @@ class ListCommandConfig(_ConfigBase):
             isinstance(self.fuzziness, int) and self.fuzziness >= 0,
             "config.commands.list_.fuzziness should be a non-negative integer.",
         )
+        # NOTE: we ignore coverage below because the CI has an additional job running the unittests
+        # without optional dependencies available.
         if self.fuzziness > 0 and not HAS_OPTIONAL_REGEX:  # pragma: no branch
             LOGGER.warning(  # pragma: no cover
                 "Using `config.commands.list_.fuzziness` requires the optional `regex` "
@@ -588,7 +590,7 @@ class SearchCommandConfig(_ConfigBase):
     """Specifies whether searches should skip looking through associated notes."""
 
     @property
-    def highlights(self) -> SearchHighlightConfig:
+    def highlights(self) -> SearchHighlightConfig:  # pragma: no cover
         """**DEPRECATED** Use `config.theme.search` instead!
 
         The nested section for highlights used when displaying search results.
@@ -632,11 +634,13 @@ class SearchCommandConfig(_ConfigBase):
             "config.commands.search.fuzziness should be a non-negative integer.",
         )
         if self.fuzziness > 0 and not HAS_OPTIONAL_REGEX:
-            LOGGER.warning(
+            # NOTE: we are ignoring coverage below, because the codebase is checked separately
+            # without optional dependencies being present.
+            LOGGER.warning(  # pragma: no cover
                 "Using `config.commands.search.fuzziness` requires the optional `regex` "
                 "dependency to be installed! Falling back to `fuzziness=0`."
             )
-            self.fuzziness = 0
+            self.fuzziness = 0  # pragma: no cover
         self._assert(
             isinstance(self.skip_files, bool),
             "config.commands.search.skip_files should be a boolean.",
@@ -1238,7 +1242,7 @@ class Config(_ConfigBase):
         Args:
             configpath: the path to the configuration.
         """
-        LOGGER.info(configpath)
+        LOGGER.info("Input provided to Config.load: %s", configpath)
         if configpath is not None:
             if isinstance(configpath, (TextIO, io.TextIOWrapper)):
                 configpath.close()
@@ -1253,6 +1257,9 @@ class Config(_ConfigBase):
                 return
             configpath = RelPath(configpath_env).path
         elif Config.XDG_CONFIG_FILE and RelPath(Config.XDG_CONFIG_FILE).exists():
+            # NOTE: I don't quite know why these two lines are not included in coverage because
+            # there is a unittest for them and adding a print statement here does show up in the
+            # output of the test suite...
             configpath = RelPath(Config.XDG_CONFIG_FILE).path
         else:  # pragma: no cover
             return  # pragma: no cover

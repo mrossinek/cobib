@@ -74,8 +74,17 @@ def test_abbreviate(dotless: bool) -> None:
     old_journal = "Test Journal"
     new_journal = JournalAbbreviations.abbreviate(old_journal, dotless=dotless)
     assert new_journal == old_journal
+    # test a non-existent abbreviated journal (this should keep its punctuation!)
+    old_journal = "Test J."
+    new_journal = JournalAbbreviations.abbreviate(old_journal, dotless=dotless)
+    assert new_journal == old_journal
+    # test the actual abbreviation
     config.utils.journal_abbreviations = [("Test Journal", "Test J.")]
     new_journal = JournalAbbreviations.abbreviate(old_journal, dotless=dotless)
+    expected = "Test J" if dotless else "Test J."
+    assert new_journal == expected
+    # test an already abbreviated journal
+    new_journal = JournalAbbreviations.abbreviate("Test J.", dotless=dotless)
     expected = "Test J" if dotless else "Test J."
     assert new_journal == expected
 

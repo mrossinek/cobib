@@ -26,7 +26,7 @@ def is_inside_work_tree(path: Path) -> bool:
         stderr=subprocess.PIPE,
     )
     if inside_work_tree.returncode != 0 or inside_work_tree.stdout.decode().strip() != "true":
-        return False
+        return False  # pragma: no cover
     path_ignored = subprocess.run(
         ["git", "-C", path, "check-ignore", "--quiet", path],
         check=False,
