@@ -1,5 +1,5 @@
 beautifulsoup4
-bibtexparser
+bibtexparser<2
 lxml
 pylatexenc
 requests
