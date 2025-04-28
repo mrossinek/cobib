@@ -79,7 +79,7 @@ class ArxivParser(Parser):
         label = ""
         entry: dict[str, Any] = {}
         entry["archivePrefix"] = "arXiv"
-        for key in xml.feed.entry.findChildren(recursive=False):  # type: ignore[union-attr]
+        for key in xml.feed.entry.find_all(recursive=False):  # type: ignore[union-attr]
             if "doi" in key.name:
                 entry["doi"] = str(key.contents[0])
             elif key.name == "id":
@@ -99,7 +99,7 @@ class ArxivParser(Parser):
                 if "author" not in entry:
                     first = True
                     entry["author"] = ""
-                name = next(n.contents[0] for n in key.findChildren())
+                name = next(n.contents[0] for n in key.find_all())
                 if first:
                     label = name.split()[-1] + label
                     first = False
