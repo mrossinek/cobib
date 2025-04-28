@@ -108,6 +108,13 @@ exclude_also = [
 show_missing = true
 
 [tool.mypy]
+mypy_path = "src:plugin/src"
+exclude = [
+    "build",
+]
+namespace_packages = true
+explicit_package_bases = true
+strict = true
 python_version = 3.9
 show_error_codes = true
 check_untyped_defs = true
@@ -129,7 +136,6 @@ enable_error_code = [
 module = [
     "bibtexparser",
     "pylatexenc.*",
-    "requests_oauthlib",
     "text_unidecode",
 ]
 ignore_missing_imports = true

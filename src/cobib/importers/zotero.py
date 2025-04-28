@@ -47,6 +47,7 @@ import logging
 import os
 import subprocess
 import sys
+from typing import cast
 
 import requests
 from requests_oauthlib import OAuth1Session
@@ -249,8 +250,8 @@ class ZoteroImporter(Importer):
         oauth_tokens = oauth.fetch_access_token(ZoteroImporter.OAUTH_ACCESS_URL)
 
         authentication = {
-            "Zotero-API-Key": oauth_tokens.get("oauth_token"),
-            "UserID": oauth_tokens.get("userID"),
+            "Zotero-API-Key": cast(str, oauth_tokens.get("oauth_token")),
+            "UserID": cast(str, oauth_tokens.get("userID")),
         }
 
         return authentication
@@ -312,7 +313,7 @@ class ZoteroImporter(Importer):
             A dictionary containing the authentication information. Refer to
             `_get_fresh_oauth_tokens` for more specific details on the dictionary contents.
         """
-        authentication: dict[str, str] = {}
+        authentication = {}
 
         if not no_cache:
             authentication = ZoteroImporter._get_cached_oauth_tokens()
