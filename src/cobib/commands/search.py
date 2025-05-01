@@ -417,6 +417,9 @@ class SearchCommand(Command):
 
         Event.PostSearchCommand.fire(self)
 
+        if len(self.matches) == 0:
+            LOGGER.warning("The search for %s returned no results!", self.largs.query)
+
     @override
     def render_porcelain(self) -> list[str]:
         output = []

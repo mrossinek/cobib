@@ -59,6 +59,20 @@ class TestTUISearch:
 
         assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, run_before=run_before)
 
+    def test_empty_results(self, snap_compare: Any) -> None:
+        """Test the handling of empty search results.
+
+        Args:
+            snap_compare: the `pytest-textual-snapshot` fixture.
+        """
+
+        async def run_before(pilot: Pilot[None]) -> None:
+            app = cast(TUI, pilot.app)
+            await app.action_prompt("/missing", submit=True)
+            await pilot.pause()
+
+        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, run_before=run_before)
+
     def test_expand_all(self, snap_compare: Any) -> None:
         """Tests the recursive expansion of all search result nodes.
 

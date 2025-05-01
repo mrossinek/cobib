@@ -17,7 +17,7 @@ from textual.binding import Binding
 from textual.coordinate import Coordinate
 from textual.geometry import Region, clamp
 from textual.widgets import DataTable
-from textual.widgets.data_table import RowDoesNotExist
+from textual.widgets.data_table import CellDoesNotExist, RowDoesNotExist
 from typing_extensions import override
 
 from cobib.config import config
@@ -183,7 +183,10 @@ class ListView(DataTable[Text], inherit_bindings=False):
         Returns:
             The label of the entry currently under the cursor.
         """
-        label = self.coordinate_to_cell_key(Coordinate(self.cursor_row, 0)).row_key.value
+        try:
+            label = self.coordinate_to_cell_key(Coordinate(self.cursor_row, 0)).row_key.value
+        except CellDoesNotExist:
+            return None
         return label
 
     def jump_to_label(self, label: str) -> None:

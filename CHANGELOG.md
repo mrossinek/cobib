@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - the TUI now respects the `cobib.commands` entry points
 - the TUI now respects the active visual selection correctly for commands triggered via the prompt
 - the TUI no longer crashes when trying to sort after aborting a previous sort
+- the TUI no longer crashes when a search returns no results (#150,!335)
+- the TUI no longer crashes when loading an empty database (#150,!335)
 
 
 ## [5.3.0] - 2025-02-08
