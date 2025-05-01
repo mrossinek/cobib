@@ -184,6 +184,28 @@ class TestTUIGeneral:
         """
         assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, press=["question_mark"] * repeat)
 
+    @pytest.mark.parametrize("press", [["enter"], ["j"], ["d"], ["e"], ["o"], ["v"]])
+    def test_empty_database(self, snap_compare: Any, press: list[str]) -> None:
+        """Tests the handling of an empty database.
+
+        Args:
+            snap_compare: the `pytest-textual-snapshot` fixture.
+            press: what keys to press.
+        """
+        old_database_file = config.database.file
+        new_database_file = self.COBIB_TEST_DIR / "database.yaml"
+        self.COBIB_TEST_DIR.mkdir(parents=True, exist_ok=True)
+        new_database_file.touch()
+        config.database.file = new_database_file
+        Database.read()
+
+        try:
+            assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, press=press)
+        finally:
+            config.database.file = old_database_file
+            Database.read()
+            rmtree(self.COBIB_TEST_DIR)
+
     @pytest.mark.parametrize("escape", [False, True])
     def test_prompt_action(self, snap_compare: Any, escape: bool) -> None:
         """Tests the coBib command prompt popup.

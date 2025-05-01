@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import logging
 from io import StringIO
 from itertools import zip_longest
 from pathlib import Path
@@ -165,6 +166,23 @@ class TestSearchCommand(CommandTest):
         await cmd.execute()
         output = cmd.render_porcelain()
         self._assert(output, expected)
+
+    @pytest.mark.asyncio
+    async def test_empty_results(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
+        """Test the handling of empty search results.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
+        cmd = SearchCommand("missing")
+        await cmd.execute()
+
+        assert (
+            "cobib.commands.search",
+            logging.WARNING,
+            "The search for ['missing'] returned no results!",
+        ) in caplog.record_tuples
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(

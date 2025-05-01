@@ -12,10 +12,15 @@ programmatically enforced). For examples refer to `cobib.ui.components.list_view
 
 from __future__ import annotations
 
+from typing import Union, cast
+
 from textual.css.query import NoMatches
 from textual.widget import Widget
 from textual.widgets import ContentSwitcher
 from typing_extensions import override
+
+from .list_view import ListView
+from .search_view import SearchView
 
 
 class MainContent(ContentSwitcher):
@@ -39,11 +44,11 @@ class MainContent(ContentSwitcher):
         """
         if self.current is None:
             raise NoMatches
-        current_child = self.get_child_by_id(self.current)
-        label = current_child.get_current_label()  # type: ignore[attr-defined]
+        current_child = cast(Union[ListView, SearchView], self.get_child_by_id(self.current))
+        label = current_child.get_current_label()
         if label is None:
-            raise KeyError(f"Could not find entry with label '{label}'")
-        return label  # type: ignore[no-any-return]
+            raise KeyError("Could not find a current entry")
+        return label
 
     def jump_to_label(self, label: str) -> None:
         """Jumps to the requested label.

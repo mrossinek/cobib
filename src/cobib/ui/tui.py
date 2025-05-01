@@ -457,7 +457,11 @@ class TUI(UI, App[None]):
         This action adds the entry currently under the cursor to the visual selection.
         """
         main = self.query_exactly_one(MainContent)
-        label = main.get_current_label()
+        try:
+            label = main.get_current_label()
+        except KeyError:
+            self._warn_empty_database()
+            return
 
         if label in self._filter.selection:
             self._filter.selection.remove(label)
@@ -479,7 +483,11 @@ class TUI(UI, App[None]):
             labels = list(self._filter.selection)
             self._filter.selection.clear()
         else:
-            labels = [main.get_current_label()]
+            try:
+                labels = [main.get_current_label()]
+            except KeyError:
+                self._warn_empty_database()
+                return
 
         self._run_command(["delete", *labels])
 
@@ -515,7 +523,11 @@ class TUI(UI, App[None]):
             labels = list(self._filter.selection)
             self._filter.selection.clear()
         else:
-            labels = [main.get_current_label()]
+            try:
+                labels = [main.get_current_label()]
+            except KeyError:
+                self._warn_empty_database()
+                return
 
         self._run_command(["open", *labels])
 
@@ -577,6 +589,15 @@ class TUI(UI, App[None]):
 
     # Utility methods
 
+    def _warn_empty_database(self) -> None:
+        """Warn the user if the database appears to be empty."""
+        self.notify(
+            "The database appears to be empty! You should add or import entries to get started!",
+            title="Empty database!",
+            severity="error",
+            timeout=100,
+        )
+
     def _edit_entry(self) -> None:
         """Edits the current entry.
 
@@ -586,7 +607,11 @@ class TUI(UI, App[None]):
         # NOTE: we are unable to test this in CI at this time, because the textual Pilot interface
         # does not support suspend.
         main = self.query_exactly_one(MainContent)
-        label = main.get_current_label()
+        try:
+            label = main.get_current_label()
+        except KeyError:
+            self._warn_empty_database()
+            return
         from cobib import commands
 
         commands.EditCommand(label).execute()
@@ -609,7 +634,11 @@ class TUI(UI, App[None]):
         """
         if command is None:
             main = self.query_exactly_one(MainContent)
-            label = main.get_current_label()
+            try:
+                label = main.get_current_label()
+            except KeyError:
+                self._warn_empty_database()
+                return
             from cobib import commands
 
             command = commands.ShowCommand(label)
@@ -676,6 +705,17 @@ class TUI(UI, App[None]):
 
         subcmd = commands.SearchCommand(*command)
         await subcmd.execute()
+        if len(subcmd.matches) == 0:
+            self.notify(
+                f"The search for {subcmd.largs.query} returned no results!",
+                # NOTE: we must disable markup here, because the query is a list object whose
+                # square brackets would otherwise get interpreted as rich markup syntax.
+                markup=False,
+                title="Empty search!",
+                severity="warning",
+                timeout=5,
+            )
+            return
         tree = subcmd.render_textual()
         main = self.query_exactly_one(MainContent)
         await main.replace_widget(tree)
