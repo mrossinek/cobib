@@ -158,3 +158,23 @@ class TestDOIParser(ParserTest):
         except (IndexError, StopIteration):
             pytest.skip("Skipping because we likely ran into a network timeout.")
         assert entry.data["test"] == "dummy"
+
+    def test_handling_of_missing_schema(self) -> None:
+        """Test the handling of a missing 'http' schema in the redirected URL.
+
+        This is a regression test against https://gitlab.com/cobib/cobib/-/issues/155.
+        """
+        doi = "10.1017/S0007485300009925"
+        entries = DOIParser().parse(doi)
+        assert len(entries) == 1
+        assert "Day_1984" in entries
+
+    def test_handling_of_http_errors(self) -> None:
+        """Test the handling of an http error code.
+
+        This is a regression test against https://gitlab.com/cobib/cobib/-/issues/155.
+        """
+        # NOTE: even though the URL below matches a DOI regex, the DOI is not known to doi.org
+        doi = "https://www.cabidigitallibrary.org/doi/full/10.5555/19770546232"
+        entries = DOIParser().parse(doi)
+        assert len(entries) == 0
