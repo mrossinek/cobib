@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - the TUI no longer crashes when trying to sort after aborting a previous sort
 - the TUI no longer crashes when a search returns no results (#150,!335)
 - the TUI no longer crashes when loading an empty database (#150,!335)
+- some edge cases for resolving DOI URLs have been resolved (#155,!355)
 
 
 ## [5.3.0] - 2025-02-08
