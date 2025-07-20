@@ -108,7 +108,7 @@ def test_entry_set_tags(caplog: pytest.LogCaptureFixture) -> None:
     entry.tags = ["foo", "bar"]
     assert entry.tags == ["foo", "bar"]
     # check lint logging
-    entry.tags = "foo, bar"  # type: ignore[assignment]
+    entry.tags = "foo, bar"
     assert entry.tags == ["foo", "bar"]
     assert (
         "cobib.database.entry",
@@ -133,12 +133,12 @@ def test_entry_set_file(files: list[str], caplog: pytest.LogCaptureFixture) -> N
         caplog: the built-in pytest fixture.
     """
     entry = Entry("Rossmannek_2023", EXAMPLE_ENTRY_DICT)
-    entry.file = files[0] if len(files) == 1 else files  # type: ignore[assignment]
+    entry.file = files[0] if len(files) == 1 else files
     expected = [str(RelPath(file)) for file in files]
     assert entry.file == expected
     # check lint logging
     if len(files) > 1:
-        entry.file = ", ".join(files)  # type: ignore[assignment]
+        entry.file = ", ".join(files)
         assert entry.file == expected
         assert (
             "cobib.database.entry",
@@ -155,7 +155,7 @@ def test_entry_set_url(caplog: pytest.LogCaptureFixture) -> None:
         caplog: the built-in pytest fixture.
     """
     entry = Entry("Rossmannek_2023", EXAMPLE_ENTRY_DICT)
-    entry.url = "https://dummy.org/, https://dummy.com/"  # type: ignore[assignment]
+    entry.url = "https://dummy.org/, https://dummy.com/"
     assert entry.url == ["https://dummy.org/", "https://dummy.com/"]
     assert (
         "cobib.database.entry",
@@ -195,7 +195,7 @@ def test_entry_set_month(
     entry = Entry("Rossmannek_2023", EXAMPLE_ENTRY_DICT)
     assert entry.data["month"] == "apr"
     for m in month:
-        entry.month = m  # type: ignore[assignment]
+        entry.month = m
         assert entry.data["month"] == expected
         assert (
             "cobib.database.entry",
@@ -557,7 +557,7 @@ def test_search_fuzziness(query: str, expected: list[Match], fuzziness: int) -> 
 def test_search_with_file() -> None:
     """Test the `cobib.database.Entry.search` method with associated file."""
     entry = Entry("Rossmannek_2023", EXAMPLE_ENTRY_DICT)
-    entry.file = EXAMPLE_YAML_FILE  # type: ignore[assignment]
+    entry.file = EXAMPLE_YAML_FILE
     results = entry.search(["Chem"], context=0)
     expected = [
         Match(" journal = {The Journal of Physical Chemistry Letters},", [Span(36, 40)]),
@@ -573,7 +573,7 @@ def test_search_with_file() -> None:
 def test_search_with_skipped_file() -> None:
     """Test the `cobib.database.Entry.search` method with skipping the associated file."""
     entry = Entry("Rossmannek_2023", EXAMPLE_ENTRY_DICT)
-    entry.file = EXAMPLE_YAML_FILE  # type: ignore[assignment]
+    entry.file = EXAMPLE_YAML_FILE
     results = entry.search(["Chem"], context=0, skip_files=True)
     expected = [
         Match(" journal = {The Journal of Physical Chemistry Letters},", [Span(36, 40)]),
@@ -591,7 +591,7 @@ def test_search_with_missing_file(caplog: pytest.LogCaptureFixture) -> None:
         caplog: the built-in pytest fixture.
     """
     entry = Entry("Rossmannek_2023", EXAMPLE_ENTRY_DICT)
-    entry.file = "some_non_existent_file.txt"  # type: ignore[assignment]
+    entry.file = "some_non_existent_file.txt"
     _ = entry.search(["Chemical"], context=0)
     for source, level, message in caplog.record_tuples:
         if level != 30 or source != "cobib.database.entry":
