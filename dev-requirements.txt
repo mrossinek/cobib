@@ -11,5 +11,5 @@ ruff==0.11.11
 typos==1.29.10
 types-beautifulsoup4==4.12.0.20250516
 types-requests==2.32.4.20250611
-types-requests-oauthlib==2.0.0.20250306
+types-requests-oauthlib==2.0.0.20250516
 types-regex==2024.11.6.20250403
