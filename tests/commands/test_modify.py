@@ -275,7 +275,7 @@ class TestModifyCommand(CommandTest):
             path = RelPath(tmpdirname + "/knuthwebsite.pdf")
             open(path.path, "w", encoding="utf-8").close()
 
-            Database()["knuthwebsite"].file = str(path)  # type: ignore[assignment]
+            Database()["knuthwebsite"].file = str(path)
 
             args = ["label:dummy", "-s", "--", "knuthwebsite"]
             if preserve_files is not None:

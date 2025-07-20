@@ -147,7 +147,7 @@ class TestEditCommand(CommandTest):
                 path = RelPath(tmpdirname + "/einstein.pdf")
                 open(path.path, "w", encoding="utf-8").close()
 
-                Database()["einstein"].file = str(path)  # type: ignore[assignment]
+                Database()["einstein"].file = str(path)
 
                 args = ["einstein"]
                 if preserve_files is not None:

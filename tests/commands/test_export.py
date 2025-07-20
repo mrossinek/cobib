@@ -110,7 +110,7 @@ class TestExportCommand(CommandTest):
         if "-z" in args:
             # add a dummy file to the `einstein` entry
             entry = Database()["einstein"]
-            entry.file = get_resource("debug.py")  # type: ignore[assignment]
+            entry.file = get_resource("debug.py")
         ExportCommand(*args).execute()
         self._assert(args)
 

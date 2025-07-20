@@ -60,7 +60,7 @@ class Database(OrderedDict[str, Entry]):
             cls.read(bypass_cache=bypass_cache)
         return cls._instance
 
-    def update(self, new_entries: dict[str, Entry]) -> None:  # type: ignore[explicit-override,override]
+    def update(self, new_entries: dict[str, Entry]) -> None:  # type: ignore[override]
         """Updates the database with the given dictionary of entries.
 
         This function wraps `OrderedDict.update` and adds the labels of the changed entries to the
@@ -76,7 +76,7 @@ class Database(OrderedDict[str, Entry]):
             Database._unsaved_entries[label] = label
         super().update(new_entries)
 
-    def pop(self, label: str) -> Entry:  # type: ignore[explicit-override,override]
+    def pop(self, label: str) -> Entry:  # type: ignore[override]
         """Pops the entry pointed to by the given label.
 
         This function wraps `OrderedDict.pop` and adds the removed labels to the unsaved entries

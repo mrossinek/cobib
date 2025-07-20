@@ -490,7 +490,7 @@ class AddCommand(Command):
                     )
                     path = await task
                     if path is not None:  # pragma: no branch
-                        entry.file = str(path)  # type: ignore[assignment]
+                        entry.file = str(path)
             # check journal abbreviation
             if "journal" in entry.data.keys():
                 entry.data["journal"] = JournalAbbreviations.elongate(entry.data["journal"])
