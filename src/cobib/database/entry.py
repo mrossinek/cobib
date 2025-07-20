@@ -118,6 +118,14 @@ class Entry:
             return False  # pragma: no cover
         return self.label == other.label and self.data == other.data
 
+    def __hash__(self) -> int:
+        """Returns a hash of this Entry instance.
+
+        This should be implemented explicitly because it will default to return `None` when `__eq__`
+        is also implemented explicitly.
+        """
+        return hash(self._label)  # pragma: no cover
+
     def merge(self, other: Entry, *, ours: bool = False) -> None:
         """Merges the current entry with the other one.
 
@@ -501,7 +509,7 @@ class Entry:
         """
         formatted_entry = self.formatted()
         if parser is None:
-            from cobib.parsers.yaml import YAMLParser
+            from cobib.parsers.yaml import YAMLParser  # noqa: PLC0415
 
             parser = YAMLParser()
         return parser.dump(formatted_entry) or ""  # `dump` may return `None`
@@ -641,7 +649,7 @@ class Entry:
         LOGGER.debug("Searching entry %s.", self.label)
         matches: list[Match] = []
 
-        from cobib.parsers.bibtex import BibtexParser
+        from cobib.parsers.bibtex import BibtexParser  # noqa: PLC0415
 
         # get searchable text
         bibtex_raw = BibtexParser(encode_latex=False, inline_note=not skip_notes).dump(self)

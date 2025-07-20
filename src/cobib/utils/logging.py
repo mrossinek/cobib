@@ -73,7 +73,7 @@ def get_file_handler(
         logfile: the output path for the log file.
     """
     if logfile is None:
-        from cobib.config import config
+        from cobib.config import config  # noqa: PLC0415
 
         logfile = config.logging.logfile
 
