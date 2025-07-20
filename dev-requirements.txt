@@ -4,7 +4,7 @@ pytest-cov==6.0.0
 pytest-textual-snapshot==1.1.0
 coverage==7.8.2
 aiohttp==3.11.18
-msgpack==1.1.0
+msgpack==1.1.1
 pdoc==15.0.3
 mypy==1.15.0
 ruff==0.11.11
