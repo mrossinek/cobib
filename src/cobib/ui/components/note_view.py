@@ -182,7 +182,7 @@ class NoteView(TextArea):
             self.border_title = label
             self.border_subtitle = None
 
-            from cobib.commands import NoteCommand
+            from cobib.commands import NoteCommand  # noqa: PLC0415
 
             note_file = NoteCommand.note_path(Database()[label])
 
@@ -213,7 +213,7 @@ class NoteView(TextArea):
                 "Expecting to extract a label from the border title!"
             )
 
-        from cobib.commands import NoteCommand
+        from cobib.commands import NoteCommand  # noqa: PLC0415
 
         note_file = NoteCommand.note_path(Database()[label])
 

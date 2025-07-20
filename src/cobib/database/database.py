@@ -230,7 +230,7 @@ class Database(OrderedDict[str, Entry]):
             try:
                 LOGGER.info("Loading database file: %s", file)
 
-                from cobib.parsers.yaml import YAMLParser
+                from cobib.parsers.yaml import YAMLParser  # noqa: PLC0415
 
                 cls._read = True
                 _instance.clear()
@@ -271,7 +271,7 @@ class Database(OrderedDict[str, Entry]):
             cls()  # pragma: no cover
         _instance = cast(Database, cls._instance)
 
-        from cobib.parsers.yaml import YAMLParser
+        from cobib.parsers.yaml import YAMLParser  # noqa: PLC0415
 
         yml = YAMLParser()
 

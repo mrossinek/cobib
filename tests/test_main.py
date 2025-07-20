@@ -42,7 +42,7 @@ class TestMainExecutable(CmdLineTest):
         with pytest.raises(SystemExit):
             await self.run_module(monkeypatch, "main", ["cobib", "--version"])
 
-        from cobib import __version__
+        from cobib import __version__  # noqa: PLC0415
 
         assert capsys.readouterr().out.strip() == f"coBib v{__version__}"
 

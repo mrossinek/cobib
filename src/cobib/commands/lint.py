@@ -31,7 +31,7 @@ class LintFormatter(logging.Formatter):
 
         self.dirty_entries: set[str] = set()
 
-        from cobib.config import config
+        from cobib.config import config  # noqa: PLC0415
 
         self._database_path = RelPath(config.database.file)
 

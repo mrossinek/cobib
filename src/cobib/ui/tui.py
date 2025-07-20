@@ -612,7 +612,7 @@ class TUI(UI, App[None]):
         except KeyError:
             self._warn_empty_database()
             return
-        from cobib import commands
+        from cobib import commands  # noqa: PLC0415
 
         commands.EditCommand(label).execute()
 
@@ -639,7 +639,7 @@ class TUI(UI, App[None]):
             except KeyError:
                 self._warn_empty_database()
                 return
-            from cobib import commands
+            from cobib import commands  # noqa: PLC0415
 
             command = commands.ShowCommand(label)
         command.execute()
@@ -658,7 +658,7 @@ class TUI(UI, App[None]):
             command: the list of command arguments to be passed to the
                 `cobib.commands.show.ShowCommand`.
         """
-        from cobib import commands
+        from cobib import commands  # noqa: PLC0415
 
         show_cmd = commands.ShowCommand(*command)
         label = show_cmd.largs.label
@@ -680,7 +680,7 @@ class TUI(UI, App[None]):
         """Updates the list of entries displayed in the `MainContent`."""
         main = self.screen_stack[0].query_exactly_one(MainContent)
         old_table = main.query_exactly_one(ListView)
-        from cobib import commands
+        from cobib import commands  # noqa: PLC0415
 
         command = commands.ListCommand(*self._list_args)
         command.execute()
@@ -701,7 +701,7 @@ class TUI(UI, App[None]):
             command: the list of command arguments to be passed to the
                 `cobib.commands.search.SearchCommand`.
         """
-        from cobib import commands
+        from cobib import commands  # noqa: PLC0415
 
         subcmd = commands.SearchCommand(*command)
         await subcmd.execute()
