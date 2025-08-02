@@ -97,7 +97,7 @@ $ cobib
 
 ## SEE ALSO
 
-_cobib-commands(7)_, _cobib-config(5)_, _cobib-database(7)_, _cobib-filter(7)_, _cobib-git(7)_, _cobib-plugins(7)_, _cobib-tui(7)_
+_cobib-config(5)_, _cobib-commands(7)_, _cobib-database(7)_, _cobib-filter(7)_, _cobib-getting-started(7)_, _cobib-git(7)_, _cobib-plugins(7)_, _cobib-tui(7)_
 
 The quick usage references for each command using `--help` directly from the command-line.
 
