@@ -500,12 +500,12 @@ def evaluate_as_f_string(value: str, locals_: dict[str, Any] | None = None) -> s
 
     result: list[str] = []
     for part in ast.parse(f"f'''{value}'''").body[0].value.values:  # type: ignore[attr-defined]
-        typ = type(part)
+        type_ = type(part)
 
-        if typ is ast.Constant:
+        if type_ is ast.Constant:
             result.append(part.value)
 
-        elif typ is ast.FormattedValue:
+        elif type_ is ast.FormattedValue:
             value = evaluate_ast_node(part.value, locals_)
 
             if part.conversion >= 0:
@@ -519,7 +519,7 @@ def evaluate_as_f_string(value: str, locals_: dict[str, Any] | None = None) -> s
 
         else:
             LOGGER.warning(  # pragma: no cover
-                "Unexpected AST node expression type '%s' for an f-string.", typ
+                "Unexpected AST node expression type '%s' for an f-string.", type_
             )
             raise ValueError  # pragma: no cover
 
