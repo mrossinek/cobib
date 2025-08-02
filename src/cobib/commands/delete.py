@@ -27,6 +27,8 @@ class DeleteCommand(Command):
     This command can parse the following arguments:
 
         * `labels`: one (or multiple) labels of the entries to be deleted.
+        * `-y`, `--yes`: skips the interactive confirmation prompt before performing the actual
+          deletion. This overwrites the `cobib.config.config.DeleteCommand.confirm` setting.
         * `--preserve-files`: skips the deletion of any associated files. This overwrites the
           `cobib.config.config.DeleteCommandConfig.preserve_files` setting.
         * `--no-preserve-files`: does NOT skip the deletion of any associated files. This overwrites
@@ -49,6 +51,7 @@ class DeleteCommand(Command):
             prog="delete", description="Delete subcommand parser.", exit_on_error=True
         )
         parser.add_argument("labels", type=str, nargs="+", help="labels of the entries")
+        parser.add_argument("-y", "--yes", action="store_true", help="confirm deletion")
         preserve_files_group = parser.add_mutually_exclusive_group()
         preserve_files_group.add_argument(
             "--preserve-files",
@@ -81,7 +84,7 @@ class DeleteCommand(Command):
             try:
                 LOGGER.debug("Attempting to delete entry '%s'.", label)
 
-                if config.commands.delete.confirm:
+                if config.commands.delete.confirm and not self.largs.yes:
                     prompt_text = f"Are you sure you want to delete the entry '{label}'?"
 
                     res = await Confirm.ask(prompt_text, default=True)

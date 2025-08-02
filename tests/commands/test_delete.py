@@ -107,7 +107,38 @@ class TestDeleteCommand(CommandTest):
 
         if git and not skip_commit:
             # assert the git commit message
-            self.assert_git_commit_message("delete", {"labels": labels, "preserve_files": None})
+            self.assert_git_commit_message(
+                "delete", {"labels": labels, "yes": False, "preserve_files": None}
+            )
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "setup",
+        [
+            {"git": True},
+        ],
+        indirect=["setup"],
+    )
+    async def test_command_yes(self, setup: Any) -> None:
+        """Test the command itself.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+        """
+        labels = ["knuthwebsite"]
+
+        # we first enable the delete confirmation setting...
+        config.commands.delete.confirm = True
+
+        # ...and now disable it at runtime using the --yes argument
+        await DeleteCommand(*labels, "--yes").execute()
+
+        self._assert(labels)
+
+        # assert the git commit message
+        self.assert_git_commit_message(
+            "delete", {"labels": labels, "yes": True, "preserve_files": None}
+        )
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
