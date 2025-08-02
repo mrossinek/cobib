@@ -14,6 +14,7 @@ Package maintainers beware that the `Makefile` has new dependencies!
   TUI respects the `--verbose` level provided from the command-line
 - the `cobib.utils.logging.DEPRECATED` and `cobib.utils.logging.HINT` constants
   to indicate the custom logging level numeric values
+- the `--yes` argument to the `delete` command (#152,!363)
 
 ### Changed
 - the single man-page (cobib.1) has been split into many and their content has
