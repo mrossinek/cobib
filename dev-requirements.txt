@@ -7,7 +7,7 @@ pytest-asyncio==0.26.0
 pytest-cov==6.2.1
 pytest-textual-snapshot==1.1.0
 pytest==8.4.1
-ruff==0.12.4
+ruff==0.12.7
 types-beautifulsoup4==4.12.0.20250516
 types-regex==2024.11.6.20250403
 types-requests-oauthlib==2.0.0.20250516
