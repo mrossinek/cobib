@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [5.4.0] - 2025-08-02
+
+Pypi: https://pypi.org/project/cobib/5.4.0/
+
+### Prelude
+
 The online documentation and man-page(s) have been overhauled entirely.
 Package maintainers beware that the `Makefile` has new dependencies!
 
@@ -1189,7 +1196,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v5.3.0...master
+[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v5.4.0...master
+[5.4.0]: https://gitlab.com/cobib/cobib/-/tags/v5.4.0
 [5.3.0]: https://gitlab.com/cobib/cobib/-/tags/v5.3.0
 [5.2.3]: https://gitlab.com/cobib/cobib/-/tags/v5.2.3
 [5.2.2]: https://gitlab.com/cobib/cobib/-/tags/v5.2.2

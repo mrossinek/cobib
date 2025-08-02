@@ -1,8 +1,8 @@
 prefix ?= /usr
 
 # All man-page template files should contain these two variables:
-PACKAGE_DATE := 2025-05-01
-PACKAGE_VERSION := v5.3.0
+PACKAGE_DATE := 2025-08-02
+PACKAGE_VERSION := v5.4.0
 
 # The man page template files can be found in:
 MAN_SRC_DIR := src/cobib/man
