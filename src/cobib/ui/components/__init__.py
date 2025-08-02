@@ -4,10 +4,8 @@ This module provides various UI-related components such as widgets and other uti
 
 .. warning::
 
-   This module makes no API stability guarantees! With the `cobib.ui.tui.TUI` being based on
-   [`textual`](https://textual.textualize.io/) which is still in very early stages of its
-   development, breaking API changes in this module might be released as part of coBib's feature
-   releases. You have been warned.
+   This module makes no API stability guarantees! Consequently, breaking API changes in this module
+   might be released as part of coBib's feature releases. You have been warned.
 """
 
 from .entry_view import EntryView as EntryView

@@ -1,22 +1,6 @@
-"""coBib's Redo command.
+"""Reapply an undone change to the database.
 
-This command can be used to re-apply the changes *of a previously undone* command (see
-`cobib.commands.undo`):
-```
-cobib redo
-```
-This command takes *no* additional arguments!
-
-Note, that if you have not used `cobib undo` previously, this command will have no effect!
-
-.. warning::
-   This command is *only* available if coBib's git-integration has been enabled via
-   `cobib.config.config.DatabaseConfig.git` *and* initialized properly (see `cobib.commands.init`).
-
-### TUI
-
-You can also trigger this command from the `cobib.ui.tui.TUI`.
-By default, it is bound to the `r` key.
+.. include:: ../man/cobib-redo.1.html_fragment
 """
 
 from __future__ import annotations

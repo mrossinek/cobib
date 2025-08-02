@@ -110,8 +110,10 @@ develop:
         name: dev
         url: "https://$CI_PROJECT_NAMESPACE.gitlab.io/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/index.html"
     script:
+        - apt-get install -y ruby-dev vim
+        - gem install ronn-ng
         - tox -e docs
-        - mv docs public
+        - mv build/html public
     artifacts:
         paths:
           - public
@@ -121,8 +123,10 @@ develop:
 pages:
     stage: deploy
     script:
+        - apt-get install -y ruby-dev vim
+        - gem install ronn-ng
         - tox -e docs
-        - mv docs public
+        - mv build/html public
     artifacts:
         paths:
             - public

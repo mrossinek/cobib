@@ -17,9 +17,6 @@ snapshot_report.html
 # Logging data
 textual.log
 
-# Documentation data
-docs
-
 # literature data (debugging)
 *.bib
 *.yaml

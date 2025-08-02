@@ -1,6 +1,6 @@
-"""coBib's lint command.
+"""Lint the database.
 
-This command allows you to lint your database.
+.. include:: ../man/cobib-lint.1.html_fragment
 """
 
 from __future__ import annotations
@@ -71,8 +71,8 @@ class LintCommand(Command):
 
     This command can parse the following arguments:
 
-        * `-f`, `--format`: if specified, the database will be formatted to automatically resolve
-            all lint messages.
+        * `-f`, `--format`: if specified, the database will be formatted to resolve those lint
+            messages that are automatically resolvable.
     """
 
     name = "lint"

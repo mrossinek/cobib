@@ -126,8 +126,8 @@ class SearchView(Tree[Union[str, Text]]):
     """
     | Key(s) | Description |
     | :- | :- |
-    | space | Toggle the expand/collapsed space of the current item. |
-    | backspace | Toggle the expand/collapsed space of the current item and all its children. |
+    | space | Toggle the expanded/collapsed state of the current item. |
+    | backspace | Toggle the expanded/collapsed state of the current item and all its children. |
     | j, down | Moves one row down. |
     | k, up | Moves one row up. |
     | h, left | Moves to the left. |

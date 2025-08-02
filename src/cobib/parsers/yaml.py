@@ -1,15 +1,7 @@
 # mypy: warn-unused-ignores=False
 """coBib's YAML parser.
 
-This parser leverages the [`ruamel.yaml`](https://pypi.org/project/ruamel.yaml/) library to convert
-between `cobib.database.Entry` instances and YAML representations of their `dict`-like data
-structure.
-
-The parser is registered under the `-y` and `--yaml` command-line arguments of the
-`cobib.commands.add.AddCommand`.
-
-The following documentation is mostly inherited from the abstract interface
-`cobib.parsers.base_parser`.
+.. include:: ../man/cobib-yaml.7.html_fragment
 """
 
 from __future__ import annotations

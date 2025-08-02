@@ -1,4 +1,7 @@
-"""coBib's git manager."""
+"""coBib's git manager.
+
+.. include:: ../man/cobib-git.7.html_fragment
+"""
 
 from __future__ import annotations
 

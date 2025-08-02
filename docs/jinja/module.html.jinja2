@@ -1,0 +1,79 @@
+{% extends "default/module.html.jinja2" %}
+
+{% block module_list_link %}
+    {% set parentmodule = ".".join(module.modulename.split(".")[:-1]) %}
+    {% if parentmodule and parentmodule in all_modules %}
+        <a class="pdoc-button module-list-button" href="../{{ parentmodule.split(".")[-1] }}.html">
+            {% include "resources/box-arrow-in-left.svg" %}
+            &nbsp;
+            {{- parentmodule -}}
+        </a>
+    {% elif not root_module_name %}
+        <a class="pdoc-button module-list-button" href="{{ "../" * module.modulename.count(".") }}index.html">
+            {% include "resources/box-arrow-in-left.svg" %}
+            &nbsp;
+            Module Index
+        </a>
+    {% endif %}
+    <button class="pdoc-button module-list-button" id="cycleTheme" onclick="cycleMode()">
+        <i class="fa-solid fa-circle-half-stroke"></i>
+    </button>
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css'>
+    <script>
+    const html = document.querySelector('html');
+    if (sessionStorage.getItem('color-scheme') == null) {
+        sessionStorage.setItem('color-scheme', 'light dark');
+    }
+    function setMode(mode) {
+      switch (mode) {
+          case 'light dark':
+              text = '<i class ="fa-solid fa-circle-half-stroke"></i>';
+              break;
+          case 'light':
+              text = '<i class ="fa-solid fa-sun"></i>';
+              break;
+          case 'dark':
+              text = '<i class ="fa-solid fa-moon"></i>';
+              break;
+      }
+      sessionStorage.setItem('color-scheme', mode);
+      html.style.setProperty('color-scheme', mode);
+      document.querySelector('#cycleTheme').innerHTML = text;
+    }
+    function cycleMode() {
+      mode = html.style.getPropertyValue('color-scheme');
+      switch (mode) {
+          case 'light dark':
+              if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                // the mode was set to automatic and the users prefers dark, so
+                // so clicking this means they want to switch to light
+                new_mode = 'light'
+              } else {
+                new_mode = 'dark'
+              }
+              setMode(new_mode)
+              break;
+          case 'light':
+              setMode('dark')
+              break;
+          case 'dark':
+              setMode('light')
+              break;
+      }
+    }
+    mode = sessionStorage.getItem('color-scheme');
+    setMode(mode)
+    </script>
+{% endblock %}
+
+
+{% block favicon %}
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,{% filter urlencode %}{% include "cobib_book.svg" %}{% endfilter %}"/>
+{% endblock %}
+
+{% block nav_title %}
+    <br/>
+    <img style="margin-bottom: 1em;" src="data:image/svg+xml,{% filter urlencode %}{% include "cobib_logo.svg" %}{% endfilter %}" />
+{% endblock %}
+
+<!-- vim: set ft=html: -->

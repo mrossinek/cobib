@@ -1,14 +1,6 @@
-"""coBib's Show command.
+"""Show an entry.
 
-This command simply shows/prints the specified entry as a BibLaTex-formatted string.
-```
-cobib show <label>
-```
-
-### TUI
-
-You can also trigger this command from the `cobib.ui.tui.TUI`.
-By default, it is bound to the `ENTER` key.
+.. include:: ../man/cobib-show.1.html_fragment
 """
 
 from __future__ import annotations

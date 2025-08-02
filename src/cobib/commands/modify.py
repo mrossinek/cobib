@@ -1,101 +1,6 @@
-r"""coBib's Modify command.
+r"""Modify entries in bulk.
 
-This command allows you to perform bulk modification to multiple entries.
-Thus, it provides faster means to apply simple edits to many entries at once, without having to open
-each entry for editing one-by-one or having to edit the database file manually.
-
-It takes a modification in the form `<field>:<value>` and will overwrite the `field` of all matching
-entries with the new `value`. A simple example is the following:
-```
-cobib modify tags:private --selection -- Label1 Label2 ...
-```
-which will set the tags of all listed entries to `private`.
-
-You can use the `--add` option to not overwrite but append to existing values of a field. `str`
-fields will be concatenated with*out* any spaces, lists will be appended, and numeric fields will be
-added. Any other kind of field will be converted to a `str`.
-
-As of v4.4.0 you can also use the `--remove` option to achieve the opposite to the above: removing
-an item from a list or subtracting numbers. Strings cannot be subtracted and any other kind of field
-will log a warning but continue gracefully.
-
-.. note::
-
-   The options `--add` and `--remove` are mutually exclusive for obvious reasons.
-
-And as of v5.3.0 you can also remove a field entirely using the `--remove` option. To do so, simply
-specify an empty value as part of the modification:
-```
-cobib modify year: --remove --selection -- Label2025
-```
-
-As with other commands, you can also use filters (see also `cobib.commands.list_`) rather than a
-manual selection to specify the entries which to modify:
-```
-cobib modify tags:first_author -- ++author Rossmannek
-```
-
-As of v3.2.0 the `value` provided as part of the modification is interpreted as an "f"-string.[^1]
-This means you can even use placeholder variables and perform simple operations on them. The
-available variables depend on the entry which you are modifying as they are inferred from its stored
-data.
-Below are some examples:
-```
-# Rewrite the 'pages' field with a single-dash separator
-cobib modify "pages:{pages.replace('--', '-')}" -- ...
-
-# Rename an entry according to the first author's surname and year
-cobib modify "label:{author.split()[1]}{year}" -- ...
-```
-
-In case you are applying a modification to your entry labels, the value of the
-`cobib.config.config.ModifyCommandConfig.preserve_files` setting (added in v4.1.0) determines
-whether all of your associated files will be renamed accordingly. This defaults to `False`, meaning
-that they *will* be renamed. You can overwrite the value of this setting at runtime with the
-`--preserve-files` and `--no-preserve-files` arguments, respectively.
-I.e. the following will **not** rename your files:
-```
-# Rename an entry according to the first author's surname and year, but preserve the original file
-cobib modify "label:{author.split()[1]}{year}" --preserve-files -- ...
-```
-While this command will always rename them:
-```
-# Rename an entry according to the first author's surname and year, and rename the original file
-cobib modify "label:{author.split()[1]}{year}" --no-preserve-files -- ...
-```
-
-In combination with the regex-support for filters added during the same release, you can even unify
-your database's label convention:
-```
-cobib modify "label:{label.replace('_', '')}" -- ++label "\D+_\d+"
-```
-
-If you happen to use an undefined variable as part of your modification, coBib will handle this
-gracefully by falling back to an empty string and raising a warning:
-```
-cobib modify "note:{undefined}" -- ...
-> [WARNING] You tried use an undefined variable. Falling back to an empty string.
-> [ERROR] name 'undefined' is not defined
-```
-
-Since v3.3.0 this command also provides a "dry" mode which previews the modifications without
-actually applying them.
-```
-cobib modify --dry <modification> -- ...
-```
-This is useful if you want to test large bulk modifications before running them in order to prevent
-mistakes.
-
-### TUI
-
-You can also trigger this command from the `cobib.ui.tui.TUI`.
-By default, it is bound to the `m` key which will drop you into the prompt where you can type out a
-normal command-line command:
-```
-:modify <arguments go here>
-```
-
-[^1]: <https://docs.python.org/3/reference/lexical_analysis.html#formatted-string-literals>
+.. include:: ../man/cobib-modify.1.html_fragment
 """
 
 from __future__ import annotations
@@ -472,7 +377,7 @@ def evaluate_ast_node(node: ast.expr, locals_: dict[str, Any] | None = None) -> 
             compile(ast.Expression(node), filename="<string>", mode="eval"), locals_
         )
     except NameError as err:
-        LOGGER.warning("You tried use an undefined variable. Falling back to an empty string.")
+        LOGGER.warning("You tried to use an undefined variable. Falling back to an empty string.")
         LOGGER.error(err)
         return ""
 

@@ -1,48 +1,6 @@
-"""coBib's Edit command.
+"""Edit an entry.
 
-This command can be used to manually edit database entries in their easily-readable YAML format.
-To get started, simply type:
-```
-cobib edit <label>
-```
-which will open the YAML-formatted version of the specified `cobib.database.Entry` for editing.
-
-You can configure which editor will be used via the `cobib.config.config.EditCommandConfig.editor`
-setting which will default to using your `$EDITOR` environment setting (and fall back to `vim` if
-that is not set).
-
-You can even add entirely new entries to the database by specifying an unused entry label *and*
-adding the `--add` command-line argument:
-```
-cobib edit --add <new label>
-```
-This entry will be entirely empty except for the one field which is always present:
-    * `ENTRYTYPE`: set to the default value configured via
-      `cobib.config.config.EditCommandConfig.default_entry_type`.
-
-If you change the label of the entry during editing, the value of the
-`cobib.config.config.EditCommandConfig.preserve_files` setting (added in v4.1.0) determines whether
-the associated files will be renamed automatically. This defaults to `False`, meaning that they
-*will* be renamed. You can overwrite the value of this setting at runtime with the
-`--preserve-files` and `--no-preserve-files` arguments, respectively.
-I.e. the following will **not** rename your files:
-```
-cobib edit --preserve-files <label>
-```
-While this command will always rename them:
-```
-cobib edit --no-preserve-files <label>
-```
-
-### TUI
-
-You can also trigger this command from the `cobib.ui.tui.TUI`.
-By default, it is bound to the `e` key.
-If you want to add a new entry manually, you will have to enter the prompt (defaults to `:`) and
-then type out the command mentioned above:
-```
-:edit --add <new label>
-```
+.. include:: ../man/cobib-edit.1.html_fragment
 """
 
 from __future__ import annotations

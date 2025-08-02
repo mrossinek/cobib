@@ -1,0 +1,31 @@
+/* pdoc color-scheme: this is a light-dark combination of pdoc's variables */
+:root {
+    color-scheme: light dark;
+
+    --pdoc-background: light-dark(#fff, #212529);
+}
+
+.pdoc {
+    --text: light-dark(#212529, #f7f7f7);
+    --muted: light-dark(#6c757d, #9d9d9d);
+    --link: light-dark(#3660a5, #58a6ff);
+    --link-hover: light-dark(#1659c5, #3989ff);
+    --code: light-dark(#f8f8f8, #333);
+    --active: light-dark(#fff598, #555);
+
+    --accent: light-dark(#eee, #343434);
+    --accent2: light-dark(#c1c1c1, #555);
+
+    --nav-hover: light-dark(rgba(255, 255, 255, 0.5), rgba(0, 0, 0, 0.1));
+    --name: light-dark(#0066BB, #77C1FF);
+    --def: light-dark(#008800, #0cdd0c);
+    --annotation: light-dark(#007020, #00c037);
+}
+
+/* custom styling of the light/dark theme toggle button */
+#cycleTheme {
+    padding-top: 0.5em;
+}
+.fa-solid {
+    font-size: 14pt;
+}

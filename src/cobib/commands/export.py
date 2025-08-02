@@ -1,60 +1,6 @@
-"""coBib's Export command.
+"""Export entries.
 
-You can use this command to export your database.
-As of now only two output formats are available:
-* BibLaTex files
-* Zip archives
-
-The use case of the former is obvious and can be achieved by the following:
-```
-cobib export --bibtex my_database.bib
-```
-The latter case will collect all associated files of your database in a single Zip archive:
-```
-cobib export --zip my_references.zip
-```
-This is an important feature because coBib (by design) allows you to spread associated files across
-your entire file system.
-With this command you can gather them in a neat package for sharing or transferring.
-
-You can also limit the export to a subset of your database in one of two ways:
-
-1. through filters:
-   ```
-   cobib export --bibtex my_private_database.bib -- ++tags private
-   ```
-
-2. through a custom selection (using `--selection` or the short-hand option `-s`)
-   ```
-   cobib export --selection --bibtex some_other_database.bib -- Label1 Label2
-   ```
-
-.. note::
-   While this latter case is usable via the command-line interface it is more a side-effect of the
-   TUI integration which provides a visual selection (defaults to the `v` key).
-   The proper and arguably more useful case is the first case using filters.
-
-Since v3.2.0, coBib supports automatic Journal abbreviations. After configuring them as explained in
-`cobib.config.config.UtilsConfig.journal_abbreviations` you can leverage them during exporting like
-so:
-```
-cobib export --abbreviate --bibtex my_database.bib
-# or
-cobib export --abbreviate --dotless --bibtex my_database.bib
-```
-
-### TUI
-
-You can also trigger this command from the `cobib.ui.tui.TUI`.
-By default, it is bound to the `x` key which will drop you into the prompt where you can type out a
-normal command-line command:
-```
-:export <arguments go here>
-```
-
-.. note::
-   If you have already selected one or more entries, the `--selection` argument will automatically
-   be added.
+.. include:: ../man/cobib-export.1.html_fragment
 """
 
 from __future__ import annotations

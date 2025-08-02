@@ -1,7 +1,6 @@
-"""coBib's command to unify entry labels.
+"""Unify the entry labels.
 
-This is a convenience command to unify the labels of all your database entries to follow the value
-set for `cobib.config.config.DatabaseFormatConfig.label_default`.
+.. include:: ../man/cobib-unify-labels.1.html_fragment
 """
 
 from __future__ import annotations
@@ -60,15 +59,14 @@ class UnifyLabelsCommand(Command):
     @override
     def execute(self) -> None:
         modify_args = [
-            "--dry",
             f"label:{config.database.format.label_default}",
             "--",
             # the following ensures that the command gets run on the entire database
-            "--label",
-            "some_non_existent_label_123456_abcdef",
+            "++label",
+            "",
         ]
-        if self.largs.apply:
-            modify_args = modify_args[1:]
+        if not self.largs.apply:
+            modify_args.insert(0, "--dry")
 
         with contextlib.redirect_stderr(StringIO()) as out:
             cmd = ModifyCommand(*modify_args)

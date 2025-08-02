@@ -1,26 +1,6 @@
 """coBib's DOI parser.
 
-This parser is capable of generating `cobib.database.Entry` instances from a given DOI.
-It gathers the BibTex-encoded data from https://doi.org/ and parses it directly using the
-`cobib.parsers.bibtex.BibtexParser`.
-
-Since v3.2.0 coBib will also attempt to download the PDF version of the new entry. You can
-configure the default download location via
-`cobib.config.config.FileDownloaderConfig.default_location`.
-Since in general the PDF may not be freely available, your mileage with this feature may vary. Until
-coBib supports internal proxy configurations, make sure you are logged in to a VPN for the smoothest
-experience with closed-source journals.
-Furthermore, you should look into the `cobib.config.config.FileDownloaderConfig.url_map` setting,
-through which you tell coBib how to map from journal landing page URLs to the corresponding PDF
-URLs. For more information check out `cobib.config.example` and the man-page.
-
-Since v3.3.0 this parser even supports URLs from which a DOI can be extracted directly.
-
-The parser is registered under the `-d` and `--doi` command-line arguments of the
-`cobib.commands.add.AddCommand`.
-
-The following documentation is mostly inherited from the abstract interface
-`cobib.parsers.base_parser`.
+.. include:: ../man/cobib-doi.7.html_fragment
 """
 
 from __future__ import annotations

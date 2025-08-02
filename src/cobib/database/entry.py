@@ -1,4 +1,7 @@
-"""coBib's Entry class."""
+"""coBib's Entry class.
+
+.. include:: ../man/cobib-filter.7.html_fragment
+"""
 
 from __future__ import annotations
 

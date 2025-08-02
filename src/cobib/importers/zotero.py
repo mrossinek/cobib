@@ -1,42 +1,6 @@
 """coBib's Zotero importer.
 
-This importer handles migrating from [Zotero][1] to coBib.
-Normally, you would only need to trigger this migration once, but for convenience, coBib will store
-the OAuth authentication tokens provided by the Zotero API in its cache (whose location is
-configurable via `cobib.config.config.LoggingConfig.cache`).
-
-The importer is registered under the `--zotero` command-line argument of the
-`cobib.commands.import_.ImportCommand`. Thus, you can trigger it like so:
-```
-cobib import --zotero
-```
-
-### Additional Options
-
-You can provide some additional arguments for the Zotero importer.
-
-First of all, you can disable the cache. This is useful if you want to avoid caching any
-authentication tokens or if you want to re-trigger the OAuth authentication procedure.
-```
-cobib import --zotero -- --no-cache
-```
-
-You can also provide a custom Zotero user ID via the command line. If you do so, OAuth
-authentication will not be triggered. The import will work normally, if the library associated with
-the provided user ID is publicly accessible. Otherwise, you will also need to provide your own
-Zotero API key (see next paragraph).
-```
-cobib import --zotero -- --user-id <user ID>
-```
-
-As mentioned above, you can provide your own Zotero API key if you do not want coBib to initiate an
-OAuth authentication process for you. This argument only takes affect if you also provide your own
-Zotero user ID.
-```
-cobib import --zotero -- --user-id <user ID> --api-key <API key>
-```
-
-[1]: https://www.zotero.org/
+.. include:: ../man/cobib-zotero.7.html_fragment
 """
 
 from __future__ import annotations

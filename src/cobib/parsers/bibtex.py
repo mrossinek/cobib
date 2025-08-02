@@ -1,16 +1,6 @@
 """coBib's BibTex parser.
 
-This parser leverages the [`bibtexparser`](https://pypi.org/project/bibtexparser/) library to
-convert between `cobib.database.Entry` instances and raw BibTex strings.
-
-Non-standard BibTex types can be configured to be ignored via
-`cobib.config.config.BibtexParserConfig.ignore_non_standard_types`.
-
-The parser is registered under the `-b` and `--bibtex` command-line arguments of the
-`cobib.commands.add.AddCommand`.
-
-The following documentation is mostly inherited from the abstract interface
-`cobib.parsers.base_parser`.
+.. include:: ../man/cobib-bibtex.7.html_fragment
 """
 
 from __future__ import annotations

@@ -1,30 +1,6 @@
-"""coBib's Delete command.
+"""Delete entries.
 
-This command can be used to deleted entries from the database.
-```
-cobib delete <label 1> [<label 2> ...]
-```
-
-When you delete an entry, the value of `cobib.config.config.DeleteCommandConfig.preserve_files`
-setting (added in v4.1.0) determines whether the associated files will be deleted, too. This
-defaults to `False`, meaning that they *will* be deleted. You can overwrite the value of this
-setting at runtime with the `--preserve-files` and `--no-preserve-files` arguments, respectively.
-I.e. the following will **not** delete your files:
-```
-cobib delete --preserve-files <label 1> [<label 2> ...]
-```
-While this command will always delete them:
-```
-cobib delete --no-preserve-files <label 1> [<label 2> ...]
-```
-
-As of coBib v4.1.0, the user will be asked to confirm the deletion via an interactive prompt. This
-can be disabled by setting `cobib.config.config.DeleteCommandConfig.confirm` to `False`.
-
-### TUI
-
-You can also trigger this command from the `cobib.ui.tui.TUI`.
-By default, it is bound to the `d` key.
+.. include:: ../man/cobib-delete.1.html_fragment
 """
 
 from __future__ import annotations

@@ -1,57 +1,6 @@
 """coBib's Import command.
 
-This command allows you to import new entries from another bibliography manager into coBib.
-This can be seen as a migration utility and, thus, you are likely to only execute this command once.
-To ease the interface (and implementation), this process of adding new entries to your database is
-separated from the `cobib.commands.add.AddCommand`.
-
-To support various bibliography managers as sources for this command, their code is split out into a
-separate module, `cobib.importers`.
-The various backends are registered (at runtime) in a *mutually exclusive* group of keyword
-arguments, which you can use like so:
-```
-cobib import --zotero
-```
-
-.. note::
-   Since this command adds new entries to the database, its outcome can be affected by your
-   `cobib.config.config.DatabaseConfig` settings. In particular, pay attention to the
-   `cobib.config.config.EntryStringifyConfig` settings which affect how entries are converted
-   to/from strings. In particular, the following setting will affect how multiple files are split
-   into a list of files:
-   ```
-   config.database.stringify.list_separator.file = ", "
-   ```
-   The above will separate file paths using `, ` but if you use a different separator (for example
-   `;`) be sure to update this setting accordingly.
-
-### Additional Options
-
-Since v4.1.0 you can suppress the automatic download of attachments via the
-`cobib.config.config.ImportCommandConfig.skip_download` setting. It defaults to `False` meaning that
-the attachments will be downloaded
-If you want to manually overwrite the configuration setting you can do so with the `--skip-download`
-and `--force-download` arguments, respectively.
-I.e. the following will **not** download attachments:
-```
-cobib import --skip-download --zotero
-```
-While the next command will always download attachments:
-```
-cobib import --force-download --zotero
-```
-
-The various importers may take even more command line arguments. Please check out their
-documentation at `cobib.importers` for more details.
-
-### TUI
-
-You can also trigger this command from the `cobib.ui.tui.TUI`.
-By default, it is bound to the `i` key which will drop you into the prompt where you can type out a
-normal command-line command:
-```
-:import <arguments go here>
-```
+.. include:: ../man/cobib-import.1.html_fragment
 """
 
 from __future__ import annotations

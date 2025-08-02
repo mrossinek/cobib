@@ -1,19 +1,6 @@
 """coBib's ISBN parser.
 
-This parser is capable of generating `cobib.database.Entry` instances from a given ISBN.
-It gathers the BibTex-encoded data from the ISBN API and parses the raw json data.
-
-Note, that the openlibrary API does not contain all ISBNs and potential server errors will be caught
-by the parser.
-In the future, I hope to make the API backend configurable.
-
-Since v3.3.0 this parser also supports URLs from which an ISBN can be extracted directly.
-
-The parser is registered under the `-i` and `--isbn` command-line arguments of the
-`cobib.commands.add.AddCommand`.
-
-The following documentation is mostly inherited from the abstract interface
-`cobib.parsers.base_parser`.
+.. include:: ../man/cobib-isbn.7.html_fragment
 """
 
 from __future__ import annotations

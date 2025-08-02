@@ -1,11 +1,16 @@
 """coBib's example configuration command.
 
-This command can be used to extract the default (or example) configuration for the installed coBib
-version.
+This command can be used to extract the default configuration from `cobib.config.example` for the
+installed coBib version.
 
-You can run this command via:
-```
+You can run this command like so:
+```bash
 cobib _example_config
+```
+
+You can redirect its output to a file like so:
+```bash
+cobib _example_config > ~/.config/cobib/config.py
 ```
 """
 
