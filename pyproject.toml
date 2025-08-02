@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "setuptools>=42",
+    "setuptools>=77",
     "wheel"
 ]
 build-backend = "setuptools.build_meta"
@@ -12,7 +12,8 @@ authors = [
 ]
 description = "Console Bibliography"
 requires-python = ">=3.9"
-license = {text = "MIT License"}
+license = "MIT"
+license-files = ["LICENSE.txt"]
 keywords = [
     "reference-manager", "citation-manager", "bibliography", "cli", "tui",
     "command-line", "terminal", "console", "bibtex", "doi", "arxiv", "isbn"
@@ -24,12 +25,24 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: Unix",
     "Environment :: Console",
     "Typing :: Typed",
 ]
-dynamic = ["dependencies", "readme", "version"]
+dependencies = [
+    "beautifulsoup4",
+    "bibtexparser<2",
+    "lxml",
+    "pylatexenc",
+    "requests",
+    "requests_oauthlib",
+    "rich",
+    "ruamel.yaml",
+    "text-unidecode",
+    "textual>=2.0",
+    "typing_extensions",
+]
+dynamic = ["readme", "version"]
 
 [project.entry-points."cobib.commands"]
 add = "cobib.commands.add:AddCommand"
@@ -67,8 +80,45 @@ yaml = "cobib.parsers.yaml:YAMLParser"
 cobib = "cobib.__main__:_main"
 
 [project.optional-dependencies]
-all = ["cobib[fuzzy]"]
-fuzzy = ["regex"]
+# all optional _runtime_ dependencies
+all = [
+    "cobib[fuzzy]",
+]
+fuzzy = [
+    "regex",
+]
+# all optional _development_ dependencies
+dev = [
+    "cobib[coverage,docs,lint]",
+]
+basedev = [
+    "pytest==8.4.1",
+]
+docs = [
+    "cobib[basedev]",
+    "pdoc==15.0.4",
+    "textual-dev==1.7.0",
+]
+test = [
+    "cobib[basedev]",
+    "pytest-asyncio==1.1.0",
+    "pytest-textual-snapshot==1.1.0",
+]
+coverage = [
+    "cobib[test]",
+    "coverage==7.10.1",
+    "pytest-cov==6.2.1",
+]
+lint = [
+    "cobib[basedev]",
+    "mypy==1.17.1",
+    "ruff==0.12.7",
+    "typos==1.34.0",
+    "types-beautifulsoup4==4.12.0.20250516",
+    "types-regex==2024.11.6.20250403",
+    "types-requests-oauthlib==2.0.0.20250516",
+    "types-requests==2.32.4.20250611",
+]
 
 [project.urls]
 Homepage = "https://gitlab.com/cobib/cobib"
@@ -81,7 +131,6 @@ Changelog = "https://gitlab.com/cobib/cobib/-/blob/master/CHANGELOG.md"
 include-package-data = true
 
 [tool.setuptools.dynamic]
-dependencies = {file = "requirements.txt"}
 readme = {file = ["README.md", "CHANGELOG.md"], content-type = "text/markdown"}
 version = {attr = "cobib.__version__"}
 
