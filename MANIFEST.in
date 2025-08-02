@@ -1,5 +1,0 @@
-include README.md
-include CHANGELOG.md
-include LICENSE.txt
-include requirements.txt
-include src/cobib/man/*.md
