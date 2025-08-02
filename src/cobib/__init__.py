@@ -1,6 +1,15 @@
 """coBib - the Console Bibliography.
 
+[![coBib](https://gitlab.com/cobib/cobib/-/raw/master/docs/logo/cobib_logo.svg)](https://cobib.gitlab.io/cobib/cobib.html)
+
 .. include:: ../../README.md
+   :start-after: # coBib
+
+<hr/>
+
+## Getting Started
+
+.. include:: man/cobib-getting-started.7.html_fragment
 """
 
 import subprocess

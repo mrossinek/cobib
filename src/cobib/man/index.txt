@@ -1,0 +1,46 @@
+# manuals included in this project
+cobib(1)               man
+cobib-add(1)           commands/add
+cobib-delete(1)        commands/delete
+cobib-edit(1)          commands/edit
+cobib-export(1)        commands/export
+cobib-import(1)        commands/import_
+cobib-list(1)          commands/list_
+cobib-modify(1)        commands/modify
+cobib-note(1)          commands/note
+cobib-open(1)          commands/open
+cobib-review(1)        commands/review
+cobib-search(1)        commands/search
+cobib-show(1)          commands/show
+cobib-git(1)           commands/git
+cobib-init(1)          commands/init
+cobib-lint(1)          commands/lint
+cobib-redo(1)          commands/redo
+cobib-undo(1)          commands/undo
+cobib-unify-labels(1)  commands/unify_labels
+cobib-commands(7)      commands
+cobib-config(5)        config
+cobib-event(7)         config/event
+cobib-database(7)      database
+cobib-filter(7)        database/entry
+cobib-git(7)           utils/git
+cobib-importers(7)     importers
+cobib-zotero(7)        importers/zotero
+cobib-parsers(7)       parsers
+cobib-arxiv(7)         parsers/arxiv
+cobib-bibtex(7)        parsers/bibtex
+cobib-doi(7)           parsers/doi
+cobib-isbn(7)          parsers/isbn
+cobib-url(7)           parsers/url
+cobib-yaml(7)          parsers/yaml
+cobib-tui(7)           ui/tui
+cobib-plugins(7)       ../cobib_dummy
+
+# external manuals
+git(1)                 https://man.archlinux.org/man/git.1
+grep(1)                https://man.archlinux.org/man/grep.1
+regex(7)               https://man.archlinux.org/man/regex.7
+
+# other resources
+online-documentation   https://cobib.gitlab.io/cobib/cobib.html
+repository             https://gitlab.com/cobib/cobib

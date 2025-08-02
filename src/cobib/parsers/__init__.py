@@ -1,5 +1,7 @@
 """coBib's parsers.
 
+.. include:: ../man/cobib-parsers.7.html_fragment
+
 coBib provides a variety of parsers which handle the translation from (and to) specific sources into
 `cobib.database.Entry` instances.
 The abstract interface which should be implemented is defined by the `cobib.parsers.base_parser`.

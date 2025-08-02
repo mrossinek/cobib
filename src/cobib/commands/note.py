@@ -1,41 +1,6 @@
-"""coBib's Note command.
+"""Take notes for an entry.
 
-This command allows you to manipulate a note for an entry in your database. More precisely, it
-allows you to show, edit, and delete the file linked to by the `cobib.database.entry.Entry.note`
-field.
-
-.. note::
-   The *benefit* of the `cobib.database.entry.Entry.note` field over a file attached via the
-   `cobib.database.entry.Entry.file` field is, that the note's contents are known to be plain-text
-   and, thus, their content is included during the `cobib.commands.search.SearchCommand`.
-
-The different actions that you can execute are very simple:
-
-1. Show the note's contents:
-   ```
-   cobib note Label1 show
-   ```
-
-2. Edit the note's contents using `cobib.config.config.EditCommandConfig.editor`:
-   ```
-   cobib note Label1 edit
-   ```
-
-3. Delete the associated note:
-   ```
-   cobib note Label1 delete
-   ```
-
-When an entry does not have an associated note yet, the `edit` action will create a new empty note
-for you. Its file location is determined as described in `NoteCommand.note_path`.
-
-### TUI
-
-You can also trigger this command from the `cobib.ui.tui.TUI`.
-By default, it is bound to the `n` key which will load the note's content into the
-`cobib.ui.components.note_view.NoteView` widget and start the editing process.
-You can also preview the note's content using the `Enter` key.
-The widget provides a few more features which it documents itself, so be sure to read that, too.
+.. include:: ../man/cobib-note.1.html_fragment
 """
 
 from __future__ import annotations

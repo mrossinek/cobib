@@ -1,16 +1,6 @@
 """coBib's URL parser.
 
-This parser is capable of generating `cobib.database.Entry` instances from general URLs.
-This parser checks the URL for contained arXiv IDs, DOIs, and ISBNs in this order.
-If none of the above match (or fail to return an `Entry`) it will fall back and extract all DOIs
-from the website which the URL is pointing to. It will then use the most common DOI (if it occurs
-more often than once) and use that as the DOI to which this URL supposedly redirects.
-
-The parser is registered under the `--url` command-line argument of the
-`cobib.commands.add.AddCommand`.
-
-The following documentation is mostly inherited from the abstract interface
-`cobib.parsers.base_parser`.
+.. include:: ../man/cobib-url.7.html_fragment
 """
 
 from __future__ import annotations

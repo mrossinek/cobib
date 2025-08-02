@@ -1,4 +1,4 @@
-[![coBib](https://gitlab.com/cobib/cobib/-/raw/master/logo/cobib_logo.svg)](https://cobib.gitlab.io/cobib/cobib.html)
+[![coBib](https://gitlab.com/cobib/cobib/-/raw/master/docs/logo/cobib_logo.svg)](https://cobib.gitlab.io/cobib/cobib.html)
 
 # coBib
 
@@ -6,7 +6,7 @@
 [![coverage](https://gitlab.com/cobib/cobib/badges/master/coverage.svg)](https://gitlab.com/cobib/cobib/-/graphs/master/charts)
 [![PyPI](https://img.shields.io/pypi/v/cobib)](https://pypi.org/project/cobib/)
 
-coBib is a simple, command-line based bibliography management tool.
+coBib is a simple, console-based bibliography management tool.
 It is the result of the need for an easy-to-use alternative to full-blown reference managers like Mendeley or Zotero.
 As such it follows some basic design goals:
 
@@ -19,6 +19,14 @@ As such it follows some basic design goals:
 * **command-line and TUI support**: all features are available through the command-line as well as a
   [textual](https://textual.textualize.io/)-based TUI
 
+Here is an example screenshot of the TUI when listing the entries in your database:
+
+![coBib TUI List](https://gitlab.com/cobib/cobib/-/raw/master/docs/screenshots/cobib_tui_list.svg)
+
+And here is an example screenshot for listing search results:
+
+![coBib TUI Search](https://gitlab.com/cobib/cobib/-/raw/master/docs/screenshots/cobib_tui_search.svg)
+
 
 ## Installation
 
@@ -28,15 +36,13 @@ For all common purposes you can install coBib via `pip`:
 pip install cobib
 ```
 
-Note: Use `pip3` if you still have Python 2 installed.
-
 If you would also like to install the man-page, you need to download the source
 code and do the following:
 
 ```
 git clone https://gitlab.com/cobib/cobib
 cd cobib
-make install_extras
+make install_man_pages
 ```
 
 ### Arch Linux
@@ -52,158 +58,6 @@ If you are using Windows 10 or later and are running into issues, you should be 
 use coBib's full functionality within the Linux subsystem.
 
 
-## Getting started
-
-To get started, you must initialize the database:
-
-```
-cobib init
-```
-
-If you would like to enable the git-integration, you should run:
-
-```
-cobib init --git
-```
-
-*and* enable `config.database.git` (see also [configuration](#configuration)).
-
-Be sure to check out my [Quickstart blog post](https://mrossinek.gitlab.io/programming/introducing-cobib/)
-for a more guided introduction compared to the following section!
-
-### Importing your library
-
-coBib provides an `import` command through which you can easily import your library
-from another bibliography manager. For more details check out:
-
-```
-cobib import --help
-```
-
-So far, coBib knows how to import your library from Zotero by simply running:
-
-```
-cobib import --zotero
-```
-
-Check out the following command, the man page or the online documentation for more details:
-
-```
-cobib import --zotero -- --help
-```
-
-## Usage
-
-### Adding new entries
-
-You can now add new entries to your database (see also `cobib.commands.add`[^1]):
-
-```
-cobib add --bibtex some_biblatex_file.bib
-cobib add --arxiv <some arXiv ID>
-cobib add --doi <some DOI>
-cobib add --isbn <some ISBN>
-```
-
-**Note**: when adding data from a `.bib` file, make sure that it is in the Bib**La**Tex format!
-
-### Viewing your database and entries
-
-You can view the contents of your database with (see also `cobib.commands.list_`):
-
-```
-cobib list
-```
-
-You can show a specific entry with (see also `cobib.commands.show`):
-
-```
-cobib show <some entry label>
-```
-
-You can open an associated file of an entry with (see also `cobib.commands.open`):
-
-```
-cobib open <some entry label>
-```
-
-You can even search through your database with (see also `cobib.commands.search`):
-
-```
-cobib search "some text"
-```
-
-### Editing your database
-
-You can delete an entry with (see also `cobib.commands.delete`):
-
-```
-cobib delete <some entry label>
-```
-
-You can edit an entry manually with (see also `cobib.commands.edit`):
-
-```
-cobib edit <some entry label>
-```
-
-You can also apply simple modifications to multiple entries at once with (see also
-`cobib.commands.modify`):
-
-```
-cobib modify tags:private -- <some entry label> <another entry label> ...
-```
-
-### Exporting your database
-
-You can export your database with (see also `cobib.commands.export`):
-
-```
-cobib export --bibtex my_bibliography.bib
-cobib export --zip my_library.zip
-```
-
-### Integrated version control
-
-If you have enabled the git-integration, you can undo and re-apply changes to your database with
-(see also `cobib.commands.undo` and `cobib.commands.redo`):
-
-```
-cobib undo
-cobib redo
-```
-
-### Getting help
-
-Each subcommand provides additional help via:
-
-```
-cobib <subcommand> --help
-```
-
-and you can find extensive information in the online documentation (linked above) and the man-page:
-
-```
-man cobib
-```
-
-### TUI
-
-Finally, you can also use coBib's TUI for a more interactive experience (see also `cobib.ui.tui`),
-by simply typing
-```
-cobib
-```
-
-Here is an example screenshot of the TUI when listing the entries in your database:
-
-![coBib TUI List](https://gitlab.com/cobib/cobib/-/raw/master/html/cobib_tui_list.svg)
-
-And here is an example screenshot for listing search results:
-
-![coBib TUI Search](https://gitlab.com/cobib/cobib/-/raw/master/html/cobib_tui_search.svg)
-
-
 ## Configuration
 
 You can overwrite the default configuration by placing a `config.py` file in `~/.config/cobib/`.
@@ -217,9 +71,9 @@ cobib _example_config > ~/.config/cobib/config.py
 You can then modify it to your liking.
 
 You may also specify a different config file at runtime by using the `-c` or `--config` command line argument or by specifying a custom path in the `COBIB_CONFIG` environment variable.
-You can also disable loading of _any_ configuration file be setting this environment variable to one of the following values: `"", 0, "f", "false", "nil", "none"`.
+You can also disable loading of _any_ configuration file by setting this environment variable to one of the following values: `"", 0, "f", "false", "nil", "none"`.
 
-Finally, be sure to take a look at the man page (`man cobib`) and/or the online documentation for more information.
+Finally, be sure to take a look at the man page (`man 5 cobib-config`) and/or the online documentation for more information.
 
 
 ## Plugins
@@ -232,6 +86,7 @@ You can find an example plugin in [this folder](./plugin) or read the docs of
 ## Documentation
 
 coBib's documentation is hosted [here](https://cobib.gitlab.io/cobib/cobib.html).
+That page also contains a **getting started** guide!
 
 If you would like to generate a local version during development, you need to clone the source code, and install [`pdoc`](https://github.com/mitmproxy/pdoc) in order to generate it:
 
@@ -239,10 +94,10 @@ If you would like to generate a local version during development, you need to cl
 git clone https://gitlab.com/cobib/cobib.git
 cd cobib
 pip install pdoc
-pdoc -d google -e cobib=https://gitlab.com/cobib/cobib/-/blob/master/src/cobib/ -t html -o docs src/cobib tests
+pdoc -d google -e cobib=https://gitlab.com/cobib/cobib/-/blob/master/src/cobib/ -t docs/jinja -o build/html src/cobib plugin/src/cobib_dummy tests
 ```
 
-You can then browse the documentation from `docs/cobib.html`.
+You can then browse the documentation from `build/html/cobib.html`.
 
 
 ## History
@@ -277,4 +132,4 @@ coBib is licensed under the [MIT License](https://gitlab.com/cobib/cobib/-/blob/
 
 [^1]: References like this one get interpreted by the documentation generator. If you are reading this as the README page, you may find the [online documentation](https://cobib.gitlab.io/cobib/cobib.html) more enjoyable.
 
-[//]: # ( vim: set ft=markdown: )
+[//]: # ( vim: set ft=markdown tw=0: )

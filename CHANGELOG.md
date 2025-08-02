@@ -6,11 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+The online documentation and man-page(s) have been overhauled entirely.
+Package maintainers beware that the `Makefile` has new dependencies!
+
 ### Added
 - the `verbosity` keyword argument to the `TUI` such that the log screen of the
   TUI respects the `--verbose` level provided from the command-line
 - the `cobib.utils.logging.DEPRECATED` and `cobib.utils.logging.HINT` constants
   to indicate the custom logging level numeric values
+
+### Changed
+- the single man-page (cobib.1) has been split into many and their content has
+  been majorly updated (!342)
+- the online documentation has been overhauled and now integrates the man-pages
+  directly (to avoid duplication) (!342)
 
 ### Fixed
 - the `import` command will now correctly generate a `git` commit

@@ -1,28 +1,6 @@
-"""coBib's Init command.
+"""Initialize a database.
 
-This command must be the first command you ever execute with coBib because it takes care of
-initializing the database.
-Generally, you will only ever need to run this command once, but it is safe to run it multiple times
-(although it will likely have no effect).
-
-To get started with coBib you must run:
-```
-cobib init
-```
-This will initialize the database in the location specified by
-`cobib.config.config.DatabaseConfig.file`.
-
-If you enabled the automatic git-integration of coBib via `cobib.config.config.DatabaseConfig.git`,
-you must initialize this separately via:
-```
-cobib init --git
-```
-If you have not run the first command yet, you can directly initialize the database *and* the
-git-integration by only running the second command.
-
-.. warning::
-   You can**not** run this command from the TUI, because the database must have already been
-   initialized *before* you can start the TUI in the first place.
+.. include:: ../man/cobib-init.1.html_fragment
 """
 
 from __future__ import annotations

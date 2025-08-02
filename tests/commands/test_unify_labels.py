@@ -130,6 +130,6 @@ class TestUnifyLabels(CommandTest):
                     "remove": False,
                     "preserve_files": None,
                     "selection": False,
-                    "filter": ["--label", "some_non_existent_label_123456_abcdef"],
+                    "filter": ["++label", ""],
                 },
             )

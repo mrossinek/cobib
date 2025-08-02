@@ -1,50 +1,6 @@
-"""coBib's Git command.
+"""Pass through to the database's git tracking.
 
-This command is a simple pass through to the `git` executable, running inside the folder of coBib's
-database (i.e. it is equivalent to running `git -C <path/to/cobib/database> <whatever arguments>`).
-It exists solely for convenience since the above can be cumbersome to type out and specifying a
-shell alias only works when coBib is used for a single database location (otherwise one needs one
-alias for each database).
-
-.. note::
-
-   This command is not available from within the TUI because the generated output is not dealt with
-   very nicely (yet? 🤔)
-
-Below are a few example use cases.
-
-### Checking the latest change
-```
-cobib git show HEAD
-```
-
-### Checking for uncommitted changes
-```
-cobib git status
-```
-
-### Browsing the entire history
-```
-cobib git log
-```
-
-### Pushing or pulling the recent changes
-```
-cobib git push origin master
-cobib git pull origin master
-```
-
-### This also works with coBib-level keyword arguments:
-
-```
-cobib -c my_other_config.py git show HEAD
-cobib -l my_log_file.txt git log
-```
-
-<hr/>
-
-Of course, you have the full power of git at your fingertips, so there really are no limits to what
-you can do.
+.. include:: ../man/cobib-git.1.html_fragment
 """
 
 from __future__ import annotations

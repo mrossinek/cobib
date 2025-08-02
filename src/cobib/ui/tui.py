@@ -1,7 +1,6 @@
 """coBib's terminal user interface.
 
-This class implements a beautiful TUI for coBib, leveraging
-[`textual`](https://github.com/textualize/textual).
+.. include:: ../man/cobib-tui.7.html_fragment
 
 .. warning::
 

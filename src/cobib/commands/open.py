@@ -1,50 +1,6 @@
-"""coBib's Open command.
+"""Open associated files.
 
-This command can be used to open associated file(s) of one (or multiple) entries.
-```
-cobib open <label 1> [<label 2> ...]
-```
-
-The keys of `cobib.database.Entry.data` which are queried for paths or URL strings can be configured
-via the `cobib.config.config.OpenCommandConfig.fields` setting (defaulting to `["file", "url"]`).
-If one such string is found, it is automatically opened with the program configured by
-`cobib.config.config.OpenCommandConfig.command`.
-If multiple matches are found, the user will be presented with a menu to choose one or multiple
-matches.
-
-This menu will look similar to the following after querying for `help`:
-```
-Multiple targets were found. You may select the following:
-  1. an individual URL number
-  2. a target type (provided in '[...]')
-  3. 'all'
-  4. or 'cancel' to abort the command
-
-  1: [file] /path/to/a/file.pdf
-  2: [file] /path/to/another/file.pdf
-  3: [url] https://example.org/
-[all,help,cancel]:
-```
-
-With the above options, here is what will happen depending on the users choice:
-* `1`, `2`, or `3`: will open the respective file or URL.
-* `file` or `url`: will open the respective group.
-* `all`: will open all matches.
-* `help`: will print the detailed help-menu again.
-* `cancel`: will abort the command.
-
-Since coBib v4.2.0 you can also bypass the above interactive prompt from the command-line using the
-optional `--field` (or `-f` for short) argument. However, this only allows you to specify `all` or
-an openable field name (e.g. `file` or `url`) but *not* any of the numbers (since you would not know
-the order up front). Here is an example which will open all openable fields found in an entry:
-```
-cobib open <label 1> --field all
-```
-
-### TUI
-
-You can also trigger this command from the `cobib.ui.tui.TUI`.
-By default, it is bound to the `o` key.
+.. include:: ../man/cobib-open.1.html_fragment
 """
 
 from __future__ import annotations

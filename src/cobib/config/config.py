@@ -3,7 +3,8 @@
 This file contains both, the actual implementation of the `Config` classes, as well as the runtime
 `config` object, which gets exposed on the module level as `cobib.config.config`.
 Note, that this last link will not point to the correct location in the online documentation due to
-the nature of the lower-level import.
+the nature of the lower-level import. Instead, at Python runtime this will import
+`cobib.config.config.config`.
 """
 # ruff: noqa: E731, RUF009
 
@@ -75,596 +76,102 @@ class _ConfigBase:
                 setattr(self, name, field_.default_factory())  # type: ignore[misc]
 
 
-class TagMarkup(NamedTuple):
-    """A tuple for representing the weight and style of a tag."""
-
-    weight: int
-    """The weight of the tag. This integer is used to determine the markup priority of the tag.
-    Higher integer values indicate a higher priority."""
-    style: str | rich.style.Style
-    """The style of the tag. This can be a `rich.style.Style` or a string which can be interpreted
-    by `rich.style.Style.parse`."""
-
-
 @dataclass
-class TagsThemeConfig(_ConfigBase):
-    """The markup configuration for special tags.
+class Config(_ConfigBase):
+    """The `config` dataclass."""
 
-    The tag names configured via this setting will be marked up via a `rich.Theme`. This allows you
-    to easily customize a visual differentiation of your entries based on simple properties.
+    commands: CommandConfig = field(default_factory=lambda: CommandConfig())
+    """The nested section for the commands settings."""
+    database: DatabaseConfig = field(default_factory=lambda: DatabaseConfig())
+    """The nested section for the database settings."""
+    events: dict["Event", list[Callable]] = field(default_factory=dict)  # type: ignore[type-arg]
+    """`cobib.config.event` hooks get stored in this dictionary but it should **NOT** be modified
+    directly! Instead, the `cobib.config.event.Event.subscribe` decorator should be used (cf.
+    `cobib.config.event`)."""
+    logging: LoggingConfig = field(default_factory=lambda: LoggingConfig())
+    """The nested section for the logging settings."""
+    parsers: ParserConfig = field(default_factory=lambda: ParserConfig())
+    """The nested section for the parsers settings."""
+    theme: ThemeConfig = field(default_factory=lambda: ThemeConfig())
+    """The nested section for the theme settings."""
+    tui: TUIConfig = field(default_factory=lambda: TUIConfig())
+    """The nested section for the TUI settings."""
+    utils: UtilsConfig = field(default_factory=lambda: UtilsConfig())
+    """The nested section for the utils settings."""
 
-    The style and weight of the builtin special tags can be configured directly or you can add fully
-    custom special tags via the `user_tags` field.
-    """
-
-    new: TagMarkup = TagMarkup(10, "bold bright_cyan")
-    """The markup of the `new` tag. By default, coBib does *not* add this automatically, but you can
-    do this easily with a `PostAddCommand` hook like so:
-
-    ```python
-    @Event.PostAddCommand.subscribe
-    def add_new_tag(cmd: AddCommand) -> None:
-        for entry in cmd.new_entries.values():
-            if "new" not in entry.tags:
-                entry.tags = entry.tags + ["new"]
-    ```
-
-    .. note::
-       The `new` tag has a lower weight than all of the builtin priority tags (`high`, `medium`,
-       `low`) allowing these to be used to further classify new entries on a reading list.
-    """
-    high: TagMarkup = TagMarkup(40, "on bright_red")
-    """The markup of the `high` priority tag."""
-    medium: TagMarkup = TagMarkup(30, "bright_red")
-    """The markup of the `medium` priority tag."""
-    low: TagMarkup = TagMarkup(20, "bright_yellow")
-    """The markup of the `low` priority tag."""
-    user_tags: dict[str, TagMarkup] = field(default_factory=dict)
-    """A dictionary to add weight and markup definitions for arbitrary tags. The keys of the
-    dictionary will be compared as is to the tags of an `cobib.database.entry.Entry`.
-
-    .. note::
-       Because the markup names are used in a `rich.Theme`, they must be lower case, start with a
-       letter, and only contain letters or the characters `"."`, `"-"`, `"_"`. See also
-       [here](https://rich.readthedocs.io/en/stable/style.html#style-themes).
-    """
-
-    @property
-    def names(self) -> set[str]:
-        """Returns the set of all special tag names."""
-        return {f.name for f in fields(self)} - {"user_tags"} | set(self.user_tags.keys())
-
-    @property
-    def styles(self) -> dict[str, str | Style]:
-        """Returns the combined dictionary of all special tag styles."""
-        styles: dict[str, str | Style] = {}
-        for field_ in fields(self):
-            tag_markup = getattr(self, field_.name)
-            if isinstance(tag_markup, TagMarkup):
-                styles[f"tag.{field_.name}"] = tag_markup.style
-
-        for name, weighted_style in self.user_tags.items():
-            styles[f"tag.{name}"] = weighted_style.style
-
-        return styles
-
-    @property
-    def weights(self) -> dict[str, int]:
-        """Returns the combined dictionary of all special tag weights."""
-        weights: dict[str, int] = {}
-        for field_ in fields(self):
-            tag_markup = getattr(self, field_.name)
-            if isinstance(tag_markup, TagMarkup):
-                weights[field_.name] = tag_markup.weight
-
-        for name, weighted_style in self.user_tags.items():
-            weights[name] = weighted_style.weight
-
-        return weights
+    XDG_CONFIG_FILE: str | Path = field(
+        default="~/.config/cobib/config.py", init=False, repr=False, compare=False
+    )
+    """The XDG-based standard configuration location."""
 
     @override
     def validate(self) -> None:
-        self._assert(
-            isinstance(self.new, TagMarkup), "config.theme.tags.new should be a TagMarkup tuple."
-        )
-        self._assert(
-            isinstance(self.high, TagMarkup), "config.theme.tags.high should be a TagMarkup tuple."
-        )
-        self._assert(
-            isinstance(self.medium, TagMarkup),
-            "config.theme.tags.medium should be a TagMarkup tuple.",
-        )
-        self._assert(
-            isinstance(self.low, TagMarkup), "config.theme.tags.low should be a TagMarkup tuple."
-        )
-        self._assert(
-            isinstance(self.user_tags, dict),
-            "config.theme.tags.user_tags should be a dict.",
-        )
-        for name, tag_markup in self.user_tags.items():
+        LOGGER.info("Validating the runtime configuration.")
+        self.commands.validate()
+        self.database.validate()
+        self.logging.validate()
+        self.parsers.validate()
+        self.theme.validate()
+        self.tui.validate()
+        self.utils.validate()
+
+        LOGGER.debug("Validating the EVENTS configuration section.")
+        self._assert(isinstance(self.events, dict), "config.events should be a dict.")
+        for event in self.events:
             self._assert(
-                isinstance(tag_markup, TagMarkup),
-                f"The '{name}' entry in config.theme.tags.user_tags should be a TagMarkup tuple.",
+                event.validate(),
+                f"config.events.{event} did not pass its validation check.",
             )
 
+    @staticmethod
+    def load(configpath: str | Path | TextIO | io.TextIOWrapper | None = None) -> None:
+        """Loads another configuration object at runtime.
 
-@dataclass
-class SearchHighlightConfig(_ConfigBase):
-    """The `config.theme.search` section."""
+        WARNING: The new Python-like configuration allows essentially arbitrary Python code so it is
+        the user's responsibility to treat this with care!
 
-    label: str | Style = "blue"
-    """Specifies the color with which to highlight the labels of search results."""
-    query: str | Style = "red"
-    """Specifies the color with which to highlight the query matches of a search."""
-
-    @property
-    def styles(self) -> dict[str, str | Style]:
-        """Returns the `rich.Theme`-compatible styles dictionary of the configured highlights."""
-        return {
-            "search.label": self.label,
-            "search.query": self.query,
-        }
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the THEME.SEARCH configuration section.")
-        self._assert(isinstance(self.label, str), "config.theme.search.label should be a string.")
-        self._assert(isinstance(self.query, str), "config.theme.search.query should be a string.")
-
-
-@dataclass
-class SyntaxConfig(_ConfigBase):
-    """The `config.theme.syntax` section.
-
-    These attributes configure the default values used for displaying `rich.Syntax` elements.
-    """
-
-    theme: str | None = None
-    """The theme to use for any `rich.Syntax` display.
-
-    If this is `None`, it defaults to `"ansi_dark"` or `"ansi_light"`, depending on the value of
-    `cobib.config.ThemeConfig.textual_theme.dark`.
-
-    Otherwise, this should be the name of a supported pygments theme. For more details refer to
-    [rich's documentation](https://rich.readthedocs.io/en/latest/syntax.html#theme).
-
-    This attribute should be accessed via the `SyntaxConfig.get_theme` method.
-    """
-
-    background_color: str | None = None
-    """The background color to use for any `rich.Syntax` display.
-
-    If this is `None`, its default value depends on whether a `textual.App` is running. If not, it
-    simply uses `"default"` which should result in a _transparent_ background with respect to the
-    terminal's background color. Otherwise, it will use the `$panel` color of the `textual.App`. For
-    more details refer to [textual's
-    documentation](https://textual.textualize.io/guide/design/#base-colors).
-
-    This attribute should be accessed via the `SyntaxConfig.get_background_color` method.
-    """
-
-    line_numbers: bool = True
-    """Whether to show line numbers in `rich.Syntax` displays.
-
-    .. note::
-       This setting is ignored by the `cobib.utils.diff_renderer.DiffData.render` method. It will
-       *always* show line numbers.
-    """
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the THEME.SYNTAX configuration section.")
-        self._assert(
-            self.theme is None or isinstance(self.theme, str),
-            "config.theme.syntax.theme should either be `None` or a string.",
-        )
-        self._assert(
-            self.background_color is None or isinstance(self.background_color, str),
-            "config.theme.syntax.background_color should either be `None` or a string.",
-        )
-        self._assert(
-            isinstance(self.line_numbers, bool),
-            "config.theme.syntax.line_numbers should be a boolean.",
-        )
-
-    def get_theme(self) -> str:
-        """Returns the `SyntaxConfig.theme` value."""
-        if self.theme is not None:
-            return self.theme
-
-        return "ansi_dark" if config.theme.textual_theme.dark else "ansi_light"
-
-    def get_background_color(self) -> str:
-        """Returns the `SyntaxConfig.background_color` value."""
-        if self.background_color is not None:
-            return self.background_color
-
-        if get_active_app() is None:
-            return "default"
-
-        return config.theme.css_variables["panel"]
-
-
-@dataclass
-class ThemeConfig(_ConfigBase):
-    """The `config.theme` section."""
-
-    theme: str | TextualTheme = "textual-dark"
-    """The name of a builtin theme or a `textual.theme.Theme`.
-
-    Here is a simple example how you can add an intense splash of color to the default ones:
-
-    ```python
-    from textual.theme import BUILTIN_THEMES
-
-    a_splash_of_pink = BUILTIN_THEMES["textual-dark"]
-    a_splash_of_pink.primary = "#ff00ff"
-    config.theme.theme = a_splash_of_pink
-    ```
-
-    Refer to [textual's documentation](https://textual.textualize.io/guide/design) for more details.
-    """
-    search: SearchHighlightConfig = field(default_factory=lambda: SearchHighlightConfig())
-    """The nested section for theme settings related to the `search` command."""
-    syntax: SyntaxConfig = field(default_factory=lambda: SyntaxConfig())
-    """The nested section for theme settings related to `rich.Syntax` displays."""
-    tags: TagsThemeConfig = field(default_factory=lambda: TagsThemeConfig())
-    """The nested section for the markup of special tags."""
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the THEME configuration section.")
-        self._assert(
-            isinstance(self.theme, (str, TextualTheme)),
-            "config.theme.theme must be the name of or an actual textual.theme.Theme",
-        )
-        self.search.validate()
-        self.syntax.validate()
-        self.tags.validate()
-
-    def build(self) -> RichTheme:
-        """Returns the built `rich.Theme` from the configured styles."""
-        theme: dict[str, str | Style] = {}
-        theme.update(self.search.styles)
-        theme.update(self.tags.styles)
-        return RichTheme(theme)
-
-    @property
-    def textual_theme(self) -> TextualTheme:
-        """Returns the `textual.theme.Theme`."""
-        return self.theme if isinstance(self.theme, TextualTheme) else BUILTIN_THEMES[self.theme]
-
-    @property
-    def css_variables(self) -> dict[str, str]:
-        """The actual CSS color variables generated from the active theme of `ThemeConfig.theme`.
-
-        Returns:
-            A dictionary mapping from color names to values. See [textual's
-            documentation](https://textual.textualize.io/guide/design) for more details.
+        Args:
+            configpath: the path to the configuration.
         """
-        return self.textual_theme.to_color_system().generate()
+        LOGGER.info("Input provided to Config.load: %s", configpath)
+        if configpath is not None:
+            if isinstance(configpath, (TextIO, io.TextIOWrapper)):
+                configpath.close()
+                configpath = configpath.name
+        elif "COBIB_CONFIG" in os.environ:
+            configpath_env = os.environ["COBIB_CONFIG"]
+            if configpath_env.lower() in ("", "0", "f", "false", "nil", "none"):
+                LOGGER.info(
+                    "Skipping configuration loading because negative COBIB_CONFIG environment "
+                    "variable was detected."
+                )
+                return
+            configpath = RelPath(configpath_env).path
+        elif Config.XDG_CONFIG_FILE and RelPath(Config.XDG_CONFIG_FILE).exists():
+            # NOTE: I don't quite know why these two lines are not included in coverage because
+            # there is a unittest for them and adding a print statement here does show up in the
+            # output of the test suite...
+            configpath = RelPath(Config.XDG_CONFIG_FILE).path
+        else:  # pragma: no cover
+            return  # pragma: no cover
+        LOGGER.info("Loading configuration from default location: %s", configpath)
 
-
-@dataclass
-class LoggingConfig(_ConfigBase):
-    """The `config.logging` section."""
-
-    cache: str | Path = "~/.cache/cobib/cache"
-    """Specifies the default cache location."""
-    logfile: str | Path = "~/.cache/cobib/cobib.log"
-    """Specifies the default logfile location."""
-    version: str | None = "~/.cache/cobib/version"
-    """Specifies the location for the cached version number based on which coBib shows the latest
-    changes. Set this to `None` to disable this functionality entirely."""
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the LOGGING configuration section.")
-        self._assert(
-            isinstance(self.cache, (str, Path)), "config.logging.cache should be a string."
-        )
-        self._assert(
-            isinstance(self.logfile, (str, Path)), "config.logging.logfile should be a string."
-        )
-        self._assert(
-            self.version is None or isinstance(self.version, str),
-            "config.logging.version should be a string or `None`.",
-        )
-
-
-@dataclass
-class AddCommandConfig(_ConfigBase):
-    """The `config.commands.add` section."""
-
-    skip_download: bool = False
-    """Specifies whether to skip the attempt of downloading PDF files of added entries."""
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the COMMANDS.ADD configuration section.")
-        self._assert(
-            isinstance(self.skip_download, bool),
-            "config.commands.add.skip_download should be a boolean.",
-        )
-
-
-@dataclass
-class DeleteCommandConfig(_ConfigBase):
-    """The `config.commands.delete` section."""
-
-    confirm: bool = True
-    """Whether or not to confirm before deleting an entry."""
-
-    preserve_files: bool = False
-    """Specifies whether associated files should be preserved when deleting an entry."""
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the COMMANDS.DELETE configuration section.")
-        self._assert(
-            isinstance(self.confirm, bool),
-            "config.commands.delete.confirm should be a boolean.",
-        )
-        self._assert(
-            isinstance(self.preserve_files, bool),
-            "config.commands.delete.preserve_files should be a boolean.",
-        )
-
-
-@dataclass
-class EditCommandConfig(_ConfigBase):
-    """The `config.commands.edit` section."""
-
-    default_entry_type: str = "article"
-    """Specifies the default bibtex entry type."""
-    editor: str = os.environ.get("EDITOR", "vim")
-    """Specifies the editor program. Note, that this default will respect your `$EDITOR`
-    environment setting and fall back to `vim` if that variable is not set."""
-    preserve_files: bool = False
-    """Specifies whether associated files should be preserved when renaming an entry during
-    editing."""
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the COMMANDS.EDIT configuration section.")
-        self._assert(
-            isinstance(self.default_entry_type, str),
-            "config.commands.edit.default_entry_type should be a string.",
-        )
-        self._assert(
-            isinstance(self.editor, str),
-            "config.commands.edit.editor should be a string.",
-        )
-        self._assert(
-            isinstance(self.preserve_files, bool),
-            "config.commands.edit.preserve_files should be a boolean.",
-        )
-
-
-@dataclass
-class ImportCommandConfig(_ConfigBase):
-    """The `config.commands.import` section."""
-
-    skip_download: bool = False
-    """Specifies whether to skip the attempt of downloading PDF files of imported entries."""
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the COMMANDS.IMPORT configuration section.")
-        self._assert(
-            isinstance(self.skip_download, bool),
-            "config.commands.import.skip_download should be a boolean.",
-        )
-
-
-@dataclass
-class ListCommandConfig(_ConfigBase):
-    """The `config.commands.list_` section."""
-
-    default_columns: list[str] = field(default_factory=lambda: ["label", "title"])
-    """Specifies the default columns shown during the `list` command."""
-    ignore_case: bool = False
-    """Specifies whether filter matching should be performed case-insensitive."""
-    decode_unicode: bool = False
-    """Specifies whether filter matching should decode all Unicode characters."""
-    decode_latex: bool = False
-    """Specifies whether filter matching should decode all LaTeX sequences."""
-    fuzziness: int = 0
-    """The amount of fuzzy errors to allow for filter matching. Using this feature requires the
-    optional `regex` dependency to be installed."""
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the COMMANDS.LIST configuration section.")
-        self._assert(
-            isinstance(self.default_columns, list),
-            "config.commands.list_.default_columns should be a list.",
-        )
-        self._assert(
-            isinstance(self.ignore_case, bool),
-            "config.commands.list_.ignore_case should be a boolean.",
-        )
-        self._assert(
-            isinstance(self.decode_unicode, bool),
-            "config.commands.list_.decode_unicode should be a boolean.",
-        )
-        self._assert(
-            isinstance(self.decode_latex, bool),
-            "config.commands.list_.decode_latex should be a boolean.",
-        )
-        self._assert(
-            isinstance(self.fuzziness, int) and self.fuzziness >= 0,
-            "config.commands.list_.fuzziness should be a non-negative integer.",
-        )
-        # NOTE: we ignore coverage below because the CI has an additional job running the unittests
-        # without optional dependencies available.
-        if self.fuzziness > 0 and not HAS_OPTIONAL_REGEX:  # pragma: no branch
-            LOGGER.warning(  # pragma: no cover
-                "Using `config.commands.list_.fuzziness` requires the optional `regex` "
-                "dependency to be installed! Falling back to `fuzziness=0`."
+        spec = importlib.util.spec_from_file_location("config", configpath)
+        if spec is None:
+            LOGGER.error(
+                "The config at %s could not be interpreted as a Python module.", configpath
             )
-            self.fuzziness = 0  # pragma: no cover
+            sys.exit(1)
+        else:
+            cfg = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(cfg)  # type: ignore[union-attr]
 
-
-@dataclass
-class ModifyCommandConfig(_ConfigBase):
-    """The `config.commands.modify` section."""
-
-    preserve_files: bool = False
-    """Specifies whether associated files should be preserved when renaming an entry during
-    modifying."""
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the COMMANDS.MODIFY configuration section.")
-        self._assert(
-            isinstance(self.preserve_files, bool),
-            "config.commands.modify.preserve_files should be a boolean.",
-        )
-
-
-@dataclass
-class NoteCommandConfig(_ConfigBase):
-    """The `config.commands.note` section."""
-
-    default_filetype: str = "txt"
-    """Specifies the default filetype for notes."""
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the COMMANDS.NOTE configuration section.")
-        self._assert(
-            isinstance(self.default_filetype, str),
-            "config.commands.note.default_filetype should be a string.",
-        )
-
-
-@dataclass
-class OpenCommandConfig(_ConfigBase):
-    """The `config.commands.open` section."""
-
-    command: str = "xdg-open" if sys.platform.lower() == "linux" else "open"
-    """Specifies the command used for opening files associated with your entries."""
-    fields: list[str] = field(default_factory=lambda: ["file", "url"])
-    """Specifies the entry fields which are to be checked for openable URLs."""
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the COMMANDS.OPEN configuration section.")
-        self._assert(
-            isinstance(self.command, str),
-            "config.commands.open.command should be a string.",
-        )
-        self._assert(
-            isinstance(self.fields, list),
-            "config.commands.open.fields should be a list.",
-        )
-
-
-@dataclass
-class SearchCommandConfig(_ConfigBase):
-    """The `config.commands.search` section."""
-
-    context: int = 1
-    """Specifies the default number of context line to provide for each search query match. This is
-    similar to the `-C` option of `grep`."""
-    grep: str = "grep"
-    """Specifies the grep tool used for searching through your database and associated files. The
-    default tool (`grep`) will not provide results for attached PDFs but other tools such as
-    [ripgrep-all](https://github.com/phiresky/ripgrep-all) will."""
-    grep_args: list[str] = field(default_factory=list)
-    """Specifies additional arguments for your grep command. Note, that GNU's grep understands
-    extended regex patterns even without specifying `-E`."""
-    ignore_case: bool = False
-    """Specifies whether searches should be performed case-insensitive."""
-    decode_unicode: bool = False
-    """Specifies whether searches should decode all Unicode characters."""
-    decode_latex: bool = False
-    """Specifies whether searches should decode all LaTeX sequences."""
-    fuzziness: int = 0
-    """The amount of fuzzy errors to allow for search matches. Using this feature requires the
-    optional `regex` dependency to be installed."""
-    skip_files: bool = False
-    """Specifies whether searches should skip looking through associated files."""
-    skip_notes: bool = False
-    """Specifies whether searches should skip looking through associated notes."""
-
-    @property
-    def highlights(self) -> SearchHighlightConfig:  # pragma: no cover
-        """**DEPRECATED** Use `config.theme.search` instead!
-
-        The nested section for highlights used when displaying search results.
-        """
-        LOGGER.log(
-            45,
-            "The config.commands.search.highlights setting is DEPRECATED! Please use the new "
-            "config.theme.search setting instead.",
-        )
-        return config.theme.search
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the COMMANDS.SEARCH configuration section.")
-        self._assert(
-            isinstance(self.context, int) and self.context >= 0,
-            "config.commands.search.context should be a non-negative integer.",
-        )
-        self._assert(
-            isinstance(self.grep, str),
-            "config.commands.search.grep should be a string.",
-        )
-        self._assert(
-            isinstance(self.grep_args, list),
-            "config.commands.search.grep_args should be a list.",
-        )
-        self._assert(
-            isinstance(self.ignore_case, bool),
-            "config.commands.search.ignore_case should be a boolean.",
-        )
-        self._assert(
-            isinstance(self.decode_unicode, bool),
-            "config.commands.search.decode_unicode should be a boolean.",
-        )
-        self._assert(
-            isinstance(self.decode_latex, bool),
-            "config.commands.search.decode_latex should be a boolean.",
-        )
-        self._assert(
-            isinstance(self.fuzziness, int) and self.fuzziness >= 0,
-            "config.commands.search.fuzziness should be a non-negative integer.",
-        )
-        if self.fuzziness > 0 and not HAS_OPTIONAL_REGEX:
-            # NOTE: we are ignoring coverage below, because the codebase is checked separately
-            # without optional dependencies being present.
-            LOGGER.warning(  # pragma: no cover
-                "Using `config.commands.search.fuzziness` requires the optional `regex` "
-                "dependency to be installed! Falling back to `fuzziness=0`."
-            )
-            self.fuzziness = 0  # pragma: no cover
-        self._assert(
-            isinstance(self.skip_files, bool),
-            "config.commands.search.skip_files should be a boolean.",
-        )
-        self._assert(
-            isinstance(self.skip_notes, bool),
-            "config.commands.search.skip_notes should be a boolean.",
-        )
-
-
-@dataclass
-class ShowCommandConfig(_ConfigBase):
-    """The `config.commands.show` section."""
-
-    encode_latex: bool = True
-    """Specifies whether non-ASCII characters should be encoded using LaTeX sequences."""
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the COMMANDS.SHOW configuration section.")
-        self._assert(
-            isinstance(self.encode_latex, bool),
-            "config.commands.show.encode_latex should be a boolean.",
-        )
+        try:
+            # validate config
+            config.validate()
+        except RuntimeError as exc:
+            LOGGER.error(exc)
+            sys.exit(1)
 
 
 @dataclass
@@ -707,6 +214,345 @@ class CommandConfig(_ConfigBase):
         self.open.validate()
         self.search.validate()
         self.show.validate()
+
+
+@dataclass
+class AddCommandConfig(_ConfigBase):
+    """The `config.commands.add` section."""
+
+    skip_download: bool = False
+    """Whether the automatic file download should be skipped during entry addition."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the COMMANDS.ADD configuration section.")
+        self._assert(
+            isinstance(self.skip_download, bool),
+            "config.commands.add.skip_download should be a boolean.",
+        )
+
+
+@dataclass
+class DeleteCommandConfig(_ConfigBase):
+    """The `config.commands.delete` section."""
+
+    confirm: bool = True
+    """Whether to prompt for confirmation before actually deleting an entry."""
+
+    preserve_files: bool = False
+    """Whether associated files should be preserved during entry deletion."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the COMMANDS.DELETE configuration section.")
+        self._assert(
+            isinstance(self.confirm, bool),
+            "config.commands.delete.confirm should be a boolean.",
+        )
+        self._assert(
+            isinstance(self.preserve_files, bool),
+            "config.commands.delete.preserve_files should be a boolean.",
+        )
+
+
+@dataclass
+class EditCommandConfig(_ConfigBase):
+    """The `config.commands.edit` section."""
+
+    default_entry_type: str = "article"
+    """The default BibTeX entry type."""
+    editor: str = os.environ.get("EDITOR", "vim")
+    """The editor program. Note that this will respect your `$EDITOR` environment variable setting,
+    falling back to `vim` if that is not set."""
+    preserve_files: bool = False
+    """Whether associated files should be preserved when renaming entries during editing."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the COMMANDS.EDIT configuration section.")
+        self._assert(
+            isinstance(self.default_entry_type, str),
+            "config.commands.edit.default_entry_type should be a string.",
+        )
+        self._assert(
+            isinstance(self.editor, str),
+            "config.commands.edit.editor should be a string.",
+        )
+        self._assert(
+            isinstance(self.preserve_files, bool),
+            "config.commands.edit.preserve_files should be a boolean.",
+        )
+
+
+@dataclass
+class ImportCommandConfig(_ConfigBase):
+    """The `config.commands.import` section."""
+
+    skip_download: bool = False
+    """Whether the download of attachments should be skipped during the import process."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the COMMANDS.IMPORT configuration section.")
+        self._assert(
+            isinstance(self.skip_download, bool),
+            "config.commands.import.skip_download should be a boolean.",
+        )
+
+
+@dataclass
+class ListCommandConfig(_ConfigBase):
+    """The `config.commands.list_` section."""
+
+    decode_latex: bool = False
+    """Whether the filter matching (see also `cobib.commands.list_`) should decode all LaTeX
+    sequences."""
+    decode_unicode: bool = False
+    """Whether the filter matching (see also `cobib.commands.list_`) should decode all Unicode
+    characters."""
+    default_columns: list[str] = field(default_factory=lambda: ["label", "title"])
+    """The default columns to be displayed during when listing database contents."""
+    fuzziness: int = 0
+    """How many fuzzy errors to allow during the filter matching (see also `cobib.commands.list_`).
+    Using this feature requires the optional `regex` dependency to be installed."""
+    ignore_case: bool = False
+    """Whether the filter matching (see also `cobib.commands.list_`) should be performed
+    case-insensitive."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the COMMANDS.LIST configuration section.")
+        self._assert(
+            isinstance(self.decode_latex, bool),
+            "config.commands.list_.decode_latex should be a boolean.",
+        )
+        self._assert(
+            isinstance(self.decode_unicode, bool),
+            "config.commands.list_.decode_unicode should be a boolean.",
+        )
+        self._assert(
+            isinstance(self.default_columns, list),
+            "config.commands.list_.default_columns should be a list.",
+        )
+        self._assert(
+            isinstance(self.fuzziness, int) and self.fuzziness >= 0,
+            "config.commands.list_.fuzziness should be a non-negative integer.",
+        )
+        # NOTE: we ignore coverage below because the CI has an additional job running the unittests
+        # without optional dependencies available.
+        if self.fuzziness > 0 and not HAS_OPTIONAL_REGEX:  # pragma: no branch
+            LOGGER.warning(  # pragma: no cover
+                "Using `config.commands.list_.fuzziness` requires the optional `regex` "
+                "dependency to be installed! Falling back to `fuzziness=0`."
+            )
+            self.fuzziness = 0  # pragma: no cover
+        self._assert(
+            isinstance(self.ignore_case, bool),
+            "config.commands.list_.ignore_case should be a boolean.",
+        )
+
+
+@dataclass
+class ModifyCommandConfig(_ConfigBase):
+    """The `config.commands.modify` section."""
+
+    preserve_files: bool = False
+    """Whether associated files should be preserved when renaming entries during modifying."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the COMMANDS.MODIFY configuration section.")
+        self._assert(
+            isinstance(self.preserve_files, bool),
+            "config.commands.modify.preserve_files should be a boolean.",
+        )
+
+
+@dataclass
+class NoteCommandConfig(_ConfigBase):
+    """The `config.commands.note` section."""
+
+    default_filetype: str = "txt"
+    """The default filetype to be used for associated notes."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the COMMANDS.NOTE configuration section.")
+        self._assert(
+            isinstance(self.default_filetype, str),
+            "config.commands.note.default_filetype should be a string.",
+        )
+
+
+@dataclass
+class OpenCommandConfig(_ConfigBase):
+    """The `config.commands.open` section."""
+
+    command: str = "xdg-open" if sys.platform.lower() == "linux" else "open"
+    """The command used to handle opening of `fields` of an entry."""
+    fields: list[str] = field(default_factory=lambda: ["file", "url"])
+    """The names of the entry data fields that are checked for *openable* URLs."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the COMMANDS.OPEN configuration section.")
+        self._assert(
+            isinstance(self.command, str),
+            "config.commands.open.command should be a string.",
+        )
+        self._assert(
+            isinstance(self.fields, list),
+            "config.commands.open.fields should be a list.",
+        )
+
+
+@dataclass
+class SearchCommandConfig(_ConfigBase):
+    """The `config.commands.search` section."""
+
+    context: int = 1
+    """The number of lines to provide as a context around search entry matches. This is similar to
+    the `-C` option of `grep(1)`."""
+    decode_latex: bool = False
+    """Whether searches should decode all LaTeX sequences."""
+    decode_unicode: bool = False
+    """Whether searches should decode all Unicode characters."""
+    fuzziness: int = 0
+    """How many fuzzy errors to allow during searches. Using this feature requires the optional
+    `regex` dependency to be installed."""
+    grep: str = "grep"
+    """The command used to search the associated files of entries in the database. The default tool
+    (`grep(1)`) will not provide search results for attached PDF files, but other tools (such as
+    [ripgrep-all](https://github.com/phiresky/ripgrep-all)) will."""
+    grep_args: list[str] = field(default_factory=list)
+    """Additional input arguments for the `config.commands.search.grep` command specified as a list
+    of strings. Note, that GNU's `grep(1)` understands extended regex patterns even without
+    specifying `-E`."""
+    ignore_case: bool = False
+    """Whether searches should be performed case-insensitive."""
+    skip_files: bool = False
+    """Whether searches should skip looking through associated *files* using
+    `config.commands.search.grep`."""
+    skip_notes: bool = False
+    """Whether searches should skip looking through associated *notes*. Note, that *notes* are
+    searched directly with Python rather than through an external system tool."""
+
+    @property
+    def highlights(self) -> SearchHighlightConfig:  # pragma: no cover
+        """**DEPRECATED** Use `config.theme.search` instead!
+
+        The nested section for highlights used when displaying search results.
+        """
+        LOGGER.log(
+            45,
+            "The config.commands.search.highlights setting is DEPRECATED! Please use the new "
+            "config.theme.search setting instead.",
+        )
+        return config.theme.search
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the COMMANDS.SEARCH configuration section.")
+        self._assert(
+            isinstance(self.context, int) and self.context >= 0,
+            "config.commands.search.context should be a non-negative integer.",
+        )
+        self._assert(
+            isinstance(self.decode_latex, bool),
+            "config.commands.search.decode_latex should be a boolean.",
+        )
+        self._assert(
+            isinstance(self.decode_unicode, bool),
+            "config.commands.search.decode_unicode should be a boolean.",
+        )
+        self._assert(
+            isinstance(self.fuzziness, int) and self.fuzziness >= 0,
+            "config.commands.search.fuzziness should be a non-negative integer.",
+        )
+        if self.fuzziness > 0 and not HAS_OPTIONAL_REGEX:
+            # NOTE: we are ignoring coverage below, because the codebase is checked separately
+            # without optional dependencies being present.
+            LOGGER.warning(  # pragma: no cover
+                "Using `config.commands.search.fuzziness` requires the optional `regex` "
+                "dependency to be installed! Falling back to `fuzziness=0`."
+            )
+            self.fuzziness = 0  # pragma: no cover
+        self._assert(
+            isinstance(self.grep, str),
+            "config.commands.search.grep should be a string.",
+        )
+        self._assert(
+            isinstance(self.grep_args, list),
+            "config.commands.search.grep_args should be a list.",
+        )
+        self._assert(
+            isinstance(self.ignore_case, bool),
+            "config.commands.search.ignore_case should be a boolean.",
+        )
+        self._assert(
+            isinstance(self.skip_files, bool),
+            "config.commands.search.skip_files should be a boolean.",
+        )
+        self._assert(
+            isinstance(self.skip_notes, bool),
+            "config.commands.search.skip_notes should be a boolean.",
+        )
+
+
+@dataclass
+class ShowCommandConfig(_ConfigBase):
+    """The `config.commands.show` section."""
+
+    encode_latex: bool = True
+    """Whether non-ASCII characters should be encoded using LaTeX sequences."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the COMMANDS.SHOW configuration section.")
+        self._assert(
+            isinstance(self.encode_latex, bool),
+            "config.commands.show.encode_latex should be a boolean.",
+        )
+
+
+@dataclass
+class DatabaseConfig(_ConfigBase):
+    """The `config.database` section."""
+
+    cache: str | Path | None = "~/.cache/cobib/databases/"
+    """The path under which to store already parsed databases. Set this to `None` to disable this
+    functionality entirely. See also `cobib.database`."""
+    file: str | Path = "~/.local/share/cobib/literature.yaml"
+    """The path to the database YAML file. You can use a `~` to represent your `$HOME` directory.
+    See also `cobib.database`."""
+    format: DatabaseFormatConfig = field(default_factory=lambda: DatabaseFormatConfig())
+    """The nested section for database formatting settings."""
+    git: bool = False
+    """Whether to enable the `git(1)` integration, see also `cobib.utils.git`."""
+    stringify: EntryStringifyConfig = field(default_factory=lambda: EntryStringifyConfig())
+    """The nested section for database string-formatting settings."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the DATABASE configuration section.")
+        self._assert(
+            self.cache is None or isinstance(self.cache, str),
+            "config.database.cache should be a string or `None`.",
+        )
+        self._assert(isinstance(self.file, str), "config.database.file should be a string.")
+        self.format.validate()
+        self._assert(isinstance(self.git, bool), "config.database.git should be a boolean.")
+        self.stringify.validate()
+
+
+class AuthorFormat(Enum):
+    """Storage formats for the `author` information."""
+
+    YAML = auto()
+    """Stores the list of authors as a YAML list, separating out the first and last names as well as
+    name pre- and suffixes."""
+    BIBLATEX = auto()
+    """Stores the author in the same form as it would be encoded inside of BibLaTeX."""
 
 
 class LabelSuffix(Enum):
@@ -841,47 +687,43 @@ class LabelSuffix(Enum):
         return (raw_label, suffix_value)
 
 
-class AuthorFormat(Enum):
-    """Storage formats for the `author` information."""
-
-    YAML = auto()
-    """Stores the list of authors as a YAML list, separating out the first and last names as well as
-    name pre- and suffixes."""
-    BIBLATEX = auto()
-    """Stores the author in the same form as it would be encoded inside of BibLaTeX."""
-
-
 @dataclass
 class DatabaseFormatConfig(_ConfigBase):
     """The `config.database.format` section."""
 
     author_format: AuthorFormat = AuthorFormat.YAML
-    """Specifies the format to use for the `author` information. See also `AuthorFormat` for more
-    details."""
+    """How the `author` field of an entry gets stored. See `AuthorFormat` for more details."""
     label_default: str = "{unidecode(label)}"
-    """Specifies a default label format which will be used for database entry keys. The format of
-    this option follows the f-string like formatting of modifications (see also the documentation
-    of the `cobib.commands.modify.ModifyCommand`). The default configuration value passes the
-    originally provided label through [text-unidecode](https://pypi.org/project/text-unidecode/)
-    which replaces all Unicode symbols with pure ASCII ones. A more useful example is
-    `"{unidecode(author[0].last)}{year}"` which takes the surname of the first author, replaces the
-    Unicode characters and then immediately appends the publication year."""
+    """The default format for the entry `label`s.
+
+    This setting follows the _Python f-string_-like formatting of modifications (see also
+    `cobib.commands.modify`). The default simply takes the originally set `label` and passes it
+    through [text-unidecode](https://pypi.org/project/text-unidecode/), replacing all Unicode
+    symbols with pure ASCII ones. A more useful example is
+
+        `"{unidecode(author[0].last)}{year}"`
+
+    which takes the surname of the first author (assuming `config.database.format.author_format =
+    AuthorFormat.YAML`), replacing all Unicode characters with ASCII, and immediately appends the
+    `year`.
+    """
     label_suffix: tuple[str, LabelSuffix] = field(default_factory=lambda: ("_", LabelSuffix.ALPHA))
-    """Specifies the suffix format which is used to disambiguate labels if a conflict would occur.
-    This option takes a tuple of length 2, where the first entry is the string separating the
-    proposed label from the enumerator and the second one is one of the enumerators provided by the
-    `LabelSuffix` object. The available enumerators are:
-        - ALPHA: a, b, ...
-        - CAPITAL: A, B, ...
-        - NUMERIC: 1, 2, ...
+    """The suffix format used to disambiguate labels if a conflict would occur.
+
+    The value of this setting is a pair:
+    The first element is the string used to separate the base label from the enumerator; by default,
+    an underscore is used.
+    The second element is one of the `Enum` values of `cobib.config.config.LabelSuffix`:
+        - `ALPHA`: a, b, ...
+        - `CAPITAL`: A, B, ...
+        - `NUMERIC`: 1, 2, ...
     """
     suppress_latex_warnings: bool = True
-    """Specifies whether latex warnings should not be ignored during the escaping of special
-    characters. This is a simple option which gets passed on to the internally used `pylatexenc`
-    library."""
+    """Whether to ignore LaTeX warning during the escaping of special characters. This setting gets
+    forwarded to the internally used [pylatexenc](https://pypi.org/project/pylatexenc/) library."""
     verbatim_fields: list[str] = field(default_factory=lambda: ["file", "url"])
-    """Specifies the fields which will be left verbatim and, thus, remain unaffected from any
-    special character conversions (e.g. LaTeX encoding)."""
+    """Which fields should be left verbatim and, thus, remain unaffected by any special character
+    conversions."""
 
     @override
     def validate(self) -> None:
@@ -914,6 +756,21 @@ class DatabaseFormatConfig(_ConfigBase):
             isinstance(self.verbatim_fields, list),
             "config.database.format.verbatim_fields should be a list.",
         )
+
+
+@dataclass
+class EntryStringifyConfig(_ConfigBase):
+    """The `config.database.stringify` section."""
+
+    list_separator: EntryListSeparatorConfig = field(
+        default_factory=lambda: EntryListSeparatorConfig()
+    )
+    """The nested section for list separator values."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the DATABASE.STRINGIFY configuration section.")
+        self.list_separator.validate()
 
 
 @dataclass
@@ -950,91 +807,29 @@ class EntryListSeparatorConfig(_ConfigBase):
 
 
 @dataclass
-class EntryStringifyConfig(_ConfigBase):
-    """The `config.database.stringify` section."""
+class LoggingConfig(_ConfigBase):
+    """The `config.logging` section."""
 
-    list_separator: EntryListSeparatorConfig = field(
-        default_factory=lambda: EntryListSeparatorConfig()
-    )
-    """The nested section for list separator values."""
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the DATABASE.STRINGIFY configuration section.")
-        self.list_separator.validate()
-
-
-@dataclass
-class DatabaseConfig(_ConfigBase):
-    """The `config.database` section."""
-
-    file: str | Path = "~/.local/share/cobib/literature.yaml"
-    """Specifies the path to the database YAML file. You can use `~` to represent your `$HOME`
-    directory."""
-    cache: str | Path | None = "~/.cache/cobib/databases/"
-    """Specifies the folder in which already parsed databases should be stored. Set this to `None`
-    if you want to disable caching entirely."""
-    format: DatabaseFormatConfig = field(default_factory=lambda: DatabaseFormatConfig())
-    """The nested section for database formatting settings."""
-    git: bool = False
-    """coBib can integrate with `git` in order to automatically track the history of the database.
-    However, by default, this option is disabled. In order to make use of this, enable this setting
-    and initialize your database with `cobib init --git`.
-
-    .. warning::
-       Before enabling this setting you must ensure that you have set up git properly by setting
-       your name and email address."""
-    stringify: EntryStringifyConfig = field(default_factory=lambda: EntryStringifyConfig())
-    """The nested section for database string-formatting settings."""
+    cache: str | Path = "~/.cache/cobib/cache"
+    """The default location of the cache."""
+    logfile: str | Path = "~/.cache/cobib/cobib.log"
+    """The default location of the logfile."""
+    version: str | None = "~/.cache/cobib/version"
+    """The default location of the cached version number, based on which `cobib` shows you the
+    latest changelog after an update. Set this to `None` to disable this functionality entirely."""
 
     @override
     def validate(self) -> None:
-        LOGGER.debug("Validating the DATABASE configuration section.")
-        self._assert(isinstance(self.file, str), "config.database.file should be a string.")
+        LOGGER.debug("Validating the LOGGING configuration section.")
         self._assert(
-            self.cache is None or isinstance(self.cache, str),
-            "config.database.cache should be a string or `None`.",
+            isinstance(self.cache, (str, Path)), "config.logging.cache should be a string."
         )
-        self._assert(isinstance(self.git, bool), "config.database.git should be a boolean.")
-        self.format.validate()
-        self.stringify.validate()
-
-
-@dataclass
-class BibtexParserConfig(_ConfigBase):
-    """The `config.parsers.bibtex` section."""
-
-    ignore_non_standard_types: bool = False
-    """Specifies whether the BibTeX-parser should ignore non-standard BibTeX entry types."""
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the PARSERS.BIBTEX configuration section.")
         self._assert(
-            isinstance(self.ignore_non_standard_types, bool),
-            "config.parsers.bibtex.ignore_non_standard_types should be a boolean.",
+            isinstance(self.logfile, (str, Path)), "config.logging.logfile should be a string."
         )
-
-
-@dataclass
-class YAMLParserConfig(_ConfigBase):
-    """The `config.parsers.yaml` section."""
-
-    use_c_lib_yaml: bool = True
-    """Specifies whether the C-based implementation of the YAML parser (called `LibYAML`) shall be
-    used, *significantly* increasing the performance of the parsing.
-
-    .. note::
-       This requires manual installation of the C-based parser:
-       https://yaml.readthedocs.io/en/latest/install.html#optional-requirements
-    """
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the PARSERS.YAML configuration section.")
         self._assert(
-            isinstance(self.use_c_lib_yaml, bool),
-            "config.parsers.yaml.use_c_lib_yaml should be a boolean.",
+            self.version is None or isinstance(self.version, str),
+            "config.logging.version should be a string or `None`.",
         )
 
 
@@ -1055,18 +850,329 @@ class ParserConfig(_ConfigBase):
 
 
 @dataclass
+class BibtexParserConfig(_ConfigBase):
+    """The `config.parsers.bibtex` section."""
+
+    ignore_non_standard_types: bool = False
+    """Whether to ignore non-standard BibTeX entry types."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the PARSERS.BIBTEX configuration section.")
+        self._assert(
+            isinstance(self.ignore_non_standard_types, bool),
+            "config.parsers.bibtex.ignore_non_standard_types should be a boolean.",
+        )
+
+
+@dataclass
+class YAMLParserConfig(_ConfigBase):
+    """The `config.parsers.yaml` section."""
+
+    use_c_lib_yaml: bool = True
+    """Whether to use the C-based implementation of the YAML parser.
+
+    This **significantly** improves the performance but may require additional installation steps.
+    See the [ruamel.yaml installation instructions](https://yaml.dev/doc/ruamel.yaml/install/) for
+    more details."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the PARSERS.YAML configuration section.")
+        self._assert(
+            isinstance(self.use_c_lib_yaml, bool),
+            "config.parsers.yaml.use_c_lib_yaml should be a boolean.",
+        )
+
+
+@dataclass
+class ThemeConfig(_ConfigBase):
+    """The `config.theme` section."""
+
+    search: SearchHighlightConfig = field(default_factory=lambda: SearchHighlightConfig())
+    """The nested section for theme settings related to the `search` command."""
+    syntax: SyntaxConfig = field(default_factory=lambda: SyntaxConfig())
+    """The nested section for theme settings related to `rich.Syntax` displays."""
+    tags: TagsThemeConfig = field(default_factory=lambda: TagsThemeConfig())
+    """The nested section for the markup of special tags."""
+    theme: str | TextualTheme = "textual-dark"
+    """Textual's underlying `ColorSystem`.
+
+    This setting can either be the name of one of textual's `BUILTIN_THEMES` or an instance of
+    `textual.theme.Theme`.
+    For a detailed guide, see [textual's documentation](https://textual.textualize.io/guide/design),
+    but here is simple example to add an intense splash of color:
+       ```python
+       from textual.theme import BUILTIN_THEMES
+
+       a_splash_of_pink = BUILTIN_THEMES["textual-dark"]
+       a_splash_of_pink.primary = "#ff00ff"
+       config.theme.theme = a_splash_of_pink
+       ```
+    """
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the THEME configuration section.")
+        self.search.validate()
+        self.syntax.validate()
+        self.tags.validate()
+        self._assert(
+            isinstance(self.theme, (str, TextualTheme)),
+            "config.theme.theme must be the name of or an actual textual.theme.Theme",
+        )
+
+    def build(self) -> RichTheme:
+        """Returns the built `rich.Theme` from the configured styles."""
+        theme: dict[str, str | Style] = {}
+        theme.update(self.search.styles)
+        theme.update(self.tags.styles)
+        return RichTheme(theme)
+
+    @property
+    def textual_theme(self) -> TextualTheme:
+        """Returns the `textual.theme.Theme`."""
+        return self.theme if isinstance(self.theme, TextualTheme) else BUILTIN_THEMES[self.theme]
+
+    @property
+    def css_variables(self) -> dict[str, str]:
+        """The actual CSS color variables generated from the active theme of `ThemeConfig.theme`.
+
+        Returns:
+            A dictionary mapping from color names to values. See [textual's
+            documentation](https://textual.textualize.io/guide/design) for more details.
+        """
+        return self.textual_theme.to_color_system().generate()
+
+
+@dataclass
+class SearchHighlightConfig(_ConfigBase):
+    """The `config.theme.search` section."""
+
+    label: str | Style = "blue"
+    """The `rich.style.Style` used to highlight the labels of entries that matched a search.
+
+    See [rich's documentation](https://rich.readthedocs.io/en/latest/style.html) for more
+    details."""
+    query: str | Style = "red"
+    """The `rich.style.Style` used to highlight the actual matches of a search query.
+
+    See [rich's documentation](https://rich.readthedocs.io/en/latest/style.html) for more
+    details."""
+
+    @property
+    def styles(self) -> dict[str, str | Style]:
+        """Returns the `rich.Theme`-compatible styles dictionary of the configured highlights."""
+        return {
+            "search.label": self.label,
+            "search.query": self.query,
+        }
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the THEME.SEARCH configuration section.")
+        self._assert(isinstance(self.label, str), "config.theme.search.label should be a string.")
+        self._assert(isinstance(self.query, str), "config.theme.search.query should be a string.")
+
+
+@dataclass
+class SyntaxConfig(_ConfigBase):
+    """The `config.theme.syntax` section.
+
+    These attributes configure the default values used for displaying `rich.Syntax` elements.
+    """
+
+    background_color: str | None = None
+    """The background color used to display any `rich.syntax.Syntax` elements.
+
+    If this is `None`, its default behavior will try to ensure a *transparent* background. When
+    running in the CLI, this implies a value of `"default"`; inside the TUI, textual's `$panel`
+    color variable is used. See [textual's
+    documentation](https://textual.textualize.io/guide/design/#base-colors) for more details.
+
+    This attribute should be accessed via the `SyntaxConfig.get_background_color` method.
+    """
+
+    line_numbers: bool = True
+    """Whether to show line numbers in `rich.syntax.Syntax` elements.
+
+    .. note::
+        This setting is ignored in side-by-side diff views, where line numbers will **always** show.
+    """
+
+    theme: str | None = None
+    """The theme used to display any `rich.syntax.Syntax` elements.
+
+    If this is `None`, it defaults to `"ansi_dark"` or `"ansi_light"`, in-line with the main textual
+    theme. Otherwise, this should be the name of a supported pygments theme. See [rich's
+    documentation](https://rich.readthedocs.io/en/latest/syntax.html#theme) for more details.
+
+    This attribute should be accessed via the `SyntaxConfig.get_theme` method.
+    """
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the THEME.SYNTAX configuration section.")
+        self._assert(
+            self.background_color is None or isinstance(self.background_color, str),
+            "config.theme.syntax.background_color should either be `None` or a string.",
+        )
+        self._assert(
+            isinstance(self.line_numbers, bool),
+            "config.theme.syntax.line_numbers should be a boolean.",
+        )
+        self._assert(
+            self.theme is None or isinstance(self.theme, str),
+            "config.theme.syntax.theme should either be `None` or a string.",
+        )
+
+    def get_theme(self) -> str:
+        """Returns the `SyntaxConfig.theme` value."""
+        if self.theme is not None:
+            return self.theme
+
+        return "ansi_dark" if config.theme.textual_theme.dark else "ansi_light"
+
+    def get_background_color(self) -> str:
+        """Returns the `SyntaxConfig.background_color` value."""
+        if self.background_color is not None:
+            return self.background_color
+
+        if get_active_app() is None:
+            return "default"
+
+        return config.theme.css_variables["panel"]
+
+
+class TagMarkup(NamedTuple):
+    """A tuple for representing the weight and style of a tag."""
+
+    weight: int
+    """The weight of the tag. This integer is used to determine the markup priority of the tag.
+    Higher integer values indicate a higher priority."""
+    style: str | rich.style.Style
+    """The style of the tag. This can be a `rich.style.Style` or a string which can be interpreted
+    by `rich.style.Style.parse`."""
+
+
+@dataclass
+class TagsThemeConfig(_ConfigBase):
+    """The markup configuration for special tags.
+
+    The tag names configured via this setting will be marked up via a `rich.Theme`. This allows you
+    to easily customize a visual differentiation of your entries based on simple properties.
+
+    The style and weight of the builtin special tags can be configured directly or you can add fully
+    custom special tags via the `user_tags` field.
+    """
+
+    high: TagMarkup = TagMarkup(40, "on bright_red")
+    """The markup for entries with the `high` tag."""
+    low: TagMarkup = TagMarkup(20, "bright_yellow")
+    """The markup for entries with the `low` tag."""
+    medium: TagMarkup = TagMarkup(30, "bright_red")
+    """The markup for entries with the `medium` tag."""
+    new: TagMarkup = TagMarkup(10, "bold bright_cyan")
+    """The markup for entries with the `new` tag.
+
+    Note, that this tag does **not** get added automatically.
+    But you can do so by subscribing to the `cobib.config.event.Event.PostAddCommand` event (see
+    also `cobib.config.event`):
+    ```python
+    from cobib.config import Event
+
+    @Event.PostAddCommand.subscribe
+    def add_new_tag(cmd: AddCommand) -> None:
+        for entry in cmd.new_entries.values():
+            if "new" not in entry.tags:
+                entry.tags = entry.tags + ["new"]
+    ```
+    """
+    user_tags: dict[str, TagMarkup] = field(default_factory=dict)
+    """A dictionary mapping *tag* names to `TagMarkup` values.
+
+    The *tags* must be lower case, start with a letter, and only contain letters or the characters
+    `.`, `-`, or `_`.
+    """
+
+    @property
+    def names(self) -> set[str]:
+        """Returns the set of all special tag names."""
+        return {f.name for f in fields(self)} - {"user_tags"} | set(self.user_tags.keys())
+
+    @property
+    def styles(self) -> dict[str, str | Style]:
+        """Returns the combined dictionary of all special tag styles."""
+        styles: dict[str, str | Style] = {}
+        for field_ in fields(self):
+            tag_markup = getattr(self, field_.name)
+            if isinstance(tag_markup, TagMarkup):
+                styles[f"tag.{field_.name}"] = tag_markup.style
+
+        for name, weighted_style in self.user_tags.items():
+            styles[f"tag.{name}"] = weighted_style.style
+
+        return styles
+
+    @property
+    def weights(self) -> dict[str, int]:
+        """Returns the combined dictionary of all special tag weights."""
+        weights: dict[str, int] = {}
+        for field_ in fields(self):
+            tag_markup = getattr(self, field_.name)
+            if isinstance(tag_markup, TagMarkup):
+                weights[field_.name] = tag_markup.weight
+
+        for name, weighted_style in self.user_tags.items():
+            weights[name] = weighted_style.weight
+
+        return weights
+
+    @override
+    def validate(self) -> None:
+        self._assert(
+            isinstance(self.high, TagMarkup), "config.theme.tags.high should be a TagMarkup tuple."
+        )
+        self._assert(
+            isinstance(self.low, TagMarkup), "config.theme.tags.low should be a TagMarkup tuple."
+        )
+        self._assert(
+            isinstance(self.medium, TagMarkup),
+            "config.theme.tags.medium should be a TagMarkup tuple.",
+        )
+        self._assert(
+            isinstance(self.new, TagMarkup), "config.theme.tags.new should be a TagMarkup tuple."
+        )
+        self._assert(
+            isinstance(self.user_tags, dict),
+            "config.theme.tags.user_tags should be a dict.",
+        )
+        for name, tag_markup in self.user_tags.items():
+            self._assert(
+                isinstance(tag_markup, TagMarkup),
+                f"The '{name}' entry in config.theme.tags.user_tags should be a TagMarkup tuple.",
+            )
+
+
+@dataclass
 class TUIConfig(_ConfigBase):
     """The `config.tui` section."""
 
-    scroll_offset: int = 2
-    """The minimum number of lines to keep above and below the cursor in the
-    `cobib.ui.tui.components.ListView`. This is similar to Vim's `scrolloff` setting."""
-    tree_folding: tuple[bool, bool] = (True, False)
-    """The default folding level of the tree nodes in the `cobib.ui.tui.components.SearchView`. When
-    `True`, the node will be initialized to be folded (or collapsed), when `False`, it will be
-    expanded. The first boolean corresponds to the nodes for each matching entry, the second one is
-    for all the search matches."""
     preset_filters: list[str] = field(default_factory=list)
+    """A list of preset *filter* (see also `cobib.database.entry`) arguments available for quick
+    access in the TUI.
+
+    The first 9 entries of this list can be triggered by pressing the corresponding number in the
+    TUI. Pressing `0` resets the filter to the standard list view.
+
+    Each entry of this list should be a string describing a *filter*, for example:
+       ```python
+       config.tui.preset_filters = [
+           "++tags new",   # filters entries with the `new` tag
+           "++year 2023",  # filters entries from the year 2023
+       ]
+       ```
+    """
     """Permits providing a list of preset filters. These can be interactively selected in the TUI by
     pressing `p`. To specify these, simply provide a string with the filter arguments, for example:
 
@@ -1079,14 +1185,16 @@ class TUIConfig(_ConfigBase):
 
     The first 9 filters can be quickly accessed in the TUI by simply pressing the corresponding
     number. You can also use 0 to reset any applied filter."""
+    scroll_offset: int = 2
+    """The minimum number of lines to keep above and below the cursor in the TUI's list view.
+    This is similar to Vim's `scrolloff` option."""
+    tree_folding: tuple[bool, bool] = (True, False)
+    """The default folding level of the tree nodes in the TUI's search result view. The two booleans
+    fold the node of each matching entry and all its containing search matches, respectively."""
 
     @override
     def validate(self) -> None:
         LOGGER.debug("Validating the TUI configuration section.")
-        self._assert(
-            isinstance(self.scroll_offset, int),
-            "config.tui.scroll_offset should be an integer.",
-        )
         self._assert(
             isinstance(self.preset_filters, list),
             "config.tui.preset_filters should be a list.",
@@ -1096,50 +1204,22 @@ class TUIConfig(_ConfigBase):
                 isinstance(preset, str),
                 "config.tui.preset_filters should be a list of strings.",
             )
-
-
-@dataclass
-class FileDownloaderConfig(_ConfigBase):
-    """The `config.utils.file_downloader` section."""
-
-    default_location: str = "~/.local/share/cobib"
-    """Specifies the default download location for associated files."""
-    url_map: dict[str, str] = field(default_factory=dict)
-    """Permits providing rules to map from a journal's landing page URL to its PDF URL. To do so,
-    insert an entry into this dictionary, with a regex-pattern matching the journal's landing page
-    URL and a value being the PDF URL. E.g.:
-
-    ```python
-    config.utils.file_downloader.url_map[
-        r"(.+)://aip.scitation.org/doi/([^/]+)"
-    ] = r"\1://aip.scitation.org/doi/pdf/\2"
-
-    config.utils.file_downloader.url_map[
-        r"(.+)://quantum-journal.org/papers/([^/]+)"
-    ] = r"\1://quantum-journal.org/papers/\2/pdf/"
-    ```
-
-    Make sure to use raw Python strings to ensure proper backslash-escaping.
-
-    You can find some examples on
-    [this wiki page](https://gitlab.com/cobib/cobib/-/wikis/File-Downloader-URL-Maps)."""
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the UTILS.FILE_DOWNLOADER configuration section.")
         self._assert(
-            isinstance(self.default_location, str),
-            "config.utils.file_downloader.default_location should be a string.",
+            isinstance(self.scroll_offset, int),
+            "config.tui.scroll_offset should be an integer.",
         )
         self._assert(
-            isinstance(self.url_map, dict),
-            "config.utils.file_downloader.url_map should be a dict.",
+            isinstance(self.tree_folding, tuple) and len(self.tree_folding) == 2,  # noqa: PLR2004
+            "config.tui.tree_folding should be a tuple of length 2.",
         )
-        for pattern, repl in self.url_map.items():
-            self._assert(
-                isinstance(pattern, str) and isinstance(repl, str),
-                "config.utils.file_downloader.url_map should be a dict[str, str].",
-            )
+        self._assert(
+            isinstance(self.tree_folding[0], bool),
+            "The first element in config.tui.tree_folding should be a boolean.",
+        )
+        self._assert(
+            isinstance(self.tree_folding[1], bool),
+            "The second element in config.tui.tree_folding should be a boolean.",
+        )
 
 
 @dataclass
@@ -1149,12 +1229,13 @@ class UtilsConfig(_ConfigBase):
     file_downloader: FileDownloaderConfig = field(default_factory=lambda: FileDownloaderConfig())
     """The nested section for the `cobib.utils.FileDownloader` utils settings."""
     journal_abbreviations: list[tuple[str, str]] = field(default_factory=list)
-    """Permits providing a list of journal abbreviations. This list should be formatted as tuples of
-    the form: `(full journal name, abbreviation)`. The abbreviation should include any necessary
-    punctuation which can be excluded upon export (see also `cobib export --help`).
+    """A list of *journal abbreviations* as pairs like `("full journal name", "abbrev. name")`.
+    The abbreviated version should contain all the necessary punctuation (see also
+    `cobib.commands.export`).
 
-    You can find some examples on
-    [this wiki page](https://gitlab.com/cobib/cobib/-/wikis/Journal-Abbreviations)."""
+    You can find some examples in the
+    [wiki](https://gitlab.com/cobib/cobib/-/wikis/Journal-Abbreviations).
+    """
 
     @override
     def validate(self) -> None:
@@ -1172,115 +1253,41 @@ class UtilsConfig(_ConfigBase):
 
 
 @dataclass
-class Config(_ConfigBase):
-    """The `config` dataclass."""
+class FileDownloaderConfig(_ConfigBase):
+    """The `config.utils.file_downloader` section."""
 
-    logging: LoggingConfig = field(default_factory=lambda: LoggingConfig())
-    """The nested section for the logging settings."""
-    commands: CommandConfig = field(default_factory=lambda: CommandConfig())
-    """The nested section for the commands settings."""
-    database: DatabaseConfig = field(default_factory=lambda: DatabaseConfig())
-    """The nested section for the database settings."""
-    events: dict["Event", list[Callable]] = field(default_factory=dict)  # type: ignore[type-arg]
-    """It is possible to register hooks on various events. Although this can be done manually using
-    this dictionary, it is preferred to use the function-decorators like so:
-    To subscribe to a certain event do something similar to the following:
+    default_location: str = "~/.local/share/cobib/"
+    """The default location for associated files that get downloaded automatically."""
+    url_map: dict[str, str] = field(default_factory=dict)
+    """A dictionary of *regex patterns* mapping from article URLs to its corresponding PDF.
 
-    ```python
-    from os import system
-    from cobib.config import Event
-    from cobib.commands import InitCommand
-
-    @Event.PostInitCommand.subscribe
-    def add_remote(cmd: InitCommand) -> None:
-        system(f"git -C {cmd.root} remote add origin https://github.com/user/repo")
-    ```
-
-    Note, that the typing is required for the config validation to pass!
-    For more information refer to the `cobib.config.Event` documentation.
+    Populating this dictionary will improve the success rate of the automatic file download.
+    You can find more examples in the
+    [wiki](https://gitlab.com/cobib/cobib/-/wikis/File-Downloader-URL-Maps),
+    but here is a simple one:
+       ```python
+       config.utils.file_downloader.url_map[
+           r"(.+)://quantum-journal.org/papers/([^/]+)"
+       ] = r"\1://quantum-journal.org/papers/\2/pdf/"
+       ```
     """
-    parsers: ParserConfig = field(default_factory=lambda: ParserConfig())
-    """The nested section for the parsers settings."""
-    theme: ThemeConfig = field(default_factory=lambda: ThemeConfig())
-    """The nested section for the theme settings."""
-    tui: TUIConfig = field(default_factory=lambda: TUIConfig())
-    """The nested section for the TUI settings."""
-    utils: UtilsConfig = field(default_factory=lambda: UtilsConfig())
-    """The nested section for the utils settings."""
-
-    XDG_CONFIG_FILE: str | Path = field(
-        default="~/.config/cobib/config.py", init=False, repr=False, compare=False
-    )
-    """The XDG-based standard configuration location."""
 
     @override
     def validate(self) -> None:
-        LOGGER.info("Validating the runtime configuration.")
-        self.logging.validate()
-        self.commands.validate()
-        self.database.validate()
-        self.parsers.validate()
-        self.theme.validate()
-        self.tui.validate()
-        self.utils.validate()
-
-        LOGGER.debug("Validating the EVENTS configuration section.")
-        self._assert(isinstance(self.events, dict), "config.events should be a dict.")
-        for event in self.events:
+        LOGGER.debug("Validating the UTILS.FILE_DOWNLOADER configuration section.")
+        self._assert(
+            isinstance(self.default_location, str),
+            "config.utils.file_downloader.default_location should be a string.",
+        )
+        self._assert(
+            isinstance(self.url_map, dict),
+            "config.utils.file_downloader.url_map should be a dict.",
+        )
+        for pattern, repl in self.url_map.items():
             self._assert(
-                event.validate(),
-                f"config.events.{event} did not pass its validation check.",
+                isinstance(pattern, str) and isinstance(repl, str),
+                "config.utils.file_downloader.url_map should be a dict[str, str].",
             )
-
-    @staticmethod
-    def load(configpath: str | Path | TextIO | io.TextIOWrapper | None = None) -> None:
-        """Loads another configuration object at runtime.
-
-        WARNING: The new Python-like configuration allows essentially arbitrary Python code so it is
-        the user's responsibility to treat this with care!
-
-        Args:
-            configpath: the path to the configuration.
-        """
-        LOGGER.info("Input provided to Config.load: %s", configpath)
-        if configpath is not None:
-            if isinstance(configpath, (TextIO, io.TextIOWrapper)):
-                configpath.close()
-                configpath = configpath.name
-        elif "COBIB_CONFIG" in os.environ:
-            configpath_env = os.environ["COBIB_CONFIG"]
-            if configpath_env.lower() in ("", "0", "f", "false", "nil", "none"):
-                LOGGER.info(
-                    "Skipping configuration loading because negative COBIB_CONFIG environment "
-                    "variable was detected."
-                )
-                return
-            configpath = RelPath(configpath_env).path
-        elif Config.XDG_CONFIG_FILE and RelPath(Config.XDG_CONFIG_FILE).exists():
-            # NOTE: I don't quite know why these two lines are not included in coverage because
-            # there is a unittest for them and adding a print statement here does show up in the
-            # output of the test suite...
-            configpath = RelPath(Config.XDG_CONFIG_FILE).path
-        else:  # pragma: no cover
-            return  # pragma: no cover
-        LOGGER.info("Loading configuration from default location: %s", configpath)
-
-        spec = importlib.util.spec_from_file_location("config", configpath)
-        if spec is None:
-            LOGGER.error(
-                "The config at %s could not be interpreted as a Python module.", configpath
-            )
-            sys.exit(1)
-        else:
-            cfg = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(cfg)  # type: ignore[union-attr]
-
-        try:
-            # validate config
-            config.validate()
-        except RuntimeError as exc:
-            LOGGER.error(exc)
-            sys.exit(1)
 
 
 config = Config()

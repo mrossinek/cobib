@@ -1,26 +1,6 @@
-"""coBib's Undo command.
+"""Undo the last change to the database.
 
-This command can be used to undo the changes of the a previous command.
-```
-cobib undo
-```
-For obvious reasons, this will only undo commands which had an effect on the contents of the
-database file.
-Moreover, as a safety measure, this command will only undo those changes, which have been committed
-by coBib *automatically*.
-You can disable this be setting the `--force` argument which *always* undoes the last commit:
-```
-cobib undo --force
-```
-
-.. warning::
-   This command is *only* available if coBib's git-integration has been enabled via
-   `cobib.config.config.DatabaseConfig.git` *and* initialized properly (see `cobib.commands.init`).
-
-### TUI
-
-You can also trigger this command from the `cobib.ui.tui.TUI`.
-By default, it is bound to the `u` key.
+.. include:: ../man/cobib-undo.1.html_fragment
 """
 
 from __future__ import annotations

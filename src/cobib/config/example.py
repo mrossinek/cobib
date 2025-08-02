@@ -1,15 +1,19 @@
 """An example configuration for coBib.
 
-Since version 3.0 coBib is configured through a Python file.
-For documentation purposes this example configuration lists all possible settings with their default
-values and detailed explanations.
-
-Internally, coBib's configuration is nothing but a (nested) Python dataclass. This means, you can
-simply change any setting via an attribute like so:
-
-```python
-config.database.git = True
+This module duplicates the default values of `cobib.config.config` in the format of how users would
+overwrite any settings. The contents of this module can be extracted using:
+```bash
+cobib _example_config
 ```
+This dumps the contents to `stdout`. They can be redirected to a desired location like so:
+```bash
+cobib _example_config > ~/.config/cobib/config.py
+```
+
+You can read a description of all available configuration options:
+- in the file below (click on `View Source` when viewing this page online)
+- at the module-level documentation of `cobib.config`
+- in the `cobib-config(5)` manpage (which is rendered online at the previous link)
 """
 
 # Generally, you won't need these, but the default configuration relies on them.
@@ -22,274 +26,313 @@ from cobib.config import AuthorFormat, LabelSuffix, TagMarkup, config
 # Now, you are all set to apply your own settings.
 
 
-# LOGGING
-# You can specify the default cache location.
-config.logging.cache = "~/.cache/cobib/cache"
-# You can specify the default logfile location.
-config.logging.logfile = "~/.cache/cobib/cobib.log"
-# You can also set the location for the cached version number based on which coBib shows you the
-# latest changes. You can set this to `None` to disable this functionality entirely.
-config.logging.version = "~/.cache/cobib/version"
-
 # COMMANDS
-# These settings affect some command specific behavior.
 
-# You can specify whether the automatic file download should be skipped during entry addition.
+# COMMANDS.ADD
+
+# Whether the automatic file download should be skipped during entry addition.
 config.commands.add.skip_download = False
 
-# You can specify whether you should be prompted for confirmation before deleting an entry.
+# COMMANDS.DELETE
+
+# Whether to prompt for confirmation before actually deleting an entry.
 config.commands.delete.confirm = True
-# You can specify whether associated files should be preserved during entry deletion.
+# Whether associated files should be preserved during entry deletion.
 config.commands.delete.preserve_files = False
 
-# You can specify the default bibtex entry type.
+# COMMANDS.EDIT
+
+# The default BibTeX entry type.
 config.commands.edit.default_entry_type = "article"
-# You can specify the editor program. Note, that this default will respect your `$EDITOR`
-# environment setting and fall back to `vim` if that variable is not set.
+# The editor program. Note that this will respect your _$EDITOR_ environment variable setting,
+# falling back to `vim` if that is not set.
 config.commands.edit.editor = os.environ.get("EDITOR", "vim")
-# You can specify whether associated files should be preserved when renaming during editing.
+# Whether associated files should be preserved when renaming entries during editing.
 config.commands.edit.preserve_files = False
 
-# You can specify whether downloading of attachments inside the imported library should be skipped.
+# COMMANDS.IMPORT
+
+# Whether the download of attachments should be skipped during the import process.
 config.commands.import_.skip_download = False
 
-# You can configure the default columns displayed during the list command.
-config.commands.list_.default_columns = ["label", "title"]
-# You can specify whether filter matching should be performed case-insensitive.
-config.commands.list_.ignore_case = False
-# You can specify whether filter matching should decode all Unicode characters.
-config.commands.list_.decode_unicode = False
-# You can specify whether filter matching should decode all LaTeX sequences.
-config.commands.list_.decode_latex = False
-# You can specify the amount of fuzzy errors to allow for filter matching. Using this feature
-# requires the optional `regex` dependency to be installed.
-config.commands.list_.fuzziness = 0
+# COMMANDS.LIST
 
-# You can specify whether associated files should be preserved when renaming during modifying.
+# Whether the filter matching (see also `cobib.commands.list_`) should decode all LaTeX sequences.
+config.commands.list_.decode_latex = False
+# Whether the filter matching (see also `cobib.commands.list_`) should decode all Unicode
+# characters.
+config.commands.list_.decode_unicode = False
+# The default columns to be displayed during when listing database contents.
+config.commands.list_.default_columns = ["label", "title"]
+# How many fuzzy errors to allow during the filter matching (see also `cobib.commands.list_`).
+# Using this feature requires the optional `regex` dependency to be installed.
+config.commands.list_.fuzziness = 0
+# Whether the filter matching (see also `cobib.commands.list_`) should be performed
+# case-insensitive.
+config.commands.list_.ignore_case = False
+
+# COMMANDS.MODIFY
+
+# Whether associated files should be preserved when renaming entries during modifying.
 config.commands.modify.preserve_files = False
 
-# You can specify the default filetype to be used for associated notes.
+# COMMANDS.NOTE
+
+# The default filetype to be used for associated notes.
 config.commands.note.default_filetype = "txt"
 
-# You can specify a custom command which will be used to `open` files associated with your entries.
+# COMMANDS.OPEN
+
+# The command used to handle opening of `fields` of an entry.
 config.commands.open.command = "xdg-open" if sys.platform.lower() == "linux" else "open"
-# You can specify the names of the data fields which are to be checked for openable URLs.
+# The names of the entry data fields that are checked for _openable_ URLs.
 config.commands.open.fields = ["file", "url"]
 
-# You can specify the default number of context lines to be provided for each search query match.
-# This is similar to the `-C` option of `grep`.
+# COMMANDS.SEARCH
+
+# The number of lines to provide as a context around search entry matches.
+# This is similar to the `-C` option of _grep(1)_.
 config.commands.search.context = 1
-# You can specify a custom grep tool which will be used to search through your database and any
-# associated files. The default tool (`grep`) will not provide results for attached PDFs but other
-# tools such as [ripgrep-all](https://github.com/phiresky/ripgrep-all) will.
-config.commands.search.grep = "grep"
-# If you want to specify additional arguments for your grep command, you can specify them as a list
-# of strings in the following setting. Note, that GNU's grep understands extended regex patterns
-# even without specifying `-E`.
-config.commands.search.grep_args = []
-# You can specify whether searches should be performed case-insensitive.
-config.commands.search.ignore_case = False
-# You can specify whether searches should decode all Unicode characters.
-config.commands.search.decode_unicode = False
-# You can specify whether searches should decode all LaTeX sequences.
+# Whether searches should decode all LaTeX sequences.
 config.commands.search.decode_latex = False
-# You can specify the amount of fuzzy errors to allow for searches. Using this feature requires the
-# optional `regex` dependency to be installed.
+# Whether searches should decode all Unicode characters.
+config.commands.search.decode_unicode = False
+# How many fuzzy errors to allow during searches.
+# Using this feature requires the optional `regex` dependency to be installed.
 config.commands.search.fuzziness = 0
-# You can specify whether searches should skip looking through associated files.
+# The command used to search the associated _files_ of entries in the database.
+# The default tool (_grep(1)_) will not provide search results for attached PDF files, but other
+# tools (such as [ripgrep-all](https://github.com/phiresky/ripgrep-all)) will.
+config.commands.search.grep = "grep"
+# Additional input arguments for the `config.commands.search.grep` command specified as a list of
+# strings.
+# Note, that GNU's _grep(1)_ understands extended regex patterns even without specifying `-E`.
+config.commands.search.grep_args = []
+# Whether searches should be performed case-insensitive.
+config.commands.search.ignore_case = False
+# Whether searches should skip looking through associated _files_ using
+# `config.commands.search.grep`.
 config.commands.search.skip_files = False
-# You can specify whether searches should skip looking through associated notes.
+# Whether searches should skip looking through associated _notes_.
+# Note, that _notes_ are searched directly with Python rather than through an external system tool.
 config.commands.search.skip_notes = False
 
-# You can specify whether non-ASCII characters should be encoded using LaTeX sequences.
+# COMMANDS.SHOW
+
+# Whether non-ASCII characters should be encoded using LaTeX sequences.
 config.commands.show.encode_latex = True
 
 
 # DATABASE
-# These settings affect the database in general.
 
-# You can specify the path to the database YAML file. You can use a `~` to represent your `$HOME`
-# directory.
-config.database.file = "~/.local/share/cobib/literature.yaml"
-
-# You can specify the path under which to store already parsed databases. If you want to entirely
-# disable caching, set this to `None`.
+# The path under which to store already parsed databases. Set this to `None` to disable this
+# functionality entirely. See also `cobib.database`.
 config.database.cache = "~/.cache/cobib/databases/"
 
-# coBib can integrate with `git` in order to automatically track the history of your database.
-# However, by default, this option is disabled. If you want to enable it, simply change the
-# following setting to `True` and initialize your database with `cobib init --git`.
-# Warning: Before enabling this setting you must ensure that you have set up git properly by setting
-# your name and email address.
+# The path to the database YAML file. You can use a `~` to represent your `$HOME` directory. See
+# also `cobib.database`.
+config.database.file = "~/.local/share/cobib/literature.yaml"
+
+# Whether to enable the _git(1)_ integration, see also `cobib.utils.git`.
 config.database.git = False
 
 # DATABASE.FORMAT
-# You can also specify some aspects about the format of the database.
 
-# You can specify how the `author` fields should be stored. The available options are provided by
-# the `AuthorFormat` Enum.
-#   - `AuthorFormat.YAML` (the default): this will split the author information into a list of
-#     author objects for which the first and last names as well as titles will each have their own
-#     field.
-#   - `AuthorField.BIBLATEX`: this will keep the author information as plain LaTeX.
+# How the `author` field of an entry gets stored.
+#
+# The `cobib.config.config.AuthorFormat` object is an `Enum` representing the following options:
+#   - `YAML`: store the title, first, and last names separately for each author.
+#   - `BIBLATEX`: keep the information of all authors as plain text.
 config.database.format.author_format = AuthorFormat.YAML
 
-# You can specify a default label format which will be used for the database entry keys. The format
-# of this option follows the f-string like formatting of modifications (see also the documentation
-# of the [ModifyCommand](https://cobib.gitlab.io/cobib/cobib/commands/modify.html)). The default
-# configuration value passes the originally provided label through
-# [text-unidecode](https://pypi.org/project/text-unidecode/) which replaces all Unicode symbols with
+# The default format for the entry `label`s.
+# This setting follows the _Python f-string_-like formatting of modifications (see also
+# _cobib-modify(1)_). The default simply takes the originally set `label` and passes it through
+# [text-unidecode](https://pypi.org/project/text-unidecode/), replacing all Unicode symbols with
 # pure ASCII ones. A more useful example is
 #     `"{unidecode(author[0].last)}{year}"`
-# which takes the surname of the first author, replaces the Unicode characters and then immediately
-# appends the publication year.
+# which takes the surname of the first author
+# (assuming `config.database.format.author_format = AuthorFormat.YAML`),
+# replacing all Unicode characters with ASCII, and immediately appends the `year`.
 config.database.format.label_default = "{unidecode(label)}"
 
-# You can specify the suffix format which is used to disambiguate labels if a conflict would occur.
-# This option takes a tuple of length 2, where the first entry is the string separating the proposed
-# label from the enumerator and the second one is one of the enumerators provided in the
-# `config.LabelSuffix` object. The available enumerators are:
-#   - ALPHA: a, b, ...
-#   - CAPITAL: A, B, ...
-#   - NUMERIC: 1, 2, ...
+# The suffix format used to disambiguate labels if a conflict would occur.
+#
+# The value of this setting is a pair:
+# The first element is the string used to separate the base label from the enumerator; by default,
+# an underscore is used. The second element is one of the `Enum` values of
+# `cobib.config.config.LabelSuffix`:
+#   - `ALPHA`: a, b, ...
+#   - `CAPITAL`: A, B, ...
+#   - `NUMERIC`: 1, 2, ...
 config.database.format.label_suffix = ("_", LabelSuffix.ALPHA)
 
-# You can specify which fields should be left verbatim and, thus, remain unaffected by any special
-# character conversions.
-config.database.format.verbatim_fields = ["file", "url"]
-
-# You can specify whether latex warnings should not be ignored during the escaping of special
-# characters. This is a simple option which gets passed on to the internally used `pylatexenc`
-# library.
+# Whether to ignore LaTeX warning during the escaping of special characters. This setting gets
+# forwarded to the internally used [pylatexenc](https://pypi.org/project/pylatexenc/) library.
 config.database.format.suppress_latex_warnings = True
 
-# DATABASE.STRINGIFY
-# You can customize the functions which convert non-string fields.
+# Which fields should be left verbatim and, thus, remain unaffected by any special character
+# conversions.
+config.database.format.verbatim_fields = ["file", "url"]
 
-# Three fields are currently explicitly stored as lists internally. Upon conversion to the BibTeX
-# format, these need to be converted to a basic string. In this process the entries of the list will
-# be joined using the separators configured by the following settings.
+# DATABASE.STRINGIFY
+
+# The strings used to concatenate the entries in _list_-type fields of an entry when exporting to
+# the BibTeX format. The following settings are for the `file`, `tags`, and `url` field, resp.
 config.database.stringify.list_separator.file = ", "
 config.database.stringify.list_separator.tags = ", "
 config.database.stringify.list_separator.url = ", "
 
-# PARSERS
-# These settings affect some parser specific behavior.
+# EVENTS
 
-# You can specify whether the bibtex-parser should ignore non-standard bibtex entry types.
+# _cobib-event(7)_ hooks get stored in `config.events` but it should **NOT** be modified directly!
+# Instead, the `Event.subscribe` decorator should be used (cf. _cobib-event(7)_).
+config.events = {}
+
+# LOGGING
+
+# The default location of the cache.
+config.logging.cache = "~/.cache/cobib/cache"
+# The default location of the logfile.
+config.logging.logfile = "~/.cache/cobib/cobib.log"
+# The default location of the cached version number, based on which `cobib` shows you the
+# latest changelog after an update.
+# Set this to `None` to disable this functionality entirely.
+config.logging.version = "~/.cache/cobib/version"
+
+# PARSERS
+
+# PARSERS.BIBTEX
+
+# Whether to ignore non-standard BibTeX entry types.
 config.parsers.bibtex.ignore_non_standard_types = False
 
-# You can specify that the C-based implementation of the YAML parser (called `LibYAML`) shall be
-# used, *significantly* increasing the performance of the parsing. Note, that this requires manual
-# installation of the C-based parser:
-# https://yaml.readthedocs.io/en/latest/install.html#optional-requirements
+# PARSERS.YAML
+
+# Whether to use the C-based implementation of the YAML parser.
+# This **significantly** improves the performance but may require additional installation steps.
+# See the [ruamel.yaml installation instructions](https://yaml.dev/doc/ruamel.yaml/install/) for
+# more details.
 config.parsers.yaml.use_c_lib_yaml = True
 
 # THEME
 
-# You can configure textual's underlying `ColorSystem`.
+# Textual's underlying `ColorSystem`.
+#
+# This setting can either be the name of one of textual's `BUILTIN_THEMES` or an instance of
+# `textual.theme.Theme`.
+# For a detailed guide, see [textual's documentation](https://textual.textualize.io/guide/design),
+# but here is simple example to add an intense splash of color:
+#    ```python
+#    from textual.theme import BUILTIN_THEMES
+#
+#    a_splash_of_pink = BUILTIN_THEMES["textual-dark"]
+#    a_splash_of_pink.primary = "#ff00ff"
+#    config.theme.theme = a_splash_of_pink
+#    ```
 config.theme.theme = "textual-dark"
-# You should check textual's documentation online (https://textual.textualize.io/guide/design/),
-# but here is a simple example to add an intense splash of color to the default color scheme:
-#
-#     from textual.theme import BUILTIN_THEMES
-#
-#     a_splash_of_pink = BUILTIN_THEMES["textual-dark"]
-#     a_splash_of_pink.primary = "#ff00ff"
-#     config.theme.theme = a_splash_of_pink
 
-# You can configure the search label and query highlights.
+# THEME.SEARCH
+
+# The `rich.style.Style` used to highlight the labels of entries that matched a search.
+# See [rich's documentation](https://rich.readthedocs.io/en/latest/style.html) for more details.
 config.theme.search.label = "blue"
+# The `rich.style.Style` used to highlight the actual matches of a search query.
+# See [rich's documentation](https://rich.readthedocs.io/en/latest/style.html) for more details.
 config.theme.search.query = "red"
 
-# You can configure how `rich.Syntax` elements get displayed.
-config.theme.syntax.theme = None
-config.theme.syntax.background_color = None
-config.theme.syntax.line_numbers = True
+# THEME.SYNTAX
 
-# You can also configure the markup used for the following builtin special tags:
-config.theme.tags.new = TagMarkup(10, "bold bright_cyan")
+# The background color used to display any `rich.syntax.Syntax` elements.
+#
+# If this is `None`, its default behavior will try to ensure a _transparent_ background. When
+# running in the CLI, this implies a value of `"default"`; inside the TUI, textual's _$panel_ color
+# variable is used.
+# See [textual's documentation](https://textual.textualize.io/guide/design/#base-colors) for more
+# details.
+config.theme.syntax.background_color = None
+# Whether to show line numbers in `rich.syntax.Syntax` elements.
+#
+# This setting is ignored in side-by-side diff views, where line numbers will **always** show.
+config.theme.syntax.line_numbers = True
+# The theme used to display any `rich.syntax.Syntax` elements.
+#
+# If this is `None`, it defaults to `"ansi_dark"` or `"ansi_light"`, in-line with the main textual
+# theme. Otherwise, this should be the name of a supported pygments theme.
+# See [rich's documentation](https://rich.readthedocs.io/en/latest/syntax.html#theme) for more
+# details.
+config.theme.syntax.theme = None
+
+# THEME.TAGS
+
+# It is possible to configure special highlighting (or _markup_) for entries with certain _tags_.
+# The `TagMarkup` is a pair of an integer, indicating the priority (higher values take precedence),
+# and a string describing the `rich.style.Style`.
+
+# The markup for entries with the `high` tag.
 config.theme.tags.high = TagMarkup(40, "on bright_red")
-config.theme.tags.medium = TagMarkup(30, "bright_red")
+# The markup for entries with the `low` tag.
 config.theme.tags.low = TagMarkup(20, "bright_yellow")
-# None of these tags are added automatically, but you can do this easily with a `PostAddCommand`
-# hook like so:
+# The markup for entries with the `medium` tag.
+config.theme.tags.medium = TagMarkup(30, "bright_red")
+# The markup for entries with the `new` tag.
+#
+# Note, that this tag does **not** get added automatically.
+# But you can do so by subscribing to the _PostAddCommand_ event (see also _cobib-event(7)_):
+#    ```python
+#    from cobib.config import Event
 #
 #    @Event.PostAddCommand.subscribe
 #    def add_new_tag(cmd: AddCommand) -> None:
 #        for entry in cmd.new_entries.values():
 #            if "new" not in entry.tags:
 #                entry.tags = entry.tags + ["new"]
-#
-# Note, that the `new` tag has a lower weight than all of the builtin priority tags (`high`,
-# `medium`, `low`) allowing these to be used to further classify new entries on a reading list.
-
-# You can even specify your own tag names which should be treated with special markup.
-# Because the markup names are used in a `rich.Theme`, they must be lower case, start with a letter,
-# and only contain letters or the characters `"."`, `"-"`, `"_"`.
+#    ```
+config.theme.tags.new = TagMarkup(10, "bold bright_cyan")
+# A dictionary mapping _tag_ names to `TagMarkup` values.
+# The _tags_ must be lower case, start with a letter, and only contain letters or the characters
+# `.`, `-`, or `_`.
 config.theme.tags.user_tags = {}
 
 # TUI
 
-# You can configure the minimum number of lines to keep above and below the cursor in the TUI's list
-# view. This is similar to Vim's `scrolloff` setting.
-config.tui.scroll_offset = 2
-# You can configure the default folding level of the tree nodes in the TUI's search result view. The
-# first boolean corresponds to the nodes for each matching entry, the second one is for all the
-# search matches.
-config.tui.tree_folding = (True, False)
-# You can provide a list of preset filters. These can be interactively selected in the TUI by
-# pressing `p`. To specify these, simply provide a string with the filter arguments, for example:
+# A list of preset _cobib-filter(7)_ arguments available for quick access in the TUI.
+# The first 9 entries of this list can be triggered by pressing the corresponding number in the TUI.
+# Pressing `0` resets the filter to the standard list view.
 #
-#     config.tui.preset_filters = [
-#         "++tags READING",
-#         "++year 2023",
-#     ]
-#
-# The first 9 filters can be quickly accessed in the TUI by simply pressing the corresponding
-# number. You can also use 0 to reset any applied filter.
+# Each entry of this list should be a string describing a _cobib-filter(7)_, for example:
+#    ```python
+#    config.tui.preset_filters = [
+#        "++tags new",   # filters entries with the `new` tag
+#        "++year 2023",  # filters entries from the year 2023
+#    ]
+#    ```
 config.tui.preset_filters = []
+# The minimum number of lines to keep above and below the cursor in the TUI's list view.
+# This is similar to Vim's `scrolloff` option.
+config.tui.scroll_offset = 2
+# The default folding level of the tree nodes in the TUI's search result view. The two booleans fold
+# the node of each matching entry and all its containing search matches, respectively.
+config.tui.tree_folding = (True, False)
 
 # UTILS
 
-# You can specify the default download location for associated files.
-config.utils.file_downloader.default_location = "~/.local/share/cobib"
-
-# You can provide rules to map from a journal's landing page URL to its PDF URL. To do so, you must
-# insert an entry into the following dictionary, with a regex-pattern matching the journal's landing
-# page URL and a value being the PDF URL. E.g.:
+# The default location for associated files that get downloaded automatically.
+config.utils.file_downloader.default_location = "~/.local/share/cobib/"
+# A dictionary of _regex patterns_ mapping from article URLs to its corresponding PDF.
 #
-#     config.utils.file_downloader.url_map[
-#         r"(.+)://aip.scitation.org/doi/([^/]+)"
-#     ] = r"\1://aip.scitation.org/doi/pdf/\2"
-#
-#     config.utils.file_downloader.url_map[
-#         r"(.+)://quantum-journal.org/papers/([^/]+)"
-#     ] = r"\1://quantum-journal.org/papers/\2/pdf/"
-#
-# Make sure to use raw Python strings to ensure proper backslash-escaping.
+# Populating this dictionary will improve the success rate of the automatic file download. You can
+# find more examples in the [wiki](https://gitlab.com/cobib/cobib/-/wikis/File-Downloader-URL-Maps),
+# but here is a simple one:
+#    ```python
+#    config.utils.file_downloader.url_map[
+#        r"(.+)://quantum-journal.org/papers/([^/]+)"
+#    ] = r"\1://quantum-journal.org/papers/\2/pdf/"
+#    ```
 config.utils.file_downloader.url_map = {}
 
-# You can specify a list of journal abbreviations. This list should be formatted as tuples of the
-# form: `(full journal name, abbreviation)`. The abbreviation should include any necessary
-# punctuation which can be excluded upon export (see also `cobib export --help`).
+# A list of _journal abbreviations_ as pairs like `("full journal name", "abbrev. name")`.
+# The abbreviated version should contain all the necessary punctuation (see also _cobib-export(1)_).
+# You can find some examples in the
+# [wiki](https://gitlab.com/cobib/cobib/-/wikis/Journal-Abbreviations).
 config.utils.journal_abbreviations = []
-
-# EVENTS
-# coBib allows you to register hooks on various events to further customize its behavior to your
-# liking. Although these functions will be registered in the following dictionary, we recommend you
-# to use the function-decorators as explained below.
-config.events = {}
-# To subscribe to a certain event do something similar to the following:
-#
-#     from os import system
-#     from pathlib import Path
-#     from cobib.config import Event
-#
-#     @Event.PostInitCommand.subscribe
-#     def add_remote(root: Path, file: Path) -> None:
-#         system(f"git -C {root} remote add origin https://github.com/user/repo")
-#
-# Note, that the typing is required for the config validation to pass!
-# For more information refer to the
-# [online documentation](https://cobib.gitlab.io/cobib/cobib/config/event.html).

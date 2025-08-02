@@ -1,8 +1,6 @@
 """coBib's commands.
 
-coBib provides a series of commands, all of which are available both, from the command-line as well
-as through the text user interface (see also `cobib.ui.tui`).
-The abstract interface which should be implemented is defined by the `cobib.commands.base_command`.
+.. include:: ../man/cobib-commands.7.html_fragment
 """
 
 from .add import AddCommand as AddCommand
