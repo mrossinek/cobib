@@ -112,7 +112,7 @@ coverage = [
 lint = [
     "cobib[basedev]",
     "mypy==1.17.1",
-    "ruff==0.12.7",
+    "ruff==0.12.8",
     "typos==1.34.0",
     "types-beautifulsoup4==4.12.0.20250516",
     "types-regex==2024.11.6.20250403",
