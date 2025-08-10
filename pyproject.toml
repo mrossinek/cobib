@@ -113,7 +113,7 @@ lint = [
     "cobib[basedev]",
     "mypy==1.17.1",
     "ruff==0.12.8",
-    "typos==1.34.0",
+    "typos==1.35.3",
     "types-beautifulsoup4==4.12.0.20250516",
     "types-regex==2024.11.6.20250403",
     "types-requests-oauthlib==2.0.0.20250809",
