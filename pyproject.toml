@@ -116,7 +116,7 @@ lint = [
     "typos==1.34.0",
     "types-beautifulsoup4==4.12.0.20250516",
     "types-regex==2024.11.6.20250403",
-    "types-requests-oauthlib==2.0.0.20250516",
+    "types-requests-oauthlib==2.0.0.20250809",
     "types-requests==2.32.4.20250611",
 ]
 
