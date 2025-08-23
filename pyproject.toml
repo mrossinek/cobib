@@ -92,32 +92,32 @@ dev = [
     "cobib[coverage,docs,lint]",
 ]
 basedev = [
-    "pytest==8.4.1",
+    "pytest~=8.4.1",
 ]
 docs = [
     "cobib[basedev]",
-    "pdoc==15.0.4",
-    "textual-dev==1.7.0",
+    "pdoc~=15.0.4",
+    "textual-dev~=1.7.0",
 ]
 test = [
     "cobib[basedev]",
-    "pytest-asyncio==1.1.0",
-    "pytest-textual-snapshot==1.1.0",
+    "pytest-asyncio~=1.1.0",
+    "pytest-textual-snapshot~=1.1.0",
 ]
 coverage = [
     "cobib[test]",
-    "coverage==7.10.4",
-    "pytest-cov==6.2.1",
+    "coverage~=7.10.4",
+    "pytest-cov~=6.2.1",
 ]
 lint = [
     "cobib[basedev]",
-    "mypy==1.17.1",
-    "ruff==0.12.10",
-    "typos==1.35.4",
+    "mypy~=1.17.1",
+    "ruff~=0.12.10",
     "types-beautifulsoup4==4.12.0.20250516",
     "types-regex==2025.7.34.20250809",
     "types-requests-oauthlib==2.0.0.20250809",
     "types-requests==2.32.4.20250809",
+    "typos~=1.35.4",
 ]
 
 [project.urls]
