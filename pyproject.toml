@@ -106,7 +106,7 @@ test = [
 ]
 coverage = [
     "cobib[test]",
-    "coverage==7.10.3",
+    "coverage==7.10.4",
     "pytest-cov==6.2.1",
 ]
 lint = [
