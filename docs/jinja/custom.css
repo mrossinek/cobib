@@ -83,3 +83,9 @@ body#manpage { margin:0 }
 .mp pre                            { padding:0 4ex }
 .mp pre code                       { font-weight:normal;color: light-dark(#434241, #ddd) }
 .mp h2+pre, h3+pre                 { padding-left:0 }
+
+/* man-page section indicator */
+.mp p.man-name code:after {
+    counter-reset: variable var(--section);
+    content: '(' counter(variable) ')';
+}

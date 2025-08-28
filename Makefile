@@ -39,10 +39,12 @@ $(MAN_HTML_FILES) : %.html_fragment : $(MAN_SRC_DIR)/%.md
 	@#   - div -> main: this ensures that markdown2 can correctly detect the headings for the ToC
 	@#   - h2 -> h1 and h3 -> h2: to ensure that we respect pdoc's maximum ToC depth level of 2
 	@#   - apply a base URL shift to man-page references based on base.txt
+	@#   - set the --section CSS variable to the section index on the first line of the file
 	@sed -i \
 		-e 's/<div/<main/g' -e 's/div>/main>/g' \
 		-e 's/h2/h1/g' -e 's/h3/h2/g' \
 		-e 's;class="man-ref" href=";class="man-ref" href="$(shell grep $(basename $@) $(MAN_HTML_DIR)/base.txt | awk '{ print $$ 2 }');g' \
+		-e '1s,^,<head><style>.mp p.man-name code {--section: $(shell echo $@ | awk '{split($$0,a,"."); print a[2]}');}</style></head>,' \
 		$(MAN_HTML_DIR)/$@
 
 # The target to generate the actual UNIX man-pages
