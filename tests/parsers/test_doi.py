@@ -166,8 +166,13 @@ class TestDOIParser(ParserTest):
         """
         doi = "10.1017/S0007485300009925"
         entries = DOIParser().parse(doi)
+        try:
+            entry = next(iter(entries.values()))
+        except (IndexError, StopIteration):
+            pytest.skip("Skipping because we likely ran into a network timeout.")
+
         assert len(entries) == 1
-        assert "Day_1984" in entries
+        assert "Day_1984" == entry.label
 
     def test_handling_of_http_errors(self) -> None:
         """Test the handling of an http error code.
