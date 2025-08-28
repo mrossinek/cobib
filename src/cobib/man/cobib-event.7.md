@@ -136,22 +136,22 @@ All of these events are provided with the Python command object instance, allowi
     Returns:<br>
         Nothing.
 
-  * _PreImportCommand_ = `Callable[[cobib.commands.import.ImportCommand], None]`:
+  * _PreImportCommand_ = `Callable[[cobib.commands.import_.ImportCommand], None]`:
     Fires:<br>
         Before starting the _cobib-import(1)_ command.
 
     Arguments:<br>
-        - `cobib.commands.import.ImportCommand`: the command instance that is about to run.
+        - `cobib.commands.import_.ImportCommand`: the command instance that is about to run.
 
     Returns:<br>
         Nothing. But the command attributes can be modified, affecting the execution.
 
-  * _PostImportCommand_ = `Callable[[cobib.commands.import.ImportCommand], None]`:
+  * _PostImportCommand_ = `Callable[[cobib.commands.import_.ImportCommand], None]`:
     Fires:<br>
         Before finishing the _cobib-import(1)_ command.
 
     Arguments:<br>
-        - `cobib.commands.import.ImportCommand`: the command instance that just ran.
+        - `cobib.commands.import_.ImportCommand`: the command instance that just ran.
 
     Returns:<br>
         Nothing. But the dictionary of new entries can be modified before the changes are made
@@ -177,22 +177,22 @@ All of these events are provided with the Python command object instance, allowi
     Returns:<br>
         Nothing.
 
-  * _PreListCommand_ = `Callable[[cobib.commands.list.ListCommand], None]`:
+  * _PreListCommand_ = `Callable[[cobib.commands.list_.ListCommand], None]`:
     Fires:<br>
         Before starting the _cobib-list(1)_ command.
 
     Arguments:<br>
-        - `cobib.commands.list.ListCommand`: the command instance that is about to run.
+        - `cobib.commands.list_.ListCommand`: the command instance that is about to run.
 
     Returns:<br>
         Nothing. But the command attributes can be modified, affecting the execution.
 
-  * _PostListCommand_ = `Callable[[cobib.commands.list.ListCommand], None]`:
+  * _PostListCommand_ = `Callable[[cobib.commands.list_.ListCommand], None]`:
     Fires:<br>
         Before finishing the _cobib-list(1)_ command.
 
     Arguments:<br>
-        - `cobib.commands.list.ListCommand`: the command instance that just ran.
+        - `cobib.commands.list_.ListCommand`: the command instance that just ran.
 
     Returns:<br>
         Nothing. But the to-be-listed entries are still accessible before being rendered.
