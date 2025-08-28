@@ -26,6 +26,6 @@ $ cobib lint --format
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-unify-labels(1)_, _cobib-commands(7)_, [Linting](https://en.wikipedia.org/wiki/Lint_(software))
+*cobib(1)*, *cobib-unify-labels(1)*, *cobib-commands(7)*, [Linting](https://en.wikipedia.org/wiki/Lint_(software))
 
 [//]: # ( vim: set ft=markdown tw=0: )

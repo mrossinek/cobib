@@ -8,12 +8,12 @@ cobib-database(7) -- database format
 ## DESCRIPTION
 
 coBib's bibliography data is stored in a single plain-text YAML file.
-The default location is stated above, but it may be configured via the `config.database.file` setting (see also _cobib-config(5)_).
+The default location is stated above, but it may be configured via the `config.database.file` setting (see also *cobib-config(5)*).
 
 A few considerations went into the choice for this database format:
 
   * the plain-text format ensures that the data is human readable and is easily recovered, even if coBib were to not be available in the future
-  * the centralization of all the bibliographic data allows an easy version control integration (see also _cobib-git(7)_)
+  * the centralization of all the bibliographic data allows an easy version control integration (see also *cobib-git(7)*)
   * the use of linking to externally associated files still allows flexibility in PDF management
 
 ### Contents
@@ -57,15 +57,15 @@ There are multiple tricks to improve performance:
     This is **enabled** by default but can be disabled by changing the above setting to `None`.
 
   * C-based parser:
-    The YAML parser (see also _cobib-yaml(7)_) has a C-based implementation which is significantly faster than the Python-based one.
+    The YAML parser (see also *cobib-yaml(7)*) has a C-based implementation which is significantly faster than the Python-based one.
     This is **enabled** by default but can be disabled by setting `config.parsers.yaml.use_c_lib_yaml = False`.
 
   * Linting:
     If the database format is not entirely up-to-date with the latest defaults, some processes can slow the parsing down.
-    The _cobib-lint(1)_ command can be used to identify and fix problems to improve parsing speed.
+    The *cobib-lint(1)* command can be used to identify and fix problems to improve parsing speed.
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-config(5)_
+*cobib(1)*, *cobib-config(5)*
 
 [//]: # ( vim: set ft=markdown tw=0: )

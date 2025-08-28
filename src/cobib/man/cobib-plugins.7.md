@@ -15,15 +15,15 @@ coBib provides multiple entry points for plugins to register additional function
 
   * `cobib.commands`:
     An entry point to register additional commands available through the command-line interface.
-    See _cobib-commands(7)_ for more details.
+    See *cobib-commands(7)* for more details.
 
   * `cobib.importers`:
-    An entry point to register additional importer backends available through the _cobib-import(1)_ command.
-    See _cobib-importers(7)_ for more details.
+    An entry point to register additional importer backends available through the *cobib-import(1)* command.
+    See *cobib-importers(7)* for more details.
 
   * `cobib.parsers`:
-    An entry point to register additional parser backends available through the _cobib-add(1)_ command.
-    See _cobib-parsers(7)_ for more details.
+    An entry point to register additional parser backends available through the *cobib-add(1)* command.
+    See *cobib-parsers(7)* for more details.
 
 ## EXAMPLES
 
@@ -31,6 +31,6 @@ To see an example for developing a plugin, check out the [`cobib_dummy` plugin](
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-commands(7)_, _cobib-importers(7)_, _cobib-parsers(7)_
+*cobib(1)*, *cobib-commands(7)*, *cobib-importers(7)*, *cobib-parsers(7)*
 
 [//]: # ( vim: set ft=markdown tw=0: )

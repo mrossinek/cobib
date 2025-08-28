@@ -8,7 +8,7 @@ cobib-undo(1) -- undo the last change to the database
 ## DESCRIPTION
 
 Undoes the last change to the database.
-This command can only be used when the _cobib-git(7)_ integration is enabled.
+This command can only be used when the *cobib-git(7)* integration is enabled.
 
 As a safety measure, this command will only undo the last change to the database, if it was one of coBib's automatic commits.
 Specifying the `--force` option bypasses this safety feature.
@@ -27,6 +27,6 @@ cobib undo --force
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-redo(1)_, _cobib-commands(7)_, _cobib-git(7)_
+*cobib(1)*, *cobib-redo(1)*, *cobib-commands(7)*, *cobib-git(7)*
 
 [//]: # ( vim: set ft=markdown tw=0: )

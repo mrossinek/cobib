@@ -9,7 +9,7 @@ cobib-search(1) -- search in the database
 
 Searches in the database.
 This command takes one or more _QUERY_ strings which are _regex(7)_ matched against the (filtered) entries in the database.
-Searches are performed against the _cobib-bibtex(7)_ formatted entries rather than the raw database file.
+Searches are performed against the *cobib-bibtex(7)* formatted entries rather than the raw database file.
 Any matches are printed to the output.
 
 In the most simplistic form, this command simply searches for the provided string in all entries:
@@ -28,7 +28,7 @@ If that is done, `--no-ignore-case` (or `-I`) can be used to overwrite it once a
 
 There are even more options to tweak the matching behavior described in the [Approximate Searching] section below.
 
-The search can be narrowed to a subset of the database using the _cobib-filter(7)_ mechanism:
+The search can be narrowed to a subset of the database using the *cobib-filter(7)* mechanism:
 ```bash
 $ cobib search -i quantum -- ++year 2025
 ```
@@ -59,7 +59,7 @@ einstein - 2 matches
 
 ### Approximate Searching
 
-Because the search is done on the _cobib-bibtex(7)_ output, the possible occurrence of LaTeX typesetting commands can make accurate searches difficult.
+Because the search is done on the *cobib-bibtex(7)* output, the possible occurrence of LaTeX typesetting commands can make accurate searches difficult.
 While _regex(7)_ patterns can deal with many such cases, writing them becomes increasingly complicated and cumbersome.
 Therefore, this command provides a few additional means to make searches easier.
 
@@ -91,10 +91,10 @@ The default value of fuzziness is 0 but can be set via the `config.commands.sear
 
 This command treats the `file` and `note` data fields of an entry in a special way:
 * files listed under `file` will be searched with the `config.commands.search.grep` command
-* the note file pointed to by `note` will be read and its contents included in the _cobib-bibtex(7)_ output against which _QUERY_ gets matched
+* the note file pointed to by `note` will be read and its contents included in the *cobib-bibtex(7)* output against which _QUERY_ gets matched
 
 This differing behavior also explains the reason for specifically tracking notes separately from files.
-See _cobib-note(1)_ for more details.
+See *cobib-note(1)* for more details.
 
 Both of the above behaviors are enabled by default but can be configured via the `config.commands.search.skip_files` and `config.commands.search.skip_notes`, respectively.
 If that is done, the `--include_files` or `--skip-files` and `--include-notes` or `--skip-notes` options can be used to overwrite the configuration once at runtime.
@@ -179,6 +179,6 @@ $ cobib search --skip-files quantum -- --or ++year 2023 ++year 2024 ++year 2025
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-note(1)_, _cobib-bibtex(7)_, _cobib-commands(7)_, _regex(7)_, [regex](https://pypi.org/project/regex/)
+*cobib(1)*, *cobib-note(1)*, *cobib-bibtex(7)*, *cobib-commands(7)*, _regex(7)_, [regex](https://pypi.org/project/regex/)
 
 [//]: # ( vim: set ft=markdown tw=0: )

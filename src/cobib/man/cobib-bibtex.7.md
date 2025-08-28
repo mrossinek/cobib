@@ -22,6 +22,6 @@ $ cobib add --bibtex file.bib
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-add(1)_, _cobib-parsers(7)_
+*cobib(1)*, *cobib-add(1)*, *cobib-parsers(7)*
 
 [//]: # ( vim: set ft=markdown tw=0: )

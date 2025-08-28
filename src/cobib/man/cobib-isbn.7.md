@@ -8,7 +8,7 @@ cobib-isbn(7) -- ISBN parser backend
 ## DESCRIPTION
 
 Adds an entry from the provided ISBN.
-This is done by parsing the BibTeX data provided by the [openlibrary API](https://openlibrary.org/dev/docs/api/books) (see also _cobib-bibtex(7)_).
+This is done by parsing the BibTeX data provided by the [openlibrary API](https://openlibrary.org/dev/docs/api/books) (see also *cobib-bibtex(7)*).
 Note, that the openlibrary API does not contain all ISBNs and potential server errors will be caught by the parser.
 
 This parser does **not** support downloading a PDF version of the entry.
@@ -21,6 +21,6 @@ $ cobib add --isbn 978-1-449-35573-9
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-add(1)_, _cobib-parsers(7)_
+*cobib(1)*, *cobib-add(1)*, *cobib-parsers(7)*
 
 [//]: # ( vim: set ft=markdown tw=0: )

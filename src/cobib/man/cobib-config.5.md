@@ -9,7 +9,7 @@ cobib-config(5) -- the configuration specification for cobib(1)
 
 ## DESCRIPTION
 
-The [SYNOPSIS][] section above outlines the different means of configuring _cobib(1)_ in order of precedence.
+The [SYNOPSIS][] section above outlines the different means of configuring *cobib(1)* in order of precedence.
 In the first two cases, _PATH_ must point to a Python file which includes the actual configuration settings.
 The last case indicates the default location which is checked for a user configuration file.
 If none of those are set, the internal defaults will be used.
@@ -67,20 +67,20 @@ We separate the options into subsections based on what they configure.
 #### COMMANDS.LIST
 
   * _config.commands.list\_.decode_latex_ = `False`:
-    Whether the _cobib-filter(7)_ matching should decode all LaTeX sequences.
+    Whether the *cobib-filter(7)* matching should decode all LaTeX sequences.
 
   * _config.commands.list\_.decode_unicode_ = `False`:
-    Whether the _cobib-filter(7)_ matching should decode all Unicode characters.
+    Whether the *cobib-filter(7)* matching should decode all Unicode characters.
 
   * _config.commands.list\_.default_columns_ = `["label", "title"]`:
     The default columns to be displayed during when listing database contents.
 
   * _config.commands.list\_.fuzziness_ = `0`:
-    How many fuzzy errors to allow during the _cobib-filter(7)_ matching.
+    How many fuzzy errors to allow during the *cobib-filter(7)* matching.
     Using this feature requires the optional `regex` dependency to be installed.
 
   * _config.commands.list\_.ignore_case_ = `False`:
-    Whether the _cobib-filter(7)_ matching should be performed case-insensitive.
+    Whether the *cobib-filter(7)* matching should be performed case-insensitive.
 
 #### COMMANDS.MODIFY
 
@@ -144,15 +144,15 @@ We separate the options into subsections based on what they configure.
   * _config.database.cache_ = `"~/.cache/cobib/databases/"`:
     The path under which to store already parsed databases.
     Set this to `None` to disable this functionality entirely.
-    See also _cobib-database(7)_.
+    See also *cobib-database(7)*.
 
   * _config.database.file_ = `"~/.local/share/cobib/literature.yaml"`:
     The path to the database YAML file.
     You can use a `~` to represent your `$HOME` directory.
-    See also _cobib-database(7)_.
+    See also *cobib-database(7)*.
 
   * _config.database.git_ = `False`:
-    Whether to enable the _git(1)_ integration, see also _cobib-git(7)_.
+    Whether to enable the _git(1)_ integration, see also *cobib-git(7)*.
 
 #### DATABASE.FORMAT
 
@@ -166,7 +166,7 @@ We separate the options into subsections based on what they configure.
   * _config.database.format.label_default_ = `"{unidecode(label)}"`:
     The default format for the entry `label`s.
 
-    This setting follows the _Python f-string_-like formatting of modifications (see also _cobib-modify(1)_).
+    This setting follows the _Python f-string_-like formatting of modifications (see also *cobib-modify(1)*).
     The default simply takes the originally set `label` and passes it through [text-unidecode](https://pypi.org/project/text-unidecode/), replacing all Unicode symbols with pure ASCII ones.
     A more useful example is `"{unidecode(author[0].last)}{year}"` which takes the surname of the first author
     (assuming `config.database.format.author_format = AuthorFormat.YAML`),
@@ -202,8 +202,8 @@ We separate the options into subsections based on what they configure.
 
 #### EVENTS
 
-_cobib-event(7)_ hooks get stored in `config.events` but it should **NOT** be modified directly!
-Instead, the `Event.subscribe` decorator should be used (cf. _cobib-event(7)_).
+*cobib-event(7)* hooks get stored in `config.events` but it should **NOT** be modified directly!
+Instead, the `Event.subscribe` decorator should be used (cf. *cobib-event(7)*).
 
 ### LOGGING
 
@@ -214,7 +214,7 @@ Instead, the `Event.subscribe` decorator should be used (cf. _cobib-event(7)_).
     The default location of the logfile.
 
   * _config.logging.version_ = `"~/.cache/cobib/version"`:
-    The default location of the cached version number, based on which _cobib(1)_ shows you the latest changelog after an update.
+    The default location of the cached version number, based on which *cobib(1)* shows you the latest changelog after an update.
     Set this to `None` to disable this functionality entirely.
 
 #### PARSERS
@@ -298,7 +298,7 @@ and a string describing the `rich.style.Style`.
     The markup for entries with the `new` tag.
 
     Note, that this tag does **not** get added automatically.
-    But you can do so by subscribing to the _PostAddCommand_ event (see also _cobib-event(7)_):
+    But you can do so by subscribing to the _PostAddCommand_ event (see also *cobib-event(7)*):
        ```python
        from cobib.config import Event
 
@@ -317,11 +317,11 @@ and a string describing the `rich.style.Style`.
 #### TUI
 
   * _config.tui.preset_filters_ = `[]`:
-    A list of preset _cobib-filter(7)_ arguments available for quick access in the TUI.
+    A list of preset *cobib-filter(7)* arguments available for quick access in the TUI.
     The first 9 entries of this list can be triggered by pressing the corresponding number in the TUI.
     Pressing `0` resets the filter to the standard list view.
 
-    Each entry of this list should be a string describing a _cobib-filter(7)_, for example:
+    Each entry of this list should be a string describing a *cobib-filter(7)*, for example:
        ```python
        config.tui.preset_filters = [
            "++tags new",   # filters entries with the `new` tag
@@ -355,7 +355,7 @@ and a string describing the `rich.style.Style`.
 
   * _config.utils.journal_abbreviations_ = `[]`:
     A list of _journal abbreviations_ as pairs like `("full journal name", "abbrev. name")`.
-    The abbreviated version should contain all the necessary punctuation (see also _cobib-export(1)_).
+    The abbreviated version should contain all the necessary punctuation (see also *cobib-export(1)*).
 
     You can find some examples in the [wiki](https://gitlab.com/cobib/cobib/-/wikis/Journal-Abbreviations).
 
@@ -367,7 +367,7 @@ and a string describing the `rich.style.Style`.
     `""`, `0`, `"f"`, `"false"`, `"nil"`, `"none"`.
 
   * _$EDITOR_:
-    Specifies the editor program to use for the _cobib-edit(1)_ command.
+    Specifies the editor program to use for the *cobib-edit(1)* command.
     Hard-coding the `config.commands.edit.editor` option can overwrite this behavior.
 
 ## FILES
@@ -410,6 +410,6 @@ cobib _example_config | less
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-database(7)_, _cobib-event(7)_, _cobib-git(7)_
+*cobib(1)*, *cobib-database(7)*, *cobib-event(7)*, *cobib-git(7)*
 
 [//]: # ( vim: set ft=markdown tw=0: )

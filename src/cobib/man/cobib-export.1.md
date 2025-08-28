@@ -20,7 +20,7 @@ This is important, since coBib (by design) permits files to be scattered across 
 When exporting to BibTeX, journal names can be abbreviated by specifying the `--abbreviate` (and optionally the `--dotless`) options, as explained in more detail below.
 
 It is possible to limit the exported entries in two ways:
-1. using the _cobib-filter(7)_ syntax
+1. using the *cobib-filter(7)* syntax
 2. using the `--selection` option explained below
 
 ## OPTIONS
@@ -32,8 +32,8 @@ It is possible to limit the exported entries in two ways:
     Specifies the path to the zip archive.
 
   * `-s`, `--selection`:
-    Switches from the _cobib-filter(7)_ mechanism to interpreting the _FILTER_ arguments as a list of plain entry labels.
-    This is not necessarily super useful for using from the command-line, but integrates well with the visual selection in the _cobib-tui(7)_!
+    Switches from the *cobib-filter(7)* mechanism to interpreting the _FILTER_ arguments as a list of plain entry labels.
+    This is not necessarily super useful for using from the command-line, but integrates well with the visual selection in the *cobib-tui(7)*!
 
   * `-a`, `--abbreviate`:
     Specifies that journal names in the BibTeX output should be abbreviated as configured by `config.utils.journal_abbreviations`.
@@ -57,7 +57,7 @@ $ cobib export --abbreviate --bibtex output.bib
 $ cobib export -a --dotless --bibtex output.bib
 ```
 
-Exports with a _cobib-filter(7)_ applied:
+Exports with a *cobib-filter(7)* applied:
 ```bash
 $ cobib export -b output.bib -- --or ++year 2024 ++year 2025
 ```
@@ -69,6 +69,6 @@ $ cobib export -b output.bib -s -- Label1 Label2
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-commands(7)_, _cobib-filter(7)_
+*cobib(1)*, *cobib-commands(7)*, *cobib-filter(7)*
 
 [//]: # ( vim: set ft=markdown tw=0: )

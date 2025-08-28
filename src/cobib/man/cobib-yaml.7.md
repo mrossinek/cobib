@@ -8,7 +8,7 @@ cobib-yaml(7) -- YAML parser backend
 ## DESCRIPTION
 
 Adds the entries from a YAML file.
-The contents of the YAML file are expected to be as described in _cobib-database(7)_.
+The contents of the YAML file are expected to be as described in *cobib-database(7)*.
 The parsing is done using the [`ruamel.yaml`](https://pypi.org/project/ruamel.yaml/) library.
 
 By default, coBib attempts to use the C-based implementation to ensure good performance.
@@ -24,6 +24,6 @@ $ cobib add --yaml file.yaml
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-add(1)_, _cobib-database(7)_, _cobib-parsers(7)_
+*cobib(1)*, *cobib-add(1)*, *cobib-database(7)*, *cobib-parsers(7)*
 
 [//]: # ( vim: set ft=markdown tw=0: )

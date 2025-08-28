@@ -10,9 +10,9 @@ cobib-url(7) -- URL parser backend
 Adds an entry from the provided URL.
 This is done by checking the URL for a container identifier in the following order:
 
-  1. arXiv ID (see _cobib-arxiv(7)_)
-  2. DOI (see _cobib-doi(7)_)
-  3. ISBN (see _cobib-isbn(7)_)
+  1. arXiv ID (see *cobib-arxiv(7)*)
+  2. DOI (see *cobib-doi(7)*)
+  3. ISBN (see *cobib-isbn(7)*)
 
 The moment any of the above identifiers are found inside of the URL, the respective parser is used to add an entry.
 
@@ -30,6 +30,6 @@ $ cobib add --url https://www.nature.com/articles/s41467-019-10988-2
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-add(1)_, _cobib-parsers(7)_
+*cobib(1)*, *cobib-add(1)*, *cobib-parsers(7)*
 
 [//]: # ( vim: set ft=markdown tw=0: )

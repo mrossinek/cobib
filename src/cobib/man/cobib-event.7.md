@@ -15,8 +15,8 @@ def push_to_remote(root: Path, file: Path) -> None:
 
 ## DESCRIPTION
 
-_cobib(1)_ provides various **events** on to which _hooks_ can be registered for execution.
-The [SYNOPSIS][] section above shows one such example that can be programmed inside of the _cobib-config(5)_.
+*cobib(1)* provides various **events** on to which _hooks_ can be registered for execution.
+The [SYNOPSIS][] section above shows one such example that can be programmed inside of the *cobib-config(5)*.
 In that example, the function `push_to_remote` will be executed every time the `PostGitCommit` event triggers.
 
 When writing event hooks, it is important that you include the full signature type hints, because these are used to validate all registered event hooks.
@@ -34,7 +34,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PreAddCommand_ = `Callable[[cobib.commands.add.AddCommand], None]`:
     Fires:<br>
-        Before starting the _cobib-add(1)_ command.
+        Before starting the *cobib-add(1)* command.
 
     Arguments:<br>
         - `cobib.commands.add.AddCommand`: the command instance that is about to run.
@@ -44,7 +44,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PostAddCommand_ = `Callable[[cobib.commands.add.AddCommand], None]`:
     Fires:<br>
-        Before finishing the _cobib-add(1)_ command.
+        Before finishing the *cobib-add(1)* command.
 
     Arguments:<br>
         - `cobib.commands.add.AddCommand`: the command instance that just ran.
@@ -58,7 +58,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PreDeleteCommand_ = `Callable[[cobib.commands.delete.DeleteCommand], None]`:
     Fires:<br>
-        Before starting the _cobib-delete(1)_ command.
+        Before starting the *cobib-delete(1)* command.
 
     Arguments:<br>
         - `cobib.commands.delete.DeleteCommand`: the command instance that is about to run.
@@ -68,7 +68,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PostDeleteCommand_ = `Callable[[cobib.commands.delete.DeleteCommand], None]`:
     Fires:<br>
-        Before finishing the _cobib-delete(1)_ command.
+        Before finishing the *cobib-delete(1)* command.
 
     Arguments:<br>
         - `cobib.commands.delete.DeleteCommand`: the command instance that just ran.
@@ -78,7 +78,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PreEditCommand_ = `Callable[[cobib.commands.edit.EditCommand], None]`:
     Fires:<br>
-        Before starting the _cobib-edit(1)_ command.
+        Before starting the *cobib-edit(1)* command.
 
     Arguments:<br>
         - `cobib.commands.edit.EditCommand`: the command instance that is about to run.
@@ -88,7 +88,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PostEditCommand_ = `Callable[[cobib.commands.edit.EditCommand], None]`:
     Fires:<br>
-        Before finishing the _cobib-edit(1)_ command.
+        Before finishing the *cobib-edit(1)* command.
 
     Arguments:<br>
         - `cobib.commands.edit.EditCommand`: the command instance that just ran.
@@ -98,7 +98,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PreExportCommand_ = `Callable[[cobib.commands.export.ExportCommand], None]`:
     Fires:<br>
-        Before starting the _cobib-export(1)_ command.
+        Before starting the *cobib-export(1)* command.
 
     Arguments:<br>
         - `cobib.commands.export.ExportCommand`: the command instance that is about to run.
@@ -108,7 +108,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PostExportCommand_ = `Callable[[cobib.commands.export.ExportCommand], None]`:
     Fires:<br>
-        Before finishing the _cobib-export(1)_ command.
+        Before finishing the *cobib-export(1)* command.
 
     Arguments:<br>
         - `cobib.commands.export.ExportCommand`: the command instance that just ran.
@@ -118,7 +118,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PreGitCommand_ = `Callable[[cobib.commands.git.GitCommand], None]`:
     Fires:<br>
-        Before starting the _cobib-git(1)_ command.
+        Before starting the *cobib-git(1)* command.
 
     Arguments:<br>
         - `cobib.commands.git.GitCommand`: the command instance that is about to run.
@@ -128,7 +128,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PostGitCommand_ = `Callable[[cobib.commands.git.GitCommand], None]`:
     Fires:<br>
-        Before finishing the _cobib-git(1)_ command.
+        Before finishing the *cobib-git(1)* command.
 
     Arguments:<br>
         - `cobib.commands.git.GitCommand`: the command instance that just ran.
@@ -138,7 +138,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PreImportCommand_ = `Callable[[cobib.commands.import_.ImportCommand], None]`:
     Fires:<br>
-        Before starting the _cobib-import(1)_ command.
+        Before starting the *cobib-import(1)* command.
 
     Arguments:<br>
         - `cobib.commands.import_.ImportCommand`: the command instance that is about to run.
@@ -148,7 +148,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PostImportCommand_ = `Callable[[cobib.commands.import_.ImportCommand], None]`:
     Fires:<br>
-        Before finishing the _cobib-import(1)_ command.
+        Before finishing the *cobib-import(1)* command.
 
     Arguments:<br>
         - `cobib.commands.import_.ImportCommand`: the command instance that just ran.
@@ -159,7 +159,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PreInitCommand_ = `Callable[[cobib.commands.init.InitCommand], None]`:
     Fires:<br>
-        Before starting the _cobib-init(1)_ command.
+        Before starting the *cobib-init(1)* command.
 
     Arguments:<br>
         - `cobib.commands.init.InitCommand`: the command instance that is about to run.
@@ -169,7 +169,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PostInitCommand_ = `Callable[[cobib.commands.init.InitCommand], None]`:
     Fires:<br>
-        Before finishing the _cobib-init(1)_ command.
+        Before finishing the *cobib-init(1)* command.
 
     Arguments:<br>
         - `cobib.commands.init.InitCommand`: the command instance that just ran.
@@ -179,7 +179,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PreListCommand_ = `Callable[[cobib.commands.list_.ListCommand], None]`:
     Fires:<br>
-        Before starting the _cobib-list(1)_ command.
+        Before starting the *cobib-list(1)* command.
 
     Arguments:<br>
         - `cobib.commands.list_.ListCommand`: the command instance that is about to run.
@@ -189,7 +189,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PostListCommand_ = `Callable[[cobib.commands.list_.ListCommand], None]`:
     Fires:<br>
-        Before finishing the _cobib-list(1)_ command.
+        Before finishing the *cobib-list(1)* command.
 
     Arguments:<br>
         - `cobib.commands.list_.ListCommand`: the command instance that just ran.
@@ -199,7 +199,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PreModifyCommand_ = `Callable[[cobib.commands.modify.ModifyCommand], None]`:
     Fires:<br>
-        Before starting the _cobib-modify(1)_ command.
+        Before starting the *cobib-modify(1)* command.
 
     Arguments:<br>
         - `cobib.commands.modify.ModifyCommand`: the command instance that is about to run.
@@ -209,7 +209,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PostModifyCommand_ = `Callable[[cobib.commands.modify.ModifyCommand], None]`:
     Fires:<br>
-        Before finishing the _cobib-modify(1)_ command.
+        Before finishing the *cobib-modify(1)* command.
 
     Arguments:<br>
         - `cobib.commands.modify.ModifyCommand`: the command instance that just ran.
@@ -219,7 +219,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PreNoteCommand_ = `Callable[[cobib.commands.note.NoteCommand], None]`:
     Fires:<br>
-        Before starting the _cobib-note(1)_ command.
+        Before starting the *cobib-note(1)* command.
 
     Arguments:<br>
         - `cobib.commands.note.NoteCommand`: the command instance that is about to run.
@@ -229,7 +229,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PostNoteCommand_ = `Callable[[cobib.commands.note.NoteCommand], None]`:
     Fires:<br>
-        Before finishing the _cobib-note(1)_ command.
+        Before finishing the *cobib-note(1)* command.
 
     Arguments:<br>
         - `cobib.commands.note.NoteCommand`: the command instance that just ran.
@@ -239,7 +239,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PreOpenCommand_ = `Callable[[cobib.commands.open.OpenCommand], None]`:
     Fires:<br>
-        Before starting the _cobib-open(1)_ command.
+        Before starting the *cobib-open(1)* command.
 
     Arguments:<br>
         - `cobib.commands.open.OpenCommand`: the command instance that is about to run.
@@ -249,7 +249,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PostOpenCommand_ = `Callable[[cobib.commands.open.OpenCommand], None]`:
     Fires:<br>
-        Before finishing the _cobib-open(1)_ command.
+        Before finishing the *cobib-open(1)* command.
 
     Arguments:<br>
         - `cobib.commands.open.OpenCommand`: the command instance that just ran.
@@ -259,7 +259,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PreRedoCommand_ = `Callable[[cobib.commands.redo.RedoCommand], None]`:
     Fires:<br>
-        Before starting the _cobib-redo(1)_ command.
+        Before starting the *cobib-redo(1)* command.
 
     Arguments:<br>
         - `cobib.commands.redo.RedoCommand`: the command instance that is about to run.
@@ -269,7 +269,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PostRedoCommand_ = `Callable[[cobib.commands.redo.RedoCommand], None]`:
     Fires:<br>
-        Before finishing the _cobib-redo(1)_ command.
+        Before finishing the *cobib-redo(1)* command.
 
     Arguments:<br>
         - `cobib.commands.redo.RedoCommand`: the command instance that just ran.
@@ -279,7 +279,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PreReviewCommand_ = `Callable[[cobib.commands.review.ReviewCommand], None]`:
     Fires:<br>
-        Before starting the _cobib-review(1)_ command.
+        Before starting the *cobib-review(1)* command.
         The only logic which is done prior to this event is the retrieval of the command arguments from a previous review process when the `--resume` option has been specified.
 
     Arguments:<br>
@@ -290,7 +290,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PostReviewCommand_ = `Callable[[cobib.commands.review.ReviewCommand], None]`:
     Fires:<br>
-        Before finishing the _cobib-review(1)_ command.
+        Before finishing the *cobib-review(1)* command.
 
     Arguments:<br>
         - `cobib.commands.review.ReviewCommand`: the command instance that just ran.
@@ -300,7 +300,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PreSearchCommand_ = `Callable[[cobib.commands.search.SearchCommand], None]`:
     Fires:<br>
-        Before starting the _cobib-search(1)_ command.
+        Before starting the *cobib-search(1)* command.
 
     Arguments:<br>
         - `cobib.commands.search.SearchCommand`: the command instance that is about to run.
@@ -310,7 +310,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PostSearchCommand_ = `Callable[[cobib.commands.search.SearchCommand], None]`:
     Fires:<br>
-        Before finishing the _cobib-search(1)_ command.
+        Before finishing the *cobib-search(1)* command.
 
     Arguments:<br>
         - `cobib.commands.search.SearchCommand`: the command instance that just ran.
@@ -320,7 +320,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PreShowCommand_ = `Callable[[cobib.commands.show.ShowCommand], None]`:
     Fires:<br>
-        Before starting the _cobib-show(1)_ command.
+        Before starting the *cobib-show(1)* command.
 
     Arguments:<br>
         - `cobib.commands.show.ShowCommand`: the command instance that is about to run.
@@ -330,7 +330,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PostShowCommand_ = `Callable[[cobib.commands.show.ShowCommand], None]`:
     Fires:<br>
-        Before finishing the _cobib-show(1)_ command.
+        Before finishing the *cobib-show(1)* command.
 
     Arguments:<br>
         - `cobib.commands.show.ShowCommand`: the command instance that just ran.
@@ -340,7 +340,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PreUndoCommand_ = `Callable[[cobib.commands.undo.UndoCommand], None]`:
     Fires:<br>
-        Before starting the _cobib-undo(1)_ command.
+        Before starting the *cobib-undo(1)* command.
 
     Arguments:<br>
         - `cobib.commands.undo.UndoCommand`: the command instance that is about to run.
@@ -350,7 +350,7 @@ All of these events are provided with the Python command object instance, allowi
 
   * _PostUndoCommand_ = `Callable[[cobib.commands.undo.UndoCommand], None]`:
     Fires:<br>
-        Before finishing the _cobib-undo(1)_ command.
+        Before finishing the *cobib-undo(1)* command.
 
     Arguments:<br>
         - `cobib.commands.undo.UndoCommand`: the command instance that just ran.
@@ -361,12 +361,12 @@ All of these events are provided with the Python command object instance, allowi
 
 ### IMPORTERS
 
-Most of the _cobib-importers(7)_ implementatons provide a **Pre-** and **Post-** execution event which gets triggererd before and after the actual import, respectively.
+Most of the *cobib-importers(7)* implementatons provide a **Pre-** and **Post-** execution event which gets triggererd before and after the actual import, respectively.
 All of these events are provided with the Python importer object instance, allowing the hooks to modify runtime data of the importer.
 
   * _PreZoteroImport_ = `Callable[[cobib.importers.zotero.ZoteroImporter], None]`:
     Fires:<br>
-        Before starting to fetch data using _cobib-zotero(7)_.
+        Before starting to fetch data using *cobib-zotero(7)*.
 
     Arguments:<br>
         - `cobib.importers.zotero.ZoteroImporter`: the importer instance that is about to run.
@@ -376,7 +376,7 @@ All of these events are provided with the Python importer object instance, allow
 
   * _PostZoteroImport_ = `Callable[[cobib.importers.zotero.ZoteroImporter], None]`:
     Fires:<br>
-        Before finishing to fetch data using _cobib-zotero(7)_.
+        Before finishing to fetch data using *cobib-zotero(7)*.
 
     Arguments:<br>
         - `cobib.importers.zotero.ZoteroImporter`: the importer instance that just ran.
@@ -389,12 +389,12 @@ All of these events are provided with the Python importer object instance, allow
 
 ### PARSERS
 
-Most of the _cobib-parsers(7)_ implementations provide **Pre-** and **Post-** events for the **-Parse** and **-Dump** actions.
+Most of the *cobib-parsers(7)* implementations provide **Pre-** and **Post-** events for the **-Parse** and **-Dump** actions.
 The arguments and return types of these events vary as detailed below.
 
   * _PreBibtexParse_ = `Callable[[str], Optional[str]]`:
     Fires:<br>
-        Before starting to parse data using _cobib-bibtex(7)_.
+        Before starting to parse data using *cobib-bibtex(7)*.
 
     Arguments:<br>
         - `string`: the string to be parsed as BibTeX.
@@ -407,7 +407,7 @@ The arguments and return types of these events vary as detailed below.
 
   * _PostBibtexParse_ = `Callable[[Dict[str, cobib.database.entry.Entry], None]`:
     Fires:<br>
-        Before finishing to parse data using _cobib-bibtex(7)_.
+        Before finishing to parse data using *cobib-bibtex(7)*.
 
     Arguments:<br>
         - `bib`: a dictionary of new entries mapping from their labels to the actual data.
@@ -417,7 +417,7 @@ The arguments and return types of these events vary as detailed below.
 
   * _PreBibtexDump_ = `Callable[[cobib.database.entry.Entry], None]`:
     Fires:<br>
-        Before starting to dump data using _cobib-bibtex(7)_.
+        Before starting to dump data using *cobib-bibtex(7)*.
 
     Arguments:<br>
         - `entry`: the entry which is to be dumped in BibTeX format.
@@ -427,7 +427,7 @@ The arguments and return types of these events vary as detailed below.
 
   * _PostBibtexDump_ = `Callable[[str], Optional[str]]`:
     Fires:<br>
-        Before finishing to dump data using _cobib-bibtex(7)_.
+        Before finishing to dump data using *cobib-bibtex(7)*.
 
     Arguments:<br>
         - `str`: the string-representation of the dumped entry in BibTeX format.
@@ -440,7 +440,7 @@ The arguments and return types of these events vary as detailed below.
 
   * _PreYAMLParse_ = `Callable[[str], Optional[str]]`:
     Fires:<br>
-        Before starting to parse data using _cobib-yaml(7)_.
+        Before starting to parse data using *cobib-yaml(7)*.
 
     Arguments:<br>
         - `string`: the string to be parsed as YAML.
@@ -453,7 +453,7 @@ The arguments and return types of these events vary as detailed below.
 
   * _PostYAMLParse_ = `Callable[[Dict[str, cobib.database.entry.Entry], None]`:
     Fires:<br>
-        Before finishing to parse data using _cobib-yaml(7)_.
+        Before finishing to parse data using *cobib-yaml(7)*.
 
     Arguments:<br>
         - `bib`: a dictionary of new entries mapping from their labels to the actual data.
@@ -463,7 +463,7 @@ The arguments and return types of these events vary as detailed below.
 
   * _PreYAMLDump_ = `Callable[[cobib.database.entry.Entry], None]`:
     Fires:<br>
-        Before starting to dump data using _cobib-yaml(7)_.
+        Before starting to dump data using *cobib-yaml(7)*.
 
     Arguments:<br>
         - `entry`: the entry which is to be dumped in YAML format.
@@ -473,7 +473,7 @@ The arguments and return types of these events vary as detailed below.
 
   * _PostYAMLDump_ = `Callable[[str], Optional[str]]`:
     Fires:<br>
-        Before finishing to dump data using _cobib-yaml(7)_.
+        Before finishing to dump data using *cobib-yaml(7)*.
 
     Arguments:<br>
         - `str`: the string-representation of the dumped entry in YAML format.
@@ -486,7 +486,7 @@ The arguments and return types of these events vary as detailed below.
 
   * _PreArxivParse_ = `Callable[[str], Optional[str]]`:
     Fires:<br>
-        Before starting to parse data using _cobib-arxiv(7)_.
+        Before starting to parse data using *cobib-arxiv(7)*.
 
     Arguments:<br>
         - `string`: the string to be parsed as an arXiv ID.
@@ -499,7 +499,7 @@ The arguments and return types of these events vary as detailed below.
 
   * _PostArxivParse_ = `Callable[[Dict[str, cobib.database.entry.Entry], None]`:
     Fires:<br>
-        Before finishing to parse data using _cobib-arxiv(7)_.
+        Before finishing to parse data using *cobib-arxiv(7)*.
 
     Arguments:<br>
         - `bib`: a dictionary of new entries mapping from their labels to the actual data.
@@ -509,7 +509,7 @@ The arguments and return types of these events vary as detailed below.
 
   * _PreDOIParse_ = `Callable[[str], Optional[str]]`:
     Fires:<br>
-        Before starting to parse data using _cobib-doi(7)_.
+        Before starting to parse data using *cobib-doi(7)*.
 
     Arguments:<br>
         - `string`: the string to be parsed as a DOI.
@@ -522,7 +522,7 @@ The arguments and return types of these events vary as detailed below.
 
   * _PostDOIParse_ = `Callable[[Dict[str, cobib.database.entry.Entry], None]`:
     Fires:<br>
-        Before finishing to parse data using _cobib-doi(7)_.
+        Before finishing to parse data using *cobib-doi(7)*.
 
     Arguments:<br>
         - `bib`: a dictionary of new entries mapping from their labels to the actual data.
@@ -532,7 +532,7 @@ The arguments and return types of these events vary as detailed below.
 
   * _PreISBNParse_ = `Callable[[str], Optional[str]]`:
     Fires:<br>
-        Before starting to parse data using _cobib-isbn(7)_.
+        Before starting to parse data using *cobib-isbn(7)*.
 
     Arguments:<br>
         - `string`: the string to be parsed as an ISBN.
@@ -545,7 +545,7 @@ The arguments and return types of these events vary as detailed below.
 
   * _PostISBNParse_ = `Callable[[Dict[str, cobib.database.entry.Entry], None]`:
     Fires:<br>
-        Before finishing to parse data using _cobib-isbn(7)_.
+        Before finishing to parse data using *cobib-isbn(7)*.
 
     Arguments:<br>
         - `bib`: a dictionary of new entries mapping from their labels to the actual data.
@@ -555,7 +555,7 @@ The arguments and return types of these events vary as detailed below.
 
   * _PreURLParse_ = `Callable[[str], Optional[str]]`:
     Fires:<br>
-        Before starting to parse data using _cobib-url(7)_.
+        Before starting to parse data using *cobib-url(7)*.
 
     Arguments:<br>
         - `string`: the string to be parsed as a URL.
@@ -568,7 +568,7 @@ The arguments and return types of these events vary as detailed below.
 
   * _PostURLParse_ = `Callable[[Dict[str, cobib.database.entry.Entry], None]`:
     Fires:<br>
-        Before finishing to parse data using _cobib-url(7)_.
+        Before finishing to parse data using *cobib-url(7)*.
 
     Arguments:<br>
         - `bib`: a dictionary of new entries mapping from their labels to the actual data.
@@ -609,7 +609,7 @@ The arguments and return types of these events vary as detailed below.
 
   * _PreGitCommit_ = `Callable[[str, Optional[Dict[str, Any]]], Optional[str]]`:
     Fires:<br>
-        Before starting an automatic git commit (see also _cobib-git(7)_).
+        Before starting an automatic git commit (see also *cobib-git(7)*).
 
     Arguments:<br>
         - `msg`: the commit message.<br>
@@ -623,7 +623,7 @@ The arguments and return types of these events vary as detailed below.
 
   * _PostGitCommit_ = `Callable[[pathlib.Path, pathlib.Path], None]`:
     Fires:<br>
-        Before finishing an automatic git commit (see also _cobib-git(7)_).
+        Before finishing an automatic git commit (see also *cobib-git(7)*).
 
     Arguments:<br>
         - `root`: the path to the root git directory where the database file resides.<br>
@@ -639,6 +639,6 @@ Some useful event hooks can be found in the [wiki](https://gitlab.com/cobib/cobi
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-config(5)_
+*cobib(1)*, *cobib-config(5)*
 
 [//]: # ( vim: set ft=markdown tw=0: )

@@ -45,6 +45,6 @@ $ cobib edit --no-preserve-files Label
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-commands(7)_
+*cobib(1)*, *cobib-commands(7)*
 
 [//]: # ( vim: set ft=markdown tw=0: )

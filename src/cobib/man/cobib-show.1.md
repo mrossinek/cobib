@@ -18,6 +18,6 @@ $ cobib show Label1
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-commands(7)_
+*cobib(1)*, *cobib-commands(7)*
 
 [//]: # ( vim: set ft=markdown tw=0: )

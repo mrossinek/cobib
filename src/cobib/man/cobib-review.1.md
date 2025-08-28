@@ -8,7 +8,7 @@ cobib-review(1) -- review entries
 ## DESCRIPTION
 
 Reviews entries of the database.
-Rather than manually searching for and inspecting entries individually or figuring out clever bulk modifications (see _cobib-modify(1)_) this command provides an interactive review process.
+Rather than manually searching for and inspecting entries individually or figuring out clever bulk modifications (see *cobib-modify(1)*) this command provides an interactive review process.
 This is especially helpful as your knowledge of your database changes and develops over time.
 
 In its simplest form, the entire database can be reviewed:
@@ -16,7 +16,7 @@ In its simplest form, the entire database can be reviewed:
 $ cobib review
 ```
 
-Since this can be quite a lot of information to review all at once, the review can be narrowed down using filters (see _cobib-filter(7)_).
+Since this can be quite a lot of information to review all at once, the review can be narrowed down using filters (see *cobib-filter(7)*).
 For example, the following command reviews all entries from the year 2023:
 ```bash
 $ cobib review -- ++year 2023
@@ -55,7 +55,7 @@ The following actions are possible:
 
   * `finish`:
     Closes the review process (even if some entries and have not been reviewed yet) and saves the progress to the database.
-    This allows performing reviews in smaller chunks via the `--resume` option (when the git integration (see _cobib-git(7)_) is enabled).
+    This allows performing reviews in smaller chunks via the `--resume` option (when the git integration (see *cobib-git(7)*) is enabled).
 
   * `inline`:
     Performs an in-line edit of a specific field (i.e. without having to open the entry in an external editor).
@@ -66,7 +66,7 @@ The following actions are possible:
 ### Resuming a previously started review
 
 A review can be finished early via the `finish` action (see above).
-When this is done and the git integration (see _cobib-git(7)_) is enabled, one can continue the review where left using the `--resume` option.
+When this is done and the git integration (see *cobib-git(7)*) is enabled, one can continue the review where left using the `--resume` option.
 This option takes a git commit identifier as its argument.
 If it is certain, that the last auto-commit was that of a review, one can simply use `HEAD` like so:
 ```bash
@@ -86,15 +86,15 @@ However, entries on which the `skip` action was used before, will now show up ag
 
   * `-r`, `--resume`=_SHA_:
     Specifies a git commit identifier of a previous review auto-commit from which to resume.
-    This requires the git integration (see _cobib-git(7)_) to be enabled.
+    This requires the git integration (see *cobib-git(7)*) to be enabled.
 
   * `-d`, `--done`=_LABEL_ ...:
     Specifies a list of labels to exclude from the review even if they would match the _FILTER_ criteria.
     This is not necessarily super useful on its own, but simply exposes the internal mechanism of the `--resume` option.
 
   * `-s`, `--selection`:
-    Switches from the _cobib-filter(7)_ mechanism to interpreting the _FILTER_ arguments as a list of plain entry labels.
-    This is not necessarily super useful for using from the command-line, but integrates well with the visual selection in the _cobib-tui(7)_!
+    Switches from the *cobib-filter(7)* mechanism to interpreting the _FILTER_ arguments as a list of plain entry labels.
+    This is not necessarily super useful for using from the command-line, but integrates well with the visual selection in the *cobib-tui(7)*!
 
 ## EXAMPLES
 
@@ -122,6 +122,6 @@ $ cobib review tags -- ++tags new  # review the tags of all entries with the `ne
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-commands(7)_, _cobib-filter(7)_, _cobib-git(7)_
+*cobib(1)*, *cobib-commands(7)*, *cobib-filter(7)*, *cobib-git(7)*
 
 [//]: # ( vim: set ft=markdown tw=0: )

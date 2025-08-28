@@ -11,7 +11,7 @@ Interact with the note associated with an entry.
 Every entry can have a note file associated with it, the location of which is stored in the `note` field.
 This command provides the means to interact with this note.
 
-Notes are handled specially during a _cobib-search(1)_, because their content is searched directly by cobib rather than relying on an external `config.commands.search.grep` program as is done for associated files.
+Notes are handled specially during a *cobib-search(1)*, because their content is searched directly by cobib rather than relying on an external `config.commands.search.grep` program as is done for associated files.
 At the same time, the actual database is kept clean from possibly long text passages and editing of notes can be done outside of cobib-edit(1) commands.
 
 The following options exist for _ACTION_:
@@ -27,7 +27,7 @@ The following options exist for _ACTION_:
     Deletes the associated note.
 
 The default location for notes is in the same folder as the `config.database.file` using the entry's _LABEL_ as the filename and `config.commands.note.default_filetype` as the filetype.
-Of course, a custom path can be stored in the `note` field, too, but if it is outside the database's folder, the _cobib-git(7)_ integration will not track the note file.
+Of course, a custom path can be stored in the `note` field, too, but if it is outside the database's folder, the *cobib-git(7)* integration will not track the note file.
 
 ## EXAMPLES
 
@@ -39,6 +39,6 @@ $ cobib note Label1 delete
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-edit(1)_, _cobib-search(1)_, _cobib-commands(7)_, _cobib-git(7)_
+*cobib(1)*, *cobib-edit(1)*, *cobib-search(1)*, *cobib-commands(7)*, *cobib-git(7)*
 
 [//]: # ( vim: set ft=markdown tw=0: )

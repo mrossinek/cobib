@@ -8,7 +8,7 @@ cobib-zotero(7) -- zotero importer backend
 ## DESCRIPTION
 
 Imports the bibliography from [Zotero](https://www.zotero.org).
-This importer is registered inside the _cobib-import(1)_ command.
+This importer is registered inside the *cobib-import(1)* command.
 In its simplest form, it is executed like so:
 ```bash
 $ cobib import --zotero
@@ -39,6 +39,6 @@ cobib import --zotero -- --user-id 8608002
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-import(1)_, _cobib-importers(7)_, [Zotero](https://www.zotero.org)
+*cobib(1)*, *cobib-import(1)*, *cobib-importers(7)*, [Zotero](https://www.zotero.org)
 
 [//]: # ( vim: set ft=markdown tw=0: )

@@ -8,7 +8,7 @@ cobib-modify(1) -- modify entries in bulk
 ## DESCRIPTION
 
 Modifies entries of the database in bulk.
-Rather than performing edits manually one at a time, this command applies a modification to a single data field to all entries matching a _cobib-filter(7)_.
+Rather than performing edits manually one at a time, this command applies a modification to a single data field to all entries matching a *cobib-filter(7)*.
 This makes bulk modifications much simpler to apply and enables simple scripting.
 
 The _MODIFICATION_ should be provided as a string of the form `<field>:<value>`, that is the name of the entry's data field to be modified and the new value it should take.
@@ -62,8 +62,8 @@ Finally, specifying the `--dry` option will preview all modifications without ac
     If the entry's label has been modified, this enforces the renaming of associated files.
 
   * `-s`, `--selection`:
-    Switches from the _cobib-filter(7)_ mechanism to interpreting the _FILTER_ arguments as a list of plain entry labels.
-    This is not necessarily super useful for using from the command-line, but integrates well with the visual selection in the _cobib-tui(7)_!
+    Switches from the *cobib-filter(7)* mechanism to interpreting the _FILTER_ arguments as a list of plain entry labels.
+    This is not necessarily super useful for using from the command-line, but integrates well with the visual selection in the *cobib-tui(7)*!
 
 ## EXAMPLES
 
@@ -80,6 +80,6 @@ $ cobib modify "label:{label.replace('_', '')}" -- ++label "\D+_\d+"
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-commands(7)_
+*cobib(1)*, *cobib-commands(7)*
 
 [//]: # ( vim: set ft=markdown tw=0: )

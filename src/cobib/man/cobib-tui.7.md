@@ -7,14 +7,14 @@ cobib-tui(7) -- coBib's terminal user interface
 
 ## DESCRIPTION
 
-When executing `cobib` without specifying one of its subcommands (see _cobib-commands(7)_) its TUI gets started.
+When executing `cobib` without specifying one of its subcommands (see *cobib-commands(7)*) its TUI gets started.
 It provides an interactive session in which the database can be explored and manipulated using all of coBib's features.
 The TUI is built using [textual](https://textual.textualize.io/).
 
 It has multiple panels:
 
   * The main panel takes up 2/3 of the screen.
-    It either views a list of entries (see _cobib-list(1)_) or search results (see _cobib-search(1)_).
+    It either views a list of entries (see *cobib-list(1)*) or search results (see *cobib-search(1)*).
   * A static view of the entry that is currently under the cursor.
   * An editable view of the entry's note.
 
@@ -28,37 +28,37 @@ It is even possible to use the `--help` argument for a small popup provide addit
 Below all keybindings are listed in alphabetical order:
 
   * `a`:
-    Triggers the _cobib-add(1)_ command.
+    Triggers the *cobib-add(1)* command.
   * `c`:
-    Triggers the _cobib-review(1)_ command (mnemonic: _check_).
+    Triggers the *cobib-review(1)* command (mnemonic: _check_).
   * `d`:
-    Triggers the _cobib-delete(1)_ command for the current (selection) of entries.
+    Triggers the *cobib-delete(1)* command for the current (selection) of entries.
   * `e`:
-    Triggers the _cobib-edit(1)_ command.
+    Triggers the *cobib-edit(1)* command.
   * `f`:
-    Triggers the _cobib-list(1)_ command to _filter_ the viewed list of entries.
+    Triggers the *cobib-list(1)* command to _filter_ the viewed list of entries.
   * `i`:
-    Triggers the _cobib-import(1)_ command.
+    Triggers the *cobib-import(1)* command.
   * `m`:
-    Triggers the _cobib-modify(1)_ command.
+    Triggers the *cobib-modify(1)* command.
   * `n`:
-    Triggers the _cobib-note(1)_ command for the current entry.
+    Triggers the *cobib-note(1)* command for the current entry.
   * `o`:
-    Triggers the _cobib-open(1)_ command for the current (selection) of entries.
+    Triggers the *cobib-open(1)* command for the current (selection) of entries.
   * `p`:
     Prompts which [preset view][Preset filters] to open.
   * `q`:
     Quits the TUI.
   * `r`:
-    Triggers the _cobib-redo(1)_ command.
+    Triggers the *cobib-redo(1)* command.
   * `s`:
-    Triggers the _cobib-list(1)_ command to _sort_ the viewed list of entries.
+    Triggers the *cobib-list(1)* command to _sort_ the viewed list of entries.
   * `u`:
-    Triggers the _cobib-undo(1)_ command.
+    Triggers the *cobib-undo(1)* command.
   * `v`:
     Adds the current entry to the visual selection.
   * `x`:
-    Triggers the _cobib-export(1)_ command of the current (selection) of entries.
+    Triggers the *cobib-export(1)* command of the current (selection) of entries.
   * `z`:
     Toggles a panel to view the _log_ messages.
   * [0-9]:
@@ -70,14 +70,14 @@ Below all keybindings are listed in alphabetical order:
   * `:`:
     Opens a prompt for any CLI command.
   * `/`:
-    Triggers the _cobib-search(1)_ command.
+    Triggers the *cobib-search(1)* command.
   * `enter`:
     Updates the view of the current entry and loads the contents of its note (if one exists).
   * `Ctrl+p`:
     Opens textual's command palette.
 
 
-If the main panel is showing the results of a _cobib-search(1)_, the following keybindings exist:
+If the main panel is showing the results of a *cobib-search(1)*, the following keybindings exist:
 
   * `space`:
     Toggles the expanded/collapsed state of the current item.
@@ -133,6 +133,6 @@ If the `config.tui.preset_filters` has more than 9 entries, those presets can st
 
 ## SEE ALSO
 
-_cobib(1)_
+*cobib(1)*
 
 [//]: # ( vim: set ft=markdown tw=0: )

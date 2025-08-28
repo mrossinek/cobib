@@ -7,8 +7,8 @@ cobib-redo(1) -- reapply an undone change to the database
 
 ## DESCRIPTION
 
-Reapplies a change to the database that was previously undone with _cobib-undo(1)_.
-This command can only be used when the _cobib-git(7)_ integration is enabled.
+Reapplies a change to the database that was previously undone with *cobib-undo(1)*.
+This command can only be used when the *cobib-git(7)* integration is enabled.
 
 If the previous change to the database is **not** the result of cobib-undo(1)_, then this command has no effect.
 
@@ -20,6 +20,6 @@ cobib redo
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-undo(1)_, _cobib-commands(7)_, _cobib-git(7)_
+*cobib(1)*, *cobib-undo(1)*, *cobib-commands(7)*, *cobib-git(7)*
 
 [//]: # ( vim: set ft=markdown tw=0: )

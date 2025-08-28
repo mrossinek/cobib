@@ -10,9 +10,9 @@ cobib-filter(7) -- filter mechanism
 
 ## DESCRIPTION
 
-The _cobib-list(1)_ command provides a filtering mechanism to narrow down the entries in a database.
-While the _cobib-list(1)_ will simply list the narrowed down list, other commands which act on one or more entries can leverage this filtering mechanism to specify the list of entries to act upon.
-Examples of commands supporting this are _cobib-export(1)_, _cobib-modify(1)_, _cobib-review(1)_, and _cobib-search(1)_.
+The *cobib-list(1)* command provides a filtering mechanism to narrow down the entries in a database.
+While the *cobib-list(1)* will simply list the narrowed down list, other commands which act on one or more entries can leverage this filtering mechanism to specify the list of entries to act upon.
+Examples of commands supporting this are *cobib-export(1)*, *cobib-modify(1)*, *cobib-review(1)*, and *cobib-search(1)*.
 
 The basic syntax of a filter argument is as follows:
 ```
@@ -44,7 +44,7 @@ Thus, the following matches only entries from the year `2024` containing `Quantu
 ```
 ++year 2024 ++title Quantum
 ```
-However, the _cobib-list(1)_ command provides the `--or` (or `-x`) argument which switches to logical _OR_ operations for combining multiple filters.
+However, the *cobib-list(1)* command provides the `--or` (or `-x`) argument which switches to logical _OR_ operations for combining multiple filters.
 
 It is also possible to filter on the mere existence or lack of a specific field by matching against an empty string:
 ```
@@ -58,11 +58,11 @@ This means, that the following will match all entries whose labels are of the fo
 ++label "\D+_\d+"
 ```
 
-Finally, the additional arguments of the _cobib-list(1)_ can be used to further modify the filtering mechanism.
+Finally, the additional arguments of the *cobib-list(1)* can be used to further modify the filtering mechanism.
 This includes case insensitivity, LaTeX and Unicode decoding, and fuzzy matching.
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-list(1)_
+*cobib(1)*, *cobib-list(1)*
 
 [//]: # ( vim: set ft=markdown tw=0: )

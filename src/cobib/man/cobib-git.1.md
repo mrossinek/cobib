@@ -38,6 +38,6 @@ $ cobib git log
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-commands(7)_, _cobib-git(7)_
+*cobib(1)*, *cobib-commands(7)*, *cobib-git(7)*
 
 [//]: # ( vim: set ft=markdown tw=0: )

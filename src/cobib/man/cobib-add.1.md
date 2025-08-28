@@ -9,7 +9,7 @@ cobib-add(1) -- add entries
 
 Adds entries to the database.
 This is the main command to insert new entries into the database.
-For migrating from another bibliography manager, look at _cobib-import(1)_ instead.
+For migrating from another bibliography manager, look at *cobib-import(1)* instead.
 
 Generally speaking, entries can be added in one of two ways:
 
@@ -42,13 +42,13 @@ Rather than relying on a parser, an entry can be created manually using the `--l
 $ cobib add --label "some_new_label"
 ```
 
-This will trigger the _cobib-edit(1)_ command for a manual addition.
+This will trigger the *cobib-edit(1)* command for a manual addition.
 The benefit of using this interface rather than the edit command directly, is the combination with the additional options listed below.
 
 ### Notes on the configuration dependence
 
 Since this command adds new entries to the database, its outcome can be affected by some configuration settings.
-In particular, the values of _config.database.stringify_ (see _cobib-config(5)_) affect how certain fields are converted to/from strings.
+In particular, the values of _config.database.stringify_ (see *cobib-config(5)*) affect how certain fields are converted to/from strings.
 For example, _config.database.stringify.list_separator.file_ defaults to comma-separated values.
 But you should update this setting **before** adding entries if you use another separator (for example a semicolon) like so:
 ```python
@@ -164,6 +164,6 @@ $ cobib add --doi "some DOI" --label MyLabel2023 --disambiguation "update"
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-commands(7)_, _cobib-parsers(7)_
+*cobib(1)*, *cobib-commands(7)*, *cobib-parsers(7)*
 
 [//]: # ( vim: set ft=markdown tw=0: )

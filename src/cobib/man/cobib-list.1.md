@@ -9,7 +9,7 @@ cobib-list(1) -- list entries
 
 Lists entries from the database.
 This command provides the means to view the contents of the database.
-It provides the powerful _cobib-filter(7)_ mechanism which many other commands can leverage, too.
+It provides the powerful *cobib-filter(7)* mechanism which many other commands can leverage, too.
 
 In its simplest form, the following list all entries that appear in the database in the order they were added:
 ```bash
@@ -22,13 +22,13 @@ One example showcasing them all is the following, which sorts the output by the 
 $ cobib list --sort year --reverse --limit 20
 ```
 
-The remaining options affect the filter mechanism which is explained in detail in _cobib-filter(7)_.
+The remaining options affect the filter mechanism which is explained in detail in *cobib-filter(7)*.
 All to say here is that the `-x|--or` option combines multiple filters using _logical OR_ rather than _logical AND_ operations.
 Additionally, it is possible to make the filter matching approximate as explained in the next section.
 
 ### Approximate Filtering
 
-Just like the _cobib-search(1)_ command can match search queries approximately, this command can match _cobib-filter(7)_ arguments approximately.
+Just like the *cobib-search(1)* command can match search queries approximately, this command can match *cobib-filter(7)* arguments approximately.
 
 The most straight forward example is a case insensitive match using `--ignore-case` (or `-i`):
 ```bash
@@ -114,6 +114,6 @@ $ cobib list -r -s year -l 50 ++title Quantum
 
 ## SEE ALSO
 
-_cobib(1)_, _cobib-commands(7)_, _cobib-filter(7)_
+*cobib(1)*, *cobib-commands(7)*, *cobib-filter(7)*
 
 [//]: # ( vim: set ft=markdown tw=0: )
