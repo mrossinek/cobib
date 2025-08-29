@@ -84,9 +84,9 @@ class TestGitCommand(CommandTest):
 
         assert Event.PreGitCommand.validate()
 
-        GitCommand("--help").execute()
+        GitCommand("--version").execute()
 
-        assert "--help" in capsys.readouterr().err
+        assert "--version" in capsys.readouterr().err
 
     @pytest.mark.parametrize("setup", [{"git": True}], indirect=["setup"])
     def test_event_post_git_command(self, setup: Any, capsys: pytest.CaptureFixture[str]) -> None:

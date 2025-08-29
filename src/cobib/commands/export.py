@@ -55,7 +55,9 @@ class ExportCommand(Command):
     @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
-            prog="export", description="Export subcommand parser.", exit_on_error=True
+            prog="export",
+            description="Export subcommand parser.",
+            epilog="Read cobib-export.1 for more help.",
         )
         parser.add_argument(
             "-b", "--bibtex", type=argparse.FileType("a"), help="BibLaTeX output file"

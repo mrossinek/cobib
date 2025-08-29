@@ -49,7 +49,9 @@ class UndoCommand(Command):
     @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
-            prog="undo", description="Undo subcommand parser.", exit_on_error=True
+            prog="undo",
+            description="Undo subcommand parser.",
+            epilog="Read cobib-undo.1 and cobib-git.7 for more help.",
         )
         parser.add_argument(
             "-f", "--force", action="store_true", help="allow undoing non auto-committed changes"

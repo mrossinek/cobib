@@ -58,7 +58,9 @@ class ImportCommand(Command):
     @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
-            prog="import", description="Import subcommand parser.", exit_on_error=True
+            prog="import",
+            description="Import subcommand parser.",
+            epilog="Read cobib-import.1 and cobib-importers.7 for more help.",
         )
         skip_download_group = parser.add_mutually_exclusive_group()
         skip_download_group.add_argument(

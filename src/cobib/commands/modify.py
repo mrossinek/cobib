@@ -89,7 +89,9 @@ class ModifyCommand(Command):
     @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
-            prog="modify", description="Modify subcommand parser.", exit_on_error=True
+            prog="modify",
+            description="Modify subcommand parser.",
+            epilog="Read cobib-modify.1 for more help.",
         )
         parser.add_argument(
             "modification",

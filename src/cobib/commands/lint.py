@@ -87,7 +87,9 @@ class LintCommand(Command):
     @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
-            prog="lint", description="Lint subcommand parser.", exit_on_error=True
+            prog="lint",
+            description="Lint subcommand parser.",
+            epilog="Read cobib-lint.1 for more help.",
         )
         parser.add_argument(
             "-f",

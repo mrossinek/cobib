@@ -75,7 +75,9 @@ class ReviewCommand(Command):
     @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
-            prog="review", description="Review subcommand parser.", exit_on_error=True
+            prog="review",
+            description="Review subcommand parser.",
+            epilog="Read cobib-review.1 for more help.",
         )
         parser.add_argument("field", type=str, nargs="*", help="the field(s) to review")
         parser.add_argument(

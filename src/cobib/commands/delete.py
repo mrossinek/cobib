@@ -48,7 +48,9 @@ class DeleteCommand(Command):
     @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
-            prog="delete", description="Delete subcommand parser.", exit_on_error=True
+            prog="delete",
+            description="Delete subcommand parser.",
+            epilog="Read cobib-delete.1 for more help.",
         )
         parser.add_argument("labels", type=str, nargs="+", help="labels of the entries")
         parser.add_argument("-y", "--yes", action="store_true", help="confirm deletion")

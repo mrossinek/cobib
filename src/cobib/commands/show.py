@@ -43,7 +43,9 @@ class ShowCommand(Command):
     @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
-            prog="show", description="Show subcommand parser.", exit_on_error=True
+            prog="show",
+            description="Show subcommand parser.",
+            epilog="Read cobib-show.1 for more help.",
         )
         parser.add_argument("label", type=str, help="label of the entry")
         cls.argparser = parser

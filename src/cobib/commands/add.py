@@ -77,7 +77,9 @@ class AddCommand(Command):
     @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
-            prog="add", description="Add subcommand parser.", exit_on_error=True
+            prog="add",
+            description="Add subcommand parser.",
+            epilog="Read cobib-add.1 and cobib-parsers.7 for more help.",
         )
         parser.add_argument("-l", "--label", type=str, help="the label for the new database entry")
         parser.add_argument(

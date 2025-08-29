@@ -79,6 +79,11 @@ class CLI(UI):
             description=(
                 "coBib input arguments.\nIf no subcommand is given, the TUI will be started."
             ),
+            epilog=(
+                "Read cobib.1, cobib-commands.7 and cobib-tui.7 for more help.\n"
+                "To learn more about the configuration, read cobib-config.5.\n"
+                "If you are new to coBib, cobib-getting-started.7 is a good starting point."
+            ),
         )
 
     async def run(self) -> None:

@@ -48,7 +48,9 @@ class InitCommand(Command):
     @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
-            prog="init", description="Init subcommand parser.", exit_on_error=True
+            prog="init",
+            description="Init subcommand parser.",
+            epilog="Read cobib-init.1 for more help.",
         )
         parser.add_argument("-g", "--git", action="store_true", help="initialize git repository")
         cls.argparser = parser

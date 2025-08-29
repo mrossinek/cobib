@@ -17,7 +17,9 @@ class DummyImporter(Importer):
     @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
-            prog="dummy", description="Dummy importer parser.", exit_on_error=True
+            prog="dummy",
+            description="Dummy importer parser.",
+            epilog="Read cobib-dummy-importer.7 for more help.",
         )
         cls.argparser = parser
 

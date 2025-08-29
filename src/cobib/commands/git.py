@@ -34,7 +34,9 @@ class GitCommand(Command):
     @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
-            prog="git", description="Git subcommand parser.", exit_on_error=True
+            prog="git",
+            description="Git subcommand parser.",
+            epilog="Read cobib-git.1 and cobib-git.7 for more help.",
         )
         # NOTE: argparse.REMAINDER is undocumented since Python 3.9 and considered a legacy feature.
         # See also https://bugs.python.org/issue17050
@@ -45,6 +47,10 @@ class GitCommand(Command):
     @classmethod
     def _parse_args(cls, args: tuple[str, ...]) -> argparse.Namespace:
         largs = super()._parse_args(())
+        if "-h" in args or "--help" in args:
+            # NOTE: we must explicitly bypass git here
+            cls.argparser.print_help()
+            cls.argparser.exit()
         largs.git_args = args
         return largs
 

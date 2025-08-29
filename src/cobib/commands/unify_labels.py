@@ -46,7 +46,7 @@ class UnifyLabelsCommand(Command):
         parser = argparse.ArgumentParser(
             prog="unify_labels",
             description="Label unification subcommand parser.",
-            exit_on_error=True,
+            epilog="Read cobib-unify-labels.1 for more help.",
         )
         parser.add_argument(
             "-a",
