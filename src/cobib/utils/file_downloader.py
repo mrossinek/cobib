@@ -134,7 +134,7 @@ class FileDownloader:
                 TimeElapsedColumn(),
                 DownloadColumn(),
             )
-            optional_awaitable = progress_bar.start()  # type: ignore[func-returns-value]
+            optional_awaitable = progress_bar.start()
             if optional_awaitable is not None:
                 await optional_awaitable  # pragma: no cover
 

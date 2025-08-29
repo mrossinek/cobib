@@ -8,23 +8,26 @@ favored over using textual's `textual.widgets.ProgressBar` to re-implement rich'
 
 from __future__ import annotations
 
-from threading import RLock
-from time import monotonic
+import logging
 from typing import Any
 
 from rich.progress import Progress as RichProgress
-from rich.progress import ProgressColumn, Task, TaskID
-from textual.widgets import Static
+from rich.progress import ProgressColumn, TaskID
+from textual.app import ComposeResult
+from textual.containers import HorizontalGroup
+from textual.widgets import Label, ProgressBar
 from typing_extensions import override
 
 from .context import get_active_app
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Progress:
     """A utility class to construct either a `rich` or `textual` progress indicator."""
 
     @staticmethod
-    def initialize(*columns: str | ProgressColumn, **kwargs: Any) -> RichProgress:
+    def initialize(*columns: str | ProgressColumn, **kwargs: Any) -> RichProgress | TextualProgress:
         """Initializes a new progress indicator.
 
         When `get_active_app` returns a `textual` App, this will construct a `TextualProgress`
@@ -40,12 +43,14 @@ class Progress:
         app = get_active_app()
         if app is None:
             return RichProgress(*columns, **kwargs)
-        return TextualProgress(*columns, **kwargs)
+
+        if len(columns) > 0:
+            LOGGER.warning("Ignoring custom columns for the TextualProgress.")
+
+        return TextualProgress()
 
 
-class TextualProgress(  # type: ignore[misc]
-    Static, RichProgress, can_focus=False, can_focus_children=False
-):
+class TextualProgress(HorizontalGroup):
     """coBib's Frankenstein Rich-Textual progress widget."""
 
     DEFAULT_CSS = """
@@ -53,44 +58,61 @@ class TextualProgress(  # type: ignore[misc]
             layout: horizontal;
             width: 100%;
             height: 1;
-            offset-y: -1;
             dock: bottom;
+        }
+
+        #progress-title {
+            padding-right: 1;
+        }
+
+        #progress-bar {
         }
     """
 
-    def __init__(
-        self,
-        *columns: str | ProgressColumn,
-    ) -> None:
-        """Initializes the Frankenstein Rich-Textual progress widget.
+    TIMEOUT = 1.0
+
+    @override
+    def compose(self) -> ComposeResult:
+        yield Label(id="progress-title")
+        yield ProgressBar(id="progress-bar")
+
+    def add_task(self, label: str, total: float | None = None) -> TaskID:
+        """Registers the new task with this progress indicator.
 
         Args:
-            *columns: the columns to be reported. If this is empty, it will fall back to
-                `get_default_columns`.
+            label: the text for the `progress-title` Label.
+            total: the total length.
+
+        Returns:
+            A task ID. This is always 0 because this widget can only display one task at a time.
         """
-        super().__init__()
+        self.query_one(Label).update(label)
+        self.query_exactly_one(ProgressBar).total = total
+        return TaskID(0)
 
-        self.columns = columns or self.get_default_columns()
+    def advance(self, task: TaskID, advance: float = 1) -> None:
+        """Advances the task.
 
-        self._lock = RLock()
-        self._tasks: dict[TaskID, Task] = {}
-        self._task_index: TaskID = TaskID(0)
+        Args:
+            task: the task ID. This should always be 0 because this widget can only display one task
+                at a time.
+            advance: the amount by which to advance the progress indicator.
+        """
+        if task != 0:
+            LOGGER.error(
+                f"Encountered unexpected TaskID: {task}. "
+                "TextualProgress cannot display more than one task at a time."
+            )
+        assert task == 0
+        progress = self.query_exactly_one(ProgressBar)
+        progress.advance(advance)
 
-        self.speed_estimate_period = 30.0
-        self.get_time = monotonic
-
-    @override
-    def advance(self, task_id: TaskID, advance: float = 1) -> None:
-        super().advance(task_id, advance)
-        self.renderable = self.make_tasks_table(self.tasks)
-        self.refresh()
-
-    @override
-    async def start(self) -> None:  # type: ignore[override]
+    async def start(self) -> None:
+        """Starts the progress indicator by mounting it to the App."""
         app = get_active_app()
         await_mount = app.mount(self)  # type: ignore[union-attr]
         await await_mount
 
-    @override
     def stop(self) -> None:
-        self.set_timer(5.0, self.remove)
+        """Stops the progress indicator by removing it after a fixed timeout."""
+        self.set_timer(TextualProgress.TIMEOUT, self.remove)
