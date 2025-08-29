@@ -15,6 +15,7 @@ cobib-show(1)            commands/show
 cobib-git(1)             commands/git
 cobib-init(1)            commands/init
 cobib-lint(1)            commands/lint
+cobib-man(1)             commands/man
 cobib-redo(1)            commands/redo
 cobib-undo(1)            commands/undo
 cobib-unify-labels(1)    commands/unify_labels
@@ -25,6 +26,7 @@ cobib-database(7)        database
 cobib-filter(7)          database/entry
 cobib-getting-started(7) ../cobib
 cobib-git(7)             utils/git
+cobib-man(7)             man/manual
 cobib-importers(7)       importers
 cobib-zotero(7)          importers/zotero
 cobib-parsers(7)         parsers
@@ -40,8 +42,9 @@ cobib-plugins(7)         ../cobib_dummy
 # external manuals
 git(1)                 https://man.archlinux.org/man/git.1
 grep(1)                https://man.archlinux.org/man/grep.1
+man(1)                 https://man.archlinux.org/man/man.1
+man-pages(7)           https://man.archlinux.org/man/man-pages.7
+markdown(7)            https://man.archlinux.org/man/markdown.7
 regex(7)               https://man.archlinux.org/man/regex.7
-
-# other resources
-online-documentation   https://cobib.gitlab.io/cobib/cobib.html
-repository             https://gitlab.com/cobib/cobib
+ronn(1)                https://rtomayko.github.io/ronn/ronn.1.html
+ronn-format(7)         https://rtomayko.github.io/ronn/ronn-format.7.html

@@ -68,6 +68,9 @@ We divide the commands into [COMMON][COMMON COMMANDS] and [UTILITY][UTILITY COMM
   * *cobib-lint(1)*:
     Checks the database format.
 
+  * *cobib-man(1)*:
+    Views a man-page.
+
   * *cobib-redo(1)*:
     Re-applies a previously undone change to the database.
     This requires *cobib-git(7)* integration to set up.

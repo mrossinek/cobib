@@ -101,8 +101,8 @@ $ cobib
 
 The quick usage references for each command using `--help` directly from the command-line.
 
-The [online documentation][online-documentation] of the API references including usage examples.
+The [online documentation](https://cobib.gitlab.io/cobib/cobib.html) of the API references including usage examples.
 
-The [repository][repository] for the source code and issue tracker.
+The [repository](https://gitlab.com/cobib/cobib) for the source code and issue tracker.
 
 [//]: # ( vim: set ft=markdown tw=0: )

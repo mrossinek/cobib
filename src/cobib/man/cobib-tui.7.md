@@ -21,7 +21,7 @@ It has multiple panels:
 Most subcommands of coBib are directly executable via a keybinding.
 If a command requires additional arguments, a prompt will open to query them.
 Any such prompt will behave identically to the standard command-line interface (or CLI).
-It is even possible to use the `--help` argument for a small popup provide additional information on that command.
+It is even possible to use the `--help` argument for a small popup to provide additional information on that command.
 
 ### Keybindings
 
@@ -65,6 +65,11 @@ Below all keybindings are listed in alphabetical order:
     Selects the corresponding [preset view][preset filters].
   * `?`:
     Toggles the help screen.
+  * `!`:
+    Triggers the *cobib-man(1)* command (mnemonic: more help than `?`).
+    When pressed for the first time, this brings up the man-page index to select a man-page from.
+    Otherwise, the last viewed man-page will still be in the buffer.
+    Use `:man ...` to open a specific man-page directly rather than the index.
   * `_`:
     Toggles between the horizontal and vertical layouts.
   * `:`:
@@ -95,6 +100,22 @@ When editing a note, the following keybindings exist:
     Saves the text area contents.
   * `Ctrl+x`:
     Opens the text area content in an external editor.
+
+
+When viewing a man-page, the following keybindings exist:
+
+  * `q`:
+    To quit the man-page view.
+  * `t`:
+    To open the table of contents of the current man-page.
+  * `i`:
+    To select a new man-page to view from the man-page index (this is what opens when pressing `!` for the first time).
+  * `Enter`:
+    To open the selected man-page from the index view.
+  * `Escape`:
+    To cancel selecting a new man-page from the index view.
+  * `mouse`:
+    You can left-click on other man-page references to open them.
 
 
 Finally, vim-like key bindings exist for navigation:

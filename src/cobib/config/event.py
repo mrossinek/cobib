@@ -40,6 +40,7 @@ else:
         "ForwardRef('commands.ImportCommand')": "cobib.commands.import_.ImportCommand",
         "ForwardRef('commands.InitCommand')": "cobib.commands.init.InitCommand",
         "ForwardRef('commands.ListCommand')": "cobib.commands.list_.ListCommand",
+        "ForwardRef('commands.ManCommand')": "cobib.commands.man.ManCommand",
         "ForwardRef('commands.ModifyCommand')": "cobib.commands.modify.ModifyCommand",
         "ForwardRef('commands.NoteCommand')": "cobib.commands.note.NoteCommand",
         "ForwardRef('commands.OpenCommand')": "cobib.commands.open.OpenCommand",
@@ -276,6 +277,29 @@ class Event(Enum):
 
     Returns:
         Nothing. But the to-be-listed entries are still accessible before being rendered.
+    """
+
+    PreManCommand = cast("Event", Callable[["commands.ManCommand"], None])
+    """
+    Fires:
+        Before starting the `cobib.commands.man.ManCommand`.
+
+    Arguments:
+        `cobib.commands.man.ManCommand`: the command instance that is about to run.
+
+    Returns:
+        Nothing. But the command attributes can be modified, affecting the execution.
+    """
+    PostManCommand = cast("Event", Callable[["commands.ManCommand"], None])
+    """
+    Fires:
+        Before finishing the `cobib.commands.man.ManCommand`.
+
+    Arguments:
+        `cobib.commands.man.ManCommand`: the command instance that just ran.
+
+    Returns:
+        Nothing.
     """
 
     PreModifyCommand = cast("Event", Callable[["commands.ModifyCommand"], None])

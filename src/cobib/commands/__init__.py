@@ -12,6 +12,7 @@ from .import_ import ImportCommand as ImportCommand
 from .init import InitCommand as InitCommand
 from .lint import LintCommand as LintCommand
 from .list_ import ListCommand as ListCommand
+from .man import ManCommand as ManCommand
 from .modify import ModifyCommand as ModifyCommand
 from .note import NoteCommand as NoteCommand
 from .open import OpenCommand as OpenCommand
