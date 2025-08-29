@@ -13,6 +13,7 @@ from cobib.config import config
 from cobib.database import Database
 from cobib.ui.components import InputScreen, LogScreen
 from cobib.ui.tui import TUI
+from cobib.utils.progress import TextualProgress
 
 from ... import get_resource
 
@@ -27,6 +28,10 @@ class TestTUISearch:
     def setup() -> Generator[Any, None, None]:
         """Load testing config."""
         InputScreen.cursor_blink = False
+        # NOTE: we ensure that the progress bar widget does not get removed and is therefore
+        # included in the snapshot. Otherwise, this can lead to flaky testing behavior:
+        # https://gitlab.com/cobib/cobib/-/issues/158
+        TextualProgress.TIMEOUT = 1000
         config.load(get_resource("debug.py"))
         yield
         Database.reset()
@@ -152,19 +157,10 @@ class TestTUISearch:
             ["down", "up"],
             ["end"],
             ["end", "home"],
-            # TODO: figure out why the following tests are flaky
-            pytest.param(
-                ["pagedown"],
-                marks=pytest.mark.skip(
-                    reason="Not quite sure why, but this test is flaky since textual==5.0.0."
-                ),
-            ),
-            pytest.param(
-                ["end", "pageup"],
-                marks=pytest.mark.skip(
-                    reason="Not quite sure why, but this test is flaky since textual==5.0.0."
-                ),
-            ),
+            # TODO: figure out what happened since textual===5.0.0 that requires jumping up and down
+            # NOTE: outside the pilot (i.e. manually) `pagedown` works fine the first time
+            ["pagedown", "pageup", "pagedown"],
+            ["end", "pageup"],
         ],
     )
     def test_motion(self, snap_compare: Any, motions: list[str]) -> None:
@@ -180,6 +176,22 @@ class TestTUISearch:
             await app.action_prompt("/19", submit=True)
             for button in motions:
                 await pilot.press(button)
-            await pilot.pause()
+            await pilot.pause(2)
+
+        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, run_before=run_before)
+
+    def test_progress_bar_removal(self, snap_compare: Any) -> None:
+        """Tests the automatic removal of the progress bar widget.
+
+        Args:
+            snap_compare: the `pytest-textual-snapshot` fixture.
+        """
+        TextualProgress.TIMEOUT = 1
+
+        async def run_before(pilot: Pilot[None]) -> None:
+            app = cast(TUI, pilot.app)
+            await app.action_prompt("/19", submit=True)
+            # Pause at least 2 seconds to ensure the progress bar gets removed
+            await pilot.pause(2)
 
         assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, run_before=run_before)

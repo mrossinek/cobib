@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- the progress indicator of search and download progress in the TUI (#158,!376)
+
 
 ## [5.4.0] - 2025-08-02
 

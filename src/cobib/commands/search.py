@@ -266,7 +266,7 @@ class SearchCommand(Command):
         )
 
         progress_bar = Progress.initialize()
-        optional_awaitable = progress_bar.start()  # type: ignore[func-returns-value]
+        optional_awaitable = progress_bar.start()
         if optional_awaitable is not None:
             await optional_awaitable
 

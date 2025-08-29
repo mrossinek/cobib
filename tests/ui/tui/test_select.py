@@ -103,11 +103,6 @@ class TestTUISelection:
         """
         assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, press=["v", "j", "o"])
 
-    # TODO: figure out why this test is flaky
-    @pytest.mark.skip(
-        # version_info.minor < 12,
-        reason="Not quite sure why, but this test is flaky since textual==5.0.0.",
-    )
     def test_prompt_with_selection(self, post_setup: Any, snap_compare: Any) -> None:
         """Tests the handling of an active selection during an interactive command prompt.
 
@@ -124,6 +119,8 @@ class TestTUISelection:
             await pilot.press("v")  # selects the current entry
             await app.action_prompt("modify 'year:2025'", submit=True)
             await pilot.press("enter")
+            await pilot.press("home")  # jump back to the top to avoid flaky test behavior...
+            await pilot.press("end")  # ... and jump back down to assert modified year in preview
             await pilot.pause()
 
         assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, run_before=run_before)
