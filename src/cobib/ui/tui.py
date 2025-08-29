@@ -27,7 +27,8 @@ from textual.binding import Binding
 from textual.keys import Keys
 from textual.logging import TextualHandler
 from textual.screen import Screen
-from textual.widgets import Footer, Header, Input, Static
+from textual.widgets import Footer, Header, Input, MarkdownViewer, Static
+from textual.widgets.markdown import MarkdownBlock
 from typing_extensions import override
 
 from cobib.config import config
@@ -39,6 +40,7 @@ from cobib.ui.components import (
     LoggingHandler,
     LogScreen,
     MainContent,
+    ManualScreen,
     MotionKey,
     NoteView,
     PresetFilterScreen,
@@ -117,6 +119,12 @@ class TUI(UI, App[None]):
             "toggle_help",
             "Help",
             tooltip="Toggles the help panel",
+        ),
+        Binding(
+            "exclamation_mark",
+            "prompt('man', True)",
+            "Man",
+            tooltip="Opens the manual",
         ),
         Binding(
             "underscore",
@@ -245,6 +253,7 @@ class TUI(UI, App[None]):
     | :- | :- |
     | q | Quit's coBib. |
     | ? | Toggles the help screen. |
+    | ! | Opens the man-page index/viewer. |
     | _ | Toggles between the horizontal and vertical layout. |
     | : | Starts the prompt for an arbitrary coBib command. |
     | v | Selects the current entry. |
@@ -271,6 +280,7 @@ class TUI(UI, App[None]):
     SCREENS: ClassVar[dict[str, Callable[[], Screen[Any]]]] = {
         "log": LogScreen,
         "input": InputScreen,
+        "manual": ManualScreen,
         "preset_filter": PresetFilterScreen,
     }
 
@@ -721,6 +731,28 @@ class TUI(UI, App[None]):
         tree.focus()
         self.refresh(layout=True)
 
+    async def _show_manual(self, command: list[str]) -> None:
+        """Shows the manual page.
+
+        Args:
+            command: the list of command arguments to be passed to the
+                `cobib.commands.man.ManCommand`.
+        """
+        from cobib import commands  # noqa: PLC0415
+
+        subcmd = commands.ManCommand(*command)
+        subcmd.execute()
+
+        await_mount = self.push_screen("manual")
+        man_screen = cast(ManualScreen, self.get_screen("manual"))
+        await await_mount
+        md = man_screen.query_exactly_one(MarkdownViewer)
+        if subcmd.contents is None:
+            if len(md.document.query(MarkdownBlock)) == 0:
+                await man_screen.action_index()
+        else:
+            md.document.update(subcmd.contents)
+
     async def _process_input(self, value: str) -> None:
         """Processes the input returned from the `cobib.ui.components.input_screen.InputScreen`.
 
@@ -764,6 +796,8 @@ class TUI(UI, App[None]):
                 await self._update_table()
             elif command[0].lower() == "search":
                 await self._update_tree(command[1:])
+            elif command[0].lower() == "man":
+                await self._show_manual(command[1:])
             else:
                 self._run_command(command)
 

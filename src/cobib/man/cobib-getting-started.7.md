@@ -1,5 +1,5 @@
-cobib-getting-started(7) -- how to get started with coBib
-=========================================================
+cobib-getting-started(7) -- how to get started with cobib(1)
+============================================================
 
 ## DESCRIPTION
 
@@ -45,7 +45,7 @@ $ cobib add --isbn 978-1-449-35573-9
 
 Entries can be deleted using *cobib-delete(1)*, edited manually using *cobib-edit(1)* or in bulk using *cobib-modify(1)*.
 
-coBib can associated a _note_ file with each entry which can be managed using the *cobib-note(1)* command.
+coBib can associate a _note_ file with each entry which can be managed using the *cobib-note(1)* command.
 
 Finally, an interactive review of the database can be performed using *cobib-review(1)*.
 
@@ -71,16 +71,20 @@ Finally, the database can be searched using *cobib-search(1)*.
 When it is time to write a paper or consume your references in some other form, they can be exported to a `.bib` file using *cobib-export(1)*:
 ```bash
 $ cobib export -b out.bib
+
 ```
+
+### Learning more
+
+coBib comes with a builtin manual that can be read using *cobib-man(1)*.
+Additionally, all *cobib-commands(7)* support the `--help` argument for a quick reference of their supported arguments.
 
 ## SEE ALSO
 
 *cobib(1)*, *cobib-config(5)*, *cobib-commands(7)*
 
-The quick usage references for each command using `--help` directly from the command-line.
+The [online documentation](https://cobib.gitlab.io/cobib/cobib.html) of the API references including usage examples.
 
-The [online documentation][online-documentation] of the API references including usage examples.
-
-The [repository][repository] for the source code and issue tracker.
+The [repository](https://gitlab.com/cobib/cobib) for the source code and issue tracker.
 
 [//]: # ( vim: set ft=markdown tw=0: )

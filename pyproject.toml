@@ -54,6 +54,7 @@ import = "cobib.commands.import_:ImportCommand"
 init = "cobib.commands.init:InitCommand"
 lint = "cobib.commands.lint:LintCommand"
 list = "cobib.commands.list_:ListCommand"
+man = "cobib.commands.man:ManCommand"
 modify = "cobib.commands.modify:ModifyCommand"
 note = "cobib.commands.note:NoteCommand"
 open = "cobib.commands.open:OpenCommand"
@@ -75,6 +76,47 @@ doi = "cobib.parsers.doi:DOIParser"
 isbn = "cobib.parsers.isbn:ISBNParser"
 url = "cobib.parsers.url:URLParser"
 yaml = "cobib.parsers.yaml:YAMLParser"
+
+[project.entry-points."cobib.man"]
+"cobib.1" = "cobib.man:_commands"
+"cobib-add.1" = "cobib.man:A_common"
+"cobib-delete.1" = "cobib.man:A_common"
+"cobib-edit.1" = "cobib.man:A_common"
+"cobib-export.1" = "cobib.man:A_common"
+"cobib-import.1" = "cobib.man:A_common"
+"cobib-list.1" = "cobib.man:A_common"
+"cobib-modify.1" = "cobib.man:A_common"
+"cobib-note.1" = "cobib.man:A_common"
+"cobib-open.1" = "cobib.man:A_common"
+"cobib-review.1" = "cobib.man:A_common"
+"cobib-search.1" = "cobib.man:A_common"
+"cobib-show.1" = "cobib.man:A_common"
+"cobib-git.1" = "cobib.man:B_utility"
+"cobib-init.1" = "cobib.man:B_utility"
+"cobib-lint.1" = "cobib.man:B_utility"
+"cobib-man.1" = "cobib.man:B_utility"
+"cobib-redo.1" = "cobib.man:B_utility"
+"cobib-undo.1" = "cobib.man:B_utility"
+"cobib-unify-labels.1" = "cobib.man:B_utility"
+"cobib-config.5" = "cobib.man:_config"
+"cobib-getting-started.7" = "cobib.man:_miscellaneous"
+"cobib-database.7" = "cobib.man:B_info"
+"cobib-event.7" = "cobib.man:B_info"
+"cobib-filter.7" = "cobib.man:B_info"
+"cobib-git.7" = "cobib.man:B_info"
+"cobib-man.7" = "cobib.man:B_info"
+"cobib-tui.7" = "cobib.man:B_info"
+"cobib-plugins.7" = "cobib.man:B_info"
+"cobib-commands.7" = "cobib.man:A_overview"
+"cobib-importers.7" = "cobib.man:A_overview"
+"cobib-zotero.7" = "cobib.man:I_importers"
+"cobib-parsers.7" = "cobib.man:A_overview"
+"cobib-arxiv.7" = "cobib.man:P_parsers"
+"cobib-bibtex.7" = "cobib.man:P_parsers"
+"cobib-doi.7" = "cobib.man:P_parsers"
+"cobib-isbn.7" = "cobib.man:P_parsers"
+"cobib-url.7" = "cobib.man:P_parsers"
+"cobib-yaml.7" = "cobib.man:P_parsers"
 
 [project.scripts]
 cobib = "cobib.__main__:_main"
@@ -184,6 +226,7 @@ enable_error_code = [
 [[tool.mypy.overrides]]
 module = [
     "bibtexparser",
+    "linkify_it.*",
     "pylatexenc.*",
     "text_unidecode",
 ]

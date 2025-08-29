@@ -197,6 +197,26 @@ All of these events are provided with the Python command object instance, allowi
     Returns:<br>
         Nothing. But the to-be-listed entries are still accessible before being rendered.
 
+  * _PreManCommand_ = `Callable[[cobib.commands.man.ManCommand], None]`:
+    Fires:<br>
+        Before starting the *cobib-man(1)* command.
+
+    Arguments:<br>
+        - `cobib.commands.man.ManCommand`: the command instance that is about to run.
+
+    Returns:<br>
+        Nothing. But the command attributes can be modified, affecting the execution.
+
+  * _PostManCommand_ = `Callable[[cobib.commands.man.ManCommand], None]`:
+    Fires:<br>
+        Before finishing the *cobib-man(1)* command.
+
+    Arguments:<br>
+        - `cobib.commands.list.ListCommand`: the command instance that just ran.
+
+    Returns:<br>
+        Nothing.
+
   * _PreModifyCommand_ = `Callable[[cobib.commands.modify.ModifyCommand], None]`:
     Fires:<br>
         Before starting the *cobib-modify(1)* command.

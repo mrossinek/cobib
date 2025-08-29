@@ -28,6 +28,12 @@ dummy = "cobib_dummy.dummy_importer:DummyImporter"
 [project.entry-points."cobib.parsers"]
 dummy = "cobib_dummy.dummy_parser:DummyParser"
 
+[project.entry-points."cobib.man"]
+"cobib-dummy.1" = "cobib_dummy.man:P_plugin"
+"cobib-dummy-importer.7" = "cobib_dummy.man:I_importers"
+"cobib-dummy-parser.7" = "cobib_dummy.man:P_parsers"
+"cobib-plugin-dummy.7" = "cobib_dummy.man:A_overview"
+
 [tool.setuptools]
 include-package-data = true
 

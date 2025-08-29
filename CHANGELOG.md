@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Added
+- the `man` command (`!` in the TUI) for viewing coBib's man-pages (#154,!377)
+- the `cobib.man` entry-point to allow plugins to register their own man-pages
+
 ### Fixed
 - the progress indicator of search and download progress in the TUI (#158,!376)
 

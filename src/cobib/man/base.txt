@@ -14,12 +14,14 @@ cobib-show.1             ../
 cobib-git.1              ../
 cobib-init.1             ../
 cobib-lint.1             ../
+cobib-man.1              ../
 cobib-redo.1             ../
 cobib-undo.1             ../
 cobib-unify-labels.1     ../
 cobib-event.7            ../
 cobib-filter.7           ../
 cobib-git.7              ../
+cobib-man.7              ../
 cobib-zotero.7           ../
 cobib-arxiv.7            ../
 cobib-bibtex.7           ../

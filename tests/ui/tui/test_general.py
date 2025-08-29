@@ -184,6 +184,55 @@ class TestTUIGeneral:
         """
         assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, press=["question_mark"] * repeat)
 
+    @pytest.mark.parametrize(
+        "extra_keys",
+        [
+            [],
+            ["t"],  # ToC
+            ["q"],  # quit
+            ["q", "!"],  # continue where we left (do not open man-page index)
+            ["j"] * 5 + ["k"],
+        ],
+    )
+    def test_manpage(self, snap_compare: Any, extra_keys: list[str]) -> None:
+        """Tests loading a specific man-page.
+
+        Args:
+            snap_compare: the `pytest-textual-snapshot` fixture.
+            extra_keys: any extra keys to press.
+        """
+
+        async def run_before(pilot: Pilot[None]) -> None:
+            app = cast(TUI, pilot.app)
+            await app.action_prompt(":man cobib.1", submit=True)
+            for key in extra_keys:
+                await pilot.press(key)
+            await pilot.pause()
+
+        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, run_before=run_before)
+
+    @pytest.mark.parametrize(
+        "extra_keys",
+        [
+            [],
+            ["escape"],  # dismiss
+            ["enter"],  # select
+            # NOTE: in the test below we scroll far enough to cause a visual update to the
+            # OptionList but not too far such that the output is independent of whether or not
+            # plugin man-pages are registered.
+            ["j"] * 19 + ["k"],  # scroll up and down
+        ],
+    )
+    def test_manpage_index(self, snap_compare: Any, extra_keys: list[str]) -> None:
+        """Tests the man-page index screen.
+
+        Args:
+            snap_compare: the `pytest-textual-snapshot` fixture.
+            extra_keys: any extra keys to press.
+        """
+        press = ["exclamation_mark", *extra_keys]
+        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, press=press)
+
     @pytest.mark.parametrize("press", [["enter"], ["j"], ["d"], ["e"], ["o"], ["v"]])
     def test_empty_database(self, snap_compare: Any, press: list[str]) -> None:
         """Tests the handling of an empty database.
