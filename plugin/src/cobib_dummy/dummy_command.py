@@ -17,7 +17,9 @@ class DummyCommand(Command):
     @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
-            prog="dummy", description="Dummy subcommand parser.", exit_on_error=True
+            prog="dummy",
+            description="Dummy subcommand parser.",
+            epilog="Read cobib-dummy.1 for more help.",
         )
         parser.add_argument(
             "-e", "--stderr", action="store_true", help="print to stderr rather than stdout"

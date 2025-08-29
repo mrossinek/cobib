@@ -46,7 +46,9 @@ class RedoCommand(Command):
     @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
-            prog="redo", description="Redo subcommand parser.", exit_on_error=True
+            prog="redo",
+            description="Redo subcommand parser.",
+            epilog="Read cobib-redo.1 and cobib-git.7 for more help.",
         )
         cls.argparser = parser
 

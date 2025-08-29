@@ -59,7 +59,7 @@ class UI:
         Args:
             **kwargs: arbitrary keyword arguments passed on to the `ArgumentParser` constructor.
         """
-        self.parser = argparse.ArgumentParser(exit_on_error=True, **kwargs)
+        self.parser = argparse.ArgumentParser(**kwargs)
         self.parser.add_argument("-v", "--verbose", action="count", default=0)
         self.parser.add_argument(
             "-p",

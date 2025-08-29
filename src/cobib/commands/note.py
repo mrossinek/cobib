@@ -49,7 +49,9 @@ class NoteCommand(Command):
     @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
-            prog="note", description="Note subcommand parser.", exit_on_error=True
+            prog="note",
+            description="Note subcommand parser.",
+            epilog="Read cobib-note.1 for more help.",
         )
         parser.add_argument("label", type=str, help="label of the entry")
         parser.add_argument(

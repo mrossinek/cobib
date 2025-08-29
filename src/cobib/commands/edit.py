@@ -55,7 +55,9 @@ class EditCommand(Command):
     @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
-            prog="edit", description="Edit subcommand parser.", exit_on_error=True
+            prog="edit",
+            description="Edit subcommand parser.",
+            epilog="Read cobib-edit.1 for more help.",
         )
         parser.add_argument("label", type=str, help="label of the entry")
         parser.add_argument(

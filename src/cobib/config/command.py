@@ -44,7 +44,10 @@ class ExampleConfigCommand(Command):
     @override
     @classmethod
     def init_argparser(cls) -> None:
-        cls.argparser = argparse.ArgumentParser(prog="example_config", exit_on_error=True)
+        cls.argparser = argparse.ArgumentParser(
+            prog="example_config",
+            epilog="Read cobib-config.5 for more help.",
+        )
 
     @override
     def execute(self) -> None:

@@ -45,7 +45,9 @@ class ManCommand(Command):
     @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
-            prog="man", description="Man subcommand parser.", exit_on_error=True
+            prog="man",
+            description="Man subcommand parser.",
+            epilog="Read cobib-man.1 and cobib-man.7 for more help.",
         )
         parser.add_argument(
             "page", type=str, nargs="?", default=None, help="The name of the man-page to view"

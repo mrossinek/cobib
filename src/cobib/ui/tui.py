@@ -769,6 +769,11 @@ class TUI(UI, App[None]):
 
         command = shlex.split(value)
 
+        if "-h" in command or "--help" in command:
+            LOGGER.debug("Bypassing special command handling")
+            self._run_command(command)
+            return
+
         if self._filter.selection:
             if "-s" not in command:  # pragma: no branch
                 command += ["-s"]

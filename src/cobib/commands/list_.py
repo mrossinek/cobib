@@ -98,8 +98,8 @@ class ListCommand(Command):
         parser = argparse.ArgumentParser(
             prog="list",
             description="List subcommand parser.",
+            epilog="Read cobib-list.1 and cobib-filter.7 for more help.",
             prefix_chars="+-",
-            exit_on_error=True,
         )
         parser.add_argument("-s", "--sort", help="specify column along which to sort the list")
         parser.add_argument(

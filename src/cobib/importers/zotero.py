@@ -76,7 +76,9 @@ class ZoteroImporter(Importer):
     @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
-            prog="zotero", description="Zotero migration parser.", exit_on_error=True
+            prog="zotero",
+            description="Zotero migration parser.",
+            epilog="Read cobib-zotero.7 for more help.",
         )
         parser.add_argument(
             "--no-cache", action="store_true", help="disable use of cached OAuth tokens"

@@ -52,7 +52,9 @@ class OpenCommand(Command):
     @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
-            prog="open", description="Open subcommand parser.", exit_on_error=True
+            prog="open",
+            description="Open subcommand parser.",
+            epilog="Read cobib-open.1 for more help.",
         )
         parser.add_argument("labels", type=str, nargs="+", help="labels of the entries")
         parser.add_argument(

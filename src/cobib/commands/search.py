@@ -91,7 +91,9 @@ class SearchCommand(Command):
     @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
-            prog="search", description="Search subcommand parser.", exit_on_error=True
+            prog="search",
+            description="Search subcommand parser.",
+            epilog="Read cobib-search.1 for more help.",
         )
         parser.add_argument("query", type=str, nargs="+", help="text to search for")
         ignore_case_group = parser.add_mutually_exclusive_group()
