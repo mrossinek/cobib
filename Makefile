@@ -43,7 +43,7 @@ $(MAN_HTML_FILES) : %.html_fragment : $(MAN_SRC_DIR)/%.md
 	@sed -i \
 		-e 's/<div/<main/g' -e 's/div>/main>/g' \
 		-e 's/h2/h1/g' -e 's/h3/h2/g' \
-		-e 's;class="man-ref" href=";class="man-ref" href="$(shell grep $(basename $@) $(MAN_HTML_DIR)/base.txt | awk '{ print $$ 2 }');g' \
+		-e 's;class="man-ref" href="\([a-z._/]\+\)";class="man-ref" href="$(shell grep $(basename $@) $(MAN_HTML_DIR)/base.txt | awk '{ print $$ 2 }')\1";g' \
 		-e '1s,^,<head><style>.mp p.man-name code {--section: $(shell echo $@ | awk '{split($$0,a,"."); print a[2]}');}</style></head>,' \
 		$(MAN_HTML_DIR)/$@
 
