@@ -26,6 +26,7 @@ from textual.app import App, ComposeResult, SystemCommand
 from textual.binding import Binding
 from textual.keys import Keys
 from textual.logging import TextualHandler
+from textual.notifications import SeverityLevel
 from textual.screen import Screen
 from textual.widgets import Footer, Header, Input, MarkdownViewer, Static
 from textual.widgets.markdown import MarkdownBlock
@@ -870,11 +871,10 @@ class TUI(UI, App[None]):
 
         stdout_val = stdout.getvalue().strip()
         if stdout_val:
-            # NOTE: we are ignoring coverage below, but this behavior is tested as part of the test
-            # suite of the example plugin
-            self.notify(  # pragma: no cover
-                stdout_val, title="Output", severity="information", timeout=5
-            )
+            help_popup = "-h" in command or "--help" in command
+            title = "Help" if help_popup else "Output"
+            severity: SeverityLevel = "warning" if help_popup else "information"
+            self.notify(stdout_val, title=title, severity=severity, timeout=5)
 
         stderr_val = stderr.getvalue().strip()
         if stderr_val:

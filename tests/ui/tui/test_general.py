@@ -184,12 +184,9 @@ class TestTUIGeneral:
         """
         assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, press=["question_mark"] * repeat)
 
-    @pytest.mark.skipif(
-        version_info.minor < 13,
-        reason="Formatting of the --help notification popups varies between Python versions.",
-    )
+    @pytest.mark.asyncio
     @pytest.mark.parametrize("command", ["delete", "init", "git", "list", "man", "show", "search"])
-    def test_help_notification(self, snap_compare: Any, command: str) -> None:
+    async def test_help_notification(self, command: str) -> None:
         """Tests the notification system for command `--help`.
 
         This is a regression test against: https://gitlab.com/cobib/cobib/-/issues/161
@@ -197,16 +194,14 @@ class TestTUIGeneral:
         are treated specially during `TUI.action_prompt`.
 
         Args:
-            snap_compare: the `pytest-textual-snapshot` fixture.
             command: the command whose `--help` to request.
         """
-
-        async def run_before(pilot: Pilot[None]) -> None:
-            app = cast(TUI, pilot.app)
+        app = TUI()
+        async with app.run_test() as pilot:
             await app.action_prompt(f":{command} --help", submit=True)
             await pilot.pause()
-
-        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, run_before=run_before)
+            output_notifications = [notif for notif in app._notifications if notif.title == "Help"]
+            assert len(output_notifications) == 1
 
     @pytest.mark.parametrize(
         "extra_keys",
