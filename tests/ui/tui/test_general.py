@@ -226,6 +226,7 @@ class TestTUIGeneral:
             await app.action_prompt(":man cobib.1", submit=True)
             for key in extra_keys:
                 await pilot.press(key)
+                await pilot.pause()
             await pilot.pause()
 
         assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, run_before=run_before)
