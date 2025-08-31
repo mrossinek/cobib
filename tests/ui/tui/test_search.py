@@ -32,6 +32,8 @@ class TestTUISearch:
         # included in the snapshot. Otherwise, this can lead to flaky testing behavior:
         # https://gitlab.com/cobib/cobib/-/issues/158
         TextualProgress.TIMEOUT = 1000
+        # NOTE: we also ensure that the ETA does *NOT* get shown to avoid it causing flaky tests.
+        TextualProgress.SHOW_ETA = False
         config.load(get_resource("debug.py"))
         yield
         Database.reset()

@@ -64,17 +64,16 @@ class TextualProgress(HorizontalGroup):
         #progress-title {
             padding-right: 1;
         }
-
-        #progress-bar {
-        }
     """
 
     TIMEOUT = 1.0
 
+    SHOW_ETA = True
+
     @override
     def compose(self) -> ComposeResult:
         yield Label(id="progress-title")
-        yield ProgressBar(id="progress-bar")
+        yield ProgressBar(id="progress-bar", show_eta=TextualProgress.SHOW_ETA)
 
     def add_task(self, label: str, total: float | None = None) -> TaskID:
         """Registers the new task with this progress indicator.
