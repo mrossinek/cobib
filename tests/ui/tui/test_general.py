@@ -224,6 +224,7 @@ class TestTUIGeneral:
         async def run_before(pilot: Pilot[None]) -> None:
             app = cast(TUI, pilot.app)
             await app.action_prompt(":man cobib.1", submit=True)
+            await pilot.pause(1)  # NOTE: ensure we give enough time to load the man-page into view
             for key in extra_keys:
                 await pilot.press(key)
                 await pilot.pause()
