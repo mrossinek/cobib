@@ -11,44 +11,50 @@ This handler is used by the `cobib.ui.tui.TUI` to render logging messages inside
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, cast
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
 from rich.text import Text
 from typing_extensions import override
 
 from cobib.utils.logging import DEPRECATED, HINT
 
-from .log_screen import LogScreen
-
 if TYPE_CHECKING:
-    from ..tui import TUI
+    from ..ui import UI
 
 
-class LoggingHandler(logging.Handler):
+class LoggingHandler(logging.Handler, ABC):
     """coBib's `logging.Handler` for interactive UIs."""
 
-    def __init__(self, app: TUI, level: int = logging.INFO) -> None:
+    FORMAT: str = "%(asctime)s [%(levelname)s] %(message)s"
+    """The Formatter `fmt` string."""
+
+    DATE_FORMAT: str = "%H:%M:%S"
+    """The Formatter `datefmt` string."""
+
+    def __init__(self, ui: UI, level: int = logging.INFO) -> None:
         """Initializes the handler.
 
         Args:
-            app: the running TUI instance.
+            ui: the running UI instance.
             level: the default logging level to be displayed.
         """
         super().__init__(level=level)
 
-        self._app = app
+        self.ui = ui
 
-        formatter = logging.Formatter(
-            fmt="%(asctime)s [%(levelname)s] %(message)s", datefmt="%H:%M:%S"
-        )
+        formatter = logging.Formatter(fmt=self.FORMAT, datefmt=self.DATE_FORMAT)
         self.setFormatter(formatter)
 
-        for handler in self._app.root_logger.handlers[:]:
-            if isinstance(handler, logging.StreamHandler):
-                self._app.root_logger.removeHandler(handler)
+        for handler in self.ui.root_logger.handlers[:]:
+            if isinstance(handler, logging.StreamHandler) or (
+                # NOTE: the second condition is required to ensure the unittests pass in Python 3.9
+                isinstance(handler, LoggingHandler) and not isinstance(handler, self.__class__)
+            ):
+                self.ui.root_logger.removeHandler(handler)
                 handler.close()
 
-        self._app.root_logger.addHandler(self)
+        self.ui.root_logger.addHandler(self)
 
     @override
     def format(self, record: logging.LogRecord) -> Text:  # type: ignore[override]
@@ -70,16 +76,13 @@ class LoggingHandler(logging.Handler):
         elif record.levelno >= logging.DEBUG:  # pragma: no branch
             style = "blue"
 
-        text = Text(message, style)
+        message = message.replace(
+            f"[{record.levelname}]", f"[{style}][{record.levelname}][/{style}]"
+        )
+
+        text = Text.from_markup(message)
         return text
 
+    @abstractmethod
     @override
-    def emit(self, record: logging.LogRecord) -> None:
-        try:
-            log_screen = cast(LogScreen, self._app.get_screen("log"))
-        except KeyError:
-            self.close()
-            return
-        log_screen.rich_log.write(self.format(record))
-        if record.levelno >= logging.ERROR and not log_screen.is_current:
-            self._app.push_screen("log")
+    def emit(self, record: logging.LogRecord) -> None: ...

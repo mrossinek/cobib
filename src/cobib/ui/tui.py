@@ -48,7 +48,6 @@ from cobib.ui.components import (
     SearchView,
     SelectionFilter,
 )
-from cobib.utils.entry_points import entry_points
 from cobib.utils.prompt import Confirm
 
 from .ui import UI
@@ -59,9 +58,23 @@ if TYPE_CHECKING:
 LOGGER = logging.getLogger(__name__)
 
 
+class TUILogHandler(LoggingHandler):
+    """The TUI's LoggingHandler emit implementation."""
+
+    @override
+    def emit(self, record: logging.LogRecord) -> None:
+        app = cast(TUI, self.ui)
+        try:
+            log_screen = cast(LogScreen, app.get_screen("log"))
+        except KeyError:
+            self.close()
+            return
+        log_screen.rich_log.write(self.format(record))
+        if record.levelno >= logging.ERROR and not log_screen.is_current:
+            app.push_screen("log")
+
+
 # NOTE: pylint and mypy are unable to understand that the `App` interface actually implements `run`
-
-
 class TUI(UI, App[None]):
     """The TUI class.
 
@@ -306,7 +319,7 @@ class TUI(UI, App[None]):
         self._filter: SelectionFilter = SelectionFilter()
         self._filters.append(self._filter)
         self._background_tasks: set[asyncio.Task] = set()  # type: ignore[type-arg]
-        self.logging_handler = LoggingHandler(self, level=min(verbosity, logging.INFO))
+        self.logging_handler = TUILogHandler(self, level=min(verbosity, logging.INFO))
 
     @override
     def compose(self) -> ComposeResult:
@@ -829,22 +842,14 @@ class TUI(UI, App[None]):
         Args:
             command: a list of strings consisting of the command keyword and its arguments.
         """
-        matching_commands = [
-            cls for (cls, _) in entry_points("cobib.commands") if cls.name == command[0]
-        ]
-        if len(matching_commands) == 0:
-            msg = (
-                f"Did not find a command registered by the name of '{command[0]}'; "
-                "Aborting execution!"
-            )
-            LOGGER.critical(msg)
+        cmd_cls = self.load_command(command[0])
+        if cmd_cls is None:
             return
-        cmd_entry_point = matching_commands[0]
 
         with redirect_stdout(io.StringIO()) as stdout:
             with redirect_stderr(io.StringIO()) as stderr:
                 try:
-                    subcmd = cmd_entry_point.load()(*command[1:])
+                    subcmd = cmd_cls(*command[1:])
 
                     if not iscoroutinefunction(subcmd.execute):
                         subcmd.execute()

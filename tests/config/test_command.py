@@ -80,16 +80,3 @@ class TestPrintExampleConfig(CommandTest):
         """
         await super().run_module(monkeypatch, "main", ["cobib", "-p", "_example_config"])
         self._assert(capsys.readouterr().out)
-
-    @pytest.mark.asyncio
-    async def test_cmdline_via_main(
-        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        """Test the command-line access of the command via the main method.
-
-        Args:
-            monkeypatch: the built-in pytest fixture.
-            capsys: the built-in pytest fixture.
-        """
-        await super().run_module(monkeypatch, "main", ["cobib", "-p", "_example_config"])
-        self._assert(capsys.readouterr().out)

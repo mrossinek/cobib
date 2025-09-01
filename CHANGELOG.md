@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Added
 - the `man` command (`!` in the TUI) for viewing coBib's man-pages (#154,!377)
 - the `cobib.man` entry-point to allow plugins to register their own man-pages
+- the `--shell` argument to the main `cobib` executable (#157,!379)
+  - This is mutually exclusive with providing any command and will open an
+    interactive shell instead, in which multiple commands can be executed in
+    sequence. Read the `cobib-shell.7` man-page for more details.
 
 ### Fixed
 - the progress indicator of search and download progress in the TUI (#158,!376)
