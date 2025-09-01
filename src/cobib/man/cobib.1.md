@@ -3,7 +3,7 @@ cobib(1) -- a console-based bibliography management tool
 
 ## SYNOPSIS
 
-`cobib` [`-p|--porcelain`] [`-v|--verbose`] [`-c|--config`=_PATH_] [`-l|--logfile`=_PATH_] [_SUBCOMMAND_] [_ARGS_ ...]<br>
+`cobib` [`-p|--porcelain`] [`-v|--verbose`] [`-c|--config`=_PATH_] [`-l|--logfile`=_PATH_] [`-s|--shell` | _SUBCOMMAND_] [_ARGS_ ...]<br>
 `cobib` `-h|--help` <br>
 `cobib` `--version`
 
@@ -41,10 +41,14 @@ It also provides an interactive terminal user interface (see also *cobib-tui(7)*
     The default verbosity level will be _info_ when logging to a file.
     The level can be increased using the `--verbose` option.
 
+  * `-s`, `--shell`:
+    Start the interactive *cobib-shell(7)* rather than executed a single command.
+
 ## SUBCOMMANDS
 
 The builtin subcommands are documented at *cobib-commands(7)*.
-In addition, the *cobib-tui(7)* gets started when **no** subcommand is specified, like so:
+Executing one of those is mutually exclusive with starting the interactive *cobib-shell(7)*.
+In addition, the *cobib-tui(7)* gets started when **neither** a subcommand **nor** the `--shell` option are specified, like so:
 ```bash
 $ cobib
 ```

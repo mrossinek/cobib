@@ -29,6 +29,7 @@ cobib-doi.7              ../
 cobib-isbn.7             ../
 cobib-url.7              ../
 cobib-yaml.7             ../
+cobib-shell.7            ../
 cobib-tui.7              ../
 cobib-plugins.7          cobib/
 cobib-getting-started.7  cobib/

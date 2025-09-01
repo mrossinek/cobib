@@ -147,6 +147,7 @@ class TestTUISearch:
             await app.action_prompt("/19", submit=True)
             await app.action_prompt(":show knuthwebsite")
             await pilot.press("enter")
+            await pilot.pause(1)
             await pilot.press("z")
             await pilot.pause()
 

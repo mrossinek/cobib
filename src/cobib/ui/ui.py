@@ -4,11 +4,15 @@ This class handles the global command-line options which are available across al
 including the TUI.
 """
 
+from __future__ import annotations
+
 import argparse
 import logging
-from typing import Any
+from typing import Any, Type, cast
 
+from cobib.commands.base_command import Command
 from cobib.config import config
+from cobib.utils.entry_points import entry_points
 from cobib.utils.logging import get_file_handler, get_stream_handler
 
 LOGGER = logging.getLogger(__name__)
@@ -113,3 +117,21 @@ class UI:
         config.load(arguments.config)
 
         return arguments
+
+    @staticmethod
+    def load_command(name: str) -> Type[Command] | None:
+        """Load the requested command.
+
+        Args:
+            name: the name of the command to load
+
+        Returns:
+            The command class. `None` when the command could not be found.
+        """
+        matching_commands = [cls for (cls, _) in entry_points("cobib.commands") if cls.name == name]
+        if len(matching_commands) == 0:
+            msg = f"Did not find a command registered by the name of '{name}'; Aborting execution!"
+            LOGGER.critical(msg)
+            return None
+
+        return cast(Type[Command], matching_commands[0].load())

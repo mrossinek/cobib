@@ -36,6 +36,7 @@ cobib-doi(7)             parsers/doi
 cobib-isbn(7)            parsers/isbn
 cobib-url(7)             parsers/url
 cobib-yaml(7)            parsers/yaml
+cobib-shell(7)           ui/shell
 cobib-tui(7)             ui/tui
 cobib-plugins(7)         ../cobib_dummy
 
