@@ -166,6 +166,7 @@ class TestZoteroImport(CommandTest):
                 {
                     "skip_download": True,
                     "importer_arguments": parser_args,
+                    "bibtex": False,
                     "zotero": True,
                 },
             )

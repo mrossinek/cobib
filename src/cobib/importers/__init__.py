@@ -6,4 +6,5 @@ coBib provides various "importers" which handle the migration from other bibliog
 The abstract interface which should be implemented is defined in `cobib.importers.base_importer`.
 """
 
+from .bibtex import BibtexImporter as BibtexImporter
 from .zotero import ZoteroImporter as ZoteroImporter

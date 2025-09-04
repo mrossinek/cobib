@@ -35,7 +35,7 @@ class ImportCommand(Command):
           `cobib import --help` for the exact list.
         * finally, you can add another set of positional arguments (preceded by `--`) which will be
           passed on to the chosen importer. For more details see for example
-          `cobib import --zotero -- --help`.
+          `cobib import --bibtex -- --help`.
     """
 
     name = "import"
@@ -83,7 +83,7 @@ class ImportCommand(Command):
             " expected you should add the pseudo-argument '--' before the remaining arguments.",
         )
         group_import = parser.add_mutually_exclusive_group(required=True)
-        for name in cls._avail_importers.keys():
+        for name in sorted(cls._avail_importers.keys()):
             try:
                 group_import.add_argument(f"--{name}", action="store_true", help=f"{name} importer")
             except argparse.ArgumentError:  # pragma: no cover

@@ -1,5 +1,9 @@
 """coBib's Zotero importer.
 
+.. warning::
+    This importer backend is **DEPRECATED** and will be removed in v6.0.0 of coBib when the
+    `cobib-zotero` plugin is going to replace it.
+
 .. include:: ../man/cobib-zotero.7.html_fragment
 """
 
@@ -62,6 +66,12 @@ class ZoteroImporter(Importer):
     def __init__(self, *args: str, skip_download: bool = False) -> None:
         super().__init__(*args, skip_download=skip_download)
 
+        LOGGER.log(
+            45,
+            "The builtin `--zotero` backend of the `import` command is DEPRECATED! It will be "
+            "removed in v6.0.0 of coBib when the `cobib-zotero` plugin is going to replace it.",
+        )
+
         self.authentication: dict[str, str] = {}
         """The authentication dictionary used as a header during the `GET` request of the Zotero
         API."""
@@ -77,7 +87,7 @@ class ZoteroImporter(Importer):
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
             prog="zotero",
-            description="Zotero migration parser.",
+            description="**DEPRECATED** Zotero migration parser.",
             epilog="Read cobib-zotero.7 for more help.",
         )
         parser.add_argument(

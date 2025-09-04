@@ -221,7 +221,7 @@ class Entry:
             - https://www.bibtex.com/f/author-field/
         """
         if not isinstance(authors, list):
-            authors = authors.split(" and ")
+            authors = " ".join(authors.split()).split(" and ")
 
         dec = self._get_latex_to_text_decoder()
 

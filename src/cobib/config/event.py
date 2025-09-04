@@ -49,6 +49,7 @@ else:
         "ForwardRef('commands.SearchCommand')": "cobib.commands.search.SearchCommand",
         "ForwardRef('commands.ShowCommand')": "cobib.commands.show.ShowCommand",
         "ForwardRef('commands.UndoCommand')": "cobib.commands.undo.UndoCommand",
+        "ForwardRef('importers.BibtexImporter')": "cobib.importers.bibtex.BibtexImporter",
         "ForwardRef('importers.ZoteroImporter')": "cobib.importers.zotero.ZoteroImporter",
     }
 
@@ -488,8 +489,37 @@ class Event(Enum):
         Nothing.
     """
 
+    PreBibtexImport = cast("Event", Callable[["importers.BibtexImporter"], None])
+    """
+    Fires:
+        Before starting `cobib.importers.bibtex.BibtexImporter.fetch`.
+
+    Arguments:
+        `cobib.importers.bibtex.BibtexImporter`: the importer instance that is about to run.
+
+    Returns:
+        Nothing. But the importer attributes can be modified, affecting the execution.
+    """
+    PostBibtexImport = cast("Event", Callable[["importers.BibtexImporter"], None])
+    """
+    Fires:
+        Before finishing `cobib.importers.bibtex.BibtexImporter.fetch`.
+
+    Arguments:
+        `cobib.importers.bibtex.BibtexImporter`: the importer instance that just ran.
+
+    Returns:
+        Nothing. But the importer attributes can be modified, affecting the execution.
+
+    Note:
+        - The entry labels will not have been mapped or disambiguated at this point.
+    """
+
     PreZoteroImport = cast("Event", Callable[["importers.ZoteroImporter"], None])
     """
+    .. warning::
+        **DEPRECATED**: this event will get removed when in v6.0.0 of coBib.
+
     Fires:
         Before starting `cobib.importers.zotero.ZoteroImporter.fetch`.
 
@@ -501,6 +531,9 @@ class Event(Enum):
     """
     PostZoteroImport = cast("Event", Callable[["importers.ZoteroImporter"], None])
     """
+    .. warning::
+        **DEPRECATED**: this event will get removed when in v6.0.0 of coBib.
+
     Fires:
         Before finishing `cobib.importers.zotero.ZoteroImporter.fetch`.
 

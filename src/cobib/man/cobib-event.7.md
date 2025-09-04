@@ -384,7 +384,32 @@ All of these events are provided with the Python command object instance, allowi
 Most of the *cobib-importers(7)* implementatons provide a **Pre-** and **Post-** execution event which gets triggererd before and after the actual import, respectively.
 All of these events are provided with the Python importer object instance, allowing the hooks to modify runtime data of the importer.
 
+  * _PreBibtexImport_ = `Callable[[cobib.importers.bibtex.BibtexImporter], None]`:
+    Fires:<br>
+        Before starting to fetch data using *cobib-bibtex(7)*.
+
+    Arguments:<br>
+        - `cobib.importers.bibtex.BibtexImporter`: the importer instance that is about to run.
+
+    Returns:<br>
+        Nothing. But the importer attributes can be modified, affecting the execution.
+
+  * _PostBibtexImport_ = `Callable[[cobib.importers.bibtex.BibtexImporter], None]`:
+    Fires:<br>
+        Before finishing to fetch data using *cobib-bibtex(7)*.
+
+    Arguments:<br>
+        - `cobib.importers.bibtex.BibtexImporter`: the importer instance that just ran.
+
+    Returns:<br>
+        Nothing. But the importer attributes can be modified, affecting the execution.
+
+    Note:<br>
+        The entry labels will not have been mapped or disambiguated at this point.
+
   * _PreZoteroImport_ = `Callable[[cobib.importers.zotero.ZoteroImporter], None]`:
+    **DEPRECATED**: this event will get removed when in v6.0.0 of coBib.<br>
+
     Fires:<br>
         Before starting to fetch data using *cobib-zotero(7)*.
 
@@ -395,6 +420,8 @@ All of these events are provided with the Python importer object instance, allow
         Nothing. But the importer attributes can be modified, affecting the execution.
 
   * _PostZoteroImport_ = `Callable[[cobib.importers.zotero.ZoteroImporter], None]`:
+    **DEPRECATED**: this event will get removed when in v6.0.0 of coBib.<br>
+
     Fires:<br>
         Before finishing to fetch data using *cobib-zotero(7)*.
 

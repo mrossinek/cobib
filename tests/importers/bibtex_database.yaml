@@ -1,0 +1,258 @@
+---
+Van_Noorden_2014:
+  ENTRYTYPE: article
+  author:
+  - first: Richard
+    last: Van Noorden
+  - first: Brendan
+    last: Maher
+  - first: Regina
+    last: Nuzzo
+  doi: 10.1038/514550a
+  issn: 1476-4687
+  journal: Nature
+  month: oct
+  number: 7524
+  pages: 550{\textendash}553
+  publisher: Springer Science and Business Media LLC
+  title: The top 100 papers
+  url:
+  - http://dx.doi.org/10.1038/514550a
+  volume: 514
+  year: 2014
+...
+---
+Lowry_1951:
+  ENTRYTYPE: article
+  author:
+  - first: OliverH.
+    last: Lowry
+  - first: NiraJ.
+    last: Rosebrough
+  - first: A. Lewis
+    last: Farr
+  - first: RoseJ.
+    last: Randall
+  doi: 10.1016/s0021-9258(19)52451-6
+  issn: 0021-9258
+  journal: Journal of Biological Chemistry
+  month: nov
+  number: 1
+  pages: 265{\textendash}275
+  publisher: Elsevier BV
+  title: PROTEIN MEASUREMENT WITH THE FOLIN PHENOL REAGENT
+  url:
+  - http://dx.doi.org/10.1016/S0021-9258(19)52451-6
+  volume: 193
+  year: 1951
+...
+---
+LAEMMLI_1970:
+  ENTRYTYPE: article
+  author:
+  - first: U. K.
+    last: LAEMMLI
+  doi: 10.1038/227680a0
+  issn: 1476-4687
+  journal: Nature
+  month: aug
+  number: 5259
+  pages: 680{\textendash}685
+  publisher: Springer Science and Business Media LLC
+  title: 'Cleavage of Structural Proteins during the Assembly of the Head of
+
+    Bacteriophage T4'
+  url:
+  - http://dx.doi.org/10.1038/227680a0
+  volume: 227
+  year: 1970
+...
+---
+Bradford_1976:
+  ENTRYTYPE: article
+  author:
+  - first: Marion M.
+    last: Bradford
+  doi: 10.1016/0003-2697(76)90527-3
+  issn: 0003-2697
+  journal: Analytical Biochemistry
+  month: may
+  number: 1{\textendash}2
+  pages: 248{\textendash}254
+  publisher: Elsevier BV
+  title: 'A rapid and sensitive method for the quantitation of microgram
+
+    quantities of protein utilizing the principle of protein-dye binding
+
+    '
+  url:
+  - http://dx.doi.org/10.1016/0003-2697(76)90527-3
+  volume: 72
+  year: 1976
+...
+---
+Sanger_1977:
+  ENTRYTYPE: article
+  author:
+  - first: F.
+    last: Sanger
+  - first: S.
+    last: Nicklen
+  - first: A. R.
+    last: Coulson
+  doi: 10.1073/pnas.74.12.5463
+  issn: 1091-6490
+  journal: Proceedings of the National Academy of Sciences
+  month: dec
+  number: 12
+  pages: 5463{\textendash}5467
+  publisher: Proceedings of the National Academy of Sciences
+  title: DNA sequencing with chain-terminating inhibitors
+  url:
+  - http://dx.doi.org/10.1073/pnas.74.12.5463
+  volume: 74
+  year: 1977
+...
+---
+CHOMZYNSKI_1987:
+  ENTRYTYPE: article
+  author:
+  - first: P
+    last: CHOMZYNSKI
+  doi: 10.1006/abio.1987.9999
+  issn: 0003-2697
+  journal: Analytical Biochemistry
+  month: apr
+  number: 1
+  pages: 156{\textendash}159
+  publisher: Elsevier BV
+  title: 'Single-Step Method of RNA Isolation by Acid Guanidinium
+
+    Thiocyanate{\textendash}Phenol{\textendash}Chloroform Extraction'
+  url:
+  - http://dx.doi.org/10.1006/abio.1987.9999
+  volume: 162
+  year: 1987
+...
+---
+Towbin_1979:
+  ENTRYTYPE: article
+  author:
+  - first: H
+    last: Towbin
+  - first: T
+    last: Staehelin
+  - first: J
+    last: Gordon
+  doi: 10.1073/pnas.76.9.4350
+  issn: 1091-6490
+  journal: Proceedings of the National Academy of Sciences
+  month: sep
+  number: 9
+  pages: 4350{\textendash}4354
+  publisher: Proceedings of the National Academy of Sciences
+  title: 'Electrophoretic transfer of proteins from polyacrylamide gels to
+
+    nitrocellulose sheets: procedure and some applications.'
+  url:
+  - http://dx.doi.org/10.1073/pnas.76.9.4350
+  volume: 76
+  year: 1979
+...
+---
+Lee_1988:
+  ENTRYTYPE: article
+  author:
+  - first: Chengteh
+    last: Lee
+  - first: Weitao
+    last: Yang
+  - first: Robert G.
+    last: Parr
+  doi: 10.1103/physrevb.37.785
+  issn: 0163-1829
+  journal: Physical Review B
+  month: jan
+  number: 2
+  pages: 785{\textendash}789
+  publisher: American Physical Society (APS)
+  title: 'Development of the Colle-Salvetti correlation-energy formula into a
+
+    functional of the electron density'
+  url:
+  - http://dx.doi.org/10.1103/PhysRevB.37.785
+  volume: 37
+  year: 1988
+...
+---
+Becke_1993:
+  ENTRYTYPE: article
+  author:
+  - first: Axel D.
+    last: Becke
+  doi: 10.1063/1.464913
+  issn: 1089-7690
+  journal: The Journal of Chemical Physics
+  month: apr
+  number: 7
+  pages: 5648{\textendash}5652
+  publisher: AIP Publishing
+  title: 'Density-functional thermochemistry. III. The role of exact exchange
+
+    '
+  url:
+  - http://dx.doi.org/10.1063/1.464913
+  volume: 98
+  year: 1993
+...
+---
+Folch_1957:
+  ENTRYTYPE: article
+  author:
+  - first: Jordi
+    last: Folch
+  - first: M.
+    last: Lees
+  - first: G.H. Sloane
+    last: Stanley
+  doi: 10.1016/s0021-9258(18)64849-5
+  issn: 0021-9258
+  journal: Journal of Biological Chemistry
+  month: may
+  number: 1
+  pages: 497{\textendash}509
+  publisher: Elsevier BV
+  title: 'A SIMPLE METHOD FOR THE ISOLATION AND PURIFICATION OF TOTAL LIPIDES
+
+    FROM ANIMAL TISSUES'
+  url:
+  - http://dx.doi.org/10.1016/S0021-9258(18)64849-5
+  volume: 226
+  year: 1957
+...
+---
+Thompson_1994:
+  ENTRYTYPE: article
+  author:
+  - first: Julie D.
+    last: Thompson
+  - first: Desmond G.
+    last: Higgins
+  - first: Toby J.
+    last: Gibson
+  doi: 10.1093/nar/22.22.4673
+  issn: 1362-4962
+  journal: Nucleic Acids Research
+  number: 22
+  pages: 4673{\textendash}4680
+  publisher: Oxford University Press (OUP)
+  title: 'CLUSTAL W: improving the sensitivity of progressive multiple
+
+    sequence alignment through sequence weighting, position-specific gap
+
+    penalties and weight matrix choice'
+  url:
+  - http://dx.doi.org/10.1093/nar/22.22.4673
+  volume: 22
+  year: 1994
+...
