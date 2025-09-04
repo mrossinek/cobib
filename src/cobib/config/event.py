@@ -29,6 +29,7 @@ _FORWARD_REFS: dict[str, str] = {}
 if TYPE_CHECKING:
     from cobib import commands, importers
     from cobib.database import Entry
+    from cobib.ui import Shell
 else:
     _FORWARD_REFS = {
         "ForwardRef('Entry')": "Entry",
@@ -51,6 +52,7 @@ else:
         "ForwardRef('commands.UndoCommand')": "cobib.commands.undo.UndoCommand",
         "ForwardRef('importers.BibtexImporter')": "cobib.importers.bibtex.BibtexImporter",
         "ForwardRef('importers.ZoteroImporter')": "cobib.importers.zotero.ZoteroImporter",
+        "ForwardRef('Shell')": "Shell",
     }
 
 LOGGER = logging.getLogger(__name__)
@@ -829,6 +831,31 @@ class Event(Enum):
 
     Returns:
         Nothing.
+    """
+
+    PreShellInput = cast("Event", Callable[["Shell"], None])
+    """
+    Fires:
+        Before querying for user input during `cobib.ui.shell.Shell.run_async`.
+
+    Arguments:
+        `cobib.ui.shell.Shell`: the shell instance which is running.
+
+    Returns:
+        Nothing. But the Shell's attributes are available, for example its
+        `cobib.ui.shell.Shell.live` instance which provides access to the `rich.console.Console`.
+    """
+
+    PostShellInput = cast("Event", Callable[[str], Optional[str]])
+    """
+    Fires:
+        After the user provided their input during `cobib.ui.shell.Shell.run_async`.
+
+    Arguments:
+        `text`: the text the user provided.
+
+    Returns:
+        An optionally modified input text.
     """
 
     def subscribe(self, function: Callable) -> Callable:  # type: ignore[type-arg]

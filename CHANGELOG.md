@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - This is mutually exclusive with providing any command and will open an
     interactive shell instead, in which multiple commands can be executed in
     sequence. Read the `cobib-shell.7` man-page for more details.
+  - this also comes with the new `PreShellInput` and `PostShellInput` events (#163,!381)
 - the `--bibtex` backend for the `import` command (!380)
   - this also comes with the new `PreBibtexImport` and `PostBibtexImport` events
 

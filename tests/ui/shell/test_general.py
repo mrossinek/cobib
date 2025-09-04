@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import os
 from collections.abc import Generator
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 
 import pytest
 
-from cobib.config import config
+from cobib.config import Event, config
 from cobib.database import Database
 from cobib.ui import Shell
 
@@ -74,11 +74,7 @@ class TestShellGeneral(CmdLineTest):
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "post_setup",
-        [
-            {"stdin_list": ["help\n", "exit\n"]},
-        ],
-        indirect=["post_setup"],
+        "post_setup", [{"stdin_list": ["help\n", "exit\n"]}], indirect=["post_setup"]
     )
     async def test_help(self, post_setup: Any, capsys: pytest.CaptureFixture[str]) -> None:
         """Tests the `help` alias of the interactive shell.
@@ -95,11 +91,7 @@ class TestShellGeneral(CmdLineTest):
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "post_setup",
-        [
-            {"stdin_list": ["git --help\n", "exit\n"]},
-        ],
-        indirect=["post_setup"],
+        "post_setup", [{"stdin_list": ["git --help\n", "exit\n"]}], indirect=["post_setup"]
     )
     async def test_help_command(self, post_setup: Any, capsys: pytest.CaptureFixture[str]) -> None:
         """Tests the requesting `--help` for a command does not exit the interactive shell.
@@ -116,11 +108,7 @@ class TestShellGeneral(CmdLineTest):
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "post_setup",
-        [
-            {"stdin_list": ["asdf\n", "exit\n"]},
-        ],
-        indirect=["post_setup"],
+        "post_setup", [{"stdin_list": ["asdf\n", "exit\n"]}], indirect=["post_setup"]
     )
     async def test_catch_unknown_command(
         self, post_setup: Any, capsys: pytest.CaptureFixture[str]
@@ -168,3 +156,45 @@ class TestShellGeneral(CmdLineTest):
         out = capsys.readouterr().out
         for word in expected:
             assert word in out
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("post_setup", [{"stdin_list": ["exit\n"]}], indirect=["post_setup"])
+    async def test_event_pre_shell_input(
+        self, post_setup: Any, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Tests the PreShellInput event.
+
+        Args:
+            post_setup: an additional setup fixture.
+            capsys: the built-in pytest fixture.
+        """
+        greeting = "Hello, world!"
+
+        @Event.PreShellInput.subscribe
+        def hook(shell: Shell) -> None:
+            shell.live.console.print(greeting)
+
+        assert Event.PreShellInput.validate()
+
+        await Shell().run_async()
+
+        out = capsys.readouterr().out
+        for word in greeting.split():
+            assert word in out
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("post_setup", [{"stdin_list": ["asdf\n"]}], indirect=["post_setup"])
+    async def test_event_post_shell_input(self, post_setup: Any) -> None:
+        """Tests the PostShellInput event.
+
+        Args:
+            post_setup: an additional setup fixture.
+        """
+
+        @Event.PostShellInput.subscribe
+        def hook(text: str) -> Optional[str]:
+            return "quit"
+
+        assert Event.PostShellInput.validate()
+
+        await Shell().run_async()
