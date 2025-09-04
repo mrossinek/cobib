@@ -679,6 +679,27 @@ The arguments and return types of these events vary as detailed below.
     Returns:<br>
         Nothing.
 
+  * _PreShellInput_ = `Callable[[cobib.ui.shell.Shell], None]`:
+    Fires:<br>
+        Before querying for user input during *cobib-shell(7)*.
+
+    Arguments:<br>
+        - `cobib.ui.shell.Shell`: the shell instance which is running.
+
+    Returns:<br>
+        Nothing. But the Shell's attributes can be modified, for example its
+        `cobib.ui.shell.Shell.live` instance which provides access to the `rich.console.Console`.
+
+  * _PostShellInput_ = `Callable[[str], Optional[str]]`:
+    Fires:<br>
+        After the user provided their input during *cobib-shell(7)*.
+
+    Arguments:<br>
+        - `text`: the text the user provided.
+
+    Returns:<br>
+        An optionally modified input text.
+
 
 ## EXAMPLES
 

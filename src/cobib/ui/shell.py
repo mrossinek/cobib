@@ -12,6 +12,7 @@ from typing import Any
 from rich.live import Live
 from typing_extensions import override
 
+from cobib.config import Event
 from cobib.ui.components import LoggingHandler, console
 from cobib.ui.ui import UI
 
@@ -44,13 +45,29 @@ class Shell(UI):
 
         self.logging_handler = ShellLogHandler(self, level=min(verbosity, logging.WARNING))
 
+        self.history: list[str] = []
+        """The history of executed commands and their arguments as a single string (after being
+        processed by any PostShellInput event hooks)."""
+
+        self.live: Live
+        """The live display in which the console renders."""
+
     async def run_async(self) -> None:
         """Runs the Shell interface."""
-        with Live(console=console, auto_refresh=False):
+        with Live(console=console, auto_refresh=False) as self.live:
             console.show_cursor(True)
 
             while True:
+                Event.PreShellInput.fire(self)
+
                 text = console.input("> ")
+
+                hook_result = Event.PostShellInput.fire(text)
+                if hook_result is not None:
+                    text = hook_result
+
+                self.history.append(text)
+
                 command, *args = text.split()
 
                 if command in ("exit", "quit"):
@@ -78,5 +95,6 @@ class Shell(UI):
 
                     if renderable is not None:
                         console.print(renderable)
+
                 except SystemExit:
                     pass
