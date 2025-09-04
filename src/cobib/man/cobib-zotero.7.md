@@ -7,6 +7,8 @@ cobib-zotero(7) -- zotero importer backend
 
 ## DESCRIPTION
 
+> WARNING: this importer backend is **DEPRECATED** and will be removed in v6.0.0 of coBib when the `cobib-zotero` plugin is going to replace it.
+
 Imports the bibliography from [Zotero](https://www.zotero.org).
 This importer is registered inside the *cobib-import(1)* command.
 In its simplest form, it is executed like so:

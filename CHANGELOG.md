@@ -6,17 +6,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## Added
+### Added
 - the `man` command (`!` in the TUI) for viewing coBib's man-pages (#154,!377)
 - the `cobib.man` entry-point to allow plugins to register their own man-pages
 - the `--shell` argument to the main `cobib` executable (#157,!379)
   - This is mutually exclusive with providing any command and will open an
     interactive shell instead, in which multiple commands can be executed in
     sequence. Read the `cobib-shell.7` man-page for more details.
+- the `--bibtex` backend for the `import` command (!380)
+  - this also comes with the new `PreBibtexImport` and `PostBibtexImport` events
+
+### Deprecated
+- the `--zotero` backend for the `import` command (!380)
+  - this backend will be replaced by the `cobib-zotero` plugin in time for the next major release
 
 ### Fixed
 - the progress indicator of search and download progress in the TUI (#158,!376)
 - querying for `--help` in the TUI no longer crashes with certain commands (#161,!378)
+- a bug when parsing author names and the BibTeX source contained line breaks (!380)
 
 
 ## [5.4.0] - 2025-08-02

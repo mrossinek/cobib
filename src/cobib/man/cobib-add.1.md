@@ -9,7 +9,9 @@ cobib-add(1) -- add entries
 
 Adds entries to the database.
 This is the main command to insert new entries into the database.
-For migrating from another bibliography manager, look at *cobib-import(1)* instead.
+For migrating from another bibliography manager, look at *cobib-import(1)* instead,
+which is a more simplified entry addition procedure that does not make any modifications other than ensuring unique labels.
+In contrast, this *cobib-add(1)* command will parse every entry individually, possibly prompting for user interaction in the process.
 
 Generally speaking, entries can be added in one of two ways:
 

@@ -112,7 +112,7 @@ class AddCommand(Command):
             help="force the automatic download of an associated file",
         )
         group_add = parser.add_mutually_exclusive_group()
-        for name, (_, short_hand) in cls._avail_parsers.items():
+        for name, (_, short_hand) in sorted(cls._avail_parsers.items()):
             help_text = f"{name} object identifier"
             if short_hand:
                 try:

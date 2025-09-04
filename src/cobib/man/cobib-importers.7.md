@@ -18,8 +18,11 @@ $ cobib import --help
 
 All available import backends are registered as options of the *cobib-import(1)* command using their `name` attribute, like so: `--NAME`.
 
+  * *cobib-bibtex(7)*:
+    Imports entries from a BibTeX file.
+
   * *cobib-zotero(7)*:
-    Imports entries from a Zotero bibliography.
+    **DEPRECATED** Imports entries from a Zotero bibliography.
 
 ## SEE ALSO
 

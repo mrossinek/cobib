@@ -13,10 +13,12 @@ To ease the interface (and implementation), this process of adding new entries i
 
 To support various other bibliography managers as sources for this command, the specific implementation of each one is split out (see *cobib-importers(7)*).
 All available backends are then registered (at runtime) in a **mutually exclusive** group of keyword arguments (indicated by `--<IMPORTER>` above).
-coBib ships with a single backend for Zotero, which is used like so:
+coBib ships with a single builtin backend to import from a BibTeX file (`--bibtex`), which is used like so:
 ```bash
-$ cobib import --zotero
+$ cobib import --bibtex path/to/file.bib
 ```
+
+> NOTE: in v5.5.0 of coBib there still exists a builtin `--zotero` backend, but it is deprecated and will be replaced by the `cobib-zotero` plugin in v6.0.0
 
 Plugins can implement other importers for other sources.
 The full list of available backends can be seen in the output of:
@@ -53,7 +55,12 @@ config.database.stringify.list_separator.file = "; "
 ## EXAMPLES
 
 ```bash
-$ cobib import --skip-download --zotero
+$ cobib import --bibtex path/to/file.bib
+```
+
+While the `--bibtex` backend does not provide any download features, other backends provided by plugins should respect the corresponding options and setting:
+```bash
+$ cobib import --skip-download --<IMPORTER>
 ```
 
 

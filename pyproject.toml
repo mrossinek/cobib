@@ -67,6 +67,7 @@ unify_labels = "cobib.commands.unify_labels:UnifyLabelsCommand"
 _example_config = "cobib.config.command:ExampleConfigCommand"
 
 [project.entry-points."cobib.importers"]
+bibtex = "cobib.importers.bibtex:BibtexImporter"
 zotero = "cobib.importers.zotero:ZoteroImporter"
 
 [project.entry-points."cobib.parsers"]
