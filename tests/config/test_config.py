@@ -115,7 +115,7 @@ def test_config_validation_failure(caplog: pytest.LogCaptureFixture) -> None:
     assert (
         "cobib.config.config",
         logging.ERROR,
-        "config.database.file should be a string.",
+        "config.database.file should be a string or Path.",
     ) in caplog.record_tuples
 
 

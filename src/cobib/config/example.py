@@ -215,6 +215,17 @@ config.parsers.bibtex.ignore_non_standard_types = False
 # more details.
 config.parsers.yaml.use_c_lib_yaml = True
 
+# SHELL
+
+# The path under which to store the history of executed shell commands. Set this to `None` to
+# disable this functionality entirely. Using this feature requires the optional `prompt_toolkit`
+# dependency to be installed.
+config.shell.history = "~/.cache/cobib/shell_history"
+
+# Whether to enable VI mode (instead of Emacs mode) for `prompt_toolkit`'s line editing.
+# Using this feature requires the optional `prompt_toolkit` dependency to be installed.
+config.shell.vi_mode = False
+
 # THEME
 
 # Textual's underlying `ColorSystem`.
