@@ -92,6 +92,8 @@ class Config(_ConfigBase):
     """The nested section for the logging settings."""
     parsers: ParserConfig = field(default_factory=lambda: ParserConfig())
     """The nested section for the parsers settings."""
+    shell: ShellConfig = field(default_factory=lambda: ShellConfig())
+    """The nested section for the Shell settings."""
     theme: ThemeConfig = field(default_factory=lambda: ThemeConfig())
     """The nested section for the theme settings."""
     tui: TUIConfig = field(default_factory=lambda: TUIConfig())
@@ -536,10 +538,12 @@ class DatabaseConfig(_ConfigBase):
     def validate(self) -> None:
         LOGGER.debug("Validating the DATABASE configuration section.")
         self._assert(
-            self.cache is None or isinstance(self.cache, str),
-            "config.database.cache should be a string or `None`.",
+            self.cache is None or isinstance(self.cache, (str, Path)),
+            "config.database.cache should be a string, Path, or `None`.",
         )
-        self._assert(isinstance(self.file, str), "config.database.file should be a string.")
+        self._assert(
+            isinstance(self.file, (str, Path)), "config.database.file should be a string or Path."
+        )
         self.format.validate()
         self._assert(isinstance(self.git, bool), "config.database.git should be a boolean.")
         self.stringify.validate()
@@ -883,6 +887,34 @@ class YAMLParserConfig(_ConfigBase):
             isinstance(self.use_c_lib_yaml, bool),
             "config.parsers.yaml.use_c_lib_yaml should be a boolean.",
         )
+
+
+@dataclass
+class ShellConfig(_ConfigBase):
+    """The `config.shell` section."""
+
+    history: str | Path | None = "~/.cache/cobib/shell_history"
+    """The path under which to store the history of executed shell commands (i.e. the argument to
+    `prompt_toolkit.history.FileHistory`). Set this to `None` to disable this functionality entirely
+    (i.e. to use `prompt_toolkit.history.InMemoryHistory`). See also [this explanation][1].
+
+    Using this feature requires the optional `prompt_toolkit` dependency to be installed.
+
+    [1]: https://python-prompt-toolkit.readthedocs.io/en/stable/pages/asking_for_input.html#history
+    """
+
+    vi_mode: bool = False
+    """Whether to enable VI mode (instead of Emacs mode) for `prompt_toolkit`'s line editing.
+    Using this feature requires the optional `prompt_toolkit` dependency to be installed."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the SHELL configuration section.")
+        self._assert(
+            self.history is None or isinstance(self.history, (str, Path)),
+            "config.shell.history should be a string, Path, or `None`.",
+        )
+        self._assert(isinstance(self.vi_mode, bool), "config.shell.vi_mode should be a boolean.")
 
 
 @dataclass

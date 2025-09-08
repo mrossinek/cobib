@@ -16,7 +16,7 @@ from typing_extensions import override
 
 from cobib import __version__
 from cobib.config import config
-from cobib.ui.components import console
+from cobib.ui.components import PromptConsole
 from cobib.ui.shell import Shell
 from cobib.ui.tui import TUI
 from cobib.ui.ui import UI
@@ -100,6 +100,8 @@ class CLI(UI):
     async def run(self) -> None:
         """Runs the CLI interface."""
         arguments = self.parse_args()
+
+        console = PromptConsole()
 
         if not arguments.porcelain:
             # print latest changelog

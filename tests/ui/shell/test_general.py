@@ -11,8 +11,16 @@ import pytest
 from cobib.config import Event, config
 from cobib.database import Database
 from cobib.ui import Shell
+from cobib.ui.components.console import HAS_OPTIONAL_PROMPT_TOOLKIT
 
-from ... import CmdLineTest, MockStdin, get_resource
+if HAS_OPTIONAL_PROMPT_TOOLKIT:
+    from prompt_toolkit.application import create_app_session
+    from prompt_toolkit.input import PipeInput, create_pipe_input
+    from prompt_toolkit.output import DummyOutput
+else:
+    from ... import MockStdin
+
+from ... import CmdLineTest, get_resource
 
 if TYPE_CHECKING:
     import _pytest.fixtures
@@ -37,7 +45,7 @@ class TestShellGeneral(CmdLineTest):
     @pytest.fixture
     def post_setup(
         self, monkeypatch: pytest.MonkeyPatch, request: _pytest.fixtures.SubRequest
-    ) -> Generator[dict[str, Any], None, None]:
+    ) -> Generator[PipeInput, None, None]:
         """Additional setup instructions.
 
         Args:
@@ -49,27 +57,33 @@ class TestShellGeneral(CmdLineTest):
         """
         if not hasattr(request, "param"):
             # use default settings
-            request.param = {"stdin_list": None}
+            request.param = {"stdin_list": []}
 
-        monkeypatch.setattr("sys.stdin", MockStdin(request.param.get("stdin_list", None)))
-
-        yield request.param
+        if HAS_OPTIONAL_PROMPT_TOOLKIT:
+            with create_pipe_input() as pipe_input:
+                with create_app_session(input=pipe_input, output=DummyOutput()):
+                    for line in request.param["stdin_list"]:
+                        pipe_input.send_text(line)
+                    yield pipe_input
+        else:
+            monkeypatch.setattr("sys.stdin", MockStdin(request.param.get("stdin_list", None)))
+            yield request.param
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize("post_setup", [{"stdin_list": ["quit\n"]}], indirect=["post_setup"])
     async def test_cmdline(
-        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+        self, post_setup: Any, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
     ) -> None:
         """Test the command-line access of the shell.
 
         Args:
+            post_setup: an additional setup fixture.
             monkeypatch: the built-in pytest fixture.
             capsys: the built-in pytest fixture.
         """
-        monkeypatch.setattr("sys.stdin", MockStdin(["quit\n"]))
         with pytest.raises(SystemExit):
             await super().run_module(monkeypatch, "main", ["cobib", "-p", "-s"])
         outerr = capsys.readouterr()
-        assert outerr.out == "> "
         assert "The --porcelain mode has no effect on an interactive UI!" in outerr.err
 
     @pytest.mark.asyncio

@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     interactive shell instead, in which multiple commands can be executed in
     sequence. Read the `cobib-shell.7` man-page for more details.
   - this also comes with the new `PreShellInput` and `PostShellInput` events (#163,!381)
+  - this also comes with the new optional dependency `prompt_toolkit` which
+    enables advanced line-editing features and preserves the executed command
+    history of the `Shell` (see also the new `config.shell` settings) (#165,!384)
 - the `--bibtex` backend for the `import` command (!380)
   - this also comes with the new `PreBibtexImport` and `PostBibtexImport` events
 

@@ -9,11 +9,13 @@ import logging
 from inspect import iscoroutinefunction
 from typing import Any
 
+from rich.console import ConsoleRenderable, RenderHook
+from rich.control import Control
 from rich.live import Live
 from typing_extensions import override
 
 from cobib.config import Event
-from cobib.ui.components import LoggingHandler, console
+from cobib.ui.components import LoggingHandler, PromptConsole
 from cobib.ui.ui import UI
 
 LOGGER = logging.getLogger(__name__)
@@ -25,12 +27,14 @@ class ShellLogHandler(LoggingHandler):
 
     FORMAT: str = "[%(levelname)s] %(message)s"
 
+    console: PromptConsole
+
     @override
     def emit(self, record: logging.LogRecord) -> None:
-        console.log(self.format(record))
+        ShellLogHandler.console.log(self.format(record))
 
 
-class Shell(UI):
+class Shell(UI, RenderHook):
     """The Shell class."""
 
     def __init__(self, *args: Any, verbosity: int = logging.WARNING, **kwargs: Any) -> None:
@@ -43,30 +47,30 @@ class Shell(UI):
         """
         super().__init__(*args, **kwargs)
 
-        self.logging_handler = ShellLogHandler(self, level=min(verbosity, logging.WARNING))
-
-        self.history: list[str] = []
-        """The history of executed commands and their arguments as a single string (after being
-        processed by any PostShellInput event hooks)."""
+        self.console: PromptConsole = PromptConsole()
+        """The console instance."""
 
         self.live: Live
         """The live display in which the console renders."""
 
+        ShellLogHandler.console = self.console
+        self.logging_handler = ShellLogHandler(self, level=min(verbosity, logging.WARNING))
+
     async def run_async(self) -> None:
         """Runs the Shell interface."""
-        with Live(console=console, auto_refresh=False) as self.live:
-            console.show_cursor(True)
+        with Live(console=self.console, auto_refresh=False) as self.live:
+            self.console.show_cursor(True)
+
+            self.console.push_render_hook(self)
 
             while True:
                 Event.PreShellInput.fire(self)
 
-                text = console.input("> ")
+                text = await self.console.input("> ")
 
                 hook_result = Event.PostShellInput.fire(text)
                 if hook_result is not None:
                     text = hook_result
-
-                self.history.append(text)
 
                 command, *args = text.split()
 
@@ -94,7 +98,22 @@ class Shell(UI):
                     renderable = subcmd.render_rich()
 
                     if renderable is not None:
-                        console.print(renderable)
+                        self.console.print(renderable)
 
                 except SystemExit:
                     pass
+
+    def process_renderables(self, renderables: list[ConsoleRenderable]) -> list[ConsoleRenderable]:
+        """Process renderables to remove any cursor positioning Control.
+
+        This is necessary because we delegate this task to `prompt_toolkit`.
+
+        Args:
+            renderables: the renderable object to process.
+
+        Returns:
+            The processed renderable objects.
+        """
+        if isinstance(renderables[0], Control):
+            renderables = renderables[1:]
+        return renderables

@@ -231,6 +231,17 @@ Instead, the `Event.subscribe` decorator should be used (cf. *cobib-event(7)*).
     This **significantly** improves the performance but may require additional installation steps.
     See the [ruamel.yaml installation instructions](https://yaml.dev/doc/ruamel.yaml/install/) for more details.
 
+#### SHELL
+
+  * _config.shell.history_ = `"~/.cache/cobib/shell_history"`:
+    The default location of the history of executed shell commands.
+    Set this to `None` to disable this functionality entirely.
+    Using this feature requires the optional `prompt_toolkit` dependency to be installed.
+
+  * _config.shell.vi_mode_ = `False`:
+    Whether to enable VI mode (instead of Emacs mode) for `prompt_toolkit`'s line editing.
+    Using this feature requires the optional `prompt_toolkit` dependency to be installed.
+
 #### THEME
 
   * _config.theme.theme_ = `"textual-dark"`:
