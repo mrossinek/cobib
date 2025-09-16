@@ -154,8 +154,8 @@ test = [
 ]
 coverage = [
     "cobib[test]",
-    "coverage~=7.10.4",
-    "pytest-cov~=6.3.0",
+    "coverage~=7.10.6",
+    "pytest-cov~=7.0.0",
 ]
 lint = [
     "cobib[basedev]",
@@ -195,6 +195,7 @@ asyncio_default_fixture_loop_scope = "function"
 [tool.coverage.run]
 source = ["src/cobib/"]
 parallel = true
+patch = ["subprocess"]
 branch = true
 
 [tool.coverage.report]
