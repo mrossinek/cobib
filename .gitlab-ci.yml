@@ -8,6 +8,13 @@ default:
         - git config --global user.name "CoBib"
         - pip install virtualenv tox
 
+# See https://docs.gitlab.com/ci/pipelines/merge_request_pipelines/
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
 variables:
@@ -24,11 +31,12 @@ cache:
         - .cache/pip
 
 stages:
+    - lint
     - test
     - deploy
 
 lint:
-    stage: test
+    stage: lint
     script:
         - tox -e lint -- --html-report htmlmypy --cobertura-xml-report .
         - head -1 cobertura.xml | awk -F'line-rate*=*\"' '{sub(/".*/,"",$2); printf "mypy coverage %.0f", $2 * 100; print "%"}'
@@ -60,6 +68,9 @@ test:
             - tests/report-py$PYTHON_VERSION.xml
         reports:
             junit: tests/report-py$PYTHON_VERSION.xml
+    rules:
+        - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+          when: never
 
 no-optionals:
     stage: test
