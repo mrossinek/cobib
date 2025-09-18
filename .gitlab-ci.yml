@@ -142,7 +142,7 @@ dev-pages:
         - ls public
     environment:
         name: dev
-        url: https://$CI_PROJECT_NAMESPACE.gitlab.io/$CI_PROJECT_NAME/dev
+        url: "https://$CI_PROJECT_NAMESPACE.gitlab.io/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/index.html"
     artifacts:
         paths:
             - public
