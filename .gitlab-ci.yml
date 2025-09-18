@@ -72,7 +72,7 @@ test:
         - if: $CI_MERGE_REQUEST_EVENT_TYPE == 'merge_train'
           when: on_success
         - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-          when: never
+          when: manual
         - when: on_success
 
 no-optionals:
