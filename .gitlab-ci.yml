@@ -31,12 +31,13 @@ cache:
         - .cache/pip
 
 stages:
-    - lint and docs
+    - lint
     - test
+    - docs
     - deploy
 
 lint:
-    stage: lint and docs
+    stage: lint
     dependencies: []
     script:
         - tox -e lint -- --html-report htmlmypy --cobertura-xml-report .
@@ -124,8 +125,10 @@ coverage:
             path: coverage.xml
 
 docs:
-    stage: lint and docs
-    dependencies: []
+    stage: docs
+    needs:
+        - job: lint
+          artifacts: false
     script:
         - apt-get install -y ruby-dev vim
         - gem install ronn-ng
