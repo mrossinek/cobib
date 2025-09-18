@@ -151,6 +151,33 @@ dev-pages:
           when: on_success
         - when: never
 
+mr-pages:
+    stage: deploy
+    needs: ["docs"]
+    script:
+        - ls public
+    environment:
+        name: docs/$CI_COMMIT_REF_SLUG
+        url: "https://$CI_PROJECT_NAMESPACE.gitlab.io/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/index.html"
+    artifacts:
+        paths:
+            - public
+    rules:
+        - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+          when: on_success
+        - when: never
+
+stop-mr-pages:
+    stage: deploy
+    script:
+        - echo "Stopping docs preview environment"
+    environment:
+        name: docs/$CI_COMMIT_REF_SLUG
+        action: stop
+    rules:
+        - if: $CI_MERGE_REQUEST_ID
+          when: manual
+
 pages:
     stage: deploy
     needs: ["docs"]
