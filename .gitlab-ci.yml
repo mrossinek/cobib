@@ -126,9 +126,7 @@ coverage:
 
 docs:
     stage: docs
-    needs:
-        - job: lint
-          artifacts: false
+    needs: []
     script:
         - apt-get install -y ruby-dev vim
         - gem install ronn-ng
