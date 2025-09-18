@@ -127,9 +127,6 @@ coverage:
 docs:
     stage: docs
     dependencies: []
-    environment:
-        name: dev
-        url: "https://$CI_PROJECT_NAMESPACE.gitlab.io/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/index.html"
     script:
         - apt-get install -y ruby-dev vim
         - gem install ronn-ng
@@ -138,8 +135,23 @@ docs:
     artifacts:
         paths:
           - public
-    variables:
-        PUBLIC_URL: "/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public"
+
+dev-pages:
+    stage: deploy
+    dependencies:
+        - docs
+    script:
+        - ls public
+    environment:
+        name: dev
+        url: https://$CI_PROJECT_NAMESPACE.gitlab.io/$CI_PROJECT_NAME/dev
+    artifacts:
+        paths:
+            - public
+    rules:
+        - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+          when: on_success
+        - when: never
 
 pages:
     stage: deploy
@@ -150,7 +162,9 @@ pages:
     artifacts:
         paths:
             - public
-    when: manual
-    only:
-        - master
-        - tags
+    rules:
+        - if: $CI_COMMIT_TAG
+          when: on_success
+        - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+          when: manual
+        - when: never
