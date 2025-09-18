@@ -33,10 +33,12 @@ cache:
 stages:
     - lint
     - test
+    - docs
     - deploy
 
 lint:
     stage: lint
+    dependencies: []
     script:
         - tox -e lint -- --html-report htmlmypy --cobertura-xml-report .
         - head -1 cobertura.xml | awk -F'line-rate*=*\"' '{sub(/".*/,"",$2); printf "mypy coverage %.0f", $2 * 100; print "%"}'
@@ -54,6 +56,7 @@ lint:
 
 test:
     stage: test
+    dependencies: []
     parallel:
         matrix:
             - PYTHON_VERSION: ['3.9', '3.10', '3.11', '3.12', '3.13']
@@ -77,6 +80,7 @@ test:
 
 no-optionals:
     stage: test
+    dependencies: []
     script:
         - tox -e no-optionals
     artifacts:
@@ -90,6 +94,7 @@ no-optionals:
 
 plugin:
     stage: test
+    dependencies: []
     script:
         - tox -e plugin
     artifacts:
@@ -103,6 +108,7 @@ plugin:
 
 coverage:
     stage: test
+    dependencies: []
     script:
         - tox -e coverage
     coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+\s+\d+\s+)*(\d+%)/'
@@ -118,8 +124,9 @@ coverage:
             coverage_format: cobertura
             path: coverage.xml
 
-develop:
-    stage: deploy
+docs:
+    stage: docs
+    dependencies: []
     environment:
         name: dev
         url: "https://$CI_PROJECT_NAMESPACE.gitlab.io/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/index.html"
@@ -136,11 +143,10 @@ develop:
 
 pages:
     stage: deploy
+    dependencies:
+        - docs
     script:
-        - apt-get install -y ruby-dev vim
-        - gem install ronn-ng
-        - tox -e docs
-        - mv build/html public
+        - ls public
     artifacts:
         paths:
             - public
