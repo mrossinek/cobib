@@ -138,6 +138,7 @@ docs:
 dev-pages:
     stage: deploy
     needs: ["docs"]
+    before_script: []
     script:
         - ls public
     environment:
@@ -154,6 +155,7 @@ dev-pages:
 mr-pages:
     stage: deploy
     needs: ["docs"]
+    before_script: []
     script:
         - ls public
     environment:
@@ -169,6 +171,7 @@ mr-pages:
 
 stop-mr-pages:
     stage: deploy
+    before_script: []
     script:
         - echo "Stopping docs preview environment"
     environment:
@@ -181,6 +184,7 @@ stop-mr-pages:
 pages:
     stage: deploy
     needs: ["docs"]
+    before_script: []
     script:
         - ls public
     artifacts:
