@@ -31,13 +31,12 @@ cache:
         - .cache/pip
 
 stages:
-    - lint
+    - lint and docs
     - test
-    - docs
     - deploy
 
 lint:
-    stage: lint
+    stage: lint and docs
     dependencies: []
     script:
         - tox -e lint -- --html-report htmlmypy --cobertura-xml-report .
@@ -125,7 +124,7 @@ coverage:
             path: coverage.xml
 
 docs:
-    stage: docs
+    stage: lint and docs
     dependencies: []
     script:
         - apt-get install -y ruby-dev vim
@@ -138,8 +137,7 @@ docs:
 
 dev-pages:
     stage: deploy
-    dependencies:
-        - docs
+    needs: ["docs"]
     script:
         - ls public
     environment:
@@ -155,8 +153,7 @@ dev-pages:
 
 pages:
     stage: deploy
-    dependencies:
-        - docs
+    needs: ["docs"]
     script:
         - ls public
     artifacts:
