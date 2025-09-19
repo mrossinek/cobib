@@ -38,7 +38,6 @@ from cobib.ui.components import (
     EntryView,
     InputScreen,
     ListView,
-    LoggingHandler,
     LogScreen,
     MainContent,
     ManualScreen,
@@ -48,6 +47,7 @@ from cobib.ui.components import (
     SearchView,
     SelectionFilter,
 )
+from cobib.utils.logging import LoggingHandler
 from cobib.utils.prompt import Confirm
 
 from .ui import UI
@@ -60,6 +60,8 @@ LOGGER = logging.getLogger(__name__)
 
 class TUILogHandler(LoggingHandler):
     """The TUI's LoggingHandler emit implementation."""
+
+    FORMAT: str = "%(asctime)s [%(levelname)s] %(message)s"
 
     @override
     def emit(self, record: logging.LogRecord) -> None:

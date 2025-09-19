@@ -6,12 +6,9 @@
 from __future__ import annotations
 
 import argparse
-import contextlib
 import logging
-from io import StringIO
 
 from rich.console import ConsoleRenderable
-from rich.text import Text
 from typing_extensions import override
 
 from cobib.config import config
@@ -38,7 +35,7 @@ class UnifyLabelsCommand(Command):
     def __init__(self, *args: str) -> None:
         super().__init__(*args)
 
-        self._contents: list[str] = []
+        self._cmd: ModifyCommand
 
     @override
     @classmethod
@@ -68,21 +65,13 @@ class UnifyLabelsCommand(Command):
         if not self.largs.apply:
             modify_args.insert(0, "--dry")
 
-        with contextlib.redirect_stderr(StringIO()) as out:
-            cmd = ModifyCommand(*modify_args)
-            cmd.execute()
-
-        self._contents = out.getvalue().strip().split("\n")
+        self._cmd = ModifyCommand(*modify_args)
+        self._cmd.execute()
 
     @override
     def render_porcelain(self) -> list[str]:
-        return self._contents
+        return self._cmd.render_porcelain()
 
     @override
     def render_rich(self) -> ConsoleRenderable:
-        text = Text("\n".join(self._contents))  # pragma: no cover
-        text.highlight_words(["ERROR"], "bold red")  # pragma: no cover
-        text.highlight_words(["WARNING"], "bold yellow")  # pragma: no cover
-        text.highlight_words(["HINT"], "green")  # pragma: no cover
-        text.highlight_words(["INFO"], "blue")  # pragma: no cover
-        return text  # pragma: no cover
+        return self._cmd.render_rich()

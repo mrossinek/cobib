@@ -10,8 +10,11 @@ import ast
 import logging
 from collections.abc import Callable
 from copy import copy
+from io import StringIO
 from typing import Any, cast
 
+from rich.console import ConsoleRenderable
+from rich.text import Text
 from text_unidecode import unidecode
 from typing_extensions import override
 
@@ -63,7 +66,16 @@ class ModifyCommand(Command):
         super().__init__(*args)
 
         self.modified_entries: list[Entry] = []
-        """A list of `cobib.database.Entry` objects which were modified by this command."""
+        """A list of `cobib.database.Entry` objects which were modified by this command.
+
+        This is **not** populated when the `--dry` mode is used.
+        """
+
+        self.modification_details: list[str] = []
+        """A list of captured log messages, detailing the applied modifications.
+
+        This is **only** populated when the `--dry` mode is used.
+        """
 
     @staticmethod
     def field_value_pair(string: str) -> tuple[str, str]:
@@ -157,7 +169,7 @@ class ModifyCommand(Command):
 
         Event.PreModifyCommand.fire(self)
 
-        info_handler: logging.Handler
+        info_handler: logging.StreamHandler[StringIO]
         if self.largs.dry:
             info_handler = get_stream_handler(logging.INFO)
 
@@ -167,6 +179,7 @@ class ModifyCommand(Command):
                 def filter(self, record: logging.LogRecord) -> bool:
                     return record.name == "cobib.commands.modify" and record.levelname == "INFO"
 
+            LOGGER.debug("Starting to capture modification logging messages")
             info_handler.addFilter(ModifyInfoFilter())
             LOGGER.addHandler(info_handler)
 
@@ -354,9 +367,25 @@ class ModifyCommand(Command):
             LOGGER.removeHandler(info_handler)
             # read also functions as a restoring method
             bib.read()
+
+            messages = info_handler.stream.getvalue()
+            self.modification_details = [msg for msg in messages.split("\n") if msg]
         else:
             bib.save()
             self.git()
+
+    @override
+    def render_porcelain(self) -> list[str]:
+        return self.modification_details
+
+    @override
+    def render_rich(self) -> ConsoleRenderable:
+        text = Text("\n".join(self.modification_details))  # pragma: no cover
+        text.highlight_words(["ERROR"], "bold red")  # pragma: no cover
+        text.highlight_words(["WARNING"], "bold yellow")  # pragma: no cover
+        text.highlight_words(["HINT"], "green")  # pragma: no cover
+        text.highlight_words(["INFO"], "blue")  # pragma: no cover
+        return text  # pragma: no cover
 
 
 def evaluate_ast_node(node: ast.expr, locals_: dict[str, Any] | None = None) -> str:

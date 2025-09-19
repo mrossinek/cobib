@@ -10,6 +10,7 @@ from typing_extensions import override
 from cobib.commands import ImportCommand
 from cobib.config import Event
 
+from .. import get_resource
 from .command_test import CommandTest
 
 if TYPE_CHECKING:
@@ -28,6 +29,30 @@ class TestImportCommand(CommandTest):
         """Test the command itself."""
         with pytest.raises(SystemExit):
             await ImportCommand("-h").execute()
+
+    @pytest.mark.asyncio
+    async def test_handle_identical(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
+        """Test handling of an identical entry being added.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            post_setup: an additional setup fixture.
+            capsys: the built-in pytest fixture.
+            caplog: the built-in pytest fixture.
+        """
+        cmd = ImportCommand("--bibtex", get_resource("example_literature.bib"))
+        await cmd.execute()
+
+        assert len(cmd.new_entries) == 0
+
+        assert (
+            "cobib.database.database",
+            35,
+            (
+                "Even though the label 'einstein' already exists in the runtime database, the "
+                "entry is identical and, thus, no further disambiguation is necessary."
+            ),
+        ) in caplog.record_tuples
 
     @pytest.mark.asyncio
     async def test_cmdline(self, setup: Any, monkeypatch: pytest.MonkeyPatch) -> None:

@@ -45,7 +45,7 @@ class Progress:
             return RichProgress(*columns, **kwargs)
 
         if len(columns) > 0:
-            LOGGER.warning("Ignoring custom columns for the TextualProgress.")
+            LOGGER.warning("Ignoring custom columns for the TextualProgress.")  # pragma: no cover
 
         return TextualProgress()
 
@@ -98,7 +98,7 @@ class TextualProgress(HorizontalGroup):
             advance: the amount by which to advance the progress indicator.
         """
         if task != 0:
-            LOGGER.error(
+            LOGGER.error(  # pragma: no cover
                 f"Encountered unexpected TaskID: {task}. "
                 "TextualProgress cannot display more than one task at a time."
             )

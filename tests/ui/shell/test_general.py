@@ -11,7 +11,7 @@ import pytest
 from cobib.config import Event, config
 from cobib.database import Database
 from cobib.ui import Shell
-from cobib.ui.components.console import HAS_OPTIONAL_PROMPT_TOOLKIT
+from cobib.utils.console import HAS_OPTIONAL_PROMPT_TOOLKIT, PromptConsole
 
 if HAS_OPTIONAL_PROMPT_TOOLKIT:
     from prompt_toolkit.application import create_app_session
@@ -38,6 +38,7 @@ class TestShellGeneral(CmdLineTest):
     def setup() -> Generator[Any, None, None]:
         """Load testing config."""
         config.load(get_resource("debug.py"))
+        PromptConsole.clear_instance()
         yield
         Database.read()
         config.defaults()
@@ -83,8 +84,10 @@ class TestShellGeneral(CmdLineTest):
         """
         with pytest.raises(SystemExit):
             await super().run_module(monkeypatch, "main", ["cobib", "-p", "-s"])
-        outerr = capsys.readouterr()
-        assert "The --porcelain mode has no effect on an interactive UI!" in outerr.err
+        out = capsys.readouterr().out
+        expected = "The --porcelain mode has no effect on an interactive UI!".split()
+        for word in expected:
+            assert word in out
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(

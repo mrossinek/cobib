@@ -16,6 +16,7 @@ from cobib.config import config
 from cobib.utils.rel_path import RelPath
 
 HAS_OPTIONAL_PROMPT_TOOLKIT = False
+"""Whether the optional `prompt_toolkit` dependency is installed."""
 
 try:
     from prompt_toolkit import PromptSession
@@ -61,12 +62,25 @@ class PromptConsole(Console):
                 vi_mode=config.shell.vi_mode,
             )
 
-    def __new__(cls) -> PromptConsole:
-        """Singleton constructor."""
+    @classmethod
+    def get_instance(cls) -> PromptConsole:
+        """Singleton constructor.
+
+        Returns:
+            The singleton instance.
+        """
         if cls._instance is None:
-            cls._instance = super().__new__(cls)
+            cls._instance = cls()
 
         return cls._instance
+
+    @classmethod
+    def clear_instance(cls) -> None:
+        """Clears the singleton instance.
+
+        This is most likely only useful in the context of unittesting.
+        """
+        cls._instance = None
 
     @override
     async def input(  # type: ignore[override]
@@ -95,3 +109,10 @@ class PromptConsole(Console):
         else:
             result = await self.prompt_session.prompt_async(prompt_str)
         return result
+
+    @override
+    def clear_live(self) -> None:
+        super().clear_live()
+        # NOTE: this ensures that the console resets properly in the unittest suite during which an
+        # attempt would be made to reuse a partially torn down instance of this console.
+        self.clear_instance()

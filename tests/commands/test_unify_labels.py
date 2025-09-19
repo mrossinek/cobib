@@ -133,3 +133,39 @@ class TestUnifyLabels(CommandTest):
                     "filter": ["++label", ""],
                 },
             )
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "setup",
+        [
+            {
+                "git": False,
+                "database": True,
+                "database_filename": "unifying_database.yaml",
+                "database_location": "commands",
+            },
+        ],
+        indirect=["setup"],
+    )
+    # other variants are already covered by test_command
+    async def test_cmdline(
+        self, setup: Any, post_setup: Any, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test the command-line access of the command.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            post_setup: an additional setup fixture.
+            monkeypatch: the built-in pytest fixture.
+        """
+        await self.run_module(monkeypatch, "main", ["cobib", "unify_labels", "--apply"])
+
+        # assert unified database
+        with open(config.database.file, "r", encoding="utf-8") as file:
+            with open(
+                RelPath(get_resource("unified_database.yaml", "commands")).path,
+                "r",
+                encoding="utf-8",
+            ) as expected:
+                for line, truth in zip_longest(file.readlines(), expected.readlines()):
+                    assert line == truth

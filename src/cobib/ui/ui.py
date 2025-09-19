@@ -13,7 +13,7 @@ from typing import Any, Type, cast
 from cobib.commands.base_command import Command
 from cobib.config import config
 from cobib.utils.entry_points import entry_points
-from cobib.utils.logging import get_file_handler, get_stream_handler
+from cobib.utils.logging import LoggingHandler, get_file_handler
 
 LOGGER = logging.getLogger(__name__)
 """@private module logger."""
@@ -46,10 +46,11 @@ class UI:
         self.root_logger = logging.getLogger()
         """Provides unified access to the root `logging.Logger`."""
 
-        self._stream_handler = get_stream_handler()
+        self.logging_handler: LoggingHandler = LoggingHandler(self, level=logging.WARNING)
+        """The UI's logging handler."""
 
         self.root_logger.setLevel("DEBUG")
-        self.root_logger.addHandler(self._stream_handler)
+        self.root_logger.addHandler(self.logging_handler)
 
         super().__init__(*args, **kwargs)
 
@@ -107,10 +108,10 @@ class UI:
 
         # set logging verbosity level
         if arguments.verbose == 1:
-            self._stream_handler.setLevel(logging.INFO)
+            self.logging_handler.setLevel(logging.INFO)
             LOGGER.info("Logging level set to INFO.")
         elif arguments.verbose > 1:
-            self._stream_handler.setLevel(logging.DEBUG)
+            self.logging_handler.setLevel(logging.DEBUG)
             LOGGER.info("Logging level set to DEBUG.")
 
         # load configuration

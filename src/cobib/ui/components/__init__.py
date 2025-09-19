@@ -8,12 +8,10 @@ This module provides various UI-related components such as widgets and other uti
    might be released as part of coBib's feature releases. You have been warned.
 """
 
-from .console import PromptConsole as PromptConsole
 from .entry_view import EntryView as EntryView
 from .input_screen import InputScreen as InputScreen
 from .list_view import ListView as ListView
 from .log_screen import LogScreen as LogScreen
-from .logging_handler import LoggingHandler as LoggingHandler
 from .main_content import MainContent as MainContent
 from .manual_screen import ManualScreen as ManualScreen
 from .motion_key import MotionKey as MotionKey

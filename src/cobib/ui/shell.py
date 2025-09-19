@@ -12,26 +12,13 @@ from typing import Any
 from rich.console import ConsoleRenderable, RenderHook
 from rich.control import Control
 from rich.live import Live
-from typing_extensions import override
 
 from cobib.config import Event
-from cobib.ui.components import LoggingHandler, PromptConsole
 from cobib.ui.ui import UI
+from cobib.utils.console import PromptConsole
 
 LOGGER = logging.getLogger(__name__)
 """@private module logger."""
-
-
-class ShellLogHandler(LoggingHandler):
-    """The Shell's LoggingHandler emit implementation."""
-
-    FORMAT: str = "[%(levelname)s] %(message)s"
-
-    console: PromptConsole
-
-    @override
-    def emit(self, record: logging.LogRecord) -> None:
-        ShellLogHandler.console.log(self.format(record))
 
 
 class Shell(UI, RenderHook):
@@ -46,15 +33,13 @@ class Shell(UI, RenderHook):
             **kwargs: any keyword arguments for textual's underlying `App` class.
         """
         super().__init__(*args, **kwargs)
+        self.logging_handler.setLevel(min(verbosity, logging.WARNING))
 
-        self.console: PromptConsole = PromptConsole()
+        self.console: PromptConsole = PromptConsole.get_instance()
         """The console instance."""
 
         self.live: Live
         """The live display in which the console renders."""
-
-        ShellLogHandler.console = self.console
-        self.logging_handler = ShellLogHandler(self, level=min(verbosity, logging.WARNING))
 
     async def run_async(self) -> None:
         """Runs the Shell interface."""

@@ -16,10 +16,10 @@ from typing_extensions import override
 
 from cobib import __version__
 from cobib.config import config
-from cobib.ui.components import PromptConsole
 from cobib.ui.shell import Shell
 from cobib.ui.tui import TUI
 from cobib.ui.ui import UI
+from cobib.utils.console import PromptConsole
 from cobib.utils.entry_points import entry_points
 from cobib.utils.logging import print_changelog
 
@@ -101,7 +101,7 @@ class CLI(UI):
         """Runs the CLI interface."""
         arguments = self.parse_args()
 
-        console = PromptConsole()
+        console = PromptConsole.get_instance()
 
         if not arguments.porcelain:
             # print latest changelog
@@ -118,7 +118,7 @@ class CLI(UI):
 
             InteractiveUI = Shell if arguments.shell else TUI
             task = asyncio.create_task(
-                InteractiveUI(verbosity=self._stream_handler.level).run_async()
+                InteractiveUI(verbosity=self.logging_handler.level).run_async()
             )
             await task
             # the following is required for the asynchronous TUI to quit properly

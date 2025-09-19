@@ -759,6 +759,30 @@ class TestAddCommand(CommandTest):
                 path.path.unlink(missing_ok=True)
 
     @pytest.mark.asyncio
+    async def test_disambiguate_identical(
+        self, setup: Any, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Test handling of an identical entry being added.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
+        cmd = AddCommand("--disambiguation", "keep", "-y", EXAMPLE_LITERATURE)
+        await cmd.execute()
+
+        assert len(cmd.new_entries) == 0
+
+        assert (
+            "cobib.database.database",
+            35,
+            (
+                "Even though the label 'einstein' already exists in the runtime database, the "
+                "entry is identical and, thus, no further disambiguation is necessary."
+            ),
+        ) in caplog.record_tuples
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         ["setup"],
         [

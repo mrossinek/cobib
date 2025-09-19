@@ -76,6 +76,7 @@ test:
           when: on_success
         - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
           when: manual
+          allow_failure: true
         - when: on_success
 
 no-optionals:
@@ -162,6 +163,7 @@ mr-pages:
     environment:
         name: docs/$CI_COMMIT_REF_SLUG
         url: "https://$CI_PROJECT_NAMESPACE.gitlab.io/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/index.html"
+        on_stop: stop-mr-pages
     artifacts:
         paths:
             - public
@@ -181,6 +183,8 @@ stop-mr-pages:
     rules:
         - if: $CI_MERGE_REQUEST_ID
           when: manual
+          allow_failure: true
+        - when: never
 
 pages:
     stage: deploy
@@ -196,4 +200,5 @@ pages:
           when: on_success
         - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
           when: manual
+          allow_failure: true
         - when: never

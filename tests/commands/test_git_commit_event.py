@@ -62,8 +62,7 @@ class TestGitCommitEvent(CommandTest):
         return DummyCommand
 
     @override
-    def test_command(self) -> None:
-        pytest.skip("The dummy command has no actual command.")
+    def test_command(self) -> None: ...
 
     @pytest.mark.parametrize("setup", [{"git": True}], indirect=["setup"])
     def test_event_pre_git_commit(self, setup: Any) -> None:

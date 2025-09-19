@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     history of the `Shell` (see also the new `config.shell` settings) (#165,!384)
 - the `--bibtex` backend for the `import` command (!380)
   - this also comes with the new `PreBibtexImport` and `PostBibtexImport` events
+- the `ModifyCommand.moficiation_details` attribute which stores the captured log
+  messages when using the `--dry` mode (!391)
+- the `cobib.utils.console` module (!391)
+
+### Changed
+- moved `cobib.ui.components.LoggingHandler` to `cobib.utils.logging.LoggingHandler` (!391)
 
 ### Deprecated
 - the `--zotero` backend for the `import` command (!380)

@@ -113,6 +113,7 @@ class Config(_ConfigBase):
         self.database.validate()
         self.logging.validate()
         self.parsers.validate()
+        self.shell.validate()
         self.theme.validate()
         self.tui.validate()
         self.utils.validate()

@@ -36,7 +36,9 @@ class TestDummyImporter:
         """
         await run_module(monkeypatch, "main", ["cobib", "-p", "import", "--dummy"])
 
-        assert capsys.readouterr().out.strip() == "DummyImporter.fetch"
+        out = capsys.readouterr().out.strip()
+        assert "DummyImporter.fetch" in out
+        assert "Imported 0 entries into the database." in out
 
     @pytest.mark.asyncio
     async def test_fetch(self, capsys: pytest.CaptureFixture[str]) -> None:

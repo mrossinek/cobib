@@ -325,7 +325,10 @@ class AddCommand(Command):
                     )
                     LOGGER.warning(msg)
                     new_label = bib.disambiguate_label(lbl, entry)
-                    self._rename_added_entry(entry, new_label)
+                    if new_label == entry.label:
+                        self.new_entries.pop(new_label)
+                    else:
+                        self._rename_added_entry(entry, new_label)
 
             # download associated file (if requested)
             if "_download" in entry.data.keys():

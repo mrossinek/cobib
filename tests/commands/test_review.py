@@ -200,7 +200,6 @@ class TestReviewCommand(CommandTest):
         setup: Any,
         post_setup: Any,
         monkeypatch: pytest.MonkeyPatch,
-        caplog: pytest.LogCaptureFixture,
         capsys: pytest.CaptureFixture[str],
     ) -> None:
         """Test the command-line access of the command.
@@ -209,15 +208,13 @@ class TestReviewCommand(CommandTest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             post_setup: an additional setup fixture.
             monkeypatch: the built-in pytest fixture.
-            caplog: the built-in pytest fixture.
             capsys: the built-in pytest fixture.
         """
         await self.run_module(monkeypatch, "main", ["cobib", "review"])
 
-        true_log = [rec for rec in caplog.record_tuples if rec[0] == "cobib.commands.review"]
         true_out = " ".join(capsys.readouterr().out.split("\n"))
 
-        self._assert(true_out, true_log)
+        self._assert(true_out)
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(

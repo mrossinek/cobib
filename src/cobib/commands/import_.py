@@ -130,6 +130,8 @@ class ImportCommand(Command):
                 )
                 LOGGER.warning(msg)
                 new_label = bib.disambiguate_label(entry.label, entry)
+                if new_label == entry.label:
+                    continue
                 entry.label = new_label
 
             bib.update({entry.label: entry})
@@ -138,6 +140,8 @@ class ImportCommand(Command):
 
         Event.PostImportCommand.fire(self)
         bib.update(self.new_entries)
+
+        LOGGER.log(35, "Imported %s entries into the database.", len(self.new_entries))
 
         bib.save()
 
