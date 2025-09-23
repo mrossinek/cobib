@@ -353,6 +353,11 @@ class TUI(UI, App[None]):
 
     # Event reaction methods
 
+    def on_exit_app(self) -> None:
+        """Performs some minor cleanup when exiting the TUI."""
+        for task in self._background_tasks:
+            task.cancel()
+
     def on_motion_key(self, event: MotionKey) -> None:
         """Triggers on the custom `cobib.ui.components.motion_key.MotionKey` event.
 

@@ -50,7 +50,6 @@ class UI:
         """The UI's logging handler."""
 
         self.root_logger.setLevel("DEBUG")
-        self.root_logger.addHandler(self.logging_handler)
 
         super().__init__(*args, **kwargs)
 

@@ -62,10 +62,7 @@ class LoggingHandler(logging.Handler):
         self.setFormatter(formatter)
 
         for handler in self.ui.root_logger.handlers[:]:
-            if isinstance(handler, logging.StreamHandler) or (
-                # NOTE: the second condition is required to ensure the unittests pass in Python 3.9
-                isinstance(handler, LoggingHandler) and not isinstance(handler, self.__class__)
-            ):
+            if isinstance(handler, (logging.StreamHandler, LoggingHandler)):
                 self.ui.root_logger.removeHandler(handler)
                 handler.close()
 
