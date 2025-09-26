@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - the `ModifyCommand.moficiation_details` attribute which stores the captured log
   messages when using the `--dry` mode (!391)
 - the `cobib.utils.console` module (!391)
+- the `modify` command can now be applied without a filter to act on all entries (#172,!396)
 
 ### Changed
 - moved `cobib.ui.components.LoggingHandler` to `cobib.utils.logging.LoggingHandler` (!391)

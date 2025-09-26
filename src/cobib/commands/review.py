@@ -137,7 +137,8 @@ class ReviewCommand(Command):
                 review_args.append(arg)
 
         largs = super()._parse_args(tuple(review_args))
-        largs.filter = filter_args
+        if found_sep:
+            largs.filter = filter_args
         return largs
 
     @override

@@ -155,13 +155,33 @@ class ModifyCommand(Command):
         )
         parser.add_argument(
             "filter",
-            nargs="+",
+            nargs="*",
             help="You can specify filters as used by the `list` command in order to select a "
             "subset of labels to be modified. To ensure this works as expected you should add the "
             "pseudo-argument '--' before the list of filters. See also `list --help` for more "
             "information.",
         )
         cls.argparser = parser
+
+    @override
+    @classmethod
+    def _parse_args(cls, args: tuple[str, ...]) -> argparse.Namespace:
+        modify_args = []
+        filter_args = []
+        found_sep = False
+        for arg in args:
+            if arg == "--":
+                found_sep = True
+                continue
+            if found_sep:
+                filter_args.append(arg)
+            else:
+                modify_args.append(arg)
+
+        largs = super()._parse_args(tuple(modify_args))
+        if found_sep:
+            largs.filter = filter_args
+        return largs
 
     @override
     def execute(self) -> None:  # noqa: PLR0912, PLR0915

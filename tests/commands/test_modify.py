@@ -220,6 +220,21 @@ class TestModifyCommand(CommandTest):
             "The `label` field may not be empty and cannot be removed!",
         ) in caplog.record_tuples
 
+    def test_modify_all(self, setup: Any) -> None:
+        """Test modifying all entries at once.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+        """
+        bib = Database()
+        for entry in bib.values():
+            assert "new" not in entry.tags
+
+        ModifyCommand("-a", "tags:new").execute()
+
+        for entry in bib.values():
+            assert "new" in entry.tags
+
     @pytest.mark.parametrize(
         ["modification", "expected"],
         [

@@ -3,7 +3,7 @@ cobib-modify(1) -- modify entries in bulk
 
 ## SYNOPSIS
 
-`cobib modify` [`--dry`] [`-a|--add | -r|--remove`] [`--preserve-files|--no-preserve-files`] [`-s|--selection`] _MODIFICATION_ [`--`] _FILTER_ [_FILTER_ ...]
+`cobib modify` [`--dry`] [`-a|--add | -r|--remove`] [`--preserve-files|--no-preserve-files`] [`-s|--selection`] _MODIFICATION_ [`--`] [_FILTER_ ...]
 
 ## DESCRIPTION
 
