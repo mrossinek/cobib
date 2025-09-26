@@ -301,14 +301,24 @@ class ReviewCommand(Command):
                         "suggestions online: https://gitlab.com/cobib/cobib/-/issues/new"
                     )
 
+                    if hasattr(entry, inline):
+                        prev_value = getattr(entry, inline, None)
+                    else:
+                        prev_value = entry.data.get(inline, None)
+
                     res = await Prompt.ask(
                         prompt_text,
-                        input_text=str(entry.data[inline]),
+                        input_text=str(prev_value),
                         pre_prompt_message=Group(warning, syntax),
                     )
                     if res.isnumeric():  # pragma: no branch
                         res = int(res)
-                    entry.data[inline] = res
+
+                    if hasattr(entry, inline):
+                        setattr(entry, inline, res)
+                    else:
+                        entry.data[inline] = res
+
                     entry.merge(bib[label], ours=True)
                     bib.update({label: entry})
                     inline = None

@@ -950,6 +950,25 @@ class TestReviewCommand(CommandTest):
             )
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize(["setup"], [[{"git": False}]], indirect=["setup"])
+    @pytest.mark.parametrize(
+        "post_setup", [{"stdin_list": ["inline", "new", "finish"]}], indirect=["post_setup"]
+    )
+    async def test_command_inline_new_field(self, setup: Any, post_setup: Any) -> None:
+        """Test the inline action when adding a new field.
+
+        This is a regression test against https://gitlab.com/cobib/cobib/-/issues/168.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            post_setup: an additional setup fixture.
+        """
+        cmd = ReviewCommand("tags")
+        await cmd.execute()
+
+        assert Database()["einstein"].data["tags"] == ["new"]
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         ["post_setup"],
         [

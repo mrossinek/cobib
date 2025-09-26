@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - the progress indicator of search and download progress in the TUI (#158,!376)
 - querying for `--help` in the TUI no longer crashes with certain commands (#161,!378)
 - a bug when parsing author names and the BibTeX source contained line breaks (!380)
+- inline editing a new field during review no longer breaks (#168,!393)
 
 
 ## [5.4.0] - 2025-08-02
