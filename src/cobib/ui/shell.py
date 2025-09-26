@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import logging
+import shlex
 from inspect import iscoroutinefunction
 from typing import Any
 
@@ -57,7 +58,10 @@ class Shell(UI, RenderHook):
                 if hook_result is not None:
                     text = hook_result
 
-                command, *args = text.split()
+                try:
+                    command, *args = shlex.split(text)
+                except ValueError:
+                    command = text
 
                 if command in ("exit", "quit"):
                     break

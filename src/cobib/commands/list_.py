@@ -94,6 +94,12 @@ class ListCommand(Command):
 
     @override
     @classmethod
+    def _get_argparser(cls) -> argparse.ArgumentParser:
+        cls.init_argparser()
+        return cls.argparser
+
+    @override
+    @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
             prog="list",
