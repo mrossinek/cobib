@@ -11,6 +11,7 @@ from collections import defaultdict
 from copy import copy
 from typing import Any, Final, Literal, get_args
 
+from natsort import natsorted
 from rich.console import ConsoleRenderable
 from rich.table import Table
 from rich.text import Text
@@ -352,7 +353,7 @@ class ListCommand(Command):
 
         LOGGER.debug("Sorting entries by key '%s'.", self.largs.sort)
 
-        self.entries = sorted(
+        self.entries = natsorted(
             self.entries,
             reverse=self.largs.reverse,
             key=lambda entry: entry.stringify().get(str(self.largs.sort), ""),

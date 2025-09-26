@@ -25,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - moved `cobib.ui.components.LoggingHandler` to `cobib.utils.logging.LoggingHandler` (!391)
+- when listing entries with `--sort` a natural sorting order will be used (#170,!395)
+  - this is unlikely to go noticed unless one sorts by a numerical field with
+    varying numbers of digits
 
 ### Deprecated
 - the `--zotero` backend for the `import` command (!380)
