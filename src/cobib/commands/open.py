@@ -8,8 +8,6 @@ from __future__ import annotations
 import argparse
 import logging
 import os
-import subprocess
-import warnings
 from collections import defaultdict
 from collections.abc import Callable
 from functools import wraps
@@ -21,6 +19,7 @@ from typing_extensions import override
 
 from cobib.config import Event, config
 from cobib.database import Database
+from cobib.utils.context import get_active_app
 from cobib.utils.prompt import Prompt
 from cobib.utils.rel_path import RelPath
 
@@ -104,7 +103,9 @@ class OpenCommand(Command):
 
             if count == 1:
                 # we found a single URL to open
-                self._open_url(label, next(iter(things_to_open.values()))[0])
+                success = self.open(next(iter(things_to_open.values()))[0])
+                if success:
+                    self.opened_entries.add(label)
 
             elif self.largs.field is not None:
                 choice = self.largs.field
@@ -113,11 +114,15 @@ class OpenCommand(Command):
                 if choice == "all":
                     for urls in things_to_open.values():
                         for url in urls:
-                            self._open_url(label, url)
+                            success = self.open(url)
+                            if success:
+                                self.opened_entries.add(label)
 
                 elif choice in things_to_open.keys():
                     for url in things_to_open[choice]:
-                        self._open_url(label, url)
+                        success = self.open(url)
+                        if success:
+                            self.opened_entries.add(label)
 
                 else:
                     msg = (  # pragma: no cover
@@ -157,25 +162,53 @@ class OpenCommand(Command):
                 elif choice == "all":
                     LOGGER.debug("User selected all urls.")
                     for url in url_list:
-                        self._open_url(label, url)
+                        success = self.open(url)
+                        if success:
+                            self.opened_entries.add(label)
                 elif choice in things_to_open.keys():
                     LOGGER.debug("User selected the %s set of urls.", choice)
                     for url in things_to_open[choice]:
-                        self._open_url(label, url)
+                        success = self.open(url)
+                        if success:
+                            self.opened_entries.add(label)
                 elif choice.isdigit():  # pragma: no branch
                     LOGGER.debug("User selected url %s", choice)
-                    self._open_url(label, url_list[int(choice) - 1])
+                    success = self.open(url_list[int(choice) - 1])
+                    if success:
+                        self.opened_entries.add(label)
 
         Event.PostOpenCommand.fire(self)
 
-    def _open_url(self, label: str, url: ParseResult) -> None:
+    @staticmethod
+    def open(url: ParseResult) -> bool:
+        """Opens a URL, ensuring we can deal with a program taking over the terminal to do so.
+
+        Args:
+            url: the URL to be opened.
+
+        Returns:
+            Whether `url` was opened successfully.
+        """
+        app = get_active_app()
+        if app is None:
+            return OpenCommand._open_url(url)
+        # NOTE: we are unable to test this in CI at this time, because the textual Pilot interface
+        # does not support suspend.
+        with app.suspend():
+            return OpenCommand._open_url(url)
+
+    @staticmethod
+    def _open_url(url: ParseResult) -> bool:
         """Opens a URL.
 
         Args:
-            label: the label of the entry to which the provided URL belongs.
             url: the URL to be opened.
+
+        Returns:
+            Whether `url` was opened successfully.
         """
         opener = config.commands.open.command
+        success = False
         try:
             url_str = url.geturl()
             if not url.scheme:
@@ -184,19 +217,13 @@ class OpenCommand(Command):
                     raise FileNotFoundError(f"Could not find the file at '{url_path.path}'!")
                 url_str = str(url_path.path)
             LOGGER.debug('Opening "%s" with %s.', url_str, opener)
-            with open(os.devnull, "w", encoding="utf-8") as devnull:
-                with warnings.catch_warnings():
-                    warnings.filterwarnings("ignore", category=ResourceWarning)
-                    subprocess.Popen(
-                        [opener, url_str],
-                        stdout=devnull,
-                        stderr=devnull,
-                        stdin=devnull,
-                        close_fds=True,
-                    )
-            self.opened_entries.add(label)
+            os.system(f"{opener} {url_str}")
+            success = True
+
         except FileNotFoundError as err:
             LOGGER.error(err)
+
+        return success
 
     @staticmethod
     def _wrap_prompt_process_response(

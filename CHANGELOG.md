@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - querying for `--help` in the TUI no longer crashes with certain commands (#161,!378)
 - a bug when parsing author names and the BibTeX source contained line breaks (!380)
 - inline editing a new field during review no longer breaks (#168,!393)
+- the `open` command can now handle files opening directly inside the terminal (#173,!397)
 
 
 ## [5.4.0] - 2025-08-02
