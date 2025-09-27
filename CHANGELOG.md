@@ -48,6 +48,8 @@ coBib has three exciting new features:
 - a bug when parsing author names and the BibTeX source contained line breaks (!380)
 - inline editing a new field during review no longer breaks (#168,!393)
 - the `open` command can now handle files opening directly inside the terminal (#173,!397)
+- renaming files when an entry's `label` changes during `edit` or `modify`, no longer
+  hard-codes the filetype to `pdf` (#175,!401)
 
 
 ## [5.4.0] - 2025-08-02

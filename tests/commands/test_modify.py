@@ -275,6 +275,9 @@ class TestModifyCommand(CommandTest):
     ) -> None:
         """Test removing associated files.
 
+        Using the `.txt` suffix for the dummy file ensures that this is a regression test against
+        https://gitlab.com/cobib/cobib/-/issues/175.
+
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             preserve_files: argument to `ModifyCommand`.
@@ -287,7 +290,7 @@ class TestModifyCommand(CommandTest):
             should_preserve = preserve_files
 
         with tempfile.TemporaryDirectory() as tmpdirname:
-            path = RelPath(tmpdirname + "/knuthwebsite.pdf")
+            path = RelPath(tmpdirname + "/knuthwebsite.txt")
             open(path.path, "w", encoding="utf-8").close()
 
             Database()["knuthwebsite"].file = str(path)
@@ -298,7 +301,7 @@ class TestModifyCommand(CommandTest):
             ModifyCommand(*args).execute()
             assert "dummy" in Database().keys()
 
-            target = RelPath(tmpdirname + "/dummy.pdf")
+            target = RelPath(tmpdirname + "/dummy.txt")
             if should_preserve:
                 assert path.path.exists()
             else:

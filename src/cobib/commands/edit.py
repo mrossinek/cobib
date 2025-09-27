@@ -149,7 +149,7 @@ class EditCommand(Command):
                     path = RelPath(file)
                     if path.path.stem == self.largs.label:
                         LOGGER.info("Also renaming associated file '%s'.", str(path))
-                        target = RelPath(path.path.parent / f"{self.new_entry.label}.pdf")
+                        target = RelPath(path.path.with_stem(self.new_entry.label))
                         if target.path.exists():
                             LOGGER.warning(  # pragma: no cover
                                 "Found conflicting file, not renaming '%s'.", str(path)
