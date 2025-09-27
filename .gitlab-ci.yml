@@ -35,6 +35,7 @@ stages:
     - test
     - docs
     - deploy
+    - publish
 
 lint:
     stage: lint
@@ -204,4 +205,49 @@ pages:
         - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
           when: manual
           allow_failure: true
+        - when: never
+
+
+build:
+    stage: publish
+    dependencies: []
+    script:
+        - pip install build
+        - python -m build
+    artifacts:
+        paths:
+            - dist/
+    rules:
+        - if: $CI_COMMIT_TAG
+          when: on_success
+        - when: never
+
+publish:
+    stage: publish
+    needs: ["build"]
+    script:
+        - pip install twine
+        - TWINE_PASSWORD=${PYPI_TOKEN} TWINE_USERNAME=__token__ python -m twine upload dist/*
+    environment:
+        name: release
+        url: https://pypi.org/p/cobib
+    rules:
+        - if: $CI_COMMIT_TAG
+          when: on_success
+        - when: never
+
+release:
+    stage: publish
+    image: registry.gitlab.com/gitlab-org/cli:latest
+    needs:
+        - job: publish
+          artifacts: false
+    script:
+        - echo "creating gitlab release"
+    release:
+        tag_name: '$CI_COMMIT_TAG'
+        description: '$CI_COMMIT_TAG'
+    rules:
+        - if: $CI_COMMIT_TAG
+          when: on_success
         - when: never
