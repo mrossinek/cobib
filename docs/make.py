@@ -6,8 +6,6 @@ from textwrap import dedent
 
 import pdoc
 
-from cobib.commands import TutorialCommand
-
 ROOT = Path(__file__).parent
 
 MODULES = [
@@ -41,6 +39,8 @@ for module_name in pdoc.extract.walk_specs(args.modules):
 
     if module_name == "cobib.commands.tutorial":
         # manually add the tutorial instructions as docstrings to the TutorialCommand.State Enum
+        from cobib.commands import TutorialCommand
+
         for state in TutorialCommand.State:
             module.get(f"TutorialCommand.{state}").docstring = dedent(state.value)
 

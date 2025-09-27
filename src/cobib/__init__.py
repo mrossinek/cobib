@@ -7,8 +7,6 @@
 
 <hr/>
 
-## Getting Started
-
 .. include:: man/cobib-getting-started.7.html_fragment
 """
 
