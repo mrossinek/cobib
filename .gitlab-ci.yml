@@ -242,6 +242,8 @@ release:
     needs:
         - job: publish
           artifacts: false
+    before_script:
+        - echo "creating gitlab release"
     script:
         - echo "creating gitlab release"
     release:
