@@ -63,6 +63,7 @@ redo = "cobib.commands.redo:RedoCommand"
 review = "cobib.commands.review:ReviewCommand"
 search = "cobib.commands.search:SearchCommand"
 show = "cobib.commands.show:ShowCommand"
+tutorial = "cobib.commands.tutorial:TutorialCommand"
 undo = "cobib.commands.undo:UndoCommand"
 unify_labels = "cobib.commands.unify_labels:UnifyLabelsCommand"
 _example_config = "cobib.config.command:ExampleConfigCommand"
@@ -98,6 +99,7 @@ yaml = "cobib.parsers.yaml:YAMLParser"
 "cobib-lint.1" = "cobib.man:B_utility"
 "cobib-man.1" = "cobib.man:B_utility"
 "cobib-redo.1" = "cobib.man:B_utility"
+"cobib-tutorial.1" = "cobib.man:B_utility"
 "cobib-undo.1" = "cobib.man:B_utility"
 "cobib-unify-labels.1" = "cobib.man:B_utility"
 "cobib-config.5" = "cobib.man:_config"
@@ -236,6 +238,7 @@ module = [
     "bibtexparser",
     "linkify_it.*",
     "natsort",
+    "pdoc",
     "prompt_toolkit.*",
     "pylatexenc.*",
     "text_unidecode",

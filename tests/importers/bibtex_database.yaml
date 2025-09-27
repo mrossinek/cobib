@@ -40,6 +40,8 @@ Lowry_1951:
   number: 1
   pages: 265{\textendash}275
   publisher: Elsevier BV
+  tags:
+  - citations=305148
   title: PROTEIN MEASUREMENT WITH THE FOLIN PHENOL REAGENT
   url:
   - http://dx.doi.org/10.1016/S0021-9258(19)52451-6
@@ -59,6 +61,8 @@ LAEMMLI_1970:
   number: 5259
   pages: 680{\textendash}685
   publisher: Springer Science and Business Media LLC
+  tags:
+  - citations=213005
   title: 'Cleavage of Structural Proteins during the Assembly of the Head of
 
     Bacteriophage T4'
@@ -80,6 +84,8 @@ Bradford_1976:
   number: 1{\textendash}2
   pages: 248{\textendash}254
   publisher: Elsevier BV
+  tags:
+  - citations=155530
   title: 'A rapid and sensitive method for the quantitation of microgram
 
     quantities of protein utilizing the principle of protein-dye binding
@@ -107,6 +113,8 @@ Sanger_1977:
   number: 12
   pages: 5463{\textendash}5467
   publisher: Proceedings of the National Academy of Sciences
+  tags:
+  - citations=65335
   title: DNA sequencing with chain-terminating inhibitors
   url:
   - http://dx.doi.org/10.1073/pnas.74.12.5463
@@ -126,6 +134,8 @@ CHOMZYNSKI_1987:
   number: 1
   pages: 156{\textendash}159
   publisher: Elsevier BV
+  tags:
+  - citations=60397
   title: 'Single-Step Method of RNA Isolation by Acid Guanidinium
 
     Thiocyanate{\textendash}Phenol{\textendash}Chloroform Extraction'
@@ -151,6 +161,8 @@ Towbin_1979:
   number: 9
   pages: 4350{\textendash}4354
   publisher: Proceedings of the National Academy of Sciences
+  tags:
+  - citations=53349
   title: 'Electrophoretic transfer of proteins from polyacrylamide gels to
 
     nitrocellulose sheets: procedure and some applications.'
@@ -176,6 +188,8 @@ Lee_1988:
   number: 2
   pages: 785{\textendash}789
   publisher: American Physical Society (APS)
+  tags:
+  - citations=46702
   title: 'Development of the Colle-Salvetti correlation-energy formula into a
 
     functional of the electron density'
@@ -197,6 +211,8 @@ Becke_1993:
   number: 7
   pages: 5648{\textendash}5652
   publisher: AIP Publishing
+  tags:
+  - citations=46145
   title: 'Density-functional thermochemistry. III. The role of exact exchange
 
     '
@@ -222,6 +238,8 @@ Folch_1957:
   number: 1
   pages: 497{\textendash}509
   publisher: Elsevier BV
+  tags:
+  - citations=45131
   title: 'A SIMPLE METHOD FOR THE ISOLATION AND PURIFICATION OF TOTAL LIPIDES
 
     FROM ANIMAL TISSUES'
@@ -246,6 +264,8 @@ Thompson_1994:
   number: 22
   pages: 4673{\textendash}4680
   publisher: Oxford University Press (OUP)
+  tags:
+  - citations=40289
   title: 'CLUSTAL W: improving the sensitivity of progressive multiple
 
     sequence alignment through sequence weighting, position-specific gap

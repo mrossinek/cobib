@@ -75,6 +75,9 @@ We divide the commands into [COMMON][COMMON COMMANDS] and [UTILITY][UTILITY COMM
     Re-applies a previously undone change to the database.
     This requires *cobib-git(7)* integration to set up.
 
+  * *cobib-tutorial(1)*:
+    Guides through an interactive tutorial.
+
   * *cobib-undo(1)*:
     Undoes the latest change to the database.
     This requires *cobib-git(7)* integration to set up.

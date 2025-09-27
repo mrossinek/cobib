@@ -17,6 +17,7 @@ cobib-init(1)            commands/init
 cobib-lint(1)            commands/lint
 cobib-man(1)             commands/man
 cobib-redo(1)            commands/redo
+cobib-tutorial(1)        commands/tutorial
 cobib-undo(1)            commands/undo
 cobib-unify-labels(1)    commands/unify_labels
 cobib-commands(7)        commands

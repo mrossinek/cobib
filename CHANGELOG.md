@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Prelude
+
+coBib has three exciting new features:
+1. an interactive shell which you can trigger using `cobib --shell`
+2. a builtin guided tutorial which you can run with `cobib tutorial`
+3. a builtin manual which you can read via the new `man` command
+
 ### Added
 - the `man` command (`!` in the TUI) for viewing coBib's man-pages (#154,!377)
 - the `cobib.man` entry-point to allow plugins to register their own man-pages
@@ -23,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   messages when using the `--dry` mode (!391)
 - the `cobib.utils.console` module (!391)
 - the `modify` command can now be applied without a filter to act on all entries (#172,!396)
+- the `tutorial` command (#164,!400)
 
 ### Changed
 - moved `cobib.ui.components.LoggingHandler` to `cobib.utils.logging.LoggingHandler` (!391)

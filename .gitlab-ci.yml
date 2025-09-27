@@ -129,7 +129,7 @@ docs:
     stage: docs
     needs: []
     script:
-        - apt-get install -y ruby-dev vim
+        - apt-get install -y ruby-dev
         - gem install ronn-ng
         - tox -e docs
         - mv build/html public

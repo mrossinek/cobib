@@ -63,7 +63,13 @@ class Shell(UI, RenderHook):
                 except ValueError:
                     command = text
 
-                if command in ("exit", "quit"):
+                if command in ("tutorial",):
+                    LOGGER.warning(
+                        f"The '{command}' cannot be run from the interactive shell! Please run it "
+                        f"stand-alone, like so: `cobib {command}`"
+                    )
+                    continue
+                elif command in ("exit", "quit"):
                     break
                 elif command == "help":
                     command = "man"

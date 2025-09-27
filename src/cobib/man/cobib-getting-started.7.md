@@ -5,6 +5,7 @@ cobib-getting-started(7) -- how to get started with cobib(1)
 
 This is a guide how to get started with coBib.
 This guide does not cover coBib's configuration, refer to *cobib-config(5)* for that.
+Check out *cobib-tutorial(1)* for a more comprehensive and interactive guide.
 
 ### Initializing the database
 
@@ -21,15 +22,17 @@ The optional git-integration also needs to be enabled by setting `config.databas
 ### Importing a bibliography
 
 The *cobib-import(1)* command can import a bibliography from another reference manager.
-The only builtin backend currently is Zotero, see *cobib-importers(7)* for more details.
-To import a bibliography from there, simply run:
+The only builtin backend currently is *cobib-bibtex(7)*, see *cobib-importers(7)* for more details.
+To import a bibliography from a BibTeX file, simply run:
 ```bash
-$ cobib import --zotero
+$ cobib import --bibtex database.bib
 ```
 
-Alternatively, one can always use *cobib-add(1)* to add a bibliography from a `.bib` file:
+You can also migrate from Zotero using the `--zotero` backend.
+While it is deprecating and will be removed in v6.0.0 of coBib,
+the `cobib-zotero` plugin will provide a new implementation with the same features.
 ```bash
-$ cobib add --bibtex database.bib
+$ cobib import --zotero
 ```
 
 ### Modifying the database
@@ -81,7 +84,7 @@ Additionally, all *cobib-commands(7)* support the `--help` argument for a quick 
 
 ## SEE ALSO
 
-*cobib(1)*, *cobib-config(5)*, *cobib-commands(7)*
+*cobib(1)*, *cobib-tutorial(1)*, *cobib-config(5)*, *cobib-commands(7)*
 
 The [online documentation](https://cobib.gitlab.io/cobib/cobib.html) of the API references including usage examples.
 

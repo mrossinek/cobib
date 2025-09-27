@@ -12,6 +12,7 @@ from cobib.commands import ImportCommand
 from cobib.config import Event
 from cobib.database import Entry
 from cobib.importers import BibtexImporter
+from cobib.man import TUTORIAL_IMPORT_DATABASE
 from cobib.parsers import YAMLParser
 
 from .. import get_resource
@@ -21,7 +22,7 @@ from .importer_test import ImporterTest
 if TYPE_CHECKING:
     import cobib.commands
 
-IMPORT_DATABASE = get_resource("bibtex_database.bib", "importers")
+IMPORT_DATABASE = str(TUTORIAL_IMPORT_DATABASE)
 EXPECTED_DATABASE = get_resource("bibtex_database.yaml", "importers")
 
 

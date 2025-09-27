@@ -802,16 +802,9 @@ class TUI(UI, App[None]):
             command.extend(list(self._filter.selection))
 
         if command and command[0]:  # pragma: no branch
-            if command[0].lower() == "init":
+            if command[0].lower() in ("init", "git", "tutorial"):
                 LOGGER.error(
-                    "You cannot run the 'init' command from within the TUI!\n"
-                    "Please run this command outside the TUI."
-                )
-                return
-            if command[0].lower() == "git":
-                LOGGER.error(
-                    "You cannot run the 'git' command from within the TUI because it is impossible "
-                    "to foresee what the command might output or need for input etc.\n"
+                    f"You cannot run the '{command[0].lower()}' command from within the TUI!\n"
                     "Please run this command outside the TUI."
                 )
                 return

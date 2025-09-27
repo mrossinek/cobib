@@ -20,5 +20,6 @@ from .redo import RedoCommand as RedoCommand
 from .review import ReviewCommand as ReviewCommand
 from .search import SearchCommand as SearchCommand
 from .show import ShowCommand as ShowCommand
+from .tutorial import TutorialCommand as TutorialCommand
 from .undo import UndoCommand as UndoCommand
 from .unify_labels import UnifyLabelsCommand as UnifyLabelsCommand

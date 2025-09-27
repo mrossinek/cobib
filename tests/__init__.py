@@ -18,9 +18,8 @@ Check out `pytest --help` for more options.
 
 from __future__ import annotations
 
+from io import UnsupportedOperation
 from pathlib import Path
-
-from .cmdline_test import CmdLineTest as CmdLineTest
 
 
 def get_resource(filename: str, path: str | None = None) -> str:
@@ -50,6 +49,10 @@ class MockStdin:
         if string is None:
             string = []
         self.string = [*string, "\n"]
+
+    def fileno(self) -> None:
+        """A dummy fileno method raising an appropriate error for `prompt_toolkit` to detect."""
+        raise UnsupportedOperation
 
     def readline(self) -> str:
         """Fakes reading a line.

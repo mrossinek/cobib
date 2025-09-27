@@ -16,6 +16,7 @@ cobib-init.1             ../
 cobib-lint.1             ../
 cobib-man.1              ../
 cobib-redo.1             ../
+cobib-tutorial.1         ../
 cobib-undo.1             ../
 cobib-unify-labels.1     ../
 cobib-event.7            ../
