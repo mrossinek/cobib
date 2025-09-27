@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [5.5.0] - 2025-09-27
+
+Pypi: https://pypi.org/project/cobib/5.5.0/
+
 ### Prelude
 
 coBib has three exciting new features:
@@ -1241,7 +1246,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v5.4.0...master
+[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v5.5.0...master
+[5.5.0]: https://gitlab.com/cobib/cobib/-/tags/v5.5.0
 [5.4.0]: https://gitlab.com/cobib/cobib/-/tags/v5.4.0
 [5.3.0]: https://gitlab.com/cobib/cobib/-/tags/v5.3.0
 [5.2.3]: https://gitlab.com/cobib/cobib/-/tags/v5.2.3

@@ -58,6 +58,19 @@ If you are using Windows 10 or later and are running into issues, you should be 
 use coBib's full functionality within the Linux subsystem.
 
 
+## Getting Started
+
+To get started with coBib, you check out:
+- the `cobib-getting-started.7` man-page:
+  ```bash
+  cobib man getting-started
+  ```
+- the interactive tutorial:
+  ```bash
+  cobib tutorial
+  ```
+
+
 ## Configuration
 
 You can overwrite the default configuration by placing a `config.py` file in `~/.config/cobib/`.
