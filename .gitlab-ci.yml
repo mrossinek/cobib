@@ -225,9 +225,12 @@ build:
 publish:
     stage: publish
     needs: ["build"]
+    id_tokens:
+      PYPI_ID_TOKEN:
+          aud: pypi
     script:
         - pip install twine
-        - TWINE_PASSWORD=${PYPI_TOKEN} TWINE_USERNAME=__token__ python -m twine upload dist/*
+        - twine upload dist/*
     environment:
         name: release
         url: https://pypi.org/p/cobib
