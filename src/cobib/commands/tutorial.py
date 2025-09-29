@@ -605,9 +605,12 @@ class TutorialCommand(Command):
         To simplify the common `modify` command of enforcing all labels to follow this formatting,
         coBib provides the `unify_labels` command which does exactly that. However, it runs in
         `--dry` mode by default, and you must explicitly `--apply` the changes (aligning with the
-        `lint` command being told explicitly to `--format`):
+        `lint` command being told explicitly to `--format`).
+
+        Here, we will stick to the `--dry`-run mode as it will preview the changes that would get
+        implied:
         ```
-        > unify_labels --apply
+        > unify_labels
         ```
         """
         GIT = """
