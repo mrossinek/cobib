@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - the `unify_labels` step of the `tutorial` no longer changes one of coBib's shipped
   files in-place, meaning the tutorial can actually be run more than once (#178)
+- compatibility with `textual>=6.2`
 
 
 ## [5.5.0] - 2025-09-27

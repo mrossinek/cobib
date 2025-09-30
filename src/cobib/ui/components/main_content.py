@@ -89,6 +89,9 @@ class MainContent(ContentSwitcher):
     def notify_style_update(self) -> None:
         super().notify_style_update()
         if self.current is not None:
-            current_child = self.get_child_by_id(self.current)
-            current_child.notify_style_update()
-            current_child.refresh()
+            try:
+                current_child = self.get_child_by_id(self.current)
+                current_child.notify_style_update()
+                current_child.refresh()
+            except NoMatches:
+                pass
