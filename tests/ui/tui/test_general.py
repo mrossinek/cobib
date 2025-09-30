@@ -8,7 +8,6 @@ from collections.abc import Generator
 from copy import copy
 from pathlib import Path
 from shutil import copyfile, rmtree
-from sys import version_info
 from typing import Any, cast
 
 import pytest
@@ -129,10 +128,6 @@ class TestTUIGeneral:
 
         assert app.return_code == 0
 
-    @pytest.mark.skipif(
-        version_info.minor < 12,
-        reason="Textual datatable style updates appear inconsistent for Python < 3.12",
-    )
     @pytest.mark.parametrize("repeat", [1, 2])
     def test_layout(self, snap_compare: Any, repeat: int) -> None:
         """Tests the layout toggle action.
