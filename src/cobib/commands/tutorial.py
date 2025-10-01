@@ -648,8 +648,8 @@ class TutorialCommand(Command):
         various configuration settings that we only mentioned very scarcely.
 
         And if that were not enough, coBib also boasts subscribable _event_ hooks, an extension
-        mechanisms for plugins, as well as an interactive terminal user interface (TUI) which we
-        cannot cover in such a style of tutorial as this one.
+        mechanisms for plugins, as well as an interactive text-based (or terminal) user interface
+        (TUI) which we cannot cover in such a style of tutorial as this one.
 
         The manual provides more information on all of coBib's features and settings. Thus, we
         highly suggest you refer not only to the command's `--help` summaries, but also their

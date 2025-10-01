@@ -11,7 +11,7 @@ cobib(1) -- a console-based bibliography management tool
 
 coBib is a console-based bibliography management tool written in Python.
 It maintains a plain-text database of literature references in YAML format and provides various subcommands to work with this database.
-It also provides an interactive terminal user interface (see also *cobib-tui(7)*) to complement its command-line interface (see the [SUBCOMMANDS][] section below).
+It also provides an interactive text-based (or terminal) user interface (see also *cobib-tui(7)*) to complement its command-line interface (see the [SUBCOMMANDS][] section below).
 
 ## OPTIONS
 

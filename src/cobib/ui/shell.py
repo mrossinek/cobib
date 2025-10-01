@@ -26,7 +26,7 @@ class Shell(UI, RenderHook):
     """The Shell class."""
 
     def __init__(self, *args: Any, verbosity: int = logging.WARNING, **kwargs: Any) -> None:
-        """Initializes the TUI.
+        """Initializes the Shell.
 
         Args:
             *args: any positional arguments for textual's underlying `App` class.

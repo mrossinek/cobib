@@ -139,7 +139,7 @@ class Command(ABC):
     def render_textual(self) -> Widget | None:
         """Renders the command results as a `textual` widget.
 
-        This method is called when a command is run via the terminal user interface.
+        This method is called when a command is run via the text-based (or terminal) user interface.
         It is the responsibility of the TUI to deal with the returned widget.
 
         Returns:

@@ -1,4 +1,4 @@
-"""coBib's terminal user interface.
+"""coBib's text-based (or terminal) user interface.
 
 .. include:: ../man/cobib-tui.7.html_fragment
 

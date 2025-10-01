@@ -1,5 +1,5 @@
-cobib-tui(7) -- coBib's terminal user interface
-===============================================
+cobib-tui(7) -- coBib's text-based (or terminal) user interface
+===============================================================
 
 ## SYNOPSIS
 
