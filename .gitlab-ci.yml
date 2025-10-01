@@ -230,7 +230,7 @@ publish:
           aud: pypi
     script:
         - pip install twine
-        - twine upload dist/*
+        - TWINE_PASSWORD=${PYPI_ID_TOKEN} TWINE_USERNAME=__token__ twine upload dist/*
     environment:
         name: release
         url: https://pypi.org/p/cobib
