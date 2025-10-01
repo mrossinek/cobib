@@ -30,6 +30,13 @@ class LintFormatter(logging.Formatter):
         super().__init__(*args, **kwargs)
 
         self.dirty_entries: set[str] = set()
+        """The set of entry labels that have formatting applied to them."""
+
+        self.critical_entries: set[str] = set()
+        """The set of entry labels that require manual intervention."""
+
+        self.critical_messages: list[str] = []
+        """The critical log messages that could not be resolved automatically."""
 
         from cobib.config import config  # noqa: PLC0415
 
@@ -54,14 +61,29 @@ class LintFormatter(logging.Formatter):
         try:
             entry = record.entry  # type: ignore[attr-defined]
             field = record.field  # type: ignore[attr-defined]
-            self.dirty_entries.add(entry)
             raw_db = enumerate(self._raw_database)
             _, line = next(raw_db)
             while not line.startswith(entry):
                 _, line = next(raw_db)
             while not line.strip().startswith(field):
                 line_no, line = next(raw_db)
-            return f"{self._database_path}:{line_no + 1} {record.getMessage()}"
+
+            formatted = f"{self._database_path}:{line_no + 1} {record.getMessage()}"
+
+            if record.levelno == logging.CRITICAL:
+                self.critical_messages.append(formatted)
+                self.critical_entries.add(entry)
+                self.dirty_entries.discard(entry)
+                LOGGER.warning(
+                    "Cannot resolve CRITICAL linting message automatically! "
+                    "Please resolve this one manually."
+                )
+                return ""
+
+            if entry not in self.critical_entries:
+                self.dirty_entries.add(entry)
+
+            return formatted
         except AttributeError:  # pragma: no cover
             return ""  # pragma: no cover
 
@@ -126,7 +148,7 @@ class LintCommand(Command):
 
         root_logger.removeHandler(handler)
 
-        if all(not msg for msg in self._lint_messages):
+        if all(not msg for msg in self._lint_messages) and not len(formatter.critical_messages):
             self._lint_messages = ["Congratulations! Your database triggers no lint messages."]
 
         elif self.largs.format:  # pragma: no branch
@@ -137,9 +159,18 @@ class LintCommand(Command):
             Database.save()
             self.git()
 
-            self._lint_messages.insert(
-                0, "The following lint messages have successfully been resolved:"
-            )
+            if len(formatter.dirty_entries) > 0:
+                self._lint_messages.insert(
+                    0, "The following lint messages have successfully been resolved:"
+                )
+
+            if len(formatter.critical_messages) > 0:
+                self._lint_messages.append("The following lint messages could NOT be resolved:")
+                self._lint_messages.extend(formatter.critical_messages)
+                self._lint_messages.append(
+                    "You must resolve the messages above manually before you can resolve any other "
+                    f"lint errors on the entries: {formatter.critical_entries}"
+                )
 
     @override
     def render_porcelain(self) -> list[str]:

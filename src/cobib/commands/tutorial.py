@@ -372,7 +372,7 @@ class TutorialCommand(Command):
         the quality of `export` which we will get to later).
 
         Thus, coBib provides another solution: the `note` command. In essence, every entry is
-        associated with exactly one `note` file. This has the following characteristics:
+        associated with exactly one `notes` file. This has the following characteristics:
         - its name is derived from the entry's `label`
         - it is included in the version control of the database's history (when enabled)
         - it is a plain-text file whose contents are included natively during `search`

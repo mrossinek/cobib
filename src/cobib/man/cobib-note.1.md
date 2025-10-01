@@ -8,7 +8,7 @@ cobib-note(1) -- take notes for an entry
 ## DESCRIPTION
 
 Interact with the note associated with an entry.
-Every entry can have a note file associated with it, the location of which is stored in the `note` field.
+Every entry can have a note file associated with it, the location of which is stored in the `notes` field.
 This command provides the means to interact with this note.
 
 Notes are handled specially during a *cobib-search(1)*, because their content is searched directly by cobib rather than relying on an external `config.commands.search.grep` program as is done for associated files.
@@ -27,7 +27,7 @@ The following options exist for _ACTION_:
     Deletes the associated note.
 
 The default location for notes is in the same folder as the `config.database.file` using the entry's _LABEL_ as the filename and `config.commands.note.default_filetype` as the filetype.
-Of course, a custom path can be stored in the `note` field, too, but if it is outside the database's folder, the *cobib-git(7)* integration will not track the note file.
+Of course, a custom path can be stored in the `notes` field, too, but if it is outside the database's folder, the *cobib-git(7)* integration will not track the note file.
 
 ## EXAMPLES
 

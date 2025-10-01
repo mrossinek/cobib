@@ -72,7 +72,7 @@ class NoteCommand(Command):
           - the filetype is configured via `cobib.config.config.NoteCommandConfig.default_filetype`
           - the location is adjacent to `cobib.config.config.DatabaseConfig.file`
 
-        Alternatively, if the `cobib.database.entry.Entry.note` attribute is already set, that path
+        Alternatively, if the `cobib.database.entry.Entry.notes` attribute is already set, that path
         is used unmodified.
 
         Args:
@@ -81,7 +81,7 @@ class NoteCommand(Command):
         Returns:
             The `cobib.utils.rel_path.RelPath` to the note file.
         """
-        path_str = entry.note
+        path_str = entry.notes
         if path_str is None:
             filename = f"{entry.label}.{config.commands.note.default_filetype}"
             path = RelPath(RelPath(config.database.file).path.with_name(filename))
@@ -106,16 +106,6 @@ class NoteCommand(Command):
             LOGGER.error(msg)
             return
 
-        # NOTE: We hack into the note field and provide an otherwise impossible value in order to
-        # detect faulty data in this field from versions prior to the existence of the note command.
-        if entry.note is False:  # type: ignore[comparison-overlap]
-            LOGGER.error(  # type: ignore[unreachable]
-                "The 'note' field of the '%s' entry is faulty! Check the logs during the loading of"
-                " the database or the `lint` command for more details.",
-                entry.label,
-            )
-            return
-
         path = self.note_path(entry)
 
         task_desc = ""
@@ -130,7 +120,7 @@ class NoteCommand(Command):
                 )
                 LOGGER.warning(msg)
                 return
-            entry.note = str(path)
+            entry.notes = str(path)
             bib.update({entry.label: entry})
             bib.save()
             task_desc = "edited"
@@ -158,7 +148,7 @@ class NoteCommand(Command):
                 LOGGER.warning(msg)  # pragma: no cover
                 return  # pragma: no cover
             try:
-                entry.note = None
+                entry.notes = None
             except KeyError:
                 msg = f"The entry '{self.largs.label}' did not have an associated note!"
                 LOGGER.warning(msg)
@@ -171,7 +161,7 @@ class NoteCommand(Command):
                 "An inline note edit was performed. This command is merely executed to ensure it "
                 "gets committed into any git history tracking."
             )
-            entry.note = str(path)
+            entry.notes = str(path)
             bib.update({entry.label: entry})
             bib.save()
             task_desc = "edited"

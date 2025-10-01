@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from itertools import zip_longest
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
 import pytest
@@ -141,3 +142,44 @@ class TestLintDatabase(CommandTest):
         ):
             if msg.strip() and exp:
                 assert msg == exp
+
+    @pytest.mark.parametrize(
+        "setup",
+        [
+            {
+                "git": False,
+                "database": True,
+                "database_filename": "notes_database.yaml",
+                "database_location": "commands",
+            },
+        ],
+        indirect=["setup"],
+    )
+    def test_ignoring_critical_messages(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
+        """Test that CRITICAL lint messages are not being automatically resolved.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            caplog: the built-in pytest fixture.
+        """
+        dummy_note = Path("/tmp/cobib_note_dummy.txt")
+        dummy_note.touch()
+        another_dummy_note = Path("/tmp/another_cobib_note_dummy.txt")
+        another_dummy_note.touch()
+        try:
+            cmd = LintCommand("--format")
+            cmd.execute()
+
+            record = (
+                "cobib.commands.lint",
+                30,
+                (
+                    "Cannot resolve CRITICAL linting message automatically! "
+                    "Please resolve this one manually."
+                ),
+            )
+            assert caplog.record_tuples.count(record) == 2
+
+        finally:
+            dummy_note.unlink()
+            another_dummy_note.unlink()

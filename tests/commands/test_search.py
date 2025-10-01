@@ -454,7 +454,7 @@ class TestSearchCommand(CommandTest):
         note_path = Path(f"{db_path}/{label}.{config.commands.note.default_filetype}")
         with open(note_path, "w", encoding="utf-8") as file:
             file.write(f"Dummy note for the '{label}' entry.")
-        entry.note = str(note_path)
+        entry.notes = str(note_path)
 
         args = ["Dummy"]
         if skip_files_arg:
@@ -479,7 +479,7 @@ class TestSearchCommand(CommandTest):
             expected.extend(
                 [
                     "1::journal = {Annalen der Physik},",
-                    "1::note = {Dummy note for the 'einstein' entry.},",
+                    "1::notes = {Dummy note for the 'einstein' entry.},",
                     "1::number = {10},",
                 ]
             )

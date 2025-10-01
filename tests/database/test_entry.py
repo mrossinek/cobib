@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Generator
 
 import pytest
@@ -725,3 +726,145 @@ def test_markup_label() -> None:
     entry.tags = ["new", "medium"]
     markup_label = entry.markup_label()
     assert markup_label == "[tag.new][tag.medium]Rossmannek_2023[/tag.medium][/tag.new]"
+
+
+@pytest.mark.parametrize(
+    ["label", "data", "expected", "expected_log"],
+    [
+        (
+            "NeitherNotes",
+            {},
+            {"note": None, "notes": None},
+            None,
+        ),
+        (
+            "BothNotes",
+            {
+                "note": "This is a test note.",
+                "notes": "/tmp/cobib_note_dummy.txt",
+            },
+            {"note": "This is a test note.", "notes": "/tmp/cobib_note_dummy.txt"},
+            None,
+        ),
+        (
+            "OnlyCorrectNote",
+            {"note": "This is a test note."},
+            {"note": "This is a test note.", "notes": None},
+            None,
+        ),
+        (
+            "OnlyCorrectNotes",
+            {"notes": "/tmp/cobib_note_dummy.txt"},
+            {"note": None, "notes": "/tmp/cobib_note_dummy.txt"},
+            None,
+        ),
+        (
+            "OnlyWrongNote",
+            {"note": "/tmp/cobib_note_dummy.txt"},
+            {"note": None, "notes": "/tmp/cobib_note_dummy.txt"},
+            (
+                "cobib.database.entry",
+                30,
+                [
+                    "Using the 'note' field to store the path",
+                    "entry 'OnlyWrongNote'",
+                    "deprecated as of v5.5.1",
+                ],
+            ),
+        ),
+        (
+            "OnlyWrongNotes",
+            {"notes": "This is a test note."},
+            {"note": "This is a test note.", "notes": None},
+            (
+                "cobib.database.entry",
+                30,
+                [
+                    "The 'notes' field of entry 'OnlyWrongNotes' is a special field",
+                    "you use the 'note' field",
+                ],
+            ),
+        ),
+        (
+            "BothWrongNotes",
+            {"note": "/tmp/cobib_note_dummy.txt", "notes": "This is a test note."},
+            {"note": "This is a test note.", "notes": "/tmp/cobib_note_dummy.txt"},
+            (
+                "cobib.database.entry",
+                30,
+                [
+                    "The entry 'BothWrongNotes' has both fields: 'note' and 'notes'",
+                    "coBib automatically swaps the contents back",
+                ],
+            ),
+        ),
+        (
+            "CorrectNoteWrongNotes",
+            {"note": "This is a test note.", "notes": "This is another test note."},
+            {"note": "This is a test note.", "notes": None},
+            (
+                "cobib.database.entry",
+                50,
+                [
+                    "reading the 'notes' field of the 'CorrectNoteWrongNotes'",
+                    "The 'notes' field is a special field",
+                    "'note' field, but that is also occupied already",
+                    "Please resolve this conflict manually",
+                ],
+            ),
+        ),
+        (
+            "WrongNoteCorrectNotes",
+            {"note": "/tmp/another_cobib_note_dummy.txt", "notes": "/tmp/cobib_note_dummy.txt"},
+            {"note": None, "notes": "/tmp/cobib_note_dummy.txt"},
+            (
+                "cobib.database.entry",
+                50,
+                [
+                    "reading the 'note' field of the 'WrongNoteCorrectNotes'",
+                    "deprecated as of v5.5.1",
+                    "Instead, the 'notes' field should be used for this purpose",
+                    "but that is also already occupied",
+                    "Please resolve this conflict manually",
+                ],
+            ),
+        ),
+    ],
+)
+def test_handling_note_field(
+    caplog: pytest.LogCaptureFixture,
+    label: str,
+    data: dict[str, str],
+    expected: dict[str, str | None],
+    expected_log: tuple[str, int, list[str]] | None,
+) -> None:
+    """Test handling of the `note` vs `notes` fields.
+
+    Args:
+        caplog: the built-in pytest fixture.
+        label: the name of the entry.
+        data: the entry's data.
+        expected: the expected field, value pairs to assert
+        expected_log: the log message whose presence to assert.
+    """
+    dummy_note = Path("/tmp/cobib_note_dummy.txt")
+    dummy_note.touch()
+    another_dummy_note = Path("/tmp/another_cobib_note_dummy.txt")
+    another_dummy_note.touch()
+    try:
+        entry = Entry(label, data)
+        for field, value in expected.items():
+            assert entry.data.get(field, None) == value
+        if expected_log is not None:
+            for scope, level, message in caplog.record_tuples:
+                if (
+                    scope == expected_log[0]
+                    and level == expected_log[1]
+                    and all(msg in message for msg in expected_log[2])
+                ):
+                    break
+            else:
+                assert False, "Warning not raised upon missing journal!"
+    finally:
+        dummy_note.unlink()
+        another_dummy_note.unlink()

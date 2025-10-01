@@ -6,10 +6,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### **Breaking Change**
+
+- The `note` command switched from using the `note` field for the path to the
+  associated note file to the `notes` field. While technically a breaking
+  change, the database loading is done gracefully and should handle any
+  conflicts that arise from this (which are only pathological cases anyways).
+  The benefit of avoiding the clash with Bib(La)TeX's `note` field outweighs the
+  severity of this breaking change.
+
+### Changed
+- the `lint` command will not resolve `logging.CRITICAL` linting messages
+  automatically, ensuring that conflicts requiring manual intervention do not
+  result in data loss (#181,!402)
+- (DEV) `Entry.note` has been renamed to `Entry.notes` (#181,!402)
+
 ### Fixed
 - the `unify_labels` step of the `tutorial` no longer changes one of coBib's shipped
   files in-place, meaning the tutorial can actually be run more than once (#178)
 - compatibility with `textual>=6.2`
+- the `note` command no longer clashes with Bib(La)TeX's `note` field and instead
+  stores the path to the associated note file in the `notes` field (#181,!402)
 
 
 ## [5.5.0] - 2025-09-27

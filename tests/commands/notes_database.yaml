@@ -1,0 +1,13 @@
+---
+ClashingNoteFields:
+  ENTRYTYPE: misc
+  note: This is some note.
+  notes: This is another note.
+...
+---
+ClashingNotesFields:
+  ENTRYTYPE: misc
+  note: /tmp/another_cobib_note_dummy.txt
+  notes: /tmp/cobib_note_dummy.txt
+  number: "1"  # included to test the behavior when other lint problems _could_ be resolved
+...

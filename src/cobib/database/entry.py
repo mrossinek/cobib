@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import subprocess
+from enum import Enum
 from itertools import accumulate
 from typing import TYPE_CHECKING, Any, List, Optional, cast
 
@@ -89,6 +90,9 @@ class Entry:
 
         self.data: dict[str, Any] = {}
         """The actual bibliographic data."""
+
+        # NOTE: we first resolve the presence of `note` and `notes` to deal with ongoing deprecation
+        self._init_note_fields(note=data.pop("note", None), notes=data.pop("notes", None))
 
         for key, value in data.items():
             if hasattr(self, key):
@@ -312,17 +316,136 @@ class Entry:
         self.data["file"] = [str(p) for p in paths]
         LOGGER.debug("Adding '%s' as the file to '%s'.", self.data["file"], self.label)
 
+    def _init_note_fields(self, *, note: str | None, notes: str | None) -> None:
+        """Initializes the `note` and `notes` data fields.
+
+        This deals with resolving the assignment of the `note` and `notes` fields.
+        - the latter is the new location in which coBib writes the path to the associate note file
+        - the former is the old location, but also a meaningful field in Bib(La)TeX
+
+        Thus, an effort is made to assign these two fields as best as possible.
+        This method explicitly handles all possible combinations of the two fields being: empty,
+        correct, or wrong; where the latter two states are identified based on the fact whether the
+        field's value does or does not point to an existing file when it either is or is not
+        expected to do so.
+
+        Args:
+            note: the value of the entry data's `note` field.
+            notes: the value of the entry data's `notes` field.
+        """
+
+        class FieldState(Enum):
+            """The status of the field's value."""
+
+            EMPTY = "Field is empty"
+            CORRECT = "Field is of correct type"
+            WRONG = "Field is of wrong type"
+
+            @staticmethod
+            def determine(value: str | None, *, should_be_path: bool) -> FieldState:
+                """Determines the status of the provided value.
+
+                Args:
+                    value: the field's value whose status to determine.
+                    should_be_path: whether the field is expected to be a path to an existing file.
+
+                Returns:
+                    The field value's status.
+                """
+                if value is None:
+                    return FieldState.EMPTY
+
+                try:
+                    path = RelPath(value)
+                except TypeError:
+                    return FieldState.WRONG if should_be_path else FieldState.CORRECT
+
+                is_path = path.exists()
+                return FieldState.CORRECT if should_be_path == is_path else FieldState.WRONG
+
+        note_state = FieldState.determine(note, should_be_path=False)
+        notes_state = FieldState.determine(notes, should_be_path=True)
+
+        if note_state is FieldState.EMPTY and notes_state is FieldState.EMPTY:
+            return
+
+        if note_state is FieldState.CORRECT:
+            self.data["note"] = note
+
+            if notes_state is FieldState.WRONG:
+                msg = (
+                    "A problem occurred when reading the 'notes' field of the '%s' entry!\n"
+                    "The 'notes' field is a special field which should only contain a path to the "
+                    "associated note file. However, the current contents cannot be interpreted as "
+                    "a path to an existing file. Normally, coBib would fall back to placing these "
+                    "contents inside the 'note' field, but that is also occupied already.\n"
+                    "Please resolve this conflict manually by moving the contents of 'notes' into "
+                    "a different field."
+                )
+                LOGGER.critical(msg, self.label, extra={"entry": self.label, "field": "notes"})
+
+        if notes_state is FieldState.CORRECT:
+            self.data["notes"] = notes
+
+            if note_state is FieldState.WRONG:
+                msg = (
+                    "A problem occurred when reading the 'note' field of the '%s' entry!\n"
+                    "Using it to store the path to the associated note file (which is assumed to "
+                    "be the case here, since the contents point to an existing file) is deprecated "
+                    "as of v5.5.1. Instead, the 'notes' field should be used for this purpose, but "
+                    "that is also already occupied for this entry!\n"
+                    "Please resolve this conflict manually by moving the contents of the 'note' "
+                    "field into a different one. If it points to a note file, move the contents of "
+                    "that note into the new note stored under the path of the 'notes' field."
+                )
+                LOGGER.critical(msg, self.label, extra={"entry": self.label, "field": "note"})
+
+        if note_state is FieldState.WRONG and notes_state is FieldState.EMPTY:
+            self.data["notes"] = note
+            msg = (
+                "Using the 'note' field to store the path to the associated note of the entry '%s' "
+                "is deprecated as of v5.5.1. Instead, coBib now places this path inside 'notes'.\n"
+                "Consider renaming the field accordingly."
+            )
+            LOGGER.warning(msg, self.label, extra={"entry": self.label, "field": "note"})
+
+        if note_state is FieldState.EMPTY and notes_state is FieldState.WRONG:
+            self.data["note"] = notes
+            msg = (
+                "The 'notes' field of entry '%s' is a special field which should only contain a "
+                "path to the associated note file. However, the current contents cannot be "
+                "interpreted as a path to an existing file. coBib suggests that you use the 'note' "
+                "field for any notes that you wish to keep directly in the database and will move "
+                "the contents as long as the field is empty automatically.\n"
+                "Consider renaming the field accordingly."
+            )
+            LOGGER.warning(msg, self.label, extra={"entry": self.label, "field": "notes"})
+
+        if note_state is FieldState.WRONG and notes_state is FieldState.WRONG:
+            self.data["note"] = notes
+            self.data["notes"] = note
+            msg = (
+                "The entry '%s' has both fields: 'note' and 'notes', but as far as coBib can tell "
+                "their data is swapped!\n"
+                "The 'notes' field is a special field for the path to the associated note file, "
+                "but the 'note' field can contain arbitrary text notes. This appears to be swapped "
+                "and coBib automatically swaps the contents back.\n"
+                "Consider renaming the fields or adjusting their data accordingly."
+            )
+            LOGGER.warning(msg, self.label, extra={"entry": self.label, "field": "note"})
+            LOGGER.warning(msg, self.label, extra={"entry": self.label, "field": "notes"})
+
     @property
-    def note(self) -> str | None:
+    def notes(self) -> str | None:
         """The associated note of this entry.
 
         The setter of this property will convert the string to a path relative to the user's home
         directory.
         """
-        return cast(Optional[str], self.data.get("note", None))
+        return cast(Optional[str], self.data.get("notes", None))
 
-    @note.setter
-    def note(self, note: str | None) -> None:
+    @notes.setter
+    def notes(self, note: str | None) -> None:
         """Sets the associated note of this entry.
 
         Args:
@@ -330,28 +453,11 @@ class Entry:
                 the user's home directory. If `None`, it deletes the existing note.
         """
         if note is None:
-            _ = self.data.pop("note")
+            _ = self.data.pop("notes")
             LOGGER.debug("Deleted the note of '%s'.", self.label)
-        else:
-            msg = (
-                "A problem occurred when reading the 'note' field of the '%s' entry!\n"
-                "The 'note' field is a new special field which should only contain a path to the "
-                "associated note file. However, the current contents cannot be interpreted as a "
-                "path and, thus, the `note` command will not work as intended! Move the current "
-                "contents of the 'note' field to a differently named one."
-            )
-            try:
-                path = RelPath(note)
-            except TypeError:
-                LOGGER.error(msg, self.label, extra={"entry": self.label, "field": "note"})
-                self.data["note"] = False
-                return
-            if not path.exists():
-                LOGGER.warning(msg, self.label, extra={"entry": self.label, "field": "note"})
-                self.data["note"] = False
-                return
-            self.data["note"] = str(path)
-            LOGGER.debug("Adding '%s' as the note to '%s'.", self.data["note"], self.label)
+            return
+
+        self.data["notes"] = str(RelPath(note))
 
     @property
     def url(self) -> list[str]:
@@ -445,7 +551,7 @@ class Entry:
                 value = getattr(self, field)  # noqa: PLW2901
             if field == "author":
                 data[field] = str(value)
-            elif inline_note and field == "note":
+            elif inline_note and field == "notes":
                 data[field] = open(RelPath(value).path, "r", encoding="utf-8").read().strip()
             elif isinstance(value, list) and hasattr(
                 config.database.stringify.list_separator, field
