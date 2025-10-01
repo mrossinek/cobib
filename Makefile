@@ -1,8 +1,8 @@
 prefix ?= /usr
 
 # All man-page template files should contain these two variables:
-PACKAGE_DATE := 2025-09-27
-PACKAGE_VERSION := v5.5.0
+PACKAGE_DATE := 2025-10-01
+PACKAGE_VERSION := v5.5.1
 
 docs: generate_man_html_fragments
 	@python docs/make.py
