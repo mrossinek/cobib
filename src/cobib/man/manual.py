@@ -68,10 +68,11 @@ class Manual:
             name = entry.name
             section = int(entry.name.split(".")[-1])
             module, priority = entry.value.split(":")
-            prio, header = priority.split("_")
             self.index[name] = module
 
-            self.sections[section][prio][header].add(name)
+            for category in priority.split("."):
+                prio, header = category.split("_")
+                self.sections[section][prio][header].add(name)
 
     def path_from_name(self, name: str) -> Path:
         """Maps a man-page name to the path where it is stored.

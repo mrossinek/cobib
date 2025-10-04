@@ -170,20 +170,23 @@ class ManPageIndexScreen(ModalScreen[str]):
     def compose(self) -> ComposeResult:
         index = manual.render_rich()
 
-        def node_to_option(node: Tree) -> Option:
+        def node_to_option(node: Tree, parent: Tree | None) -> Option:
             if len(node.children) == 0:
-                return Option(node, id=str(node.label))
+                id = f"{node.label}"
+                if parent is not None:
+                    id = f"{parent.label}::{id}"
+                return Option(node, id=id)
 
             node_without_children = copy(node)
             node_without_children.children = []
             return Option(node_without_children, disabled=True)
 
-        def flatten(tree: Tree) -> list[Option]:
-            nodes = [node_to_option(tree)]
+        def flatten(tree: Tree, parent: Tree | None = None) -> list[Option]:
+            nodes = [node_to_option(tree, parent)]
             for node in tree.children:
-                nodes.append(node_to_option(node))
+                nodes.append(node_to_option(node, tree))
                 for n in node.children:
-                    nodes.extend(flatten(n))
+                    nodes.extend(flatten(n, node))
             return nodes
 
         nodes = flatten(index)
@@ -192,7 +195,7 @@ class ManPageIndexScreen(ModalScreen[str]):
 
     def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
         """Returns the selected man-page link."""
-        self.dismiss(str(event.option.id))
+        self.dismiss(str(event.option.id).split("::")[-1])
 
     def action_escape(self) -> None:
         """Escapes the prompt without opening a new man-page."""

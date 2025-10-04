@@ -67,6 +67,12 @@ When writing man-pages for a *cobib-plugins(7)*, consider using the following [e
 
 Concrete examples of these cases are provided in the `cobib_dummy` [plugin](https://gitlab.com/cobib/cobib/-/tree/master/plugin/).
 
+In rare cases, a single man-page might fit into more than one category, in which case multiple `PRIO_HEADER`s can be defined, for example like so:
+```toml
+[project.entry-points."cobib.man"]
+"cobib-bibtex.7" = "cobib.man:I_importers.P_parsers"
+```
+
 ### WRITING
 
 coBib man-pages should be written in _markdown(7)_ format.
