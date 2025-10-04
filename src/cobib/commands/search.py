@@ -274,6 +274,13 @@ class SearchCommand(Command):
 
         task = progress_bar.add_task("Searching...", total=len(self.entries))
 
+        if ignore_case and not skip_files:
+            LOGGER.warning(
+                "The `--ignore-case` argument does NOT get forwarded to the external grep tool "
+                "which is used for searching associated files! Configure its additional arguments "
+                "manually via `config.commands.search.grep_args`."
+            )
+
         for entry in self.entries.copy():
             progress_bar.advance(task, 1)
             await asyncio.sleep(0)

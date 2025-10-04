@@ -26,6 +26,10 @@ The example above can be achieved more simply by specifying the `--ignore-case` 
 Case-insensitivity can even be enabled by default via the `config.commands.search.ignore_case` setting.
 If that is done, `--no-ignore-case` (or `-I`) can be used to overwrite it once at runtime.
 
+Note, that `--ignore-case` and `--no-ignore-case` do **not** get forwarded to `config.commands.search.grep`.
+This is due to lacking guarantees on the naming of these arguments between different possible tools such as `grep`, `rg`, etc.
+Instead, resolve to configure `config.commands.search.grep_args`.
+
 There are even more options to tweak the matching behavior described in the [Approximate Searching] section below.
 
 The search can be narrowed to a subset of the database using the *cobib-filter(7)* mechanism:
@@ -89,9 +93,11 @@ The default value of fuzziness is 0 but can be set via the `config.commands.sear
 
 ### Associated files and notes
 
-This command treats the `file` and `note` data fields of an entry in a special way:
-* files listed under `file` will be searched with the `config.commands.search.grep` command
-* the note file pointed to by `note` will be read and its contents included in the *cobib-bibtex(7)* output against which _QUERY_ gets matched
+This command treats the `file` and `notes` data fields of an entry in a special way:
+* files listed under `file` will be searched with the `config.commands.search.grep` command.
+  Note, that the keyword arguments for the search command to not automatically apply to the external `grep` tool.
+  The only argument that _always_ gets forwarded is the `--context`, but any other settings should be configured via `config.commands.search.grep_args`.
+* the note file pointed to by `notes` will be read and its contents included in the *cobib-bibtex(7)* output against which _QUERY_ gets matched
 
 This differing behavior also explains the reason for specifically tracking notes separately from files.
 See *cobib-note(1)* for more details.
