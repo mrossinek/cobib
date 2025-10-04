@@ -767,6 +767,14 @@ class Entry:
         lines = bibtex_raw.split("\n")
         line_lengths = [len(line) + 1 for line in lines]  # + 1 to account for the newline character
         line_offsets = list(accumulate(line_lengths))
+        has_notes = self.notes is not None
+        if has_notes:
+            notes_begin = next(
+                idx for idx, line in enumerate(lines) if line.strip().startswith("notes = {")
+            )
+            notes_end = next(
+                idx for idx, line in enumerate(lines[notes_begin:]) if line.strip().endswith("},")
+            )
 
         if decode_latex:
             dec = self._get_latex_to_text_decoder()
@@ -824,11 +832,16 @@ class Entry:
                         break
                     stop += 1
 
+                source = ""
+                if has_notes and (line_idx >= notes_begin or line_idx <= notes_end):
+                    source = str(self.notes)
+
                 offset = line_offsets[start - 1] if start > 0 else 0
                 matches.append(
                     Match(
                         "\n".join(lines[start:stop]),
                         [Span(match_.start() - offset, match_.end() - offset)],
+                        source,
                     )
                 )
 
@@ -868,7 +881,11 @@ class Entry:
                     stripped = file_match.strip()
                     file_matches = list(re_compiled.finditer(stripped))
                     matches.append(
-                        Match(stripped, [Span(m.start(), m.end()) for m in file_matches])
+                        Match(
+                            stripped,
+                            [Span(m.start(), m.end()) for m in file_matches],
+                            str(file_),
+                        )
                     )
 
         return matches

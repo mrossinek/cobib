@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- the `search` command results now indicate what source a match came from (#174,!404)
+  - (DEV) the `Match` tuple now requires a third item called `source`
+
 
 ## [5.5.5] - 2025-10-01
 

@@ -476,15 +476,19 @@ class TestSearchCommand(CommandTest):
 
         expected = [f"einstein::{int(include_files) + int(include_notes)}"]
         if include_notes:
+            prefix = f"1::{RelPath(note_path)}::"
             expected.extend(
                 [
-                    "1::journal = {Annalen der Physik},",
-                    "1::notes = {Dummy note for the 'einstein' entry.},",
-                    "1::number = {10},",
+                    prefix + "journal = {Annalen der Physik},",
+                    prefix + "notes = {Dummy note for the 'einstein' entry.},",
+                    prefix + "number = {10},",
                 ]
             )
         if include_files:
-            expected.append(f"{1 + int(include_notes)}::Dummy file for the 'einstein' entry.")
+            expected.append(
+                f"{1 + int(include_notes)}::{RelPath(file_path)}::"
+                "Dummy file for the 'einstein' entry."
+            )
 
         if not include_files and not include_notes:
             expected = []
@@ -512,9 +516,9 @@ class TestSearchCommand(CommandTest):
         console.print(renderable)
         assert console.export_text() == (
             "einstein - 2 matches\n"
-            "├── 1\n"
+            "├── 1: \n"
             "│   └── @article{einstein,\n"
-            "└── 2\n"
+            "└── 2: \n"
             "    ├──  author = {Einstein, Albert},\n"
             "    └──  doi = {http://dx.doi.org/10.1002/andp.19053221004},\n"
         )

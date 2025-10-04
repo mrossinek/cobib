@@ -332,8 +332,9 @@ def test_match_with_wrong_key() -> None:
                 Match(
                     "@article{search_dummy,\n abstract = {search_query\nsomething else",
                     [Span(36, 48)],
+                    "",
                 ),
-                Match("something else\nsearch_query\nsomething else", [Span(15, 27)]),
+                Match("something else\nsearch_query\nsomething else", [Span(15, 27)], ""),
             ],
         ],
         [
@@ -344,10 +345,11 @@ def test_match_with_wrong_key() -> None:
                 Match(
                     "@article{search_dummy,\n abstract = {search_query\nsomething else",
                     [Span(36, 48)],
+                    "",
                 ),
-                Match("something else\nSearch_Query\nsomething else", [Span(15, 27)]),
-                Match("something else\nsearch_query\nsomething else", [Span(15, 27)]),
-                Match("something else\nSearch_Query\nsomething else}", [Span(15, 27)]),
+                Match("something else\nSearch_Query\nsomething else", [Span(15, 27)], ""),
+                Match("something else\nsearch_query\nsomething else", [Span(15, 27)], ""),
+                Match("something else\nSearch_Query\nsomething else}", [Span(15, 27)], ""),
             ],
         ],
         [
@@ -358,10 +360,11 @@ def test_match_with_wrong_key() -> None:
                 Match(
                     "@article{search_dummy,\n abstract = {search_query\nsomething else",
                     [Span(36, 48)],
+                    "",
                 ),
-                Match("something else\nSearch_Query\nsomething else", [Span(15, 27)]),
-                Match("something else\nsearch_query\nsomething else", [Span(15, 27)]),
-                Match("something else\nSearch_Query\nsomething else}", [Span(15, 27)]),
+                Match("something else\nSearch_Query\nsomething else", [Span(15, 27)], ""),
+                Match("something else\nsearch_query\nsomething else", [Span(15, 27)], ""),
+                Match("something else\nSearch_Query\nsomething else}", [Span(15, 27)], ""),
             ],
         ],
         [
@@ -377,10 +380,12 @@ def test_match_with_wrong_key() -> None:
                         "Search_Query"
                     ),
                     [Span(36, 48)],
+                    "",
                 ),
                 Match(
                     ("Search_Query\nsomething else\nsearch_query\nsomething else\nSearch_Query"),
                     [Span(28, 40)],
+                    "",
                 ),
             ],
         ],
@@ -394,10 +399,11 @@ def test_match_with_wrong_key() -> None:
                 Match(
                     "@article{search_dummy,\n abstract = {search_query\nsomething else",
                     [Span(36, 48)],
+                    "",
                 ),
-                Match("something else\nSearch_Query\nsomething else", [Span(15, 27)]),
-                Match("something else\nsearch_query\nsomething else", [Span(15, 27)]),
-                Match("something else\nSearch_Query\nsomething else}\n}", [Span(15, 27)]),
+                Match("something else\nSearch_Query\nsomething else", [Span(15, 27)], ""),
+                Match("something else\nsearch_query\nsomething else", [Span(15, 27)], ""),
+                Match("something else\nSearch_Query\nsomething else}\n}", [Span(15, 27)], ""),
             ],
         ],
         # what we care about here, is that the second match does not include lines which occur
@@ -416,6 +422,7 @@ def test_match_with_wrong_key() -> None:
                         "something else"
                     ),
                     [Span(36, 48)],
+                    "",
                 ),
                 Match(
                     (
@@ -430,6 +437,7 @@ def test_match_with_wrong_key() -> None:
                         ""
                     ),
                     [Span(43, 55)],
+                    "",
                 ),
             ],
         ],
@@ -441,10 +449,11 @@ def test_match_with_wrong_key() -> None:
                 Match(
                     "@article{search_dummy,\n abstract = {search_query\nsomething else",
                     [Span(43, 48)],
+                    "",
                 ),
-                Match("something else\nsearch_query\nsomething else", [Span(22, 27)]),
-                Match("something else\nSearch_Query\nsomething else", [Span(22, 27)]),
-                Match("something else\nSearch_Query\nsomething else}", [Span(22, 27)]),
+                Match("something else\nsearch_query\nsomething else", [Span(22, 27)], ""),
+                Match("something else\nSearch_Query\nsomething else", [Span(22, 27)], ""),
+                Match("something else\nSearch_Query\nsomething else}", [Span(22, 27)], ""),
             ],
         ],
     ],
@@ -512,7 +521,7 @@ def test_search_decoding(query: str, title: str, decode_latex: bool, decode_unic
     results = entry.search(
         [query], context=0, decode_latex=decode_latex, decode_unicode=decode_unicode
     )
-    assert results == [Match(f" title = {{{title}}}", [Span(38, 41)])]
+    assert results == [Match(f" title = {{{title}}}", [Span(38, 41)], "")]
 
 
 @pytest.mark.parametrize(
@@ -524,6 +533,7 @@ def test_search_decoding(query: str, title: str, decode_latex: bool, decode_unic
                 Match(
                     " journal = {The Journal of Physical Chemistry Letters},",
                     [Span(start=46, end=53)],
+                    "",
                 )
             ],
             0,
@@ -539,6 +549,7 @@ def test_search_decoding(query: str, title: str, decode_latex: bool, decode_unic
                 Match(
                     " journal = {The Journal of Physical Chemistry Letters},",
                     [Span(start=46, end=52)],
+                    "",
                 )
             ],
             1,
@@ -561,10 +572,18 @@ def test_search_with_file() -> None:
     entry.file = EXAMPLE_YAML_FILE
     results = entry.search(["Chem"], context=0)
     expected = [
-        Match(" journal = {The Journal of Physical Chemistry Letters},", [Span(36, 40)]),
-        Match(" publisher = {American Chemical Society (ACS)},", [Span(23, 27)]),
-        Match("journal: The Journal of Physical Chemistry Letters", [Span(33, 37)]),
-        Match("publisher: American Chemical Society (ACS)", [Span(20, 24)]),
+        Match(" journal = {The Journal of Physical Chemistry Letters},", [Span(36, 40)], ""),
+        Match(" publisher = {American Chemical Society (ACS)},", [Span(23, 27)], ""),
+        Match(
+            "journal: The Journal of Physical Chemistry Letters",
+            [Span(33, 37)],
+            str(RelPath(EXAMPLE_YAML_FILE)),
+        ),
+        Match(
+            "publisher: American Chemical Society (ACS)",
+            [Span(20, 24)],
+            str(RelPath(EXAMPLE_YAML_FILE)),
+        ),
     ]
     assert len(results) == len(expected)
     for res, exp in zip(results, expected):
@@ -577,8 +596,8 @@ def test_search_with_skipped_file() -> None:
     entry.file = EXAMPLE_YAML_FILE
     results = entry.search(["Chem"], context=0, skip_files=True)
     expected = [
-        Match(" journal = {The Journal of Physical Chemistry Letters},", [Span(36, 40)]),
-        Match(" publisher = {American Chemical Society (ACS)},", [Span(23, 27)]),
+        Match(" journal = {The Journal of Physical Chemistry Letters},", [Span(36, 40)], ""),
+        Match(" publisher = {American Chemical Society (ACS)},", [Span(23, 27)], ""),
     ]
     assert len(results) == len(expected)
     for res, exp in zip(results, expected):

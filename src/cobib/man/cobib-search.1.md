@@ -8,7 +8,7 @@ cobib-search(1) -- search in the database
 ## DESCRIPTION
 
 Searches in the database.
-This command takes one or more _QUERY_ strings which are _regex(7)_ matched against the (filtered) entries in the database.
+This command takes one or more _QUERY_ strings which are _regex(7)_ patterns matched against the (filtered) entries in the database.
 Searches are performed against the *cobib-bibtex(7)* formatted entries rather than the raw database file.
 Any matches are printed to the output.
 
@@ -37,9 +37,9 @@ By default, matches are printed with 1 line of context above and below the actua
 ```bash
 $ cobib search --ignore-case Einstein
 einstein - 2 matches
-├── 1
+├── 1:
 │   └── @article{einstein,
-└── 2
+└── 2:
     ├──  author = {Einstein, Albert},
     └──  doi = {http://dx.doi.org/10.1002/andp.19053221004},
 ```
@@ -47,9 +47,9 @@ This can be tweaked via the `config.commands.search.context` setting and the `--
 ```bash
 $ cobib search --ignore-case --context 4 Einstein
 einstein - 2 matches
-├── 1
+├── 1:
 │   └── @article{einstein,
-└── 2
+└── 2:
     ├──  author = {Einstein, Albert},
     ├──  doi = {http://dx.doi.org/10.1002/andp.19053221004},
     ├──  journal = {Annalen der Physik},

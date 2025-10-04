@@ -313,6 +313,8 @@ class SearchCommand(Command):
 
             for idx, match_ in enumerate(matches):
                 prefix = f"{idx + 1}::"
+                if match_.source:
+                    prefix += f"{match_.source}::"
                 for line in match_.text.splitlines():
                     output.append(prefix + line.strip())
 
@@ -330,7 +332,7 @@ class SearchCommand(Command):
             )
 
             for idx, match_ in enumerate(matches):
-                matchtree = subtree.add(str(idx + 1))
+                matchtree = subtree.add(f"{idx + 1}: {match_.source}")
                 for line in match_.stylize().split():
                     matchtree.add(line)
 
@@ -352,7 +354,7 @@ class SearchCommand(Command):
 
             for idx, match_ in enumerate(matches):
                 matchtree = subtree.add(
-                    str(idx + 1),
+                    f"{idx + 1}: {match_.source}",
                     data=data,
                     expand=not config.tui.tree_folding[1],
                 )

@@ -30,6 +30,9 @@ class Match(NamedTuple):
     spans: list[Span]
     """The spans where a matching substring was found."""
 
+    source: str
+    """The source of this match."""
+
     def stylize(self) -> Text:
         """Return a stylized `rich.Text` of this match."""
         text = Text(self.text)
