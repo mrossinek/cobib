@@ -168,7 +168,7 @@ lint = [
     "types-regex==2025.9.18.20250921",
     "types-requests-oauthlib==2.0.0.20250809",
     "types-requests==2.32.4.20250913",
-    "typos~=1.36.2",
+    "typos~=1.37.2",
 ]
 
 [project.urls]
@@ -278,12 +278,17 @@ max-branches = 20
 max-returns = 10
 max-statements = 100
 
+[tool.typos.default]
+extend-ignore-re = [
+    # This regex is a orkaround while typos does not support its own specific line exclusion
+    # (https://github.com/crate-ci/typos/issues/316). This comes from typos' own examples:
+    # https://github.com/crate-ci/typos/blob/master/docs/reference.md#example-configurations
+    "(?Rm)^.*(#|//)\\s*spellchecker:disable-line$",
+]
+
 [tool.typos.default.extend-words]
 # Do not fix an old typo which has to be documented until its removal.
 captial = "captial"
-# Do not fix this substring which occurs as part of a regex. This can be removed
-# once typos supports inline-overrides.
-earch = "earch"
 
 [tool.typos.files]
-extend-exclude = ["**/__snapshots__/**/*.svg"]
+extend-exclude = ["**/__snapshots__/**/*.svg", "**/*.css"]

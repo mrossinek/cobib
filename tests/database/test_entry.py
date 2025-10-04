@@ -351,7 +351,7 @@ def test_match_with_wrong_key() -> None:
             ],
         ],
         [
-            ["[sS]earch_[qQ]uery"],
+            ["[sS]earch_[qQ]uery"],  # spellchecker:disable-line
             1,
             False,
             [

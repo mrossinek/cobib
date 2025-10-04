@@ -283,7 +283,7 @@ class ListCommand(Command):
                 for idx, obj in enumerate(self.args):  # pragma: no branch
                     if i == obj:
                         # once we find the current value in the CLI argument list we can determine
-                        # whether this filter is INclusive (`++`) or EXclusive (`--`)
+                        # whether this filter is **in**clusive (`++`) or **ex**clusive (`--`)
                         index: tuple[str, bool] = (key, self.args[idx - 1][0] == "+")
                         _filter[index].append(i)
                         break

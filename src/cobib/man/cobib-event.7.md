@@ -381,7 +381,7 @@ All of these events are provided with the Python command object instance, allowi
 
 ### IMPORTERS
 
-Most of the *cobib-importers(7)* implementatons provide a **Pre-** and **Post-** execution event which gets triggererd before and after the actual import, respectively.
+Most of the *cobib-importers(7)* implementations provide a **Pre-** and **Post-** execution event which gets triggererd before and after the actual import, respectively.
 All of these events are provided with the Python importer object instance, allowing the hooks to modify runtime data of the importer.
 
   * _PreBibtexImport_ = `Callable[[cobib.importers.bibtex.BibtexImporter], None]`:
