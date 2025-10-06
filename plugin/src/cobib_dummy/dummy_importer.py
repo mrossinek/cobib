@@ -13,6 +13,16 @@ from cobib.importers.base_importer import Importer
 class DummyImporter(Importer):
     """A dummy importer."""
 
+    @property
+    @override
+    def imported_entries(self) -> list[Entry]:
+        return []
+
+    @imported_entries.setter
+    @override
+    def imported_entries(self, entries: list[Entry]) -> None:
+        del entries
+
     @override
     @classmethod
     def init_argparser(cls) -> None:

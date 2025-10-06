@@ -95,6 +95,9 @@ coBib supports the implementation of plugins!
 You can find an example plugin in [this folder](./plugin) or read the docs of
 `cobib_dummy` (when viewing the hosted documentation online).
 
+Below is a list of known plugins. If you wrote your own, feel free to add it here!
+- [`cobib-zotero`](https://gitlab.com/cobib/cobib-zotero): an importer backend for [Zotero](https://github.com/zotero/zotero)
+
 
 ## Documentation
 

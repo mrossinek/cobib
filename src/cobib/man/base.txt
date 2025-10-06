@@ -24,7 +24,6 @@ cobib-filter.7           ../
 cobib-git.7              ../
 cobib-man.7              ../
 cobib-zip.7              ../
-cobib-zotero.7           ../
 cobib-arxiv.7            ../
 cobib-bibtex.7           ../
 cobib-doi.7              ../

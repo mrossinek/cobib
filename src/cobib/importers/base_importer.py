@@ -46,6 +46,20 @@ class Importer(ABC):
         """Whether or not to skip downloading of additional files such as attached PDF files or
         notes."""
 
+    @property
+    @abstractmethod
+    def imported_entries(self) -> list[Entry]:
+        """A list of `cobib.database.Entry` objects which were imported by this importer."""
+
+    @imported_entries.setter
+    @abstractmethod
+    def imported_entries(self, entries: list[Entry]) -> None:
+        """Sets the imported entries.
+
+        Args:
+            entries: list of `cobib.database.Entry` objects which were imported by this importer.
+        """
+
     @classmethod
     @abstractmethod
     def init_argparser(cls) -> None:

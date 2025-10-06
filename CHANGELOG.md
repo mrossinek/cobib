@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Prelude
+
+The `--zotero` backend for the `import` command is now provided by the
+[`cobib-zotero`](https://gitlab.com/cobib/cobib-zotero) plugin.
+
 ### Added
 - the `cobib.exporters` entry-point to support export backend plugins (#160,!407)
 
@@ -15,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - the `cobib.man` entry-point now supports registered man-pages in multiple
   categories (#186,!406)
 - the `export` command can now only export via one backend at a time (!407)
+
+### Removed
+- the deprecated `zotero` importer backend. Please switch over to using the
+  [`cobib-zotero`](https://gitlab.com/cobib/cobib-zotero) plugin instead! (#166,!408)
 
 
 ## [5.5.5] - 2025-10-01

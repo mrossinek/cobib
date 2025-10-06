@@ -74,7 +74,6 @@ zip = "cobib.exporters.zip:ZipExporter"
 
 [project.entry-points."cobib.importers"]
 bibtex = "cobib.importers.bibtex:BibtexImporter"
-zotero = "cobib.importers.zotero:ZoteroImporter"
 
 [project.entry-points."cobib.parsers"]
 arxiv = "cobib.parsers.arxiv:ArxivParser"
@@ -120,7 +119,6 @@ yaml = "cobib.parsers.yaml:YAMLParser"
 "cobib-exporters.7" = "cobib.man:A_overview"
 "cobib-importers.7" = "cobib.man:A_overview"
 "cobib-zip.7" = "cobib.man:E_exporters"
-"cobib-zotero.7" = "cobib.man:I_importers"
 "cobib-parsers.7" = "cobib.man:A_overview"
 "cobib-arxiv.7" = "cobib.man:P_parsers"
 "cobib-bibtex.7" = "cobib.man:E_exporters.I_importers.P_parsers"

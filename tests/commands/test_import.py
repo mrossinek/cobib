@@ -71,11 +71,11 @@ class TestImportCommand(CommandTest):
 
         @Event.PreImportCommand.subscribe
         def hook(command: ImportCommand) -> None:
-            command.largs.zotero = False
+            command.largs.bibtex = False
 
         assert Event.PreImportCommand.validate()
 
-        await ImportCommand("--zotero").execute()
+        await ImportCommand("--bibtex").execute()
 
     @pytest.mark.asyncio
     async def test_event_post_import_command(self, setup: Any) -> None:
@@ -89,6 +89,6 @@ class TestImportCommand(CommandTest):
 
         @Event.PreImportCommand.subscribe
         def aux_hook(command: ImportCommand) -> None:
-            command.largs.zotero = False
+            command.largs.bibtex = False
 
-        await ImportCommand("--zotero").execute()
+        await ImportCommand("--bibtex").execute()

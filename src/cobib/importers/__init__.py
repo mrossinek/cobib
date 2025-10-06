@@ -7,4 +7,3 @@ The abstract interface which should be implemented is defined in `cobib.importer
 """
 
 from .bibtex import BibtexImporter as BibtexImporter
-from .zotero import ZoteroImporter as ZoteroImporter

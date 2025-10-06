@@ -18,8 +18,6 @@ coBib ships with a single builtin backend to import from a BibTeX file (`--bibte
 $ cobib import --bibtex path/to/file.bib
 ```
 
-> NOTE: in v5.5.0 of coBib there still exists a builtin `--zotero` backend, but it is deprecated and will be replaced by the `cobib-zotero` plugin in v6.0.0
-
 Plugins can implement other importers for other sources.
 The full list of available backends can be seen in the output of:
 ```bash

@@ -53,7 +53,6 @@ else:
         "ForwardRef('exporters.BibtexExporter')": "cobib.exporters.bibtex.BibtexExporter",
         "ForwardRef('exporters.ZipExporter')": "cobib.exporters.zip.ZipExporter",
         "ForwardRef('importers.BibtexImporter')": "cobib.importers.bibtex.BibtexImporter",
-        "ForwardRef('importers.ZoteroImporter')": "cobib.importers.zotero.ZoteroImporter",
         "ForwardRef('Shell')": "Shell",
     }
 
@@ -557,38 +556,6 @@ class Event(Enum):
 
     Arguments:
         `cobib.importers.bibtex.BibtexImporter`: the importer instance that just ran.
-
-    Returns:
-        Nothing. But the importer attributes can be modified, affecting the execution.
-
-    Note:
-        - The entry labels will not have been mapped or disambiguated at this point.
-    """
-
-    PreZoteroImport = cast("Event", Callable[["importers.ZoteroImporter"], None])
-    """
-    .. warning::
-        **DEPRECATED**: this event will get removed when in v6.0.0 of coBib.
-
-    Fires:
-        Before starting `cobib.importers.zotero.ZoteroImporter.fetch`.
-
-    Arguments:
-        `cobib.importers.zotero.ZoteroImporter`: the importer instance that is about to run.
-
-    Returns:
-        Nothing. But the importer attributes can be modified, affecting the execution.
-    """
-    PostZoteroImport = cast("Event", Callable[["importers.ZoteroImporter"], None])
-    """
-    .. warning::
-        **DEPRECATED**: this event will get removed when in v6.0.0 of coBib.
-
-    Fires:
-        Before finishing `cobib.importers.zotero.ZoteroImporter.fetch`.
-
-    Arguments:
-        `cobib.importers.zotero.ZoteroImporter`: the importer instance that just ran.
 
     Returns:
         Nothing. But the importer attributes can be modified, affecting the execution.

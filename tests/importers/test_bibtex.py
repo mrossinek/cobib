@@ -119,6 +119,5 @@ class TestBibtexImport(CommandTest):
                     "skip_download": True,
                     "importer_arguments": parser_args,
                     "bibtex": True,
-                    "zotero": False,
                 },
             )

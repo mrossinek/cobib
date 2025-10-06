@@ -28,12 +28,7 @@ To import a bibliography from a BibTeX file, simply run:
 $ cobib import --bibtex database.bib
 ```
 
-You can also migrate from Zotero using the `--zotero` backend.
-While it is deprecating and will be removed in v6.0.0 of coBib,
-the `cobib-zotero` plugin will provide a new implementation with the same features.
-```bash
-$ cobib import --zotero
-```
+You can also migrate from Zotero if you install the `cobib-zotero` plugin.
 
 ### Modifying the database
 

@@ -31,6 +31,22 @@ class BibtexImporter(Importer):
     name = "bibtex"
 
     @override
+    def __init__(self, *args: str, skip_download: bool = False) -> None:
+        super().__init__(*args, skip_download=skip_download)
+
+        self._imported_entries: list[Entry] = []
+
+    @property
+    @override
+    def imported_entries(self) -> list[Entry]:
+        return self._imported_entries
+
+    @imported_entries.setter
+    @override
+    def imported_entries(self, entries: list[Entry]) -> None:
+        self._imported_entries = entries
+
+    @override
     @classmethod
     def init_argparser(cls) -> None:
         parser = argparse.ArgumentParser(
