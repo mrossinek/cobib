@@ -556,7 +556,7 @@ class TutorialCommand(Command):
 
         Instead, let us simply export the current state of the database:
         ```
-        > export --bibtex tutorial.bib --zip tutorial.zip
+        > export --bibtex tutorial.bib
         ```
         """
         LINT = """

@@ -27,7 +27,7 @@ from .config import config
 
 _FORWARD_REFS: dict[str, str] = {}
 if TYPE_CHECKING:
-    from cobib import commands, importers
+    from cobib import commands, exporters, importers
     from cobib.database import Entry
     from cobib.ui import Shell
 else:
@@ -50,6 +50,8 @@ else:
         "ForwardRef('commands.SearchCommand')": "cobib.commands.search.SearchCommand",
         "ForwardRef('commands.ShowCommand')": "cobib.commands.show.ShowCommand",
         "ForwardRef('commands.UndoCommand')": "cobib.commands.undo.UndoCommand",
+        "ForwardRef('exporters.BibtexExporter')": "cobib.exporters.bibtex.BibtexExporter",
+        "ForwardRef('exporters.ZipExporter')": "cobib.exporters.zip.ZipExporter",
         "ForwardRef('importers.BibtexImporter')": "cobib.importers.bibtex.BibtexImporter",
         "ForwardRef('importers.ZoteroImporter')": "cobib.importers.zotero.ZoteroImporter",
         "ForwardRef('Shell')": "Shell",
@@ -489,6 +491,52 @@ class Event(Enum):
 
     Returns:
         Nothing.
+    """
+
+    PreBibtexExport = cast("Event", Callable[["exporters.BibtexExporter"], None])
+    """
+    Fires:
+        Before starting `cobib.exporters.bibtex.BibtexExporter.write`.
+
+    Arguments:
+        `cobib.exporters.bibtex.BibtexExporter`: the exporter instance that is about to run.
+
+    Returns:
+        Nothing. But the exporter attributes can be modified, affecting the execution.
+    """
+    PostBibtexExport = cast("Event", Callable[["exporters.BibtexExporter"], None])
+    """
+    Fires:
+        Before finishing `cobib.exporters.bibtex.BibtexExporter.write`.
+
+    Arguments:
+        `cobib.exporters.bibtex.BibtexExporter`: the exporter instance that just ran.
+
+    Returns:
+        Nothing. But the exporter attributes can still be accessed to modify the exported result.
+    """
+
+    PreZipExport = cast("Event", Callable[["exporters.ZipExporter"], None])
+    """
+    Fires:
+        Before starting `cobib.exporters.zip.ZipExporter.write`.
+
+    Arguments:
+        `cobib.exporters.zip.ZipExporter`: the exporter instance that is about to run.
+
+    Returns:
+        Nothing. But the exporter attributes can be modified, affecting the execution.
+    """
+    PostZipExport = cast("Event", Callable[["exporters.ZipExporter"], None])
+    """
+    Fires:
+        Before finishing `cobib.exporters.zip.ZipExporter.write`.
+
+    Arguments:
+        `cobib.exporters.zip.ZipExporter`: the exporter instance that just ran.
+
+    Returns:
+        Nothing. But the exporter attributes can still be accessed to modify the exported result.
     """
 
     PreBibtexImport = cast("Event", Callable[["importers.BibtexImporter"], None])

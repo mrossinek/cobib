@@ -37,6 +37,7 @@ The nested list below indicates the available categories with their prioritizati
 3. `.7` section: _Miscellaneous_
     1. `A`: _Overview_
     2. `B`: _Info_
+    3. `E`: _Exporters_
     3. `I`: _Importers_
     4. `P`: _Parsers_
 
@@ -62,6 +63,7 @@ The structure should be as follows:
 When writing man-pages for a *cobib-plugins(7)*, consider using the following [entry-points](https://setuptools.pypa.io/en/latest/pkg_resources.html#entry-points):
 * `P_plugin` in `.1`: for *cobib-commands(7)*
 * `A_overview` in `.7`: for an overview of the plugin
+* `E_exporters` in `.7`: for *cobib-exporters(7)*
 * `I_importers` in `.7`: for *cobib-importers(7)*
 * `P_parsers` in `.7`: for *cobib-parsers(7)*
 

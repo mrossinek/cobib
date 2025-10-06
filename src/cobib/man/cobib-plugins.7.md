@@ -5,6 +5,7 @@ cobib-plugins(7) -- entry points for coBib's plugins
 
 ```toml
 [project.entry-points."cobib.commands"]
+[project.entry-points."cobib.exporters"]
 [project.entry-points."cobib.importers"]
 [project.entry-points."cobib.parsers"]
 [project.entry-points."cobib.man"]
@@ -17,6 +18,10 @@ coBib provides multiple [entry-points](https://setuptools.pypa.io/en/latest/pkg_
   * `cobib.commands`:
     An entry-point to register additional commands available through the command-line interface.
     See *cobib-commands(7)* for more details.
+
+  * `cobib.exporters`:
+    An entry-point to register additional exporter backends available through the *cobib-export(1)* command.
+    See *cobib-exporters(7)* for more details.
 
   * `cobib.importers`:
     An entry-point to register additional importer backends available through the *cobib-import(1)* command.
@@ -36,6 +41,6 @@ To see an example for developing a plugin, check out the `cobib_dummy` [plugin](
 
 ## SEE ALSO
 
-*cobib(1)*, *cobib-commands(7)*, *cobib-importers(7)*, *cobib-parsers(7)*
+*cobib(1)*, *cobib-commands(7)*, *cobib-exporters(7)*, *cobib-importers(7)*, *cobib-parsers(7)*
 
 [//]: # ( vim: set ft=markdown tw=0: )

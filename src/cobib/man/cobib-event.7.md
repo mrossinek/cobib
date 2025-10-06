@@ -379,6 +379,52 @@ All of these events are provided with the Python command object instance, allowi
         Nothing.
 
 
+### EXPORTERS
+
+Most of the *cobib-exporters(7)* implementations provide a **Pre-** and **Post-** execution event which gets triggererd before and after the actual export, respectively.
+All of these events are provided with the Python importer object instance, allowing the hooks to modify runtime data of the exporter.
+
+  * _PreBibtexExport_ = `Callable[[cobib.exporters.bibtex.BibtexExporter], None]`:
+    Fires:<br>
+        Before starting to write data using *cobib-bibtex(7)*.
+
+    Arguments:<br>
+        - `cobib.exporters.bibtex.BibtexImporter`: the exporter instance that is about to run.
+
+    Returns:<br>
+        Nothing. But the exporter attributes can be modified, affecting the execution.
+
+  * _PostBibtexExport_ = `Callable[[cobib.exporters.bibtex.BibtexExporter], None]`:
+    Fires:<br>
+        Before finishing to write data using *cobib-bibtex(7)*.
+
+    Arguments:<br>
+        - `cobib.exporters.bibtex.BibtexExporter`: the exporter instance that just ran.
+
+    Returns:<br>
+        Nothing. But the exporter attributes can be modified, affecting the execution.
+
+  * _PreZipExport_ = `Callable[[cobib.exporters.zip.ZipExporter], None]`:
+    Fires:<br>
+        Before starting to write data using *cobib-zip(7)*.
+
+    Arguments:<br>
+        - `cobib.exporters.zip.ZipImporter`: the exporter instance that is about to run.
+
+    Returns:<br>
+        Nothing. But the exporter attributes can be modified, affecting the execution.
+
+  * _PostZipExport_ = `Callable[[cobib.exporters.zip.ZipExporter], None]`:
+    Fires:<br>
+        Before finishing to write data using *cobib-zip(7)*.
+
+    Arguments:<br>
+        - `cobib.exporters.zip.ZipExporter`: the exporter instance that just ran.
+
+    Returns:<br>
+        Nothing. But the exporter attributes can be modified, affecting the execution.
+
+
 ### IMPORTERS
 
 Most of the *cobib-importers(7)* implementations provide a **Pre-** and **Post-** execution event which gets triggererd before and after the actual import, respectively.

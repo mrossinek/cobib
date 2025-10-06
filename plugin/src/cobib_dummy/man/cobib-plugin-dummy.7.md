@@ -6,6 +6,7 @@ cobib-plugin-dummy(7) -- dummy plugin for cobib(1)
 ```
 cobib dummy
 cobib add --dummy
+cobib export --dummy
 cobib import --dummy
 ```
 

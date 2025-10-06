@@ -28,6 +28,8 @@ cobib-filter(7)          database/entry
 cobib-getting-started(7) ../cobib
 cobib-git(7)             utils/git
 cobib-man(7)             man/manual
+cobib-exporters(7)       exporters
+cobib-zip(7)             exporters/zip
 cobib-importers(7)       importers
 cobib-zotero(7)          importers/zotero
 cobib-parsers(7)         parsers
