@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import ClassVar, cast
 
 from cobib.config import LabelSuffix, config
+from cobib.utils.logging import HINT
 from cobib.utils.rel_path import RelPath
 
 from .entry import Entry
@@ -131,7 +132,7 @@ class Database(OrderedDict[str, Entry]):
 
         if self[label] == entry:
             LOGGER.log(
-                35,
+                HINT,
                 "Even though the label '%s' already exists in the runtime database, the entry is "
                 "identical and, thus, no further disambiguation is necessary.",
                 label,
@@ -148,7 +149,7 @@ class Database(OrderedDict[str, Entry]):
                 LOGGER.info("Found new unique label: %s", new_label)
                 return new_label
             LOGGER.log(
-                35,
+                HINT,
                 "The label '%s' also already exists in the database. You are seeing this because "
                 "you are running a disambiguation of the label '%s'. You may want to check whether "
                 "these two entries are related and (if so) edit or merge them manually. For more "

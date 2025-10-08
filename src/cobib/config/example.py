@@ -46,7 +46,7 @@ config.commands.delete.preserve_files = False
 config.commands.edit.default_entry_type = "article"
 # The editor program. Note that this will respect your _$EDITOR_ environment variable setting,
 # falling back to `vim` if that is not set.
-config.commands.edit.editor = os.environ.get("EDITOR", "vim")
+config.commands.edit.editor = os.getenv("EDITOR", default="vim")
 # Whether associated files should be preserved when renaming entries during editing.
 config.commands.edit.preserve_files = False
 
@@ -127,11 +127,11 @@ config.commands.show.encode_latex = True
 
 # The path under which to store already parsed databases. Set this to `None` to disable this
 # functionality entirely. See also `cobib.database`.
-config.database.cache = "~/.cache/cobib/databases/"
+config.database.cache = "$XDG_CACHE_HOME/cobib/databases/"
 
 # The path to the database YAML file. You can use a `~` to represent your `$HOME` directory. See
 # also `cobib.database`.
-config.database.file = "~/.local/share/cobib/literature.yaml"
+config.database.file = "$XDG_DATA_HOME/cobib/literature.yaml"
 
 # Whether to enable the _git(1)_ integration, see also `cobib.utils.git`.
 config.database.git = False
@@ -191,14 +191,12 @@ config.events = {}
 
 # LOGGING
 
-# The default location of the cache.
-config.logging.cache = "~/.cache/cobib/cache"
 # The default location of the logfile.
-config.logging.logfile = "~/.cache/cobib/cobib.log"
+config.logging.logfile = "$XDG_STATE_HOME/cobib/cobib.log"
 # The default location of the cached version number, based on which `cobib` shows you the
 # latest changelog after an update.
 # Set this to `None` to disable this functionality entirely.
-config.logging.version = "~/.cache/cobib/version"
+config.logging.version = "$XDG_CACHE_HOME/cobib/version"
 
 # PARSERS
 
@@ -220,7 +218,7 @@ config.parsers.yaml.use_c_lib_yaml = True
 # The path under which to store the history of executed shell commands. Set this to `None` to
 # disable this functionality entirely. Using this feature requires the optional `prompt_toolkit`
 # dependency to be installed.
-config.shell.history = "~/.cache/cobib/shell_history"
+config.shell.history = "$XDG_STATE_HOME/cobib/shell_history"
 
 # Whether to enable VI mode (instead of Emacs mode) for `prompt_toolkit`'s line editing.
 # Using this feature requires the optional `prompt_toolkit` dependency to be installed.
@@ -329,7 +327,7 @@ config.tui.tree_folding = (True, False)
 # UTILS
 
 # The default location for associated files that get downloaded automatically.
-config.utils.file_downloader.default_location = "~/.local/share/cobib/"
+config.utils.file_downloader.default_location = "$XDG_DATA_HOME/cobib/"
 # A dictionary of _regex patterns_ mapping from article URLs to its corresponding PDF.
 #
 # Populating this dictionary will improve the success rate of the automatic file download. You can

@@ -16,6 +16,7 @@ from cobib.config import Event, config
 from cobib.database import Database, Entry
 from cobib.importers.base_importer import Importer
 from cobib.utils.entry_points import entry_points
+from cobib.utils.logging import HINT
 
 from .base_command import Command
 
@@ -141,7 +142,7 @@ class ImportCommand(Command):
         Event.PostImportCommand.fire(self)
         bib.update(self.new_entries)
 
-        LOGGER.log(35, "Imported %s entries into the database.", len(self.new_entries))
+        LOGGER.log(HINT, "Imported %s entries into the database.", len(self.new_entries))
 
         bib.save()
 

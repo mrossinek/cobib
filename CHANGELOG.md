@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 The `--zotero` backend for the `import` command is now provided by the
 [`cobib-zotero`](https://gitlab.com/cobib/cobib-zotero) plugin.
 
+coBib now respects the [XDG base directory specification](https://wiki.archlinux.org/title/XDG_Base_Directory)
+resulting in some changes to default file locations. You will see a warning if
+this affects you.
+
 ### Added
 - the `cobib.exporters` entry-point to support export backend plugins (#160,!407)
 
@@ -20,6 +24,18 @@ The `--zotero` backend for the `import` command is now provided by the
 - the `cobib.man` entry-point now supports registered man-pages in multiple
   categories (#186,!406)
 - the `export` command can now only export via one backend at a time (!407)
+- the [XDG base directory specification](https://wiki.archlinux.org/title/XDG_Base_Directory) is now being respected. (#151,!409)
+  This resulted in the following settings taking on new default values:
+    - `config.database.cache = "$XDG_CACHE_HOME/cobib/databases/"`
+    - `config.database.file = "$XDG_DATA_HOME/cobib/literature.yaml"`
+    - `config.logging.logfile = "$XDG_STATE_HOME/cobib/cobib.log"`
+    - `config.logging.version = "$XDG_CACHE_HOME/cobib/version"`
+    - `config.shell.history = "$XDG_STATE_HOME/cobib/shell_history"`
+    - `config.utils.file_downloader.default_location = "$XDG_DATA_HOME/cobib/"`
+
+### Deprecated
+- the `config.logging.cache` setting has been deprecated since it is no longer
+  being used (!409)
 
 ### Removed
 - the deprecated `zotero` importer backend. Please switch over to using the

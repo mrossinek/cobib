@@ -9,6 +9,7 @@ from typing_extensions import override
 
 from cobib.commands import ImportCommand
 from cobib.config import Event
+from cobib.utils.logging import HINT
 
 from .. import get_resource
 from .command_test import CommandTest
@@ -47,7 +48,7 @@ class TestImportCommand(CommandTest):
 
         assert (
             "cobib.database.database",
-            35,
+            HINT,
             (
                 "Even though the label 'einstein' already exists in the runtime database, the "
                 "entry is identical and, thus, no further disambiguation is necessary."

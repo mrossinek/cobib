@@ -12,6 +12,7 @@ from typing_extensions import override
 
 from cobib.commands import LintCommand
 from cobib.config import config
+from cobib.utils.logging import HINT
 from cobib.utils.rel_path import RelPath
 from tests.commands.command_test import CommandTest
 
@@ -71,7 +72,7 @@ class TestLintDatabase(CommandTest):
 
         assert (
             "cobib.database.database",
-            35,
+            HINT,
             "Encountered the following exception during cache lookup: 'Bypassing the cache.'",
         ) in caplog.record_tuples
 

@@ -17,7 +17,7 @@ from ... import get_resource
 from ...cmdline_test import CmdLineTest
 
 # FIXME: this is still not 100% predictable, but at least it seems to work reliably inside of tox/CI
-FORCE_TERMINAL = os.environ.get("TOX_ENV_NAME", "") == ""
+FORCE_TERMINAL = os.getenv("TOX_ENV_NAME", default="") == ""
 
 
 class TestShellGeneral(CmdLineTest):

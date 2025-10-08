@@ -52,7 +52,7 @@ We separate the options into subsections based on what they configure.
   * _config.commands.edit.default_entry_type_ = `"article"`:
     The default BibTeX entry type.
 
-  * _config.commands.edit.editor_ = `os.environ.get("EDITOR", "vim")`:
+  * _config.commands.edit.editor_ = `os.getenv("EDITOR", default="vim")`:
     The editor program.
     Note that this will respect your _$EDITOR_ environment variable setting, falling back to `vim` if that is not set.
 

@@ -24,6 +24,7 @@ from cobib.utils.diff_renderer import Differ
 from cobib.utils.entry_points import entry_points
 from cobib.utils.file_downloader import FileDownloader
 from cobib.utils.journal_abbreviations import JournalAbbreviations
+from cobib.utils.logging import HINT
 from cobib.utils.prompt import Prompt
 
 from .base_command import Command
@@ -362,7 +363,7 @@ class AddCommand(Command):
 
         for label in self.new_entries:
             msg = f"'{label}' was added to the database."
-            LOGGER.log(35, msg)
+            LOGGER.log(HINT, msg)
 
     def _rename_added_entry(self, entry: Entry, new_label: str) -> None:
         """Renames the provided entry to the new provided label.

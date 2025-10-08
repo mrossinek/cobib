@@ -75,6 +75,55 @@ class _ConfigBase:
             else:
                 setattr(self, name, field_.default_factory())  # type: ignore[misc]
 
+    @staticmethod
+    def _warn_legacy_path(
+        xdg_var: str,
+        legacy_base_dir: str,
+        file: str,
+        descriptor: str,
+        *,
+        old_path: str | None = None,
+    ) -> None:
+        """Warn if a legacy path is no longer accessible due to the XDG base directories.
+
+        Compares the specification of an XDG base directory with its legacy value. If they match,
+        nothing happens. If they differ, the existence of a desired file in the legacy location is
+        checked. If that does exist as well, a deprecation warning is logged to instruct the user on
+        how to handle the new XDG base directories.
+
+        Args:
+            xdg_var: the XDG environment variable name to check.
+            legacy_base_dir: the legacy value previously used instead of this XDG specification.
+            file: the file path to check for within the base directory.
+            descriptor: a descriptive string of the file that is being looked for (typically just
+                the configuration setting but it may also refer to the configuration file as a
+                whole).
+            old_path: an optional differing legacy path. This should be set if the location changed
+                from one legacy base directory to a different XDG base specification one.
+        """
+        xdg_base_dir = RelPath(os.getenv(xdg_var, legacy_base_dir)).path
+        legacy_path = RelPath(legacy_base_dir).path
+
+        if xdg_base_dir == legacy_path:
+            return
+
+        legacy_file = legacy_path / file if old_path is None else RelPath(old_path).path / file
+        if legacy_file.exists():  # pragma: no branch
+            LOGGER.log(
+                45,
+                (
+                    f"Since v6.0.0 coBib respects the ${xdg_var} environment variable!\n"
+                    f"It looks like your {descriptor} is located in a path which is no longer "
+                    "accessible because of this change!\n"
+                    f"    Old location: {legacy_file}\n"
+                    f"    New location: {RelPath(xdg_base_dir / file).path}\n"
+                    "You can silence this warning by performing one of the following:\n"
+                    "    1. Move the file from the old location to the one.\n"
+                    "    2. Delete the file in the old location (if it is no longer needed).\n"
+                    "    3. Update the corresponding configuration setting to your desired path.\n"
+                ),
+            )
+
 
 @dataclass
 class Config(_ConfigBase):
@@ -102,7 +151,7 @@ class Config(_ConfigBase):
     """The nested section for the utils settings."""
 
     XDG_CONFIG_FILE: str | Path = field(
-        default="~/.config/cobib/config.py", init=False, repr=False, compare=False
+        default="$XDG_CONFIG_HOME/cobib/config.py", init=False, repr=False, compare=False
     )
     """The XDG-based standard configuration location."""
 
@@ -141,8 +190,7 @@ class Config(_ConfigBase):
             if isinstance(configpath, (TextIO, io.TextIOWrapper)):
                 configpath.close()
                 configpath = configpath.name
-        elif "COBIB_CONFIG" in os.environ:
-            configpath_env = os.environ["COBIB_CONFIG"]
+        elif (configpath_env := os.getenv("COBIB_CONFIG")) is not None:
             if configpath_env.lower() in ("", "0", "f", "false", "nil", "none"):
                 LOGGER.info(
                     "Skipping configuration loading because negative COBIB_CONFIG environment "
@@ -150,13 +198,19 @@ class Config(_ConfigBase):
                 )
                 return
             configpath = RelPath(configpath_env).path
-        elif Config.XDG_CONFIG_FILE and RelPath(Config.XDG_CONFIG_FILE).exists():
-            # NOTE: I don't quite know why these two lines are not included in coverage because
-            # there is a unittest for them and adding a print statement here does show up in the
-            # output of the test suite...
-            configpath = RelPath(Config.XDG_CONFIG_FILE).path
-        else:  # pragma: no cover
-            return  # pragma: no cover
+        else:
+            Config._warn_legacy_path(
+                "XDG_CONFIG_HOME", "~/.config", "cobib/config.py", "configuration file"
+            )
+
+            if Config.XDG_CONFIG_FILE and RelPath(Config.XDG_CONFIG_FILE).exists():
+                # NOTE: I don't quite know why these two lines are not included in coverage because
+                # there is a unittest for them and adding a print statement here does show up in the
+                # output of the test suite...
+                configpath = RelPath(Config.XDG_CONFIG_FILE).path
+            else:  # pragma: no cover
+                return  # pragma: no cover
+
         LOGGER.info("Loading configuration from default location: %s", configpath)
 
         spec = importlib.util.spec_from_file_location("config", configpath)
@@ -264,7 +318,7 @@ class EditCommandConfig(_ConfigBase):
 
     default_entry_type: str = "article"
     """The default BibTeX entry type."""
-    editor: str = os.environ.get("EDITOR", "vim")
+    editor: str = os.getenv("EDITOR", default="vim")
     """The editor program. Note that this will respect your `$EDITOR` environment variable setting,
     falling back to `vim` if that is not set."""
     preserve_files: bool = False
@@ -522,10 +576,10 @@ class ShowCommandConfig(_ConfigBase):
 class DatabaseConfig(_ConfigBase):
     """The `config.database` section."""
 
-    cache: str | Path | None = "~/.cache/cobib/databases/"
+    cache: str | Path | None = "$XDG_CACHE_HOME/cobib/databases/"
     """The path under which to store already parsed databases. Set this to `None` to disable this
     functionality entirely. See also `cobib.database`."""
-    file: str | Path = "~/.local/share/cobib/literature.yaml"
+    file: str | Path = "$XDG_DATA_HOME/cobib/literature.yaml"
     """The path to the database YAML file. You can use a `~` to represent your `$HOME` directory.
     See also `cobib.database`."""
     format: DatabaseFormatConfig = field(default_factory=lambda: DatabaseFormatConfig())
@@ -548,6 +602,13 @@ class DatabaseConfig(_ConfigBase):
         self.format.validate()
         self._assert(isinstance(self.git, bool), "config.database.git should be a boolean.")
         self.stringify.validate()
+
+        self._warn_legacy_path(
+            "XDG_CACHE_HOME", "~/.cache", "cobib/databases/", "config.database.cache"
+        )
+        self._warn_legacy_path(
+            "XDG_DATA_HOME", "~/.local/share", "cobib/literature.yaml", "config.database.file"
+        )
 
 
 class AuthorFormat(Enum):
@@ -815,26 +876,48 @@ class EntryListSeparatorConfig(_ConfigBase):
 class LoggingConfig(_ConfigBase):
     """The `config.logging` section."""
 
-    cache: str | Path = "~/.cache/cobib/cache"
-    """The default location of the cache."""
-    logfile: str | Path = "~/.cache/cobib/cobib.log"
+    _cache: str | Path = "$XDG_CACHE_HOME/cobib/cache"
+    logfile: str | Path = "$XDG_STATE_HOME/cobib/cobib.log"
     """The default location of the logfile."""
-    version: str | None = "~/.cache/cobib/version"
+    version: str | None = "$XDG_CACHE_HOME/cobib/version"
     """The default location of the cached version number, based on which `cobib` shows you the
     latest changelog after an update. Set this to `None` to disable this functionality entirely."""
+
+    @property
+    def cache(self) -> str | Path:
+        """**DEPRECATED** The default location of the cache.
+
+        This setting is deprecated as of v6.0.0 of coBib as it is no longer being used.
+        """
+        return self._cache  # pragma: no cover
+
+    @cache.setter
+    def cache(self, cache: str | Path) -> None:
+        LOGGER.log(  # pragma: no cover
+            45, "The config.logging.cache setting is DEPRECATED as it is no longer being used!"
+        )
+        self._cache = cache  # pragma: no cover
 
     @override
     def validate(self) -> None:
         LOGGER.debug("Validating the LOGGING configuration section.")
-        self._assert(
-            isinstance(self.cache, (str, Path)), "config.logging.cache should be a string."
-        )
         self._assert(
             isinstance(self.logfile, (str, Path)), "config.logging.logfile should be a string."
         )
         self._assert(
             self.version is None or isinstance(self.version, str),
             "config.logging.version should be a string or `None`.",
+        )
+
+        self._warn_legacy_path(
+            "XDG_STATE_HOME",
+            "~/.local/state",
+            "cobib/cobib.log",
+            "config.logging.logfile",
+            old_path="~/.cache",
+        )
+        self._warn_legacy_path(
+            "XDG_CACHE_HOME", "~/.cache", "cobib/version", "config.logging.version"
         )
 
 
@@ -894,7 +977,7 @@ class YAMLParserConfig(_ConfigBase):
 class ShellConfig(_ConfigBase):
     """The `config.shell` section."""
 
-    history: str | Path | None = "~/.cache/cobib/shell_history"
+    history: str | Path | None = "$XDG_STATE_HOME/cobib/shell_history"
     """The path under which to store the history of executed shell commands (i.e. the argument to
     `prompt_toolkit.history.FileHistory`). Set this to `None` to disable this functionality entirely
     (i.e. to use `prompt_toolkit.history.InMemoryHistory`). See also [this explanation][1].
@@ -916,6 +999,14 @@ class ShellConfig(_ConfigBase):
             "config.shell.history should be a string, Path, or `None`.",
         )
         self._assert(isinstance(self.vi_mode, bool), "config.shell.vi_mode should be a boolean.")
+
+        self._warn_legacy_path(
+            "XDG_STATE_HOME",
+            "~/.local/state",
+            "cobib/shell_history",
+            "config.shell.history",
+            old_path="~/.cache",
+        )
 
 
 @dataclass
@@ -1289,7 +1380,7 @@ class UtilsConfig(_ConfigBase):
 class FileDownloaderConfig(_ConfigBase):
     """The `config.utils.file_downloader` section."""
 
-    default_location: str = "~/.local/share/cobib/"
+    default_location: str = "$XDG_DATA_HOME/cobib/"
     """The default location for associated files that get downloaded automatically."""
     url_map: dict[str, str] = field(default_factory=dict)
     """A dictionary of *regex patterns* mapping from article URLs to its corresponding PDF.
@@ -1321,6 +1412,13 @@ class FileDownloaderConfig(_ConfigBase):
                 isinstance(pattern, str) and isinstance(repl, str),
                 "config.utils.file_downloader.url_map should be a dict[str, str].",
             )
+
+        self._warn_legacy_path(
+            "XDG_DATA_HOME",
+            "~/.local/share",
+            "cobib/",
+            "config.utils.file_downloader.default_location",
+        )
 
 
 config = Config()

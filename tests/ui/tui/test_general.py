@@ -18,6 +18,7 @@ from cobib.config import TagMarkup, config
 from cobib.database import Database
 from cobib.ui.components import InputScreen, LogScreen
 from cobib.ui.tui import TUI
+from cobib.utils.logging import HINT
 
 from ... import get_resource
 
@@ -156,7 +157,7 @@ class TestTUIGeneral:
             logger = logging.getLogger("cobib.ui.tui")
             logger.log(logging.DEBUG, "debug message")
             logger.log(logging.INFO, "info message")
-            logger.log(35, "hint message")
+            logger.log(HINT, "hint message")
             logger.log(logging.WARNING, "warning message")
             logger.log(45, "deprecation message")
             logger.log(logging.ERROR, "error message")

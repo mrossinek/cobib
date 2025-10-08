@@ -5,6 +5,9 @@ from __future__ import annotations
 import logging
 import os
 from collections.abc import Generator
+from pathlib import Path
+from shutil import copyfile
+from tempfile import TemporaryDirectory
 from typing import Any
 
 import pytest
@@ -60,7 +63,7 @@ def test_config_load_nothing() -> None:
 
 def test_config_disable_load() -> None:
     """Test that loading can be disabled via environment variable."""
-    prev_value = os.environ.get("COBIB_CONFIG", None)
+    prev_value = os.getenv("COBIB_CONFIG")
     try:
         config.database.file = "dummy"
         os.environ["COBIB_CONFIG"] = "0"
@@ -75,7 +78,7 @@ def test_config_disable_load() -> None:
 
 def test_config_load_from_env_var() -> None:
     """Test that loading can be configured via environment variable."""
-    prev_value = os.environ.get("COBIB_CONFIG", None)
+    prev_value = os.getenv("COBIB_CONFIG")
     try:
         os.environ["COBIB_CONFIG"] = get_resource("debug.py")
         config.load()
@@ -89,13 +92,26 @@ def test_config_load_from_env_var() -> None:
 
 def test_config_load_xdg() -> None:
     """Test loading a config from XDG path."""
-    prev = Config.XDG_CONFIG_FILE
-    Config.XDG_CONFIG_FILE = get_resource("debug.py")
+    prev_value = os.getenv("COBIB_CONFIG")
+    prev_xdg_value = os.getenv("XDG_CONFIG_HOME")
     try:
-        config.load()
-        assert config.database.file == str(EXAMPLE_LITERATURE)
+        os.environ.pop("COBIB_CONFIG", None)
+        with TemporaryDirectory() as tmpdir:
+            os.environ["XDG_CONFIG_HOME"] = str(tmpdir)
+            path = Path(tmpdir) / "cobib"
+            path.mkdir(parents=True)
+            copyfile(get_resource("debug.py"), path / "config.py")
+            config.load()
+            assert config.database.file == str(path / "example_literature.yaml")
     finally:
-        Config.XDG_CONFIG_FILE = prev
+        if prev_xdg_value is None:
+            os.environ.pop("XDG_CONFIG_HOME", None)
+        else:
+            os.environ["XDG_CONFIG_HOME"] = prev_xdg_value
+        if prev_value is None:
+            os.environ.pop("COBIB_CONFIG", None)
+        else:
+            os.environ["COBIB_CONFIG"] = prev_value
 
 
 def test_config_example() -> None:

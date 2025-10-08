@@ -2,8 +2,24 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any
+
+XDG_BASE_DIRS: dict[str, str] = {
+    "XDG_CONFIG_HOME": os.getenv("XDG_CONFIG_HOME", "$HOME/.config"),
+    "XDG_CACHE_HOME": os.getenv("XDG_CACHE_HOME", "$HOME/.cache"),
+    "XDG_DATA_HOME": os.getenv("XDG_DATA_HOME", "$HOME/.local/share"),
+    "XDG_STATE_HOME": os.getenv("XDG_STATE_HOME", "$HOME/.local/state"),
+}
+"""A dictionary of XDG base directory paths.
+
+For more details see [here](https://wiki.archlinux.org/title/XDG_Base_Directory).
+"""
+
+for key, val in XDG_BASE_DIRS.items():
+    if key not in os.environ:
+        os.environ[key] = os.path.expandvars(val)
 
 
 class RelPath:
@@ -29,7 +45,7 @@ class RelPath:
         Args:
             path: the path to store.
         """
-        full_path = Path(path).expanduser().resolve()
+        full_path = Path(os.path.expandvars(path)).expanduser().resolve()
         try:
             self._path = "~" / full_path.relative_to(self.HOME)
         except ValueError:

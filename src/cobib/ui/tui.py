@@ -47,7 +47,7 @@ from cobib.ui.components import (
     SearchView,
     SelectionFilter,
 )
-from cobib.utils.logging import LoggingHandler
+from cobib.utils.logging import HINT, LoggingHandler
 from cobib.utils.prompt import Confirm
 
 from .ui import UI
@@ -701,7 +701,7 @@ class TUI(UI, App[None]):
                     f"The entry with label '{label}' exists in the database but not in the current "
                     "view. Displaying it only in the side panel."
                 )
-                LOGGER.log(35, msg)
+                LOGGER.log(HINT, msg)
                 self._show_entry(show_cmd, load_note=True)
         else:
             self._show_entry(show_cmd, load_note=True)

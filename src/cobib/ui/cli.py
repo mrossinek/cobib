@@ -21,7 +21,7 @@ from cobib.ui.tui import TUI
 from cobib.ui.ui import UI
 from cobib.utils.console import PromptConsole
 from cobib.utils.entry_points import entry_points
-from cobib.utils.logging import print_changelog
+from cobib.utils.logging import HINT, print_changelog
 
 LOGGER = logging.getLogger(__name__)
 """@private module logger."""
@@ -72,7 +72,7 @@ class CLI(UI):
             subcmd_args = sys_args[sys_args.index(arguments.command) + 1 :]
             if subcmd_args != arguments.args:
                 LOGGER.log(  # pragma: no cover
-                    35,
+                    HINT,
                     "The arguments provided after the subcommand name did not match the parsed "
                     "ones. This can occur in rare cases when the '--' pseudo-argument is involved. "
                     "Taking an educated guess and overwriting them. Please file a bug report if "
