@@ -205,6 +205,18 @@ We separate the options into subsections based on what they configure.
 *cobib-event(7)* hooks get stored in `config.events` but it should **NOT** be modified directly!
 Instead, the `Event.subscribe` decorator should be used (cf. *cobib-event(7)*).
 
+#### EXPORTERS
+
+#### EXPORTERS.BIBTEX
+
+  * _config.exporters.bibtex.journal_format_ = `JournalFormat.FULL`:
+    How the `journal` field gets exported.
+
+    The `cobib.config.config.JournalFormat` object is an `Enum` representing the following options:<br>
+        - `FULL`: export the full-length Journal names.<br>
+        - `ABBREV`: export the abbreviated Journal names.<br>
+        - `DOTLESS`: export the abbreviated Journal names without any punctuation.<br>
+
 ### LOGGING
 
   * _config.logging.cache_ = `"~/.cache/cobib/cache"`:

@@ -17,6 +17,9 @@ this affects you.
 
 ### Added
 - the `cobib.exporters` entry-point to support export backend plugins (#160,!407)
+- unified the journal abbreviation logic of the `--bibtex` exported (#187,!410)
+    - consolidated the CLI arguments in `--journal-format`
+    - added the `config.exporters.bibtex.journal_format` setting
 
 ### Changed
 - the `search` command results now indicate what source a match came from (#174,!404)
@@ -36,6 +39,8 @@ this affects you.
 ### Deprecated
 - the `config.logging.cache` setting has been deprecated since it is no longer
   being used (!409)
+- the `--abbreviate` and `--dotless` arguments to the `--bibtex` imported;
+  instead one should use `--journal-format` with `abbrev` or `dotless` (#187,!410)
 
 ### Removed
 - the deprecated `zotero` importer backend. Please switch over to using the

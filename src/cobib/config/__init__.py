@@ -4,6 +4,7 @@
 """
 
 from .config import AuthorFormat as AuthorFormat
+from .config import JournalFormat as JournalFormat
 from .config import LabelSuffix as LabelSuffix
 from .config import TagMarkup as TagMarkup
 from .config import config as config

@@ -10,7 +10,7 @@ import logging
 
 from typing_extensions import override
 
-from cobib.config import Event
+from cobib.config import Event, JournalFormat, config
 from cobib.database import Entry
 from cobib.parsers import BibtexParser
 from cobib.utils.journal_abbreviations import JournalAbbreviations
@@ -27,9 +27,8 @@ class BibtexExporter(Exporter):
     This exporter can parse the following arguments:
 
         * `file`: the BibTeX file into which to export entries.
-        * `-a`, `--abbreviate`: abbreviate the Journal names before exporting. See also
-          `cobib.config.config.UtilsConfig.journal_abbreviations`.
-        * `--dotless`: remove punctuation from the Journal abbreviations.
+        * `-f`, `--journal-format`:  specifies the output form of the `journal` field. This
+          overwrites the `cobib.config.config.BibtexExporterConfig.journal_format` setting.
     """
 
     name = "bibtex"
@@ -45,14 +44,51 @@ class BibtexExporter(Exporter):
         parser.add_argument(
             "file", type=argparse.FileType("a"), help="the BibTeX file into which to export"
         )
-        parser.add_argument(
-            "-a", "--abbreviate", action="store_true", help="Abbreviate journal names"
+        abbrev_group = parser.add_mutually_exclusive_group()
+        abbrev_group.add_argument(
+            "-a",
+            "--abbreviate",
+            action="store_true",
+            help="DEPRECATED: use '--journal-format abbrev' instead!",
+        )
+        abbrev_group.add_argument(
+            "-f",
+            "--journal-format",
+            type=str,
+            default=None,
+            choices=[format.value for format in JournalFormat],
+            help="the format to use for the 'journal' field",
         )
         parser.add_argument(
-            "--dotless", action="store_true", help="Remove punctuation from journal abbreviations"
+            "--dotless",
+            action="store_true",
+            help="DEPRECATED: use '--journal-format dotless' instead!",
         )
 
         cls.argparser = parser
+
+    @override
+    @classmethod
+    def _parse_args(cls, args: tuple[str, ...]) -> argparse.Namespace:
+        largs = super()._parse_args(args)
+
+        if largs.abbreviate:
+            msg = (
+                "The '--abbreviate' argument of the '--bibtex' exporter is deprecated! "
+                "Instead you should use '--journal-format abbrev'."
+            )
+            LOGGER.warning(msg)
+            largs.journal_format = "abbrev"
+
+        if largs.dotless:
+            msg = (
+                "The '--dotless' argument of the '--bibtex' exporter is deprecated! "
+                "Instead you should use '--journal-format dotless'."
+            )
+            LOGGER.warning(msg)
+            largs.journal_format = "dotless"
+
+        return largs
 
     @override
     def write(self, entries: list[Entry]) -> None:
@@ -62,13 +98,18 @@ class BibtexExporter(Exporter):
 
         Event.PreBibtexExport.fire(self)
 
+        journal_format = config.exporters.bibtex.journal_format
+        if self.largs.journal_format is not None:
+            journal_format = next(j for j in JournalFormat if j.value == self.largs.journal_format)
+        LOGGER.debug("The journal field will be formatted as %s", journal_format.name)
+
         bibtex_parser = BibtexParser()
 
         for entry in self.exported_entries:
             LOGGER.info('Exporting entry "%s".', entry.label)
-            if self.largs.abbreviate and "journal" in entry.data.keys():
+            if journal_format != JournalFormat.FULL:
                 entry.data["journal"] = JournalAbbreviations.abbreviate(
-                    entry.data["journal"], dotless=self.largs.dotless
+                    entry.data["journal"], dotless=(journal_format == JournalFormat.DOTLESS)
                 )
             entry_str = bibtex_parser.dump(entry)
             self.largs.file.write(entry_str)

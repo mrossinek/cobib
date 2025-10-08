@@ -137,6 +137,8 @@ class Config(_ConfigBase):
     """`cobib.config.event` hooks get stored in this dictionary but it should **NOT** be modified
     directly! Instead, the `cobib.config.event.Event.subscribe` decorator should be used (cf.
     `cobib.config.event`)."""
+    exporters: ExporterConfig = field(default_factory=lambda: ExporterConfig())
+    """The nested section for the exporters settings."""
     logging: LoggingConfig = field(default_factory=lambda: LoggingConfig())
     """The nested section for the logging settings."""
     parsers: ParserConfig = field(default_factory=lambda: ParserConfig())
@@ -160,6 +162,7 @@ class Config(_ConfigBase):
         LOGGER.info("Validating the runtime configuration.")
         self.commands.validate()
         self.database.validate()
+        self.exporters.validate()
         self.logging.validate()
         self.parsers.validate()
         self.shell.validate()
@@ -869,6 +872,46 @@ class EntryListSeparatorConfig(_ConfigBase):
         self._assert(
             isinstance(self.url, str),
             "config.database.stringify.list_separator.url should be a string.",
+        )
+
+
+@dataclass
+class ExporterConfig(_ConfigBase):
+    """The `config.exporters` section."""
+
+    bibtex: BibtexExporterConfig = field(default_factory=lambda: BibtexExporterConfig())
+    """The nested section for the BibTeX exporter settings."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the EXPORTERS configuration section.")
+        self.bibtex.validate()
+
+
+class JournalFormat(Enum):
+    """Formats for the `journal` information."""
+
+    FULL = "full"
+    """Exports the `journal` name in its full-length form."""
+    ABBREV = "abbrev"
+    """Exports the `journal` name in its abbreviated form."""
+    DOTLESS = "dotless"
+    """Exports the `journal` name in its abbreviated form without any punctuation."""
+
+
+@dataclass
+class BibtexExporterConfig(_ConfigBase):
+    """The `config.exporters.bibtex` section."""
+
+    journal_format: JournalFormat = JournalFormat.FULL
+    """The form in which to export `journal` names."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the EXPORTERS.BIBTEX configuration section.")
+        self._assert(
+            isinstance(self.journal_format, JournalFormat),
+            "config.exporters.bibtex.journal_format should be an JournalFormat value.",
         )
 
 

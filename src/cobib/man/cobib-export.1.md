@@ -47,8 +47,8 @@ $ cobib export --zip output.zip
 
 Exports with abbreviated journal names:
 ```bash
-$ cobib export --abbreviate --bibtex output.bib
-$ cobib export -a --dotless --bibtex output.bib
+$ cobib export --journal-format abbrev --bibtex output.bib
+$ cobib export --journal-format dotless --bibtex output.bib
 ```
 
 Exports with a *cobib-filter(7)* applied:
@@ -63,7 +63,7 @@ $ cobib export -s -b output.bib -- Label1 Label2
 
 An export with `--bibtex` arguments and *cobib-filter(7)* arguments:
 ```bash
-$ cobib export -b -- output.bib --abbreviate -- --or ++year 2024 ++year 2025
+$ cobib export -b -- output.bib -f abbrev -- --or ++year 2024 ++year 2025
 ```
 
 ## SEE ALSO

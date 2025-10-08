@@ -21,7 +21,7 @@ import os
 import sys
 
 # To get started you must import coBib's configuration.
-from cobib.config import AuthorFormat, LabelSuffix, TagMarkup, config
+from cobib.config import AuthorFormat, JournalFormat, LabelSuffix, TagMarkup, config
 
 # Now, you are all set to apply your own settings.
 
@@ -188,6 +188,13 @@ config.database.stringify.list_separator.url = ", "
 # _cobib-event(7)_ hooks get stored in `config.events` but it should **NOT** be modified directly!
 # Instead, the `Event.subscribe` decorator should be used (cf. _cobib-event(7)_).
 config.events = {}
+
+# EXPORTERS
+
+# EXPORTERS.BIBTEX
+
+# The form in which to export `journal` names.
+config.exporters.bibtex.journal_format = JournalFormat.FULL
 
 # LOGGING
 

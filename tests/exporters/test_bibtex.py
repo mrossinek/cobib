@@ -10,7 +10,7 @@ import pytest
 from typing_extensions import override
 
 from cobib.commands import ExportCommand
-from cobib.config import Event, config
+from cobib.config import Event, JournalFormat, config
 from cobib.database import Database
 from cobib.exporters import BibtexExporter
 
@@ -117,36 +117,75 @@ class TestBibtexExport(CommandTest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             args: the arguments to pass to the command.
         """
-        if "--zip" in args:
-            # add a dummy file to the `einstein` entry
-            entry = Database()["einstein"]
-            entry.file = get_resource("debug.py")
-
         ExportCommand(*args).execute()
         self._assert(args)
 
     @pytest.mark.parametrize("dotless", [False, True])
-    def test_journal_abbreviation(self, setup: Any, dotless: bool) -> None:
-        """Test journal abbreviation.
+    def test_journal_format_deprecated(self, setup: Any, dotless: bool) -> None:
+        """Test the deprecated journal abbreviation behavior.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             dotless: whether to abbreviate with or without punctuation.
         """
         config.utils.journal_abbreviations = [("Annalen der Physik", "Ann. Phys.")]
+        abbrev_args = ["--abbreviate"]
+        if dotless:
+            abbrev_args += ["--dotless"]
+
         args = [
             "-s",
             "--bibtex",
             "--",
             str(TMPDIR / "cobib_test_export.bib"),
-            "-a",
+            *abbrev_args,
             "--",
             "einstein",
         ]
-        if dotless:
-            args.insert(5, "--dotless")
+
         ExportCommand(*args).execute()
         self._assert_journal_abbreviation(dotless)
+
+    @pytest.mark.parametrize("config_overwrite", list(JournalFormat))
+    @pytest.mark.parametrize("journal_format", [None, "full", "abbrev", "dotless"])
+    def test_journal_format(
+        self, setup: Any, config_overwrite: JournalFormat, journal_format: str | None
+    ) -> None:
+        """Test the journal field formatting.
+
+        Args:
+            setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            config_overwrite: what to overwrite `config.exporters.bibtex.journal_format` with.
+            journal_format: the value for the `--journal-format` argument.
+        """
+        config.exporters.bibtex.journal_format = config_overwrite
+        config.utils.journal_abbreviations = [("Annalen der Physik", "Ann. Phys.")]
+
+        args = [
+            "-s",
+            "--bibtex",
+            "--",
+            str(TMPDIR / "cobib_test_export.bib"),
+            "--",
+            "einstein",
+        ]
+        if journal_format is not None:
+            args.insert(4, "--journal-format")
+            args.insert(5, journal_format)
+
+        ExportCommand(*args).execute()
+
+        abbreviate = (config_overwrite != JournalFormat.FULL and journal_format is None) or (
+            journal_format in ("abbrev", "dotless")
+        )
+        dotless = (config_overwrite == JournalFormat.DOTLESS and journal_format is None) or (
+            journal_format == "dotless"
+        )
+
+        if abbreviate:
+            self._assert_journal_abbreviation(dotless)
+        else:
+            self._assert(args)
 
     def _assert_journal_abbreviation(self, dotless: bool) -> None:
         """Assertion utility method for bibtex output.
