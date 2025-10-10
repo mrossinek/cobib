@@ -39,9 +39,7 @@ class ZipExporter(Exporter):
             description="Zip exporter.",
             epilog="Read cobib-zip.7 for more help.",
         )
-        parser.add_argument(
-            "file", type=argparse.FileType("a"), help="the Zip file into which to export"
-        )
+        parser.add_argument("file", type=str, help="the Zip file into which to export")
         files_group = parser.add_mutually_exclusive_group()
         files_group.add_argument(
             "--skip-files",
@@ -79,7 +77,7 @@ class ZipExporter(Exporter):
 
         self.exported_entries = entries
 
-        self.largs.file = ZipFile(self.largs.file.name, "a")
+        self.largs.file = ZipFile(self.largs.file, "a")
 
         Event.PreZipExport.fire(self)
 

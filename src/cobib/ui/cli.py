@@ -121,6 +121,8 @@ class CLI(UI):
                 InteractiveUI(verbosity=self.logging_handler.level).run_async()
             )
             await task
+            if arguments.logfile:
+                arguments.logfile.close()
             # the following is required for the asynchronous TUI to quit properly
             sys.exit()
         else:
@@ -147,3 +149,6 @@ class CLI(UI):
                 renderable = subcmd.render_rich()
                 if renderable is not None:
                     console.print(renderable)
+
+        if arguments.logfile:
+            arguments.logfile.close()

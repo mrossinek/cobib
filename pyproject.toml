@@ -25,6 +25,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Operating System :: Unix",
     "Environment :: Console",
     "Typing :: Typed",
@@ -133,7 +134,10 @@ cobib = "cobib.__main__:_main"
 [project.optional-dependencies]
 # all optional _runtime_ dependencies
 all = [
-    "cobib[fuzzy,shell]",
+    "cobib[cyaml,fuzzy,shell]",
+]
+cyaml = [
+    "ruamel.yaml.clib",
 ]
 fuzzy = [
     "regex",
@@ -157,6 +161,7 @@ test = [
     "cobib[basedev]",
     "pytest-asyncio~=1.2.0",
     "pytest-textual-snapshot~=1.1.0",
+    "ruamel.yaml.clib",
     "textual>=6.0",
 ]
 coverage = [

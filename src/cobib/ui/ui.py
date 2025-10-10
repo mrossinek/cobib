@@ -71,12 +71,8 @@ class UI:
             action="store_true",
             help="switches the output to porcelain mode (meant for parsing/testing)",
         )
-        self.parser.add_argument(
-            "-l", "--logfile", type=argparse.FileType("w"), help="Alternative log file"
-        )
-        self.parser.add_argument(
-            "-c", "--config", type=argparse.FileType("r"), help="Alternative config file"
-        )
+        self.parser.add_argument("-l", "--logfile", type=str, help="Alternative log file")
+        self.parser.add_argument("-c", "--config", type=str, help="Alternative config file")
         self.add_extra_parser_arguments()
 
     def add_extra_parser_arguments(self) -> None:
@@ -99,6 +95,7 @@ class UI:
         arguments = self.parser.parse_args()
 
         if arguments.logfile:
+            arguments.logfile = open(arguments.logfile, "w")
             LOGGER.info("Switching to FileHandler logger in %s", arguments.logfile.name)
             file_handler = get_file_handler(
                 "DEBUG" if arguments.verbose > 1 else "INFO", logfile=arguments.logfile.name

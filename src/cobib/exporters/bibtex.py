@@ -41,9 +41,7 @@ class BibtexExporter(Exporter):
             description="BibTeX exporter.",
             epilog="Read cobib-bibtex.7 for more help.",
         )
-        parser.add_argument(
-            "file", type=argparse.FileType("a"), help="the BibTeX file into which to export"
-        )
+        parser.add_argument("file", type=str, help="the BibTeX file into which to export")
         abbrev_group = parser.add_mutually_exclusive_group()
         abbrev_group.add_argument(
             "-a",
@@ -95,6 +93,8 @@ class BibtexExporter(Exporter):
         LOGGER.debug("Starting BibTeX export.")
 
         self.exported_entries = entries
+
+        self.largs.file = open(self.largs.file, "a")
 
         Event.PreBibtexExport.fire(self)
 
