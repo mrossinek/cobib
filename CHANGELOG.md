@@ -20,6 +20,12 @@ this affects you.
 - unified the journal abbreviation logic of the `--bibtex` exported (#187,!410)
     - consolidated the CLI arguments in `--journal-format`
     - added the `config.exporters.bibtex.journal_format` setting
+- the zip exporter can be configured to include/skip file attachments and
+  external notes (#153,!411)
+    - the `--zip` exporter takes the optional arguments: `--skip-files`,
+      `--include-files`, `--skip-notes`, and `--include-notes`
+    - these CLI options take precedence over the new configuration settings
+      `config.exporters.zip.skip_files` and `config.exporters.zip.skip_notes`
 
 ### Changed
 - the `search` command results now indicate what source a match came from (#174,!404)

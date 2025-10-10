@@ -196,6 +196,13 @@ config.events = {}
 # The form in which to export `journal` names.
 config.exporters.bibtex.journal_format = JournalFormat.FULL
 
+# EXPORTERS.ZIP
+
+# Whether file attachments should be skipped from inclusion in the exported Zip archive.
+config.exporters.zip.skip_files = False
+# Whether external notes should be skipped from inclusion in the exported Zip archive.
+config.exporters.zip.skip_notes = False
+
 # LOGGING
 
 # The default location of the logfile.

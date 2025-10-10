@@ -217,6 +217,14 @@ Instead, the `Event.subscribe` decorator should be used (cf. *cobib-event(7)*).
         - `ABBREV`: export the abbreviated Journal names.<br>
         - `DOTLESS`: export the abbreviated Journal names without any punctuation.<br>
 
+#### EXPORTERS.ZIP
+
+  * _config.exporters.zip.skip_files_ = False:
+    Whether file attachments should be skipped from inclusion in the exported Zip archive.
+
+  * _config.exporters.zip.skip_notes_ = False:
+    Whether external notes should be skipped from inclusion in the exported Zip archive.
+
 ### LOGGING
 
   * _config.logging.cache_ = `"~/.cache/cobib/cache"`:

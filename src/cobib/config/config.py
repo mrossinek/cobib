@@ -881,11 +881,14 @@ class ExporterConfig(_ConfigBase):
 
     bibtex: BibtexExporterConfig = field(default_factory=lambda: BibtexExporterConfig())
     """The nested section for the BibTeX exporter settings."""
+    zip: ZipExporterConfig = field(default_factory=lambda: ZipExporterConfig())
+    """The nested section for the Zip exporter settings."""
 
     @override
     def validate(self) -> None:
         LOGGER.debug("Validating the EXPORTERS configuration section.")
         self.bibtex.validate()
+        self.zip.validate()
 
 
 class JournalFormat(Enum):
@@ -912,6 +915,28 @@ class BibtexExporterConfig(_ConfigBase):
         self._assert(
             isinstance(self.journal_format, JournalFormat),
             "config.exporters.bibtex.journal_format should be an JournalFormat value.",
+        )
+
+
+@dataclass
+class ZipExporterConfig(_ConfigBase):
+    """The `config.exporters.zip` section."""
+
+    skip_files: bool = False
+    """Whether file attachments should be skipped from inclusion in the exported Zip archive."""
+    skip_notes: bool = False
+    """Whether external notes should be skipped from inclusion in the exported Zip archive."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the EXPORTERS.ZIP configuration section.")
+        self._assert(
+            isinstance(self.skip_files, bool),
+            "config.exporters.zip.skip_files should be a boolean.",
+        )
+        self._assert(
+            isinstance(self.skip_notes, bool),
+            "config.exporters.zip.skip_notes should be a boolean.",
         )
 
 
