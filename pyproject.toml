@@ -11,7 +11,7 @@ authors = [
     {name = "Max Rossmannek", email = "max@rossmannek.de"},
 ]
 description = "Console Bibliography"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE.txt"]
 keywords = [
@@ -20,7 +20,6 @@ keywords = [
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -227,7 +226,7 @@ exclude = [
 namespace_packages = true
 explicit_package_bases = true
 strict = true
-python_version = 3.9
+python_version = "3.10"
 show_error_codes = true
 check_untyped_defs = true
 disallow_untyped_calls = true

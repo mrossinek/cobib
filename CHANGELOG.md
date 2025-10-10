@@ -53,6 +53,9 @@ this affects you.
 ### Removed
 - the deprecated `zotero` importer backend. Please switch over to using the
   [`cobib-zotero`](https://gitlab.com/cobib/cobib-zotero) plugin instead! (#166,!408)
+- dropped support for Python 3.9
+    - this also removed the now unneeded `cobib.utils.entry_points` helper
+- the `config.commands.search.highlights` setting which was deprecated in [4.2.0]
 
 
 ## [5.5.5] - 2025-10-01

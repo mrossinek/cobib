@@ -9,6 +9,7 @@ import argparse
 import asyncio
 import logging
 import sys
+from importlib.metadata import entry_points
 from inspect import iscoroutinefunction
 from typing import Any
 
@@ -20,7 +21,6 @@ from cobib.ui.shell import Shell
 from cobib.ui.tui import TUI
 from cobib.ui.ui import UI
 from cobib.utils.console import PromptConsole
-from cobib.utils.entry_points import entry_points
 from cobib.utils.logging import HINT, print_changelog
 
 LOGGER = logging.getLogger(__name__)
@@ -52,7 +52,7 @@ class CLI(UI):
         command_or_shell.add_argument(
             "command",
             help="the subcommand to be run",
-            choices=sorted([cls.name for (cls, _) in entry_points("cobib.commands")]),
+            choices=sorted([cls.name for cls in entry_points(group="cobib.commands")]),
             nargs="?",
         )
         # NOTE: argparse.REMAINDER is undocumented since Python 3.9 and considered a legacy feature.

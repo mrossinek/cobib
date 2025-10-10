@@ -5,14 +5,13 @@
 
 import re
 from collections import defaultdict
+from importlib.metadata import entry_points
 from importlib.util import find_spec
 from io import StringIO
 from pathlib import Path
 
 from rich.console import Console, ConsoleOptions
 from rich.tree import Tree
-
-from cobib.utils.entry_points import entry_points
 
 
 class Manual:
@@ -64,7 +63,7 @@ class Manual:
         ```
         """
 
-        for entry, _ in entry_points("cobib.man"):
+        for entry in entry_points(group="cobib.man"):
             name = entry.name
             section = int(entry.name.split(".")[-1])
             module, priority = entry.value.split(":")

@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import logging
 from collections import OrderedDict
+from importlib.metadata import entry_points
 from typing import Any, Callable, ClassVar
 
 from typing_extensions import override
@@ -15,7 +16,6 @@ from typing_extensions import override
 from cobib.config import Event, config
 from cobib.database import Database, Entry
 from cobib.importers.base_importer import Importer
-from cobib.utils.entry_points import entry_points
 from cobib.utils.logging import HINT
 
 from .base_command import Command
@@ -43,7 +43,7 @@ class ImportCommand(Command):
 
     # NOTE: the Callable type is unable to express the complex signature of the Importer class
     _avail_importers: ClassVar[dict[str, Callable[[Any], Importer]]] = {
-        cls.name: cls.load() for (cls, _) in entry_points("cobib.importers")
+        cls.name: cls.load() for cls in entry_points(group="cobib.importers")
     }
     """The available importers."""
 

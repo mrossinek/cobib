@@ -197,7 +197,7 @@ def print_changelog(version: str, cached_version_path: str | None) -> Panel | No
         )
     )
 
-    description = str(metadata.metadata("cobib").get("description"))
+    description = str(metadata.metadata("cobib").get("description"))  # type: ignore[attr-defined]
 
     lines: list[str] = []
     started = False

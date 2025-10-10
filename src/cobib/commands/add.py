@@ -11,6 +11,7 @@ import logging
 from collections import OrderedDict
 from collections.abc import Callable
 from functools import wraps
+from importlib.metadata import entry_points
 from typing import ClassVar
 
 from rich.prompt import InvalidResponse, PromptBase, PromptType
@@ -21,7 +22,6 @@ from cobib.database import Database, Entry
 from cobib.parsers import BibtexParser
 from cobib.parsers.base_parser import Parser
 from cobib.utils.diff_renderer import Differ
-from cobib.utils.entry_points import entry_points
 from cobib.utils.file_downloader import FileDownloader
 from cobib.utils.journal_abbreviations import JournalAbbreviations
 from cobib.utils.logging import HINT
@@ -59,7 +59,8 @@ class AddCommand(Command):
     name = "add"
 
     _avail_parsers: ClassVar[dict[str, tuple[Callable[[], Parser], bool]]] = {
-        cls.name: (cls.load(), builtin) for (cls, builtin) in entry_points("cobib.parsers")
+        cls.name: (cls.load(), cls.module.startswith("cobib.parsers"))
+        for cls in entry_points(group="cobib.parsers")
     }
     """The available parsers. The values are a tuple of the parser `entry_point` and a boolean
     indicating whether it is built-in (`True`) or from an external source (`False`). In the former

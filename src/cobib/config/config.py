@@ -497,19 +497,6 @@ class SearchCommandConfig(_ConfigBase):
     """Whether searches should skip looking through associated *notes*. Note, that *notes* are
     searched directly with Python rather than through an external system tool."""
 
-    @property
-    def highlights(self) -> SearchHighlightConfig:  # pragma: no cover
-        """**DEPRECATED** Use `config.theme.search` instead!
-
-        The nested section for highlights used when displaying search results.
-        """
-        LOGGER.log(
-            45,
-            "The config.commands.search.highlights setting is DEPRECATED! Please use the new "
-            "config.theme.search setting instead.",
-        )
-        return config.theme.search
-
     @override
     def validate(self) -> None:
         LOGGER.debug("Validating the COMMANDS.SEARCH configuration section.")

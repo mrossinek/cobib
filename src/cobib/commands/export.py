@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+from importlib.metadata import entry_points
 from typing import Any, Callable, ClassVar
 
 from typing_extensions import override
@@ -14,7 +15,6 @@ from typing_extensions import override
 from cobib.config import Event
 from cobib.database import Database, Entry
 from cobib.exporters.base_exporter import Exporter
-from cobib.utils.entry_points import entry_points
 
 from .base_command import Command
 from .list_ import ListCommand
@@ -52,7 +52,7 @@ class ExportCommand(Command):
 
     # NOTE: the Callable type is unable to express the complex signature of the Exporter class
     _avail_exporters: ClassVar[dict[str, Callable[[Any], Exporter]]] = {
-        cls.name: cls.load() for (cls, _) in entry_points("cobib.exporters")
+        cls.name: cls.load() for cls in entry_points(group="cobib.exporters")
     }
     """The available exporters."""
 

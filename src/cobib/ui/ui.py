@@ -8,11 +8,11 @@ from __future__ import annotations
 
 import argparse
 import logging
+from importlib.metadata import entry_points
 from typing import Any, Type, cast
 
 from cobib.commands.base_command import Command
 from cobib.config import config
-from cobib.utils.entry_points import entry_points
 from cobib.utils.logging import LoggingHandler, get_file_handler
 
 LOGGER = logging.getLogger(__name__)
@@ -125,7 +125,9 @@ class UI:
         Returns:
             The command class. `None` when the command could not be found.
         """
-        matching_commands = [cls for (cls, _) in entry_points("cobib.commands") if cls.name == name]
+        matching_commands = [
+            cls for cls in entry_points(group="cobib.commands") if cls.name == name
+        ]
         if len(matching_commands) == 0:
             msg = f"Did not find a command registered by the name of '{name}'; Aborting execution!"
             LOGGER.critical(msg)
