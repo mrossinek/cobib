@@ -21,6 +21,9 @@ All available export backends are registered as options of the *cobib-export(1)*
   * *cobib-bibtex(7)*:
     Exports entries to a BibTeX file.
 
+  * *cobib-yaml(7)*:
+    Exports entries to a YAML file.
+
   * *cobib-zip(7)*:
     Exports the associated files of entries to a Zip archive.
 

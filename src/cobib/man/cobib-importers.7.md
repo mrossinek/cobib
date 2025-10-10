@@ -21,6 +21,9 @@ All available import backends are registered as options of the *cobib-import(1)*
   * *cobib-bibtex(7)*:
     Imports entries from a BibTeX file.
 
+  * *cobib-yaml(7)*:
+    Imports entries from a YAML file.
+
 ## SEE ALSO
 
 *cobib(1)*, *cobib-import(1)*, *cobib-plugins(7)*

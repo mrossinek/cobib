@@ -8,4 +8,5 @@ The abstract interface which should be implemented is defined in `cobib.exporter
 """
 
 from .bibtex import BibtexExporter as BibtexExporter
+from .yaml import YAMLExporter as YAMLExporter
 from .zip import ZipExporter as ZipExporter

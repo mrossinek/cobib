@@ -3,11 +3,11 @@ cobib-bibtex(7) -- BibTeX parser, importer and exporter backends
 
 ## SYNOPSIS
 
-```bash
-cobib add --bibtex _FILE_
-cobib import --bibtex _FILE_
-cobib export --bibtex _FILE_ --journal-format _FORMAT_
-```
+`cobib add` `--bibtex` _FILE_
+
+`cobib import` `--bibtex` _FILE_
+
+`cobib export` `--bibtex` `--` _FILE_ [`--journal-format` _FORMAT_]
 
 ## DESCRIPTION
 

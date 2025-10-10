@@ -71,10 +71,12 @@ _example_config = "cobib.config.command:ExampleConfigCommand"
 
 [project.entry-points."cobib.exporters"]
 bibtex = "cobib.exporters.bibtex:BibtexExporter"
+yaml = "cobib.exporters.yaml:YAMLExporter"
 zip = "cobib.exporters.zip:ZipExporter"
 
 [project.entry-points."cobib.importers"]
 bibtex = "cobib.importers.bibtex:BibtexImporter"
+yaml = "cobib.importers.yaml:YAMLImporter"
 
 [project.entry-points."cobib.parsers"]
 arxiv = "cobib.parsers.arxiv:ArxivParser"
@@ -126,7 +128,7 @@ yaml = "cobib.parsers.yaml:YAMLParser"
 "cobib-doi.7" = "cobib.man:P_parsers"
 "cobib-isbn.7" = "cobib.man:P_parsers"
 "cobib-url.7" = "cobib.man:P_parsers"
-"cobib-yaml.7" = "cobib.man:P_parsers"
+"cobib-yaml.7" = "cobib.man:E_exporters.I_importers.P_parsers"
 
 [project.scripts]
 cobib = "cobib.__main__:_main"

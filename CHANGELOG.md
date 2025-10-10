@@ -27,6 +27,7 @@ this affects you.
     - these CLI options take precedence over the new configuration settings
       `config.exporters.zip.skip_files` and `config.exporters.zip.skip_notes`
 - Python 3.14 is now officially tested and supported
+- YAML backends for the `import` and `export` commands (#188,!412)
 
 ### Changed
 - the `search` command results now indicate what source a match came from (#174,!404)

@@ -404,6 +404,26 @@ All of these events are provided with the Python importer object instance, allow
     Returns:<br>
         Nothing. But the exporter attributes can be modified, affecting the execution.
 
+  * _PreYAMLExport_ = `Callable[[cobib.exporters.yaml.YAMLExporter], None]`:
+    Fires:<br>
+        Before starting to write data using *cobib-yaml(7)*.
+
+    Arguments:<br>
+        - `cobib.exporters.yaml.YAMLImporter`: the exporter instance that is about to run.
+
+    Returns:<br>
+        Nothing. But the exporter attributes can be modified, affecting the execution.
+
+  * _PostYAMLExport_ = `Callable[[cobib.exporters.yaml.YAMLExporter], None]`:
+    Fires:<br>
+        Before finishing to write data using *cobib-yaml(7)*.
+
+    Arguments:<br>
+        - `cobib.exporters.yaml.YAMLExporter`: the exporter instance that just ran.
+
+    Returns:<br>
+        Nothing. But the exporter attributes can be modified, affecting the execution.
+
   * _PreZipExport_ = `Callable[[cobib.exporters.zip.ZipExporter], None]`:
     Fires:<br>
         Before starting to write data using *cobib-zip(7)*.
@@ -446,6 +466,29 @@ All of these events are provided with the Python importer object instance, allow
 
     Arguments:<br>
         - `cobib.importers.bibtex.BibtexImporter`: the importer instance that just ran.
+
+    Returns:<br>
+        Nothing. But the importer attributes can be modified, affecting the execution.
+
+    Note:<br>
+        The entry labels will not have been mapped or disambiguated at this point.
+
+  * _PreYAMLImport_ = `Callable[[cobib.importers.yaml.YAMLImporter], None]`:
+    Fires:<br>
+        Before starting to fetch data using *cobib-yaml(7)*.
+
+    Arguments:<br>
+        - `cobib.importers.yaml.YAMLImporter`: the importer instance that is about to run.
+
+    Returns:<br>
+        Nothing. But the importer attributes can be modified, affecting the execution.
+
+  * _PostYAMLImport_ = `Callable[[cobib.importers.yaml.YAMLImporter], None]`:
+    Fires:<br>
+        Before finishing to fetch data using *cobib-yaml(7)*.
+
+    Arguments:<br>
+        - `cobib.importers.yaml.YAMLImporter`: the importer instance that just ran.
 
     Returns:<br>
         Nothing. But the importer attributes can be modified, affecting the execution.

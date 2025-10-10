@@ -51,8 +51,10 @@ else:
         "ForwardRef('commands.ShowCommand')": "cobib.commands.show.ShowCommand",
         "ForwardRef('commands.UndoCommand')": "cobib.commands.undo.UndoCommand",
         "ForwardRef('exporters.BibtexExporter')": "cobib.exporters.bibtex.BibtexExporter",
+        "ForwardRef('exporters.YAMLExporter')": "cobib.exporters.yaml.YAMLExporter",
         "ForwardRef('exporters.ZipExporter')": "cobib.exporters.zip.ZipExporter",
         "ForwardRef('importers.BibtexImporter')": "cobib.importers.bibtex.BibtexImporter",
+        "ForwardRef('importers.YAMLImporter')": "cobib.importers.yaml.YAMLImporter",
         "ForwardRef('Shell')": "Shell",
     }
 
@@ -515,6 +517,29 @@ class Event(Enum):
         Nothing. But the exporter attributes can still be accessed to modify the exported result.
     """
 
+    PreYAMLExport = cast("Event", Callable[["exporters.YAMLExporter"], None])
+    """
+    Fires:
+        Before starting `cobib.exporters.yaml.YAMLExporter.write`.
+
+    Arguments:
+        `cobib.exporters.yaml.YAMLExporter`: the exporter instance that is about to run.
+
+    Returns:
+        Nothing. But the exporter attributes can be modified, affecting the execution.
+    """
+    PostYAMLExport = cast("Event", Callable[["exporters.YAMLExporter"], None])
+    """
+    Fires:
+        Before finishing `cobib.exporters.yaml.YAMLExporter.write`.
+
+    Arguments:
+        `cobib.exporters.yaml.YAMLExporter`: the exporter instance that just ran.
+
+    Returns:
+        Nothing. But the exporter attributes can still be accessed to modify the exported result.
+    """
+
     PreZipExport = cast("Event", Callable[["exporters.ZipExporter"], None])
     """
     Fires:
@@ -556,6 +581,32 @@ class Event(Enum):
 
     Arguments:
         `cobib.importers.bibtex.BibtexImporter`: the importer instance that just ran.
+
+    Returns:
+        Nothing. But the importer attributes can be modified, affecting the execution.
+
+    Note:
+        - The entry labels will not have been mapped or disambiguated at this point.
+    """
+
+    PreYAMLImport = cast("Event", Callable[["importers.YAMLImporter"], None])
+    """
+    Fires:
+        Before starting `cobib.importers.yaml.YAMLImporter.fetch`.
+
+    Arguments:
+        `cobib.importers.yaml.YAMLImporter`: the importer instance that is about to run.
+
+    Returns:
+        Nothing. But the importer attributes can be modified, affecting the execution.
+    """
+    PostYAMLImport = cast("Event", Callable[["importers.YAMLImporter"], None])
+    """
+    Fires:
+        Before finishing `cobib.importers.yaml.YAMLImporter.fetch`.
+
+    Arguments:
+        `cobib.importers.yaml.YAMLImporter`: the importer instance that just ran.
 
     Returns:
         Nothing. But the importer attributes can be modified, affecting the execution.

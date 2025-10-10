@@ -34,5 +34,6 @@ knuthwebsite:
   - first: Donald
     last: Knuth
   title: 'Knuth: Computers and Typesetting'
-  url: http://www-cs-faculty.stanford.edu/\~{}uno/abcde.html
+  url:
+  - http://www-cs-faculty.stanford.edu/\~{}uno/abcde.html
 ...

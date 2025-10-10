@@ -1,4 +1,4 @@
-"""Tests for coBib's BibtexImporter."""
+"""Tests for coBib's YAMLImporter."""
 
 from __future__ import annotations
 
@@ -11,8 +11,7 @@ from typing_extensions import override
 from cobib.commands import ImportCommand
 from cobib.config import Event
 from cobib.database import Entry
-from cobib.importers import BibtexImporter
-from cobib.man import TUTORIAL_IMPORT_DATABASE
+from cobib.importers import YAMLImporter
 from cobib.parsers import YAMLParser
 
 from .. import get_resource
@@ -22,12 +21,12 @@ from .importer_test import ImporterTest
 if TYPE_CHECKING:
     import cobib.commands
 
-IMPORT_DATABASE = str(TUTORIAL_IMPORT_DATABASE)
-EXPECTED_DATABASE = get_resource("bibtex_database.yaml", "importers")
+IMPORT_DATABASE = get_resource("example_literature.yaml")
+EXPECTED_DATABASE = get_resource("example_literature.yaml")
 
 
-class TestBibtexImporter(ImporterTest):
-    """Tests for coBib's BibtexImporter."""
+class TestYAMLImporter(ImporterTest):
+    """Tests for coBib's YAMLImporter."""
 
     @staticmethod
     def _assert_results(imported_entries: list[Entry]) -> None:
@@ -52,8 +51,8 @@ class TestBibtexImporter(ImporterTest):
 
     @pytest.mark.asyncio
     async def test_fetch(self) -> None:
-        """Test fetching entries from a BibTeX file."""
-        importer = BibtexImporter(IMPORT_DATABASE)
+        """Test fetching entries from a YAML file."""
+        importer = YAMLImporter(IMPORT_DATABASE)
         # NOTE: even though attachments are not accessible via public libraries, we explicitly skip
         # downloading them, just to be sure.
         imported_entries = await importer.fetch()
@@ -61,35 +60,35 @@ class TestBibtexImporter(ImporterTest):
         self._assert_results(imported_entries)
 
     @pytest.mark.asyncio
-    async def test_event_pre_bibtex_import(self) -> None:
-        """Tests the PreBibtexImport event."""
+    async def test_event_pre_yaml_import(self) -> None:
+        """Tests the PreYAMLImport event."""
 
-        @Event.PreBibtexImport.subscribe
-        def hook(importer: BibtexImporter) -> None:
+        @Event.PreYAMLImport.subscribe
+        def hook(importer: YAMLImporter) -> None:
             importer.largs.file = IMPORT_DATABASE
 
-        assert Event.PreBibtexImport.validate()
+        assert Event.PreYAMLImport.validate()
 
-        imported_entries = await BibtexImporter("dummy/path.bib").fetch()
+        imported_entries = await YAMLImporter("dummy/path.bib").fetch()
 
         self._assert_results(imported_entries)
 
     @pytest.mark.asyncio
-    async def test_event_post_bibtex_import(self) -> None:
-        """Tests the PostBibtexImport event."""
+    async def test_event_post_yaml_import(self) -> None:
+        """Tests the PostYAMLImport event."""
 
-        @Event.PostBibtexImport.subscribe
-        def hook(importer: BibtexImporter) -> None:
+        @Event.PostYAMLImport.subscribe
+        def hook(importer: YAMLImporter) -> None:
             importer.imported_entries = []
 
-        assert Event.PostBibtexImport.validate()
+        assert Event.PostYAMLImport.validate()
 
-        imported_entries = await BibtexImporter(IMPORT_DATABASE).fetch()
+        imported_entries = await YAMLImporter(IMPORT_DATABASE).fetch()
         assert imported_entries == []
 
 
-class TestBibtexImport(CommandTest):
-    """Tests for coBib's BibtexImporter via the ImportCommand."""
+class TestYAMLImport(CommandTest):
+    """Tests for coBib's YAMLImporter via the ImportCommand."""
 
     @override
     def get_command(self) -> type[cobib.commands.base_command.Command]:
@@ -99,18 +98,18 @@ class TestBibtexImport(CommandTest):
     @pytest.mark.parametrize(
         ["setup"],
         [
-            [{"git": False}],
-            [{"git": True}],
+            [{"database_filename": None, "git": False}],
+            [{"database_filename": None, "git": True}],
         ],
         indirect=["setup"],
     )
     async def test_command(self, setup: Any) -> None:
-        """Test importing from bibtex via the ImportCommand."""
+        """Test importing from YAML via the ImportCommand."""
         parser_args = [IMPORT_DATABASE]
-        cmd = ImportCommand("--skip-download", "--bibtex", "--", *parser_args)
+        cmd = ImportCommand("--skip-download", "--yaml", "--", *parser_args)
         await cmd.execute()
 
-        TestBibtexImporter._assert_results(list(cmd.new_entries.values()))
+        TestYAMLImporter._assert_results(list(cmd.new_entries.values()))
 
         if setup.get("git", False):
             self.assert_git_commit_message(
@@ -118,7 +117,7 @@ class TestBibtexImport(CommandTest):
                 {
                     "skip_download": True,
                     "importer_arguments": parser_args,
-                    "bibtex": True,
-                    "yaml": False,
+                    "bibtex": False,
+                    "yaml": True,
                 },
             )
