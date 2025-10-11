@@ -4,7 +4,11 @@
 
 [![pipeline](https://gitlab.com/cobib/cobib/badges/master/pipeline.svg)](https://gitlab.com/cobib/cobib/-/pipelines)
 [![coverage](https://gitlab.com/cobib/cobib/badges/master/coverage.svg)](https://gitlab.com/cobib/cobib/-/graphs/master/charts)
-[![PyPI](https://img.shields.io/pypi/v/cobib)](https://pypi.org/project/cobib/)
+[![Release](https://img.shields.io/gitlab/v/release/cobib/cobib?label=Release&logo=gitlab)](https://gitlab.com/cobib/cobib/-/releases/)
+[![AUR](https://img.shields.io/aur/version/cobib?label=AUR&logo=archlinux)](https://aur.archlinux.org/packages/cobib)
+[![PyPI](https://img.shields.io/pypi/v/cobib?label=PyPI&logo=pypi)](https://pypi.org/project/cobib/)
+[![Python](https://img.shields.io/python/required-version-toml?tomlFilePath=https://gitlab.com/cobib/cobib/-/raw/master/pyproject.toml?ref_type=heads?label=Python&label=Python&logo=python)](https://gitlab.com/cobib/cobib/-/blob/master/pyproject.toml)
+[![License](https://img.shields.io/gitlab/license/cobib/cobib?label=License)](https://gitlab.com/cobib/cobib/-/blob/master/LICENSE.txt)
 
 coBib is a simple, console-based bibliography management tool.
 It is the result of the need for an easy-to-use alternative to full-blown reference managers like Mendeley or Zotero.

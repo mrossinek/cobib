@@ -22,7 +22,7 @@ The optional git-integration also needs to be enabled by setting `config.databas
 ### Importing a bibliography
 
 The *cobib-import(1)* command can import a bibliography from another reference manager.
-The only builtin backend currently is *cobib-bibtex(7)*, see *cobib-importers(7)* for more details.
+The only builtin backends currently are *cobib-bibtex(7)* and *cobib-yaml(7)*, see *cobib-importers(7)* for more details.
 To import a bibliography from a BibTeX file, simply run:
 ```bash
 $ cobib import --bibtex database.bib
