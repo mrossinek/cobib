@@ -178,7 +178,7 @@ lint = [
     "types-regex==2025.9.18.20250921",
     "types-requests-oauthlib==2.0.0.20250809",
     "types-requests==2.32.4.20250913",
-    "typos~=1.37.2",
+    "typos~=1.38.1",
 ]
 
 [project.urls]
