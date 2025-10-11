@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [6.0.0] - 2025-10-11
+
+Pypi: https://pypi.org/project/cobib/6.0.0/
+
 ### Prelude
 
 The `--zotero` backend for the `import` command is now provided by the
@@ -1348,7 +1353,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v5.5.5...master
+[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v6.0.0...master
+[6.0.0]: https://gitlab.com/cobib/cobib/-/tags/v6.0.0
 [5.5.5]: https://gitlab.com/cobib/cobib/-/tags/v5.5.5
 [5.5.4]: https://gitlab.com/cobib/cobib/-/tags/v5.5.4
 [5.5.3]: https://gitlab.com/cobib/cobib/-/tags/v5.5.3
