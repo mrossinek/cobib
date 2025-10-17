@@ -248,7 +248,6 @@ module = [
     "bibtexparser",
     "linkify_it.*",
     "natsort",
-    "pdoc",
     "prompt_toolkit.*",
     "pylatexenc.*",
     "text_unidecode",

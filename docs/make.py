@@ -1,12 +1,13 @@
 """coBib's API generation."""
 
 import argparse
+import sys
 from pathlib import Path
 from textwrap import dedent
 
-import pdoc
+sys.path.insert(0, ".")
 
-ROOT = Path(__file__).parent
+from theme.build import build_html  # type: ignore[import-not-found]
 
 MODULES = [
     Path("src/cobib"),
@@ -18,55 +19,33 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "modules",
     type=Path,
-    default=[ROOT.parent / module for module in MODULES],
     nargs="*",
+    default=MODULES,
+    help="The paths to the modules to document.",
 )
 args = parser.parse_args()
 
-pdoc.render.configure(
-    docformat="google",
-    edit_url_map={
-        module.name: f"https://gitlab.com/cobib/cobib/-/blob/master/{module}/" for module in MODULES
-    },
-    template_directory=ROOT / "jinja",
-)
+generator = build_html(args.modules)
 
-output_directory = ROOT.parent / "build/html"
+for module_name, module, out in generator:
+    if out is None:
+        # yielded during pre-processing
+        if module_name == "cobib.commands.tutorial":
+            # manually add the tutorial instructions as docstrings to the TutorialCommand.State Enum
+            from cobib.commands import TutorialCommand
 
-all_modules = {}
-for module_name in pdoc.extract.walk_specs(args.modules):
-    module = pdoc.doc.Module.from_name(module_name)
+            for state in TutorialCommand.State:
+                module.get(f"TutorialCommand.{state}").docstring = dedent(state.value)
 
-    if module_name == "cobib.commands.tutorial":
-        # manually add the tutorial instructions as docstrings to the TutorialCommand.State Enum
-        from cobib.commands import TutorialCommand
+    else:  # noqa: PLR5501
+        # yielded during rendering
+        if module_name == "cobib":
+            # apply a fix to the ToC due to the man-page insertion on the main module page
+            lines = out.splitlines()
+            for idx, line in enumerate(lines):
+                if "#NAME" in line:
+                    lines[idx : idx + 2] = lines[idx : idx + 2][::-1]
+                    break
+            generator.send("\n".join(lines))
 
-        for state in TutorialCommand.State:
-            module.get(f"TutorialCommand.{state}").docstring = dedent(state.value)
-
-    all_modules[module_name] = module
-
-for module_name, module in all_modules.items():
-    out = pdoc.render.html_module(module, all_modules)
-
-    outfile = output_directory / f"{module.fullname.replace('.', '/')}.html"
-    outfile.parent.mkdir(parents=True, exist_ok=True)
-    outfile.write_bytes(out.encode())
-
-index = pdoc.render.html_index(all_modules)
-(output_directory / "index.html").write_bytes(index.encode())
-
-search = pdoc.render.search_index(all_modules)
-(output_directory / "search.js").write_bytes(search.encode())
-
-# apply a fix to the ToC due to the man-page insertion on the main module page
-with open(output_directory / "cobib.html", "r", encoding="utf-8") as file:
-    lines = file.readlines()
-
-for idx, line in enumerate(lines):
-    if "#NAME" in line:
-        lines[idx : idx + 2] = lines[idx : idx + 2][::-1]
-        break
-
-with open(output_directory / "cobib.html", "w", encoding="utf-8") as file:
-    file.writelines(lines)
+generator.close()
