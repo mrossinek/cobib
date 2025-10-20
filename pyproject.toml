@@ -36,7 +36,6 @@ dependencies = [
     "natsort",
     "pylatexenc",
     "requests",
-    "requests_oauthlib",
     "rich",
     "ruamel.yaml",
     "text-unidecode",
@@ -176,7 +175,6 @@ lint = [
     "ruff~=0.14.0",
     "types-beautifulsoup4==4.12.0.20250516",
     "types-regex==2025.9.18.20250921",
-    "types-requests-oauthlib==2.0.0.20250809",
     "types-requests==2.32.4.20250913",
     "typos~=1.38.1",
 ]
