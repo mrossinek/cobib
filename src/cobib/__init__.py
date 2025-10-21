@@ -4,10 +4,6 @@
 
 .. include:: ../../README.md
    :start-after: # coBib
-
-<hr/>
-
-.. include:: man/cobib-getting-started.7.html_fragment
 """
 
 import subprocess

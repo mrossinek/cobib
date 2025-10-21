@@ -217,9 +217,10 @@ exclude_also = [
 show_missing = true
 
 [tool.mypy]
-mypy_path = "src:plugin/src"
+mypy_path = "src"
 exclude = [
     "build",
+    "plugin",
 ]
 namespace_packages = true
 explicit_package_bases = true

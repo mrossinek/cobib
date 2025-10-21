@@ -1,3 +1,6 @@
 [submodule "theme"]
 	path = docs/theme
 	url = git@gitlab.com:cobib/cobib-docs-theme.git
+[submodule "plugin"]
+	path = plugin
+	url = git@gitlab.com:cobib/templates/cobib-plugin-template.git

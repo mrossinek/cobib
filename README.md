@@ -74,6 +74,13 @@ To get started with coBib, you check out:
   cobib tutorial
   ```
 
+> [!NOTE]
+> If you see an `include` directive on the next line,
+> consider switching to the [online docs](https://cobib.gitlab.io/cobib/cobib.html),
+> where the directive is replaced with man-page contents.
+
+.. include:: src/cobib/man/cobib-getting-started.7.html_fragment
+
 
 ## Configuration
 
@@ -96,10 +103,26 @@ Finally, be sure to take a look at the man page (`man 5 cobib-config`) and/or th
 ## Plugins
 
 coBib supports the implementation of plugins!
-You can find an example plugin in [this folder](./plugin) or read the docs of
-`cobib_dummy` (when viewing the hosted documentation online).
+You can find an example plugin in [here](https://gitlab.com/cobib/templates/cobib-plugin-template)
+or read the docs of [`cobib_dummy`](https://cobib.gitlab.io/templates/cobib-plugin-template/cobib_dummy.html).
+
+You can find a complete specification of coBib's [entry-points](https://setuptools.pypa.io/en/latest/pkg_resources.html#entry-points)
+in the `cobib-plugins.7` man-page:
+```bash
+cobib man plugins
+```
+
+> [!NOTE]
+> If you see an `include` directive on the next line,
+> consider switching to the [online docs](https://cobib.gitlab.io/cobib/cobib.html),
+> where the directive is replaced with man-page contents.
+
+.. include:: src/cobib/man/cobib-plugins.7.html_fragment
+
+### List of known plugins
 
 Below is a list of known plugins. If you wrote your own, feel free to add it here!
+
 - [`cobib-zotero`](https://gitlab.com/cobib/cobib-zotero): an importer backend for [Zotero](https://github.com/zotero/zotero)
 
 
@@ -114,7 +137,7 @@ If you would like to generate a local version during development, you need to cl
 git clone https://gitlab.com/cobib/cobib.git
 cd cobib
 pip install pdoc
-pdoc -d google -e cobib=https://gitlab.com/cobib/cobib/-/blob/master/src/cobib/ -t docs/jinja -o build/html src/cobib plugin/src/cobib_dummy tests
+pdoc -d google -e cobib=https://gitlab.com/cobib/cobib/-/blob/master/src/cobib/ -t docs/jinja -o build/html src/cobib tests
 ```
 
 You can then browse the documentation from `build/html/cobib.html`.

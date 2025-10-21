@@ -40,7 +40,7 @@ cobib-url(7)             parsers/url
 cobib-yaml(7)            parsers/yaml
 cobib-shell(7)           ui/shell
 cobib-tui(7)             ui/tui
-cobib-plugins(7)         ../cobib_dummy
+cobib-plugins(7)         ../cobib
 
 # external manuals
 git(1)                 https://man.archlinux.org/man/git.1

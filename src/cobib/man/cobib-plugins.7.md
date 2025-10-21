@@ -37,7 +37,7 @@ coBib provides multiple [entry-points](https://setuptools.pypa.io/en/latest/pkg_
 
 ## EXAMPLES
 
-To see an example for developing a plugin, check out the `cobib_dummy` [plugin](https://gitlab.com/cobib/cobib/-/tree/master/plugin?ref_type=heads).
+To see an example for developing a plugin, check out the [plugin template](https://gitlab.com/cobib/templates/cobib-plugin-template).
 
 ## SEE ALSO
 

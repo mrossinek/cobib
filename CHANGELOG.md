@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - coBib no longer requires the `requests-oauthlib` package
+- (DEV) the dummy plugin has been extracted to the
+  [`cobib-plugin-template`](https://gitlab.com/cobib/templates/cobib-plugin-template) (!420)
 
 
 ## [6.0.0] - 2025-10-11

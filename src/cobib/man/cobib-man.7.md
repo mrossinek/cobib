@@ -67,7 +67,7 @@ When writing man-pages for a *cobib-plugins(7)*, consider using the following [e
 * `I_importers` in `.7`: for *cobib-importers(7)*
 * `P_parsers` in `.7`: for *cobib-parsers(7)*
 
-Concrete examples of these cases are provided in the `cobib_dummy` [plugin](https://gitlab.com/cobib/cobib/-/tree/master/plugin/).
+Concrete examples of these cases are provided in the [plugin template](https://gitlab.com/cobib/templates/cobib-plugin-template).
 
 In rare cases, a single man-page might fit into more than one category, in which case multiple `PRIO_HEADER`s can be defined, for example like so:
 ```toml

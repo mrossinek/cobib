@@ -11,7 +11,6 @@ from theme.build import build_html  # type: ignore[import-not-found]
 
 MODULES = [
     Path("src/cobib"),
-    Path("plugin/src/cobib_dummy"),
     Path("tests"),
 ]
 
@@ -30,7 +29,21 @@ generator = build_html(args.modules)
 for module_name, module, out in generator:
     if out is None:
         # yielded during pre-processing
-        if module_name == "cobib.commands.tutorial":
+        if module_name == "cobib":
+            module_path = Path(module.source_file).parent
+            # we decrease the heading levels in the specific subpages that get included in the main
+            # module page to avoid some weird ToC artifacts due to identically named headings
+            man_path = module_path / "man"
+            for subpage in ("getting-started.7", "plugins.7"):
+                with open(man_path / f"cobib-{subpage}.html_fragment", "r") as file:
+                    manpage = file.readlines()
+                for idx, _ in enumerate(manpage):
+                    manpage[idx] = manpage[idx].replace("h2", "h4")
+                    manpage[idx] = manpage[idx].replace("h1", "h3")
+                with open(man_path / f"cobib-{subpage}.html_fragment", "w") as file:
+                    file.writelines(manpage)
+
+        elif module_name == "cobib.commands.tutorial":
             # manually add the tutorial instructions as docstrings to the TutorialCommand.State Enum
             from cobib.commands import TutorialCommand
 
