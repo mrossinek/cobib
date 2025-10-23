@@ -22,6 +22,7 @@ variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   GIT_SUBMODULE_STRATEGY: recursive
   GIT_SUBMODULE_FORCE_HTTPS: "true"
+  PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}"
 
 # Pip's cache doesn't store the python packages
 # https://pip.pypa.io/en/stable/reference/pip_install/#caching
@@ -224,7 +225,41 @@ build:
           when: on_success
         - when: never
 
-publish:
+archive:
+    stage: publish
+    needs:
+        - job: build
+          artifacts: false
+    script:
+        - git archive --format tar -o release.tar HEAD
+        - git submodule --quiet foreach --recursive
+          'git archive --format tar --prefix=$displaypath/ -o submodule.tar HEAD'
+        - TOPDIR=$(pwd) git submodule --quiet foreach --recursive
+          'cd $TOPDIR; tar --concatenate --file=release.tar $displaypath/submodule.tar; rm -fv $displaypath/submodule.tar'
+        - gzip -9 release.tar
+        - mv release.tar.gz "$CI_PROJECT_NAME-$CI_COMMIT_TAG.tar.gz"
+    artifacts:
+        paths:
+            - $CI_PROJECT_NAME-$CI_COMMIT_TAG.tar.gz
+    rules:
+        - if: $CI_COMMIT_TAG
+          when: on_success
+        - when: never
+
+publish-gitlab:
+    stage: publish
+    needs: ["archive"]
+    script:
+        - |
+          curl --location --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+               --upload-file "$CI_PROJECT_NAME-$CI_COMMIT_TAG.tar.gz" \
+               "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${CI_PROJECT_NAME}-${CI_COMMIT_TAG}.tar.gz"
+    rules:
+        - if: $CI_COMMIT_TAG
+          when: on_success
+        - when: never
+
+publish-pypi:
     stage: publish
     needs: ["build"]
     id_tokens:
@@ -245,7 +280,9 @@ release:
     stage: publish
     image: registry.gitlab.com/gitlab-org/cli:latest
     needs:
-        - job: publish
+        - job: publish-gitlab
+          artifacts: false
+        - job: publish-pypi
           artifacts: false
     before_script:
         - echo "creating gitlab release"
@@ -254,6 +291,12 @@ release:
     release:
         tag_name: '$CI_COMMIT_TAG'
         description: '$CI_COMMIT_TAG'
+        assets:
+            links:
+                - name: "${CI_PROJECT_NAME}-${CI_COMMIT_TAG}.tar.gz"
+                  url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${CI_PROJECT_NAME}-${CI_COMMIT_TAG}.tar.gz"
+                  filepath: "/${CI_PROJECT_NAME}-${CI_COMMIT_TAG}.tar.gz"
+                  link_type: "package"
     rules:
         - if: $CI_COMMIT_TAG
           when: on_success
