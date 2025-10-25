@@ -1,8 +1,8 @@
 PACKAGE_NAME := cobib
 
 # All man-page template files will use these two variables:
-PACKAGE_DATE := 2025-10-11
-PACKAGE_VERSION := v6.0.0
+PACKAGE_DATE := 2025-10-25
+PACKAGE_VERSION := v6.0.1
 
 # The man-page template files can be found in:
 MAN_SRC_DIR := src/$(PACKAGE_NAME)/man

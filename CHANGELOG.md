@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [6.0.1] - 2025-10-25
+
+Pypi: https://pypi.org/project/cobib/6.0.1/
+
 ### Changed
 - coBib no longer requires the `requests-oauthlib` package
 - (DEV) the dummy plugin has been extracted to the
@@ -1362,7 +1367,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v6.0.0...master
+[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v6.0.1...master
+[6.0.1]: https://gitlab.com/cobib/cobib/-/tags/v6.0.1
 [6.0.0]: https://gitlab.com/cobib/cobib/-/tags/v6.0.0
 [5.5.5]: https://gitlab.com/cobib/cobib/-/tags/v5.5.5
 [5.5.4]: https://gitlab.com/cobib/cobib/-/tags/v5.5.4
