@@ -32,7 +32,7 @@ def assert_default_test_entry(entry: Entry) -> None:
     ]
     assert entry.data["title"] == "Tapering off qubits to simulate fermionic Hamiltonians"
     assert entry.data["year"] == 2017
-    assert entry.data["_download"] == "http://arxiv.org/pdf/1701.08213v1"
+    assert entry.data["_download"] == "https://arxiv.org/pdf/1701.08213v1"
 
 
 class TestArxivParser(ParserTest):
