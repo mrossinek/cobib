@@ -265,7 +265,7 @@ class TutorialCommand(Command):
         > list --year "197\d"
         ```
         """
-        MORE_FILTERTING = r"""
+        MORE_FILTERING = r"""
         There are many more features to the filtering mechanism but rather than give an example for
         each and every one, we will list the most important ones below:
         - You can combine as many filters as you like, positive or negative alike.
