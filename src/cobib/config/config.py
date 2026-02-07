@@ -126,157 +126,6 @@ class _ConfigBase:
 
 
 @dataclass
-class Config(_ConfigBase):
-    """The `config` dataclass."""
-
-    commands: CommandConfig = field(default_factory=lambda: CommandConfig())
-    """The nested section for the commands settings."""
-    database: DatabaseConfig = field(default_factory=lambda: DatabaseConfig())
-    """The nested section for the database settings."""
-    events: dict["Event", list[Callable]] = field(default_factory=dict)  # type: ignore[type-arg]
-    """`cobib.config.event` hooks get stored in this dictionary but it should **NOT** be modified
-    directly! Instead, the `cobib.config.event.Event.subscribe` decorator should be used (cf.
-    `cobib.config.event`)."""
-    exporters: ExporterConfig = field(default_factory=lambda: ExporterConfig())
-    """The nested section for the exporters settings."""
-    logging: LoggingConfig = field(default_factory=lambda: LoggingConfig())
-    """The nested section for the logging settings."""
-    parsers: ParserConfig = field(default_factory=lambda: ParserConfig())
-    """The nested section for the parsers settings."""
-    shell: ShellConfig = field(default_factory=lambda: ShellConfig())
-    """The nested section for the Shell settings."""
-    theme: ThemeConfig = field(default_factory=lambda: ThemeConfig())
-    """The nested section for the theme settings."""
-    tui: TUIConfig = field(default_factory=lambda: TUIConfig())
-    """The nested section for the TUI settings."""
-    utils: UtilsConfig = field(default_factory=lambda: UtilsConfig())
-    """The nested section for the utils settings."""
-
-    XDG_CONFIG_FILE: str | Path = field(
-        default="$XDG_CONFIG_HOME/cobib/config.py", init=False, repr=False, compare=False
-    )
-    """The XDG-based standard configuration location."""
-
-    @override
-    def validate(self) -> None:
-        LOGGER.info("Validating the runtime configuration.")
-        self.commands.validate()
-        self.database.validate()
-        self.exporters.validate()
-        self.logging.validate()
-        self.parsers.validate()
-        self.shell.validate()
-        self.theme.validate()
-        self.tui.validate()
-        self.utils.validate()
-
-        LOGGER.debug("Validating the EVENTS configuration section.")
-        self._assert(isinstance(self.events, dict), "config.events should be a dict.")
-        for event in self.events:
-            self._assert(
-                event.validate(),
-                f"config.events.{event} did not pass its validation check.",
-            )
-
-    @staticmethod
-    def load(configpath: str | Path | TextIO | io.TextIOWrapper | None = None) -> None:
-        """Loads another configuration object at runtime.
-
-        WARNING: The new Python-like configuration allows essentially arbitrary Python code so it is
-        the user's responsibility to treat this with care!
-
-        Args:
-            configpath: the path to the configuration.
-        """
-        LOGGER.info("Input provided to Config.load: %s", configpath)
-        if configpath is not None:
-            if isinstance(configpath, (TextIO, io.TextIOWrapper)):
-                configpath.close()
-                configpath = configpath.name
-        elif (configpath_env := os.getenv("COBIB_CONFIG")) is not None:
-            if configpath_env.lower() in ("", "0", "f", "false", "nil", "none"):
-                LOGGER.info(
-                    "Skipping configuration loading because negative COBIB_CONFIG environment "
-                    "variable was detected."
-                )
-                return
-            configpath = RelPath(configpath_env).path
-        else:
-            Config._warn_legacy_path(
-                "XDG_CONFIG_HOME", "~/.config", "cobib/config.py", "configuration file"
-            )
-
-            if Config.XDG_CONFIG_FILE and RelPath(Config.XDG_CONFIG_FILE).exists():
-                # NOTE: I don't quite know why these two lines are not included in coverage because
-                # there is a unittest for them and adding a print statement here does show up in the
-                # output of the test suite...
-                configpath = RelPath(Config.XDG_CONFIG_FILE).path
-            else:  # pragma: no cover
-                return  # pragma: no cover
-
-        LOGGER.info("Loading configuration from default location: %s", configpath)
-
-        spec = importlib.util.spec_from_file_location("config", configpath)
-        if spec is None:
-            LOGGER.error(
-                "The config at %s could not be interpreted as a Python module.", configpath
-            )
-            sys.exit(1)
-        else:
-            cfg = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(cfg)  # type: ignore[union-attr]
-
-        try:
-            # validate config
-            config.validate()
-        except RuntimeError as exc:
-            LOGGER.error(exc)
-            sys.exit(1)
-
-
-@dataclass
-class CommandConfig(_ConfigBase):
-    """The `config.commands` section."""
-
-    add: AddCommandConfig = field(default_factory=lambda: AddCommandConfig())
-    """The nested section for settings related to the `add` command."""
-    delete: DeleteCommandConfig = field(default_factory=lambda: DeleteCommandConfig())
-    """The nested section for settings related to the `delete` command."""
-    edit: EditCommandConfig = field(default_factory=lambda: EditCommandConfig())
-    """The nested section for settings related to the `edit` command."""
-    import_: ImportCommandConfig = field(default_factory=lambda: ImportCommandConfig())
-    """The nested section for settings related to the `import` command. Note the trailing underscore
-    of its name, since this attribute would otherwise clash with the builtin `import` keyword."""
-    list_: ListCommandConfig = field(default_factory=lambda: ListCommandConfig())
-    """The nested section for settings related to the `list` command. Note the trailing underscore
-    of its name, since this attribute would otherwise clash with the builtin `list` keyword."""
-    modify: ModifyCommandConfig = field(default_factory=lambda: ModifyCommandConfig())
-    """The nested section for settings related to the `modify` command."""
-    note: NoteCommandConfig = field(default_factory=lambda: NoteCommandConfig())
-    """The nested section for settings related to the `note` command."""
-    open: OpenCommandConfig = field(default_factory=lambda: OpenCommandConfig())
-    """The nested section for settings related to the `open` command."""
-    search: SearchCommandConfig = field(default_factory=lambda: SearchCommandConfig())
-    """The nested section for settings related to the `search` command."""
-    show: ShowCommandConfig = field(default_factory=lambda: ShowCommandConfig())
-    """The nested section for settings related to the `show` command."""
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the COMMANDS configuration section.")
-        self.add.validate()
-        self.delete.validate()
-        self.edit.validate()
-        self.import_.validate()
-        self.list_.validate()
-        self.modify.validate()
-        self.note.validate()
-        self.open.validate()
-        self.search.validate()
-        self.show.validate()
-
-
-@dataclass
 class AddCommandConfig(_ConfigBase):
     """The `config.commands.add` section."""
 
@@ -563,42 +412,45 @@ class ShowCommandConfig(_ConfigBase):
 
 
 @dataclass
-class DatabaseConfig(_ConfigBase):
-    """The `config.database` section."""
+class CommandConfig(_ConfigBase):
+    """The `config.commands` section."""
 
-    cache: str | Path | None = "$XDG_CACHE_HOME/cobib/databases/"
-    """The path under which to store already parsed databases. Set this to `None` to disable this
-    functionality entirely. See also `cobib.database`."""
-    file: str | Path = "$XDG_DATA_HOME/cobib/literature.yaml"
-    """The path to the database YAML file. You can use a `~` to represent your `$HOME` directory.
-    See also `cobib.database`."""
-    format: DatabaseFormatConfig = field(default_factory=lambda: DatabaseFormatConfig())
-    """The nested section for database formatting settings."""
-    git: bool = False
-    """Whether to enable the `git(1)` integration, see also `cobib.utils.git`."""
-    stringify: EntryStringifyConfig = field(default_factory=lambda: EntryStringifyConfig())
-    """The nested section for database string-formatting settings."""
+    add: AddCommandConfig = field(default_factory=AddCommandConfig)
+    """The nested section for settings related to the `add` command."""
+    delete: DeleteCommandConfig = field(default_factory=DeleteCommandConfig)
+    """The nested section for settings related to the `delete` command."""
+    edit: EditCommandConfig = field(default_factory=EditCommandConfig)
+    """The nested section for settings related to the `edit` command."""
+    import_: ImportCommandConfig = field(default_factory=ImportCommandConfig)
+    """The nested section for settings related to the `import` command. Note the trailing underscore
+    of its name, since this attribute would otherwise clash with the builtin `import` keyword."""
+    list_: ListCommandConfig = field(default_factory=ListCommandConfig)
+    """The nested section for settings related to the `list` command. Note the trailing underscore
+    of its name, since this attribute would otherwise clash with the builtin `list` keyword."""
+    modify: ModifyCommandConfig = field(default_factory=ModifyCommandConfig)
+    """The nested section for settings related to the `modify` command."""
+    note: NoteCommandConfig = field(default_factory=NoteCommandConfig)
+    """The nested section for settings related to the `note` command."""
+    open: OpenCommandConfig = field(default_factory=OpenCommandConfig)
+    """The nested section for settings related to the `open` command."""
+    search: SearchCommandConfig = field(default_factory=SearchCommandConfig)
+    """The nested section for settings related to the `search` command."""
+    show: ShowCommandConfig = field(default_factory=ShowCommandConfig)
+    """The nested section for settings related to the `show` command."""
 
     @override
     def validate(self) -> None:
-        LOGGER.debug("Validating the DATABASE configuration section.")
-        self._assert(
-            self.cache is None or isinstance(self.cache, (str, Path)),
-            "config.database.cache should be a string, Path, or `None`.",
-        )
-        self._assert(
-            isinstance(self.file, (str, Path)), "config.database.file should be a string or Path."
-        )
-        self.format.validate()
-        self._assert(isinstance(self.git, bool), "config.database.git should be a boolean.")
-        self.stringify.validate()
-
-        self._warn_legacy_path(
-            "XDG_CACHE_HOME", "~/.cache", "cobib/databases/", "config.database.cache"
-        )
-        self._warn_legacy_path(
-            "XDG_DATA_HOME", "~/.local/share", "cobib/literature.yaml", "config.database.file"
-        )
+        LOGGER.debug("Validating the COMMANDS configuration section.")
+        self.add.validate()
+        self.delete.validate()
+        self.edit.validate()
+        self.import_.validate()
+        self.list_.validate()
+        self.modify.validate()
+        self.note.validate()
+        self.open.validate()
+        self.search.validate()
+        self.show.validate()
 
 
 class AuthorFormat(Enum):
@@ -619,7 +471,7 @@ class LabelSuffix(Enum):
     CAPITAL = lambda count: chr(64 + count)
     """Enumerates with uppercase roman letters: `A-Z`."""
 
-    NUMERIC = lambda count: str(count)
+    NUMERIC = lambda count: str(count)  # noqa: PLW0108
     """Enumerates with arabic numbers: `1, 2, ...`."""
 
     @staticmethod
@@ -815,21 +667,6 @@ class DatabaseFormatConfig(_ConfigBase):
 
 
 @dataclass
-class EntryStringifyConfig(_ConfigBase):
-    """The `config.database.stringify` section."""
-
-    list_separator: EntryListSeparatorConfig = field(
-        default_factory=lambda: EntryListSeparatorConfig()
-    )
-    """The nested section for list separator values."""
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the DATABASE.STRINGIFY configuration section.")
-        self.list_separator.validate()
-
-
-@dataclass
 class EntryListSeparatorConfig(_ConfigBase):
     """The `config.database.stringify.list_separator` section.
 
@@ -863,19 +700,55 @@ class EntryListSeparatorConfig(_ConfigBase):
 
 
 @dataclass
-class ExporterConfig(_ConfigBase):
-    """The `config.exporters` section."""
+class EntryStringifyConfig(_ConfigBase):
+    """The `config.database.stringify` section."""
 
-    bibtex: BibtexExporterConfig = field(default_factory=lambda: BibtexExporterConfig())
-    """The nested section for the BibTeX exporter settings."""
-    zip: ZipExporterConfig = field(default_factory=lambda: ZipExporterConfig())
-    """The nested section for the Zip exporter settings."""
+    list_separator: EntryListSeparatorConfig = field(default_factory=EntryListSeparatorConfig)
+    """The nested section for list separator values."""
 
     @override
     def validate(self) -> None:
-        LOGGER.debug("Validating the EXPORTERS configuration section.")
-        self.bibtex.validate()
-        self.zip.validate()
+        LOGGER.debug("Validating the DATABASE.STRINGIFY configuration section.")
+        self.list_separator.validate()
+
+
+@dataclass
+class DatabaseConfig(_ConfigBase):
+    """The `config.database` section."""
+
+    cache: str | Path | None = "$XDG_CACHE_HOME/cobib/databases/"
+    """The path under which to store already parsed databases. Set this to `None` to disable this
+    functionality entirely. See also `cobib.database`."""
+    file: str | Path = "$XDG_DATA_HOME/cobib/literature.yaml"
+    """The path to the database YAML file. You can use a `~` to represent your `$HOME` directory.
+    See also `cobib.database`."""
+    format: DatabaseFormatConfig = field(default_factory=DatabaseFormatConfig)
+    """The nested section for database formatting settings."""
+    git: bool = False
+    """Whether to enable the `git(1)` integration, see also `cobib.utils.git`."""
+    stringify: EntryStringifyConfig = field(default_factory=EntryStringifyConfig)
+    """The nested section for database string-formatting settings."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the DATABASE configuration section.")
+        self._assert(
+            self.cache is None or isinstance(self.cache, (str, Path)),
+            "config.database.cache should be a string, Path, or `None`.",
+        )
+        self._assert(
+            isinstance(self.file, (str, Path)), "config.database.file should be a string or Path."
+        )
+        self.format.validate()
+        self._assert(isinstance(self.git, bool), "config.database.git should be a boolean.")
+        self.stringify.validate()
+
+        self._warn_legacy_path(
+            "XDG_CACHE_HOME", "~/.cache", "cobib/databases/", "config.database.cache"
+        )
+        self._warn_legacy_path(
+            "XDG_DATA_HOME", "~/.local/share", "cobib/literature.yaml", "config.database.file"
+        )
 
 
 class JournalFormat(Enum):
@@ -928,6 +801,22 @@ class ZipExporterConfig(_ConfigBase):
 
 
 @dataclass
+class ExporterConfig(_ConfigBase):
+    """The `config.exporters` section."""
+
+    bibtex: BibtexExporterConfig = field(default_factory=BibtexExporterConfig)
+    """The nested section for the BibTeX exporter settings."""
+    zip: ZipExporterConfig = field(default_factory=ZipExporterConfig)
+    """The nested section for the Zip exporter settings."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the EXPORTERS configuration section.")
+        self.bibtex.validate()
+        self.zip.validate()
+
+
+@dataclass
 class LoggingConfig(_ConfigBase):
     """The `config.logging` section."""
 
@@ -977,22 +866,6 @@ class LoggingConfig(_ConfigBase):
 
 
 @dataclass
-class ParserConfig(_ConfigBase):
-    """The `config.parsers` section."""
-
-    bibtex: BibtexParserConfig = field(default_factory=lambda: BibtexParserConfig())
-    """The nested section for the BibTeX parser settings."""
-    yaml: YAMLParserConfig = field(default_factory=lambda: YAMLParserConfig())
-    """The nested section for the YAML parser settings."""
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the PARSERS configuration section.")
-        self.bibtex.validate()
-        self.yaml.validate()
-
-
-@dataclass
 class BibtexParserConfig(_ConfigBase):
     """The `config.parsers.bibtex` section."""
 
@@ -1029,6 +902,22 @@ class YAMLParserConfig(_ConfigBase):
 
 
 @dataclass
+class ParserConfig(_ConfigBase):
+    """The `config.parsers` section."""
+
+    bibtex: BibtexParserConfig = field(default_factory=BibtexParserConfig)
+    """The nested section for the BibTeX parser settings."""
+    yaml: YAMLParserConfig = field(default_factory=YAMLParserConfig)
+    """The nested section for the YAML parser settings."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the PARSERS configuration section.")
+        self.bibtex.validate()
+        self.yaml.validate()
+
+
+@dataclass
 class ShellConfig(_ConfigBase):
     """The `config.shell` section."""
 
@@ -1062,66 +951,6 @@ class ShellConfig(_ConfigBase):
             "config.shell.history",
             old_path="~/.cache",
         )
-
-
-@dataclass
-class ThemeConfig(_ConfigBase):
-    """The `config.theme` section."""
-
-    search: SearchHighlightConfig = field(default_factory=lambda: SearchHighlightConfig())
-    """The nested section for theme settings related to the `search` command."""
-    syntax: SyntaxConfig = field(default_factory=lambda: SyntaxConfig())
-    """The nested section for theme settings related to `rich.Syntax` displays."""
-    tags: TagsThemeConfig = field(default_factory=lambda: TagsThemeConfig())
-    """The nested section for the markup of special tags."""
-    theme: str | TextualTheme = "textual-dark"
-    """Textual's underlying `ColorSystem`.
-
-    This setting can either be the name of one of textual's `BUILTIN_THEMES` or an instance of
-    `textual.theme.Theme`.
-    For a detailed guide, see [textual's documentation](https://textual.textualize.io/guide/design),
-    but here is simple example to add an intense splash of color:
-       ```python
-       from textual.theme import BUILTIN_THEMES
-
-       a_splash_of_pink = BUILTIN_THEMES["textual-dark"]
-       a_splash_of_pink.primary = "#ff00ff"
-       config.theme.theme = a_splash_of_pink
-       ```
-    """
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the THEME configuration section.")
-        self.search.validate()
-        self.syntax.validate()
-        self.tags.validate()
-        self._assert(
-            isinstance(self.theme, (str, TextualTheme)),
-            "config.theme.theme must be the name of or an actual textual.theme.Theme",
-        )
-
-    def build(self) -> RichTheme:
-        """Returns the built `rich.Theme` from the configured styles."""
-        theme: dict[str, str | Style] = {}
-        theme.update(self.search.styles)
-        theme.update(self.tags.styles)
-        return RichTheme(theme)
-
-    @property
-    def textual_theme(self) -> TextualTheme:
-        """Returns the `textual.theme.Theme`."""
-        return self.theme if isinstance(self.theme, TextualTheme) else BUILTIN_THEMES[self.theme]
-
-    @property
-    def css_variables(self) -> dict[str, str]:
-        """The actual CSS color variables generated from the active theme of `ThemeConfig.theme`.
-
-        Returns:
-            A dictionary mapping from color names to values. See [textual's
-            documentation](https://textual.textualize.io/guide/design) for more details.
-        """
-        return self.textual_theme.to_color_system().generate()
 
 
 @dataclass
@@ -1334,6 +1163,66 @@ class TagsThemeConfig(_ConfigBase):
 
 
 @dataclass
+class ThemeConfig(_ConfigBase):
+    """The `config.theme` section."""
+
+    search: SearchHighlightConfig = field(default_factory=SearchHighlightConfig)
+    """The nested section for theme settings related to the `search` command."""
+    syntax: SyntaxConfig = field(default_factory=SyntaxConfig)
+    """The nested section for theme settings related to `rich.Syntax` displays."""
+    tags: TagsThemeConfig = field(default_factory=TagsThemeConfig)
+    """The nested section for the markup of special tags."""
+    theme: str | TextualTheme = "textual-dark"
+    """Textual's underlying `ColorSystem`.
+
+    This setting can either be the name of one of textual's `BUILTIN_THEMES` or an instance of
+    `textual.theme.Theme`.
+    For a detailed guide, see [textual's documentation](https://textual.textualize.io/guide/design),
+    but here is simple example to add an intense splash of color:
+       ```python
+       from textual.theme import BUILTIN_THEMES
+
+       a_splash_of_pink = BUILTIN_THEMES["textual-dark"]
+       a_splash_of_pink.primary = "#ff00ff"
+       config.theme.theme = a_splash_of_pink
+       ```
+    """
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the THEME configuration section.")
+        self.search.validate()
+        self.syntax.validate()
+        self.tags.validate()
+        self._assert(
+            isinstance(self.theme, (str, TextualTheme)),
+            "config.theme.theme must be the name of or an actual textual.theme.Theme",
+        )
+
+    def build(self) -> RichTheme:
+        """Returns the built `rich.Theme` from the configured styles."""
+        theme: dict[str, str | Style] = {}
+        theme.update(self.search.styles)
+        theme.update(self.tags.styles)
+        return RichTheme(theme)
+
+    @property
+    def textual_theme(self) -> TextualTheme:
+        """Returns the `textual.theme.Theme`."""
+        return self.theme if isinstance(self.theme, TextualTheme) else BUILTIN_THEMES[self.theme]
+
+    @property
+    def css_variables(self) -> dict[str, str]:
+        """The actual CSS color variables generated from the active theme of `ThemeConfig.theme`.
+
+        Returns:
+            A dictionary mapping from color names to values. See [textual's
+            documentation](https://textual.textualize.io/guide/design) for more details.
+        """
+        return self.textual_theme.to_color_system().generate()
+
+
+@dataclass
 class TUIConfig(_ConfigBase):
     """The `config.tui` section."""
 
@@ -1402,36 +1291,6 @@ class TUIConfig(_ConfigBase):
 
 
 @dataclass
-class UtilsConfig(_ConfigBase):
-    """The `config.utils` section."""
-
-    file_downloader: FileDownloaderConfig = field(default_factory=lambda: FileDownloaderConfig())
-    """The nested section for the `cobib.utils.FileDownloader` utils settings."""
-    journal_abbreviations: list[tuple[str, str]] = field(default_factory=list)
-    """A list of *journal abbreviations* as pairs like `("full journal name", "abbrev. name")`.
-    The abbreviated version should contain all the necessary punctuation (see also
-    `cobib.commands.export`).
-
-    You can find some examples in the
-    [wiki](https://gitlab.com/cobib/cobib/-/wikis/Journal-Abbreviations).
-    """
-
-    @override
-    def validate(self) -> None:
-        LOGGER.debug("Validating the UTILS configuration section.")
-        self.file_downloader.validate()
-        self._assert(
-            isinstance(self.journal_abbreviations, list),
-            "config.utils.journal_abbreviations should be a list.",
-        )
-        for abbrev in self.journal_abbreviations:
-            self._assert(
-                isinstance(abbrev, tuple),
-                "config.utils.journal_abbreviations should be a list of tuples.",
-            )
-
-
-@dataclass
 class FileDownloaderConfig(_ConfigBase):
     """The `config.utils.file_downloader` section."""
 
@@ -1474,6 +1333,145 @@ class FileDownloaderConfig(_ConfigBase):
             "cobib/",
             "config.utils.file_downloader.default_location",
         )
+
+
+@dataclass
+class UtilsConfig(_ConfigBase):
+    """The `config.utils` section."""
+
+    file_downloader: FileDownloaderConfig = field(default_factory=FileDownloaderConfig)
+    """The nested section for the `cobib.utils.FileDownloader` utils settings."""
+    journal_abbreviations: list[tuple[str, str]] = field(default_factory=list)
+    """A list of *journal abbreviations* as pairs like `("full journal name", "abbrev. name")`.
+    The abbreviated version should contain all the necessary punctuation (see also
+    `cobib.commands.export`).
+
+    You can find some examples in the
+    [wiki](https://gitlab.com/cobib/cobib/-/wikis/Journal-Abbreviations).
+    """
+
+    @override
+    def validate(self) -> None:
+        LOGGER.debug("Validating the UTILS configuration section.")
+        self.file_downloader.validate()
+        self._assert(
+            isinstance(self.journal_abbreviations, list),
+            "config.utils.journal_abbreviations should be a list.",
+        )
+        for abbrev in self.journal_abbreviations:
+            self._assert(
+                isinstance(abbrev, tuple),
+                "config.utils.journal_abbreviations should be a list of tuples.",
+            )
+
+
+@dataclass
+class Config(_ConfigBase):
+    """The `config` dataclass."""
+
+    commands: CommandConfig = field(default_factory=CommandConfig)
+    """The nested section for the commands settings."""
+    database: DatabaseConfig = field(default_factory=DatabaseConfig)
+    """The nested section for the database settings."""
+    events: dict["Event", list[Callable]] = field(default_factory=dict)  # type: ignore[type-arg]
+    """`cobib.config.event` hooks get stored in this dictionary but it should **NOT** be modified
+    directly! Instead, the `cobib.config.event.Event.subscribe` decorator should be used (cf.
+    `cobib.config.event`)."""
+    exporters: ExporterConfig = field(default_factory=ExporterConfig)
+    """The nested section for the exporters settings."""
+    logging: LoggingConfig = field(default_factory=LoggingConfig)
+    """The nested section for the logging settings."""
+    parsers: ParserConfig = field(default_factory=ParserConfig)
+    """The nested section for the parsers settings."""
+    shell: ShellConfig = field(default_factory=ShellConfig)
+    """The nested section for the Shell settings."""
+    theme: ThemeConfig = field(default_factory=ThemeConfig)
+    """The nested section for the theme settings."""
+    tui: TUIConfig = field(default_factory=TUIConfig)
+    """The nested section for the TUI settings."""
+    utils: UtilsConfig = field(default_factory=UtilsConfig)
+    """The nested section for the utils settings."""
+
+    XDG_CONFIG_FILE: str | Path = field(
+        default="$XDG_CONFIG_HOME/cobib/config.py", init=False, repr=False, compare=False
+    )
+    """The XDG-based standard configuration location."""
+
+    @override
+    def validate(self) -> None:
+        LOGGER.info("Validating the runtime configuration.")
+        self.commands.validate()
+        self.database.validate()
+        self.exporters.validate()
+        self.logging.validate()
+        self.parsers.validate()
+        self.shell.validate()
+        self.theme.validate()
+        self.tui.validate()
+        self.utils.validate()
+
+        LOGGER.debug("Validating the EVENTS configuration section.")
+        self._assert(isinstance(self.events, dict), "config.events should be a dict.")
+        for event in self.events:
+            self._assert(
+                event.validate(),
+                f"config.events.{event} did not pass its validation check.",
+            )
+
+    @staticmethod
+    def load(configpath: str | Path | TextIO | io.TextIOWrapper | None = None) -> None:
+        """Loads another configuration object at runtime.
+
+        WARNING: The new Python-like configuration allows essentially arbitrary Python code so it is
+        the user's responsibility to treat this with care!
+
+        Args:
+            configpath: the path to the configuration.
+        """
+        LOGGER.info("Input provided to Config.load: %s", configpath)
+        if configpath is not None:
+            if isinstance(configpath, (TextIO, io.TextIOWrapper)):
+                configpath.close()
+                configpath = configpath.name
+        elif (configpath_env := os.getenv("COBIB_CONFIG")) is not None:
+            if configpath_env.lower() in ("", "0", "f", "false", "nil", "none"):
+                LOGGER.info(
+                    "Skipping configuration loading because negative COBIB_CONFIG environment "
+                    "variable was detected."
+                )
+                return
+            configpath = RelPath(configpath_env).path
+        else:
+            Config._warn_legacy_path(
+                "XDG_CONFIG_HOME", "~/.config", "cobib/config.py", "configuration file"
+            )
+
+            if Config.XDG_CONFIG_FILE and RelPath(Config.XDG_CONFIG_FILE).exists():
+                # NOTE: I don't quite know why these two lines are not included in coverage because
+                # there is a unittest for them and adding a print statement here does show up in the
+                # output of the test suite...
+                configpath = RelPath(Config.XDG_CONFIG_FILE).path
+            else:  # pragma: no cover
+                return  # pragma: no cover
+
+        LOGGER.info("Loading configuration from default location: %s", configpath)
+
+        spec = importlib.util.spec_from_file_location("config", configpath)
+        if spec is None:
+            LOGGER.error(
+                "The config at %s could not be interpreted as a Python module.", configpath
+            )
+            sys.exit(1)
+        else:
+            cfg = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(cfg)  # type: ignore[union-attr]
+
+        try:
+            # validate config
+            config.validate()
+        except RuntimeError as exc:
+            LOGGER.error(exc)
+            sys.exit(1)
 
 
 config = Config()
