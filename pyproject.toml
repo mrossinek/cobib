@@ -151,7 +151,7 @@ dev = [
     "cobib[coverage,docs,lint]",
 ]
 basedev = [
-    "pytest~=8.4.1",
+    "pytest~=9.1.1",
 ]
 docs = [
     "cobib[basedev]",
@@ -161,7 +161,7 @@ docs = [
 test = [
     "cobib[basedev]",
     "pytest-asyncio~=1.4.0",
-    "pytest-textual-snapshot~=1.1.0",
+    "pytest-textual-snapshot @ git+https://git@github.com/mrossinek/pytest-textual-snapshot@update-syrupy",
     "ruamel.yaml.clib",
     "textual>=6.0",
 ]
