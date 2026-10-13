@@ -8,6 +8,7 @@ from pathlib import Path
 from os import system
 from cobib.config import Event
 
+
 @Event.PostGitCommit.subscribe
 def push_to_remote(root: Path, file: Path) -> None:
     system(f"git -C {root} push")

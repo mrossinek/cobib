@@ -142,9 +142,8 @@ Finally, vim-like key bindings exist for navigation:
 The `config.tui.preset_filters` setting can be used to determine preset views that can be reached quickly.
 For example, the following setting:
 ```python
-
 config.tui.preset_filters = [
-    "++tags new",   # filters entries with the `new` tag
+    "++tags new",  # filters entries with the `new` tag
     "++year 2023",  # filters entries from the year 2023
 ]
 ```

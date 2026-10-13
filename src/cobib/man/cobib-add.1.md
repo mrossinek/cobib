@@ -101,7 +101,9 @@ The _label_ of an entry is determined automatically based on the `config.databas
 By default, this does not change the suggested labels of the backends other than ensuring ASCII characters.
 However, its value may be set to automatically infer a label based on the entry's data, e.g.
 ```python
-config.database.format.label_default = "{unidecode(author[0].last).replace('-', '').replace(' ', '')}{year}"
+config.database.format.label_default = (
+    "{unidecode(author[0].last).replace('-', '').replace(' ', '')}{year}"
+)
 ```
 The example above will use the surname of the last author and concatenate it with the publication year.
 

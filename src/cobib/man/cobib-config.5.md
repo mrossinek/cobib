@@ -333,6 +333,7 @@ and a string describing the `rich.style.Style`.
        ```python
        from cobib.config import Event
 
+
        @Event.PostAddCommand.subscribe
        def add_new_tag(cmd: AddCommand) -> None:
            for entry in cmd.new_entries.values():
@@ -355,7 +356,7 @@ and a string describing the `rich.style.Style`.
     Each entry of this list should be a string describing a *cobib-filter(7)*, for example:
        ```python
        config.tui.preset_filters = [
-           "++tags new",   # filters entries with the `new` tag
+           "++tags new",  # filters entries with the `new` tag
            "++year 2023",  # filters entries from the year 2023
        ]
        ```
@@ -379,9 +380,9 @@ and a string describing the `rich.style.Style`.
     Populating this dictionary will improve the success rate of the automatic file download.
     You can find more examples in the [wiki](https://gitlab.com/cobib/cobib/-/wikis/File-Downloader-URL-Maps), but here is a simple one:
        ```python
-       config.utils.file_downloader.url_map[
-           r"(.+)://quantum-journal.org/papers/([^/]+)"
-       ] = r"\1://quantum-journal.org/papers/\2/pdf/"
+       config.utils.file_downloader.url_map[r"(.+)://quantum-journal.org/papers/([^/]+)"] = (
+           r"\1://quantum-journal.org/papers/\2/pdf/"
+       )
        ```
 
   * _config.utils.journal_abbreviations_ = `[]`:
