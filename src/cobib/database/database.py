@@ -144,7 +144,7 @@ class Database(OrderedDict[str, Entry]):
         offset = 0
         while True:
             offset += 1
-            new_label: str = label + separator + enumerator(offset)  # type: ignore[operator]
+            new_label: str = label + separator + enumerator(offset)
             if new_label not in self.keys():
                 LOGGER.info("Found new unique label: %s", new_label)
                 return new_label

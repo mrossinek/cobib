@@ -6,7 +6,7 @@ Note, that this last link will not point to the correct location in the online d
 the nature of the lower-level import. Instead, at Python runtime this will import
 `cobib.config.config.config`.
 """
-# ruff: noqa: E731, RUF009
+# ruff: noqa: RUF009
 
 from __future__ import annotations
 
@@ -19,6 +19,7 @@ from abc import abstractmethod
 from collections.abc import Callable
 from dataclasses import MISSING, dataclass, field, fields
 from enum import Enum, auto
+from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, NamedTuple, TextIO
 
@@ -73,7 +74,7 @@ class _ConfigBase:
             if field_.default != MISSING:
                 setattr(self, name, field_.default)
             else:
-                setattr(self, name, field_.default_factory())  # type: ignore[misc]
+                setattr(self, name, field_.default_factory())  # type: ignore[operator]
 
     @staticmethod
     def _warn_legacy_path(
@@ -466,13 +467,19 @@ class AuthorFormat(Enum):
 class LabelSuffix(Enum):
     """Suffixes to disambiguate `cobib.database.Entry` labels."""
 
-    ALPHA = lambda count: chr(96 + count)
+    # TODO: once Python 3.11 becomes the default, change functools.partial to enum.member
+
+    ALPHA = partial(lambda count: chr(96 + count))
     """Enumerates with lowercase roman letters: `a-z`."""
-    CAPITAL = lambda count: chr(64 + count)
+    CAPITAL = partial(lambda count: chr(64 + count))
     """Enumerates with uppercase roman letters: `A-Z`."""
 
-    NUMERIC = lambda count: str(count)  # noqa: PLW0108
+    NUMERIC = partial(lambda count: str(count))  # noqa: PLW0108
     """Enumerates with arabic numbers: `1, 2, ...`."""
+
+    def __call__(self, count: int) -> str:
+        """Undoes the wrapping of `partial` to ensure correct access to the member lambdas."""
+        return self.value(count)
 
     @staticmethod
     def reverse(type_: LabelSuffix, suffix: str) -> int:
