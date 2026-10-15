@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import logging
-import tempfile
-from pathlib import Path
+from typing import Any
 
 import pytest
 from rich.console import Group
@@ -32,29 +31,22 @@ def test_get_file_handler() -> None:
 
 
 @pytest.mark.parametrize("cached_version", [None, False, "", "0.1", "0.2"])
-def test_print_changelog(
-    cached_version: str | None,
-) -> None:
+def test_print_changelog(cached_version: str | None, tmp_path: Any) -> None:
     """Test printing of the latest changelog section.
 
     Args:
         cached_version: the cached version to test against.
+        tmp_path: the built-in pytest fixture.
     """
     if cached_version is None:
         panel = print_changelog("0.2", None)
         assert panel is None
     else:
-        with tempfile.NamedTemporaryFile("w") as file:
-            path = Path(file.name)
-            if not cached_version:
-                file.close()
-            else:
-                file.write(cached_version)
-                file.flush()
-            panel = print_changelog("0.2", str(path))
-        # ensure we do not leave a temporary file behind
-        if path.exists():
-            path.unlink()
+        path = tmp_path / "changelog.log"
+        # NOTE: for a falsy `cached_version` the file purposefully does not exist
+        if cached_version:
+            path.write_text(cached_version, encoding="utf-8")
+        panel = print_changelog("0.2", str(path))
         if cached_version == "0.2":
             assert panel is None
         else:
@@ -72,18 +64,14 @@ def test_print_changelog(
                     assert true == exp
 
 
-def test_safe_cache_access() -> None:
-    """Regression test against #94."""
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        # use a path which surely does not exist
-        tmp_cache_file = Path(tmp_dir) / "cache/version"
-        try:
-            # try to read the version from a file whose parent directory does not exist
-            print_changelog("0.2", str(tmp_cache_file))
-            # if the test regresses, this will fail with a `FileNotFoundError`
-        finally:
-            if tmp_cache_file.exists():
-                tmp_cache_file.unlink()
-            if tmp_cache_file.parent.exists():
-                tmp_cache_file.parent.rmdir()
-            Path(tmp_dir).rmdir()
+def test_safe_cache_access(tmp_path: Any) -> None:
+    """Regression test against #94.
+
+    Args:
+        tmp_path: the built-in pytest fixture.
+    """
+    # use a path which surely does not exist
+    tmp_cache_file = tmp_path / "cache/version"
+    # try to read the version from a file whose parent directory does not exist
+    print_changelog("0.2", str(tmp_cache_file))
+    # if the test regresses, this will fail with a `FileNotFoundError`

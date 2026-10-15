@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import tempfile
 from argparse import ArgumentError
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -14,8 +12,6 @@ from cobib.commands import ExportCommand
 from cobib.config import Event
 
 from .command_test import CommandTest
-
-TMPDIR = Path(tempfile.gettempdir())
 
 if TYPE_CHECKING:
     import cobib.commands
@@ -35,7 +31,7 @@ class TestExportCommand(CommandTest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        args = ["--bibtex", str(TMPDIR / "cobib_test_export.bib"), "-s", "--", "dummy"]
+        args = ["--bibtex", str(self.COBIB_TEST_DIR / "cobib_test_export.bib"), "-s", "--", "dummy"]
         ExportCommand(*args).execute()
         try:
             assert (
@@ -45,7 +41,7 @@ class TestExportCommand(CommandTest):
             ) in caplog.record_tuples
         finally:
             # clean up file system
-            (TMPDIR / "cobib_test_export.bib").unlink(missing_ok=True)
+            (self.COBIB_TEST_DIR / "cobib_test_export.bib").unlink(missing_ok=True)
 
     def test_warning_missing_output(self, setup: Any) -> None:
         """Test warning for missing output format.
@@ -80,11 +76,11 @@ class TestExportCommand(CommandTest):
 
     def test_event_pre_export_command(self, setup: Any) -> None:
         """Tests the PreExportCommand event."""
-        args = ["--bibtex", str(TMPDIR / "cobib_test_export.bib")]
+        args = ["--bibtex", str(self.COBIB_TEST_DIR / "cobib_test_export.bib")]
 
         @Event.PreExportCommand.subscribe
         def hook(command: ExportCommand) -> None:
-            (TMPDIR / "cobib_test_export.bib").unlink()
+            (self.COBIB_TEST_DIR / "cobib_test_export.bib").unlink()
 
         assert Event.PreExportCommand.validate()
 
@@ -93,14 +89,14 @@ class TestExportCommand(CommandTest):
 
     def test_event_post_export_command(self, setup: Any) -> None:
         """Tests the PostExportCommand event."""
-        args = ["--bibtex", str(TMPDIR / "cobib_test_export.bib")]
+        args = ["--bibtex", str(self.COBIB_TEST_DIR / "cobib_test_export.bib")]
 
         @Event.PostExportCommand.subscribe
         def hook(command: ExportCommand) -> None:
-            (TMPDIR / "cobib_test_export.bib").unlink()
+            (self.COBIB_TEST_DIR / "cobib_test_export.bib").unlink()
 
         assert Event.PostExportCommand.validate()
 
         ExportCommand(*args).execute()
 
-        assert not (TMPDIR / "cobib_test_export.bib").exists()
+        assert not (self.COBIB_TEST_DIR / "cobib_test_export.bib").exists()

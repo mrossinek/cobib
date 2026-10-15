@@ -51,10 +51,26 @@ class TestURLParser(ParserTest):
     @pytest.mark.parametrize(
         ("query", "assertion"),
         [
-            ("978-1-449-35573-9", assert_isbn_entry),
-            ("https://arxiv.org/abs/1701.08213", assert_arxiv_entry),
-            ("https://doi.org/10.1021/acs.jpclett.3c00330", assert_doi_entry),
-            ("https://www.nature.com/articles/s41467-019-10988-2", assert_default_test_entry),
+            pytest.param(
+                "978-1-449-35573-9",
+                assert_isbn_entry,
+                marks=pytest.mark.xdist_group(name="ISBN"),
+            ),
+            pytest.param(
+                "https://arxiv.org/abs/1701.08213",
+                assert_arxiv_entry,
+                marks=pytest.mark.xdist_group(name="arXiv"),
+            ),
+            pytest.param(
+                "https://doi.org/10.1021/acs.jpclett.3c00330",
+                assert_doi_entry,
+                marks=pytest.mark.xdist_group(name="DOI"),
+            ),
+            pytest.param(
+                "https://www.nature.com/articles/s41467-019-10988-2",
+                assert_default_test_entry,
+                marks=pytest.mark.xdist_group(name="DOI"),
+            ),
         ],
     )
     def test_from_url(
@@ -97,6 +113,7 @@ class TestURLParser(ParserTest):
             "Cannot dump an entry as a URL.",
         ) in caplog.record_tuples
 
+    @pytest.mark.xdist_group(name="DOI")
     def test_event_pre_url_parse(self, caplog: pytest.LogCaptureFixture) -> None:
         """Tests the PreURLParse event."""
 
@@ -116,6 +133,7 @@ class TestURLParser(ParserTest):
             pytest.skip("Skipping because we likely ran into a network timeout.")
         assert_default_test_entry(entry)
 
+    @pytest.mark.xdist_group(name="DOI")
     def test_event_post_url_parse(self, caplog: pytest.LogCaptureFixture) -> None:
         """Tests the PostURLParse event."""
 

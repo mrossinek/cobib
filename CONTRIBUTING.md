@@ -18,6 +18,16 @@ or if you want to run only some specific tests:
 ```
 pytest tests/PATH_TO_TEST.py -k FUNCTION_NAME
 ```
+
+Although not used during CI, it should be possible to leverage
+[`pytest-xdist`](https://pypi.org/project/pytest-xdist/) to parallelize test
+execution locally. To do so, simply install that package and use `-n auto` to
+run the test suite in parallel:
+
+```bash
+tox -e py -r -- -n auto --dist loadgroup
+```
+
 Please also check your code style with the following checks:
 ```
 tox -e lint

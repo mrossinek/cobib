@@ -31,6 +31,9 @@ class TestYAMLParser(ParserTest):
         Args:
             use_c_lib_yaml: the configuration setting.
         """
+        # reset the internal YAML parser instance to ensure the parameter takes effect and is not
+        # cached based on whatever lazily constructed object ran previously
+        YAMLParser._yaml = None
         try:
             config.parsers.yaml.use_c_lib_yaml = use_c_lib_yaml
             reference = self.EXAMPLE_ENTRY_DICT.copy()
@@ -47,6 +50,9 @@ class TestYAMLParser(ParserTest):
         Args:
             use_c_lib_yaml: the configuration setting.
         """
+        # reset the internal YAML parser instance to ensure the parameter takes effect and is not
+        # cached based on whatever lazily constructed object ran previously
+        YAMLParser._yaml = None
         try:
             config.parsers.yaml.use_c_lib_yaml = use_c_lib_yaml
             reference = self.EXAMPLE_ENTRY_DICT.copy()

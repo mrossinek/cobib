@@ -56,7 +56,16 @@ class ArxivParser(Parser):
             LOGGER.error("An Exception occurred while trying to query the arXiv ID: %s.", arxiv_id)
             LOGGER.error(err)
             return OrderedDict()
+
         xml = BeautifulSoup(page.text, features="xml")
+        if xml.feed is None:
+            LOGGER.error(
+                "Some error (most likely a network issue) occurred while trying to query the arXiv "
+                "ID: %s.",
+                arxiv_id,
+            )
+            return OrderedDict()
+
         if xml.feed.entry.title.contents[0] == "Error":  # type: ignore[union-attr]
             msg = (
                 "The arXiv API returned the following error: " + xml.feed.entry.summary.contents[0]  # type: ignore[operator,union-attr]

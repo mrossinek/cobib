@@ -163,6 +163,7 @@ test = [
     "cobib[basedev]",
     "pytest-asyncio~=1.4.0",
     "pytest-textual-snapshot @ git+https://git@github.com/mrossinek/pytest-textual-snapshot@update-syrupy",
+    "pytest-xdist~=3.8.0",
     "ruamel.yaml.clib",
     "textual>=6.0",
 ]

@@ -20,12 +20,14 @@ def setup() -> Generator[Any, None, None]:
     Yields:
         Access to the local fixture variables.
     """
+    JournalAbbreviations.reset()
+    config.defaults()
     yield
     config.utils.journal_abbreviations = []
-    JournalAbbreviations._abbreviations = {}
-    JournalAbbreviations._fullwords = {}
+    JournalAbbreviations.reset()
 
 
+@pytest.mark.xdist_group(name="JournalAbbreviations")
 def test_downloader_singleton() -> None:
     """Test the JournalAbbreviations is a Singleton."""
     j_a = JournalAbbreviations()
@@ -33,6 +35,7 @@ def test_downloader_singleton() -> None:
     assert j_a is j_a2
 
 
+@pytest.mark.xdist_group(name="JournalAbbreviations")
 def test_load_abbreviations() -> None:
     """Test the JournalAbbreviations.load_abbreviations method."""
     config.utils.journal_abbreviations = [("Test Journal", "Test J.")]
@@ -41,6 +44,7 @@ def test_load_abbreviations() -> None:
     assert JournalAbbreviations._fullwords == {"Test J.": "Test Journal", "Test J": "Test Journal"}
 
 
+@pytest.mark.xdist_group(name="JournalAbbreviations")
 def test_check_existence(caplog: pytest.LogCaptureFixture) -> None:
     """Test the JournalAbbreviations.check_existence method.
 
@@ -64,6 +68,7 @@ def test_check_existence(caplog: pytest.LogCaptureFixture) -> None:
     assert JournalAbbreviations.check_existence("Test J")
 
 
+@pytest.mark.xdist_group(name="JournalAbbreviations")
 @pytest.mark.parametrize("dotless", [False, True])
 def test_abbreviate(dotless: bool) -> None:
     """Test the JournalAbbreviations.abbreviate method.
@@ -89,6 +94,7 @@ def test_abbreviate(dotless: bool) -> None:
     assert new_journal == expected
 
 
+@pytest.mark.xdist_group(name="JournalAbbreviations")
 def test_elongate() -> None:
     """Test the JournalAbbreviations.elongate method."""
     old_journal = "Test J."

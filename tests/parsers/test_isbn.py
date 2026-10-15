@@ -32,6 +32,7 @@ def assert_default_test_entry(entry: Entry) -> None:
 class TestISBNParser(ParserTest):
     """Tests for coBib's ISBNParser."""
 
+    @pytest.mark.xdist_group(name="ISBN")
     def test_from_isbn(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test parsing from ISBN.
 
@@ -52,6 +53,7 @@ class TestISBNParser(ParserTest):
         assert_default_test_entry(entry)
 
     # regression test for https://gitlab.com/cobib/cobib/-/issues/53
+    @pytest.mark.xdist_group(name="ISBN")
     def test_from_empty_isbn(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test parsing an empty ISBN.
 
@@ -105,11 +107,6 @@ class TestISBNParser(ParserTest):
         monkeypatch.setattr(requests.Session, "get", raise_exception)
         ISBNParser().parse("978-1-449-35573-9")
 
-        if any(
-            s == "cobib.parsers.isbn" and t == logging.ERROR for s, t, _ in caplog.record_tuples
-        ):
-            pytest.skip("The requests API encountered an error. Skipping test.")
-
         assert (
             "cobib.parsers.isbn",
             logging.ERROR,
@@ -134,7 +131,8 @@ class TestISBNParser(ParserTest):
         ISBNParser().parse("978-1-449-35573-9")
 
         if any(
-            s == "cobib.parsers.isbn" and t == logging.ERROR for s, t, _ in caplog.record_tuples
+            s == "cobib.parsers.isbn" and t == logging.ERROR and "trying to query the ISBN" in m
+            for s, t, m in caplog.record_tuples
         ):
             pytest.skip("The requests API encountered an error. Skipping test.")
 
@@ -163,6 +161,7 @@ class TestISBNParser(ParserTest):
             "Cannot dump an entry as an ISBN.",
         ) in caplog.record_tuples
 
+    @pytest.mark.xdist_group(name="ISBN")
     def test_event_pre_isbn_parse(self, caplog: pytest.LogCaptureFixture) -> None:
         """Tests the PreISBNParse event."""
 
@@ -185,6 +184,7 @@ class TestISBNParser(ParserTest):
             pytest.skip("Skipping because we likely ran into a network timeout.")
         assert_default_test_entry(entry)
 
+    @pytest.mark.xdist_group(name="ISBN")
     def test_event_post_isbn_parse(self, caplog: pytest.LogCaptureFixture) -> None:
         """Tests the PostISBNParse event."""
 

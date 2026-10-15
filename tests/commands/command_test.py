@@ -3,11 +3,9 @@
 from __future__ import annotations
 
 import json
-import logging
 import os
 import shlex
 import subprocess
-import tempfile
 from abc import abstractmethod
 from collections.abc import Generator
 from pathlib import Path
@@ -22,8 +20,6 @@ from cobib.database import Database
 from .. import get_resource
 from ..cmdline_test import CmdLineTest
 
-TMPDIR = Path(tempfile.gettempdir()).resolve()
-
 if TYPE_CHECKING:
     import _pytest.fixtures
 
@@ -32,12 +28,6 @@ if TYPE_CHECKING:
 
 class CommandTest(CmdLineTest):
     """The base class for coBib's command test classes."""
-
-    COBIB_TEST_DIR = TMPDIR / "cobib_test"
-    """Path to the temporary coBib test directory."""
-
-    COBIB_TEST_DIR_GIT = COBIB_TEST_DIR / ".git"
-    """Path to the temporary coBib test git directory."""
 
     @abstractmethod
     def get_command(self) -> type[cobib.commands.base_command.Command]:
@@ -52,7 +42,9 @@ class CommandTest(CmdLineTest):
         """Test the command itself."""
 
     @pytest.fixture
-    def setup(self, request: _pytest.fixtures.SubRequest) -> Generator[dict[str, Any], None, None]:
+    def setup(
+        self, request: _pytest.fixtures.SubRequest, tmp_path: Path
+    ) -> Generator[dict[str, Any], None, None]:
         """Setup testing environment.
 
         This method takes care of setting up the testing configuration. This involves:
@@ -64,10 +56,13 @@ class CommandTest(CmdLineTest):
 
         Args:
             request: a pytest sub-request providing access to nested parameters.
+            tmp_path: the built-in pytest fixture.
 
         Yields:
             The internally used parameters for potential later re-use during the actual test.
         """
+        self.COBIB_TEST_DIR = tmp_path.resolve()
+        self.COBIB_TEST_DIR_GIT = self.COBIB_TEST_DIR / ".git"
         if not hasattr(request, "param"):
             # use default settings
             request.param = {"git": False, "database": True}
@@ -79,7 +74,7 @@ class CommandTest(CmdLineTest):
         config.database.cache = None
         config.database.file = self.COBIB_TEST_DIR / "database.yaml"
         config.database.git = request.param.get("git", False)
-        config.utils.file_downloader.default_location = "/tmp"
+        config.utils.file_downloader.default_location = str(self.COBIB_TEST_DIR)
         config.logging.version = None
 
         # load database
@@ -109,8 +104,6 @@ class CommandTest(CmdLineTest):
         Path(config.database.file).unlink(missing_ok=True)
         if request.param.get("git", False):
             rmtree(self.COBIB_TEST_DIR_GIT, ignore_errors=True)
-        # remove all handlers from root logger as to not accumulate them during the test suite
-        logging.getLogger().handlers = []
 
         # clean up database
         if request.param.get("database", True):

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import tempfile
 from os import remove
 from typing import Any, Dict, Optional, Tuple
 
@@ -44,30 +43,31 @@ def test_downloader_singleton() -> None:
 
 
 @pytest.mark.asyncio
-async def test_download(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.xdist_group(name="GitLab")
+async def test_download(tmp_path: Any, monkeypatch: pytest.MonkeyPatch) -> None:
     """Test the FileDownloader.download method.
 
     Args:
+        tmp_path: the built-in pytest fixture.
         monkeypatch: the built-in pytest fixture.
     """
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        try:
-            # ensure file does not exist yet
-            remove(tmpdirname + "/dummy.pdf")
-        except FileNotFoundError:
-            pass
-        # disable the PDF assertion method
-        monkeypatch.setattr(FileDownloader, "_assert_pdf", lambda *_: True)
-        path = await FileDownloader().download(
-            "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
-            "dummy",
-            tmpdirname,
-        )
-        if path is None:
-            pytest.skip("Likely, a requests error occurred.")
-        with open(get_resource("__init__.py", "utils"), "r", encoding="utf-8") as expected:
-            with open(tmpdirname + "/dummy.pdf", "r", encoding="utf-8") as truth:
-                assert expected.read() == truth.read()
+    try:
+        # ensure file does not exist yet
+        remove(tmp_path / "dummy.pdf")
+    except FileNotFoundError:
+        pass
+    # disable the PDF assertion method
+    monkeypatch.setattr(FileDownloader, "_assert_pdf", lambda *_: True)
+    path = await FileDownloader().download(
+        "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
+        "dummy",
+        tmp_path,
+    )
+    if path is None:
+        pytest.skip("Likely, a requests error occurred.")
+    with open(get_resource("__init__.py", "utils"), "r", encoding="utf-8") as expected:
+        with open(tmp_path / "dummy.pdf", "r", encoding="utf-8") as truth:
+            assert expected.read() == truth.read()
 
 
 @pytest.mark.asyncio
@@ -79,51 +79,55 @@ async def test_download(monkeypatch: pytest.MonkeyPatch) -> None:
     ],
     indirect=["setup_remove_content_length"],
 )
-async def test_skip_download_if_no_pdf(setup_remove_content_length: Any) -> None:
+@pytest.mark.xdist_group(name="GitLab")
+async def test_skip_download_if_no_pdf(setup_remove_content_length: Any, tmp_path: Any) -> None:
     """Test that download is skipped when file is not a PDF.
 
     Args:
         setup_remove_content_length: a custom fixture.
+        tmp_path: the built-in pytest fixture.
     """
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        assert (
-            await FileDownloader().download(
-                "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
-                "dummy",
-                tmpdirname,
-            )
-            is None
+    assert (
+        await FileDownloader().download(
+            "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
+            "dummy",
+            tmp_path,
         )
+        is None
+    )
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("overwrite", [False, True])
-async def test_skip_download_if_exists(caplog: pytest.LogCaptureFixture, overwrite: bool) -> None:
+@pytest.mark.xdist_group(name="GitLab")
+async def test_skip_download_if_exists(
+    tmp_path: Any, caplog: pytest.LogCaptureFixture, overwrite: bool
+) -> None:
     """Test that download is skipped when file already exists.
 
     Args:
+        tmp_path: the built-in pytest fixture.
         caplog: the built-in pytest fixture.
         overwrite: whether or not to overwrite the existing file.
     """
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        open(tmpdirname + "/dummy.pdf", "w", encoding="utf-8").close()
-        await FileDownloader().download(
-            "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
-            "dummy",
-            folder=tmpdirname,
-            overwrite=overwrite,
-        )
-        for mod, lvl, msg in caplog.record_tuples:
-            if (
-                mod == "cobib.utils.file_downloader"
-                and lvl == 30
-                and "already exists! Using that rather than downloading." in msg
-            ):
-                break
-        else:
-            assert overwrite, "This statement should only be reached when overwrite is enabled!"
-            return
-        assert not overwrite, "This statement should only be reached when overwrite is disabled!"
+    open(tmp_path / "dummy.pdf", "w", encoding="utf-8").close()
+    await FileDownloader().download(
+        "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
+        "dummy",
+        folder=tmp_path,
+        overwrite=overwrite,
+    )
+    for mod, lvl, msg in caplog.record_tuples:
+        if (
+            mod == "cobib.utils.file_downloader"
+            and lvl == 30
+            and "already exists! Using that rather than downloading." in msg
+        ):
+            break
+    else:
+        assert overwrite, "This statement should only be reached when overwrite is enabled!"
+        return
+    assert not overwrite, "This statement should only be reached when overwrite is disabled!"
 
 
 @pytest.mark.asyncio
@@ -135,7 +139,8 @@ async def test_skip_download_if_exists(caplog: pytest.LogCaptureFixture, overwri
     ],
     indirect=["setup_remove_content_length"],
 )
-async def test_download_with_url_map(setup_remove_content_length: Any) -> None:
+@pytest.mark.xdist_group(name="QuantumJournal")
+async def test_download_with_url_map(setup_remove_content_length: Any, tmp_path: Any) -> None:
     """Test the `config.utils.file_downloader.url_map` usage.
 
     We use a Quantum Journal article because they are open-source and, thus, do not require a Proxy
@@ -143,35 +148,36 @@ async def test_download_with_url_map(setup_remove_content_length: Any) -> None:
 
     Args:
         setup_remove_content_length: a custom fixture.
+        tmp_path: the built-in pytest fixture.
     """
     try:
         config.load(get_resource("debug.py"))
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            try:
-                # ensure file does not exist yet
-                remove(tmpdirname + "/dummy.pdf")
-            except FileNotFoundError:
-                pass
-            path = await FileDownloader().download(
-                "https://quantum-journal.org/papers/q-2021-06-17-479/",
-                "dummy",
-                tmpdirname,
-            )
-            if path is None:
-                pytest.skip("Likely, a requests error occurred.")
-            assert path.path.exists()
-            with open(path.path, "rb") as file:
-                assert file.read().startswith(bytes("%PDF", "utf-8"))
+        try:
+            # ensure file does not exist yet
+            remove(tmp_path / "dummy.pdf")
+        except FileNotFoundError:
+            pass
+        path = await FileDownloader().download(
+            "https://quantum-journal.org/papers/q-2021-06-17-479/",
+            "dummy",
+            tmp_path,
+        )
+        if path is None:
+            pytest.skip("Likely, a requests error occurred.")
+        assert path.path.exists()
+        with open(path.path, "rb") as file:
+            assert file.read().startswith(bytes("%PDF", "utf-8"))
     finally:
         config.defaults()
 
 
 @pytest.mark.asyncio
-async def test_gracefully_fail_download(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_gracefully_fail_download(monkeypatch: pytest.MonkeyPatch, tmp_path: Any) -> None:
     """Test gracefully failing downloads.
 
     Args:
         monkeypatch: the built-in pytest fixture.
+        tmp_path: the built-in pytest fixture.
     """
 
     def raise_exception(*args, **kwargs):  # type: ignore[no-untyped-def]
@@ -180,23 +186,24 @@ async def test_gracefully_fail_download(monkeypatch: pytest.MonkeyPatch) -> None
 
     monkeypatch.setattr(requests.Session, "get", raise_exception)
 
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        assert (
-            await FileDownloader().download(
-                "https://quantum-journal.org/papers/q-2021-06-17-479/",
-                "dummy",
-                tmpdirname,
-            )
-            is None
+    assert (
+        await FileDownloader().download(
+            "https://quantum-journal.org/papers/q-2021-06-17-479/",
+            "dummy",
+            tmp_path,
         )
+        is None
+    )
 
 
 @pytest.mark.asyncio
-async def test_event_pre_download(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.xdist_group(name="GitLab")
+async def test_event_pre_download(monkeypatch: pytest.MonkeyPatch, tmp_path: Any) -> None:
     """Test the PreFileDownload event.
 
     Args:
         monkeypatch: the built-in pytest fixture.
+        tmp_path: the built-in pytest fixture.
     """
 
     @Event.PreFileDownload.subscribe
@@ -208,32 +215,33 @@ async def test_event_pre_download(monkeypatch: pytest.MonkeyPatch) -> None:
 
     assert Event.PreFileDownload.validate()
 
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        try:
-            # ensure file does not exist yet
-            remove(tmpdirname + "/test.pdf")
-        except FileNotFoundError:
-            pass
-        # disable the PDF assertion method
-        monkeypatch.setattr(FileDownloader, "_assert_pdf", lambda *_: True)
-        path = await FileDownloader().download(
-            "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
-            "dummy",
-            tmpdirname,
-        )
-        if path is None:
-            pytest.skip("Likely, a requests error occurred.")
-        with open(get_resource("__init__.py", "utils"), "r", encoding="utf-8") as expected:
-            with open(tmpdirname + "/test.pdf", "r", encoding="utf-8") as truth:
-                assert expected.read() == truth.read()
+    try:
+        # ensure file does not exist yet
+        remove(tmp_path / "test.pdf")
+    except FileNotFoundError:
+        pass
+    # disable the PDF assertion method
+    monkeypatch.setattr(FileDownloader, "_assert_pdf", lambda *_: True)
+    path = await FileDownloader().download(
+        "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
+        "dummy",
+        tmp_path,
+    )
+    if path is None:
+        pytest.skip("Likely, a requests error occurred.")
+    with open(get_resource("__init__.py", "utils"), "r", encoding="utf-8") as expected:
+        with open(tmp_path / "test.pdf", "r", encoding="utf-8") as truth:
+            assert expected.read() == truth.read()
 
 
 @pytest.mark.asyncio
-async def test_event_post_download(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.xdist_group(name="GitLab")
+async def test_event_post_download(monkeypatch: pytest.MonkeyPatch, tmp_path: Any) -> None:
     """Test the PostFileDownload event.
 
     Args:
         monkeypatch: the built-in pytest fixture.
+        tmp_path: the built-in pytest fixture.
     """
 
     @Event.PostFileDownload.subscribe
@@ -242,21 +250,20 @@ async def test_event_post_download(monkeypatch: pytest.MonkeyPatch) -> None:
 
     assert Event.PostFileDownload.validate()
 
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        try:
-            # ensure file does not exist yet
-            remove(tmpdirname + "/test.pdf")
-        except FileNotFoundError:
-            pass
-        # disable the PDF assertion method
-        monkeypatch.setattr(FileDownloader, "_assert_pdf", lambda *_: True)
-        path = await FileDownloader().download(
-            "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
-            "dummy",
-            tmpdirname,
-        )
-        if path is None:
-            pytest.skip("Likely, a requests error occurred.")
-        with open(get_resource("__init__.py", "utils"), "r", encoding="utf-8") as expected:
-            with open(tmpdirname + "/test.pdf", "r", encoding="utf-8") as truth:
-                assert expected.read() == truth.read()
+    try:
+        # ensure file does not exist yet
+        remove(tmp_path / "test.pdf")
+    except FileNotFoundError:
+        pass
+    # disable the PDF assertion method
+    monkeypatch.setattr(FileDownloader, "_assert_pdf", lambda *_: True)
+    path = await FileDownloader().download(
+        "https://gitlab.com/cobib/cobib/-/raw/master/tests/utils/__init__.py",
+        "dummy",
+        tmp_path,
+    )
+    if path is None:
+        pytest.skip("Likely, a requests error occurred.")
+    with open(get_resource("__init__.py", "utils"), "r", encoding="utf-8") as expected:
+        with open(tmp_path / "test.pdf", "r", encoding="utf-8") as truth:
+            assert expected.read() == truth.read()

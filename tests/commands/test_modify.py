@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import contextlib
-import tempfile
 from datetime import datetime
 from io import StringIO
 from typing import TYPE_CHECKING, Any
@@ -271,7 +270,7 @@ class TestModifyCommand(CommandTest):
     @pytest.mark.parametrize("preserve_files", [None, True, False])
     @pytest.mark.parametrize("config_overwrite", [True, False])
     def test_rename_associated_file(
-        self, setup: Any, preserve_files: bool, config_overwrite: bool
+        self, setup: Any, tmp_path: Any, preserve_files: bool, config_overwrite: bool
     ) -> None:
         """Test removing associated files.
 
@@ -280,6 +279,7 @@ class TestModifyCommand(CommandTest):
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            tmp_path: the built-in pytest fixture.
             preserve_files: argument to `ModifyCommand`.
             config_overwrite: what to overwrite `config.commands.modify.preserve_files` with.
         """
@@ -289,23 +289,22 @@ class TestModifyCommand(CommandTest):
         if preserve_files is not None:
             should_preserve = preserve_files
 
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            path = RelPath(tmpdirname + "/knuthwebsite.txt")
-            open(path.path, "w", encoding="utf-8").close()
+        path = RelPath(str(tmp_path) + "/knuthwebsite.txt")
+        open(path.path, "w", encoding="utf-8").close()
 
-            Database()["knuthwebsite"].file = str(path)
+        Database()["knuthwebsite"].file = str(path)
 
-            args = ["label:dummy", "-s", "--", "knuthwebsite"]
-            if preserve_files is not None:
-                args.insert(2, f"--{'' if preserve_files else 'no-'}preserve-files")
-            ModifyCommand(*args).execute()
-            assert "dummy" in Database().keys()
+        args = ["label:dummy", "-s", "--", "knuthwebsite"]
+        if preserve_files is not None:
+            args.insert(2, f"--{'' if preserve_files else 'no-'}preserve-files")
+        ModifyCommand(*args).execute()
+        assert "dummy" in Database().keys()
 
-            target = RelPath(tmpdirname + "/dummy.txt")
-            if should_preserve:
-                assert path.path.exists()
-            else:
-                assert target.path.exists()
+        target = RelPath(str(tmp_path) + "/dummy.txt")
+        if should_preserve:
+            assert path.path.exists()
+        else:
+            assert target.path.exists()
 
     def test_warning_missing_label(self, setup: Any, caplog: pytest.LogCaptureFixture) -> None:
         """Test warning for missing label.

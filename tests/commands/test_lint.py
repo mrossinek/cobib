@@ -12,6 +12,7 @@ from typing_extensions import override
 
 from cobib.commands import LintCommand
 from cobib.config import config
+from cobib.database import Database
 from cobib.utils.logging import HINT
 from cobib.utils.rel_path import RelPath
 from tests.commands.command_test import CommandTest
@@ -163,24 +164,29 @@ class TestLintDatabase(CommandTest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             caplog: the built-in pytest fixture.
         """
-        dummy_note = Path("/tmp/cobib_note_dummy.txt")
+        dummy_note = self.COBIB_TEST_DIR / "cobib_note_dummy.txt"
         dummy_note.touch()
-        another_dummy_note = Path("/tmp/another_cobib_note_dummy.txt")
+        another_dummy_note = self.COBIB_TEST_DIR / "another_cobib_note_dummy.txt"
         another_dummy_note.touch()
-        try:
-            cmd = LintCommand("--format")
-            cmd.execute()
 
-            record = (
-                "cobib.commands.lint",
-                30,
-                (
-                    "Cannot resolve CRITICAL linting message automatically! "
-                    "Please resolve this one manually."
-                ),
-            )
-            assert caplog.record_tuples.count(record) == 2
+        # point the notes of the database entries at the per-test files created above
+        database_file = Path(config.database.file)
+        contents = database_file.read_text(encoding="utf-8")
+        database_file.write_text(
+            contents.replace("/tmp/", f"{self.COBIB_TEST_DIR}/"), encoding="utf-8"
+        )
+        Database.reset()
+        Database().read()
 
-        finally:
-            dummy_note.unlink()
-            another_dummy_note.unlink()
+        cmd = LintCommand("--format")
+        cmd.execute()
+
+        record = (
+            "cobib.commands.lint",
+            30,
+            (
+                "Cannot resolve CRITICAL linting message automatically! "
+                "Please resolve this one manually."
+            ),
+        )
+        assert caplog.record_tuples.count(record) == 2

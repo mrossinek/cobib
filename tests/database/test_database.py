@@ -5,7 +5,6 @@ from __future__ import annotations
 import copy
 import logging
 import os
-import tempfile
 from collections.abc import Generator
 from pathlib import Path
 from shutil import copyfile
@@ -19,7 +18,6 @@ from cobib.database.database import CacheError
 
 from .. import get_resource
 
-TMPDIR = Path(tempfile.gettempdir())
 EXAMPLE_LITERATURE = get_resource("example_literature.yaml")
 
 DUMMY_ENTRY = Entry(
@@ -76,13 +74,14 @@ def test_database_reset() -> None:
     assert not bib._read
 
 
-def test_database_missing_file(caplog: pytest.LogCaptureFixture) -> None:
+def test_database_missing_file(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     """Test exit upon missing database file.
 
     Args:
+        tmp_path: the built-in pytest fixture.
         caplog: the built-in pytest fixture.
     """
-    config.database.file = TMPDIR / "cobib_test_missing_file.yaml"
+    config.database.file = tmp_path / "cobib_test_missing_file.yaml"
     try:
         with pytest.raises(SystemExit):
             Database().read()
@@ -222,10 +221,14 @@ def test_database_read() -> None:
     assert list(bib.keys()) == ["einstein", "latexcompanion", "knuthwebsite"]
 
 
-def test_database_save_add() -> None:
-    """Test the `cobib.database.Database.save` method after entry addition."""
+def test_database_save_add(tmp_path: Path) -> None:
+    """Test the `cobib.database.Database.save` method after entry addition.
+
+    Args:
+        tmp_path: the built-in pytest fixture.
+    """
     # prepare temporary database
-    config.database.file = TMPDIR / "cobib_test_database_file.yaml"
+    config.database.file = tmp_path / "cobib_test_database_file.yaml"
     copyfile(EXAMPLE_LITERATURE, config.database.file)
 
     # initialize database
@@ -253,10 +256,14 @@ def test_database_save_add() -> None:
         config.database.file = EXAMPLE_LITERATURE
 
 
-def test_database_save_modify() -> None:
-    """Test the `cobib.database.Database.save` method after entry modification."""
+def test_database_save_modify(tmp_path: Path) -> None:
+    """Test the `cobib.database.Database.save` method after entry modification.
+
+    Args:
+        tmp_path: the built-in pytest fixture.
+    """
     # prepare temporary database
-    config.database.file = TMPDIR / "cobib_test_database_file.yaml"
+    config.database.file = tmp_path / "cobib_test_database_file.yaml"
     copyfile(EXAMPLE_LITERATURE, config.database.file)
 
     # initialize database
@@ -287,10 +294,14 @@ def test_database_save_modify() -> None:
         config.database.file = EXAMPLE_LITERATURE
 
 
-def test_database_save_delete() -> None:
-    """Test the `cobib.database.Database.save` method after entry deletion."""
+def test_database_save_delete(tmp_path: Path) -> None:
+    """Test the `cobib.database.Database.save` method after entry deletion.
+
+    Args:
+        tmp_path: the built-in pytest fixture.
+    """
     # prepare temporary database
-    config.database.file = TMPDIR / "cobib_test_database_file.yaml"
+    config.database.file = tmp_path / "cobib_test_database_file.yaml"
     copyfile(EXAMPLE_LITERATURE, config.database.file)
 
     # initialize database
@@ -333,40 +344,46 @@ def test_database_caching_disabled(caplog: pytest.LogCaptureFixture) -> None:
     ) in caplog.record_tuples
 
 
-def test_database_cache_not_found() -> None:
-    """Test the Database.read_cache method."""
-    with tempfile.TemporaryDirectory() as tempdir:
-        config.database.cache = tempdir
+def test_database_cache_not_found(tmp_path: Path) -> None:
+    """Test the Database.read_cache method.
 
-        Database.reset()
+    Args:
+        tmp_path: the built-in pytest fixture.
+    """
+    config.database.cache = str(tmp_path)
 
-        with pytest.raises(CacheError, match="the database has not been cached yet"):
-            Database.read_cache()
+    Database.reset()
 
-
-def test_database_save_cache() -> None:
-    """Test the Database.save_cache method."""
-    with tempfile.TemporaryDirectory() as tempdir:
-        config.database.cache = tempdir
-
-        Database.save_cache()
-
-        with pytest.raises(OSError, match="Directory not empty"):
-            Path(tempdir).rmdir()
+    with pytest.raises(CacheError, match="the database has not been cached yet"):
+        Database.read_cache()
 
 
-def test_database_cache_uptodate(caplog: pytest.LogCaptureFixture) -> None:
+def test_database_save_cache(tmp_path: Path) -> None:
+    """Test the Database.save_cache method.
+
+    Args:
+        tmp_path: the built-in pytest fixture.
+    """
+    config.database.cache = str(tmp_path)
+
+    Database.save_cache()
+
+    with pytest.raises(OSError, match="Directory not empty"):
+        tmp_path.rmdir()
+
+
+def test_database_cache_uptodate(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     """Test Database.save_cache stops when the cache is up-to-date.
 
     Args:
+        tmp_path: the built-in pytest fixture.
         caplog: the built-in pytest fixture.
     """
-    with tempfile.TemporaryDirectory() as tempdir:
-        config.database.cache = tempdir
+    config.database.cache = str(tmp_path)
 
-        Database.save_cache()
+    Database.save_cache()
 
-        Database.save_cache()
+    Database.save_cache()
 
     assert (
         "cobib.database.database",
@@ -375,18 +392,18 @@ def test_database_cache_uptodate(caplog: pytest.LogCaptureFixture) -> None:
     ) in caplog.record_tuples
 
 
-def test_database_cache_reading(caplog: pytest.LogCaptureFixture) -> None:
+def test_database_cache_reading(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     """Test that the Database.read method reads the cache.
 
     Args:
+        tmp_path: the built-in pytest fixture.
         caplog: the built-in pytest fixture.
     """
-    with tempfile.TemporaryDirectory() as tempdir:
-        config.database.cache = tempdir
+    config.database.cache = str(tmp_path)
 
-        Database.save_cache()
-        Database.reset()
-        Database.read()
+    Database.save_cache()
+    Database.reset()
+    Database.read()
 
     for record in caplog.record_tuples:
         if record[0] != "cobib.database.database":
@@ -399,31 +416,38 @@ def test_database_cache_reading(caplog: pytest.LogCaptureFixture) -> None:
         pytest.fail("Log message not found which would indicate that Database.read_cache worked")
 
 
-def test_database_cache_outdated() -> None:
-    """Test Database.read_cache stops when the cache is outdated."""
-    with tempfile.TemporaryDirectory() as tempdir:
-        config.database.cache = tempdir
-        config.database.file = Path(tempdir) / "cobib_test_database_file.yaml"
-        copyfile(EXAMPLE_LITERATURE, config.database.file)
+def test_database_cache_outdated(tmp_path: Path) -> None:
+    """Test Database.read_cache stops when the cache is outdated.
 
-        Database.reset()
-        Database.read()  # this will trigger save_cache, too
+    Args:
+        tmp_path: the built-in pytest fixture.
+    """
+    config.database.cache = str(tmp_path)
+    config.database.file = tmp_path / "cobib_test_database_file.yaml"
+    copyfile(EXAMPLE_LITERATURE, config.database.file)
 
-        cache_file = Database._get_cache_file()
-        new_time = cast(Path, cache_file).stat().st_mtime_ns
-        # make the cache appear outdated by updating the modified time of the database file
-        os.utime(config.database.file, ns=(new_time + 1_000_000, new_time + 1_000_000))
+    Database.reset()
+    Database.read()  # this will trigger save_cache, too
 
-        Database.reset()
+    cache_file = Database._get_cache_file()
+    new_time = cast(Path, cache_file).stat().st_mtime_ns
+    # make the cache appear outdated by updating the modified time of the database file
+    os.utime(config.database.file, ns=(new_time + 1_000_000, new_time + 1_000_000))
 
-        with pytest.raises(CacheError, match="the cached database is outdated"):
-            Database.read_cache()
+    Database.reset()
+
+    with pytest.raises(CacheError, match="the cached database is outdated"):
+        Database.read_cache()
 
 
-def test_database_bypass_cache() -> None:
-    """Test handling of the `bypass_cache` keyword argument."""
+def test_database_bypass_cache(tmp_path: Path) -> None:
+    """Test handling of the `bypass_cache` keyword argument.
+
+    Args:
+        tmp_path: the built-in pytest fixture.
+    """
     Database._instance = None
-    config.database.file = TMPDIR / "cobib_test_database_file.yaml"
+    config.database.file = tmp_path / "cobib_test_database_file.yaml"
     copyfile(EXAMPLE_LITERATURE, config.database.file)
     Database.read(bypass_cache=True)
     assert "bypass_cache" not in Database()

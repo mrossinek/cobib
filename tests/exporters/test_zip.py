@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import tempfile
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, Generator
 from zipfile import ZipFile
 
@@ -22,11 +20,36 @@ from .exporter_test import ExporterTest
 if TYPE_CHECKING:
     import cobib.commands
 
-TMPDIR = Path(tempfile.gettempdir())
-
 
 class TestZipExporter(ExporterTest):
     """Tests for coBib's ZipExporter."""
+
+    def _assert(self, *, include_files: bool, include_notes: bool) -> None:
+        """Assertion utility method for zip output.
+
+        Args:
+            include_files: whether to assert included files.
+            include_notes: whether to assert included notes.
+        """
+        try:
+            with ZipFile(self.COBIB_TEST_DIR / "cobib_test_export.zip", "r") as file:
+                # assert that the file does not contain a bad file
+                assert file.testzip() is None
+                namelist = []
+                if include_files:
+                    namelist.append("debug.py")
+                if include_notes:
+                    namelist.append("einstein.txt")
+                assert file.namelist() == namelist
+                if include_files:
+                    file.extract("debug.py", path=self.COBIB_TEST_DIR)
+                    with open(self.COBIB_TEST_DIR / "debug.py", "r", encoding="utf-8") as extracted:
+                        with open(get_resource("debug.py"), "r", encoding="utf-8") as truth:
+                            assert extracted.read() == truth.read()
+        finally:
+            # clean up file system
+            (self.COBIB_TEST_DIR / "cobib_test_export.zip").unlink(missing_ok=True)
+            (self.COBIB_TEST_DIR / "debug.py").unlink(missing_ok=True)
 
     def test_event_pre_zip_export(self) -> None:
         """Tests the PreZipExport event."""
@@ -40,10 +63,10 @@ class TestZipExporter(ExporterTest):
 
         assert Event.PreZipExport.validate()
 
-        args = [str(TMPDIR / "cobib_test_export.zip")]
+        args = [str(self.COBIB_TEST_DIR / "cobib_test_export.zip")]
         ZipExporter(*args).write([])
 
-        TestZipExport._assert(include_files=True, include_notes=False)
+        self._assert(include_files=True, include_notes=False)
 
     def test_event_post_zip_export(self) -> None:
         """Tests the PostZipExport event."""
@@ -57,7 +80,7 @@ class TestZipExporter(ExporterTest):
 
         assert Event.PostZipExport.validate()
 
-        path = TMPDIR / "cobib_test_export.zip"
+        path = self.COBIB_TEST_DIR / "cobib_test_export.zip"
         ZipExporter(str(path)).write([Database()["einstein"]])
 
         try:
@@ -87,8 +110,7 @@ class TestZipExport(CommandTest):
 
         notes_file.unlink(missing_ok=True)
 
-    @staticmethod
-    def _assert(*, include_files: bool, include_notes: bool) -> None:
+    def _assert(self, *, include_files: bool, include_notes: bool) -> None:
         """Assertion utility method for zip output.
 
         Args:
@@ -96,7 +118,7 @@ class TestZipExport(CommandTest):
             include_notes: whether to assert included notes.
         """
         try:
-            with ZipFile(TMPDIR / "cobib_test_export.zip", "r") as file:
+            with ZipFile(self.COBIB_TEST_DIR / "cobib_test_export.zip", "r") as file:
                 # assert that the file does not contain a bad file
                 assert file.testzip() is None
                 namelist = []
@@ -106,23 +128,23 @@ class TestZipExport(CommandTest):
                     namelist.append("einstein.txt")
                 assert file.namelist() == namelist
                 if include_files:
-                    file.extract("debug.py", path=TMPDIR)
-                    with open(TMPDIR / "debug.py", "r", encoding="utf-8") as extracted:
+                    file.extract("debug.py", path=self.COBIB_TEST_DIR)
+                    with open(self.COBIB_TEST_DIR / "debug.py", "r", encoding="utf-8") as extracted:
                         with open(get_resource("debug.py"), "r", encoding="utf-8") as truth:
                             assert extracted.read() == truth.read()
         finally:
             # clean up file system
-            (TMPDIR / "cobib_test_export.zip").unlink(missing_ok=True)
-            (TMPDIR / "debug.py").unlink(missing_ok=True)
+            (self.COBIB_TEST_DIR / "cobib_test_export.zip").unlink(missing_ok=True)
+            (self.COBIB_TEST_DIR / "debug.py").unlink(missing_ok=True)
 
     @pytest.mark.parametrize(
         ["args"],
         [
-            [["--zip", str(TMPDIR / "cobib_test_export.zip")]],
-            [["--zip", str(TMPDIR / "cobib_test_export.zip"), "--", "++label", "einstein"]],
-            [["--zip", str(TMPDIR / "cobib_test_export.zip"), "-s", "--", "einstein"]],
+            [["--zip", "TMPDIR/cobib_test_export.zip"]],
+            [["--zip", "TMPDIR/cobib_test_export.zip", "--", "++label", "einstein"]],
+            [["--zip", "TMPDIR/cobib_test_export.zip", "-s", "--", "einstein"]],
             # the following limit test works only if "einstein" is the first entry in the database
-            [["--zip", str(TMPDIR / "cobib_test_export.zip"), "--", "-l", "1"]],
+            [["--zip", "TMPDIR/cobib_test_export.zip", "--", "-l", "1"]],
         ],
     )
     def test_command(self, setup: Any, post_setup: Any, args: list[str]) -> None:
@@ -133,6 +155,7 @@ class TestZipExport(CommandTest):
             post_setup: an additional setup fixture.
             args: the arguments to pass to the command.
         """
+        args = [a.replace("TMPDIR", str(self.COBIB_TEST_DIR)) for a in args]
         ExportCommand(*args).execute()
         self._assert(include_files=True, include_notes=True)
 
@@ -151,7 +174,14 @@ class TestZipExport(CommandTest):
         """
         config.exporters.zip.skip_files = config_overwrite
         should_include_files = not config_overwrite
-        args = ["--zip", "-s", "--", str(TMPDIR / "cobib_test_export.zip"), "--", "einstein"]
+        args = [
+            "--zip",
+            "-s",
+            "--",
+            str(self.COBIB_TEST_DIR / "cobib_test_export.zip"),
+            "--",
+            "einstein",
+        ]
         if skip_files is True:
             should_include_files = False
             args.insert(3, "--skip-files")
@@ -177,7 +207,14 @@ class TestZipExport(CommandTest):
         """
         config.exporters.zip.skip_notes = config_overwrite
         should_include_notes = not config_overwrite
-        args = ["--zip", "-s", "--", str(TMPDIR / "cobib_test_export.zip"), "--", "einstein"]
+        args = [
+            "--zip",
+            "-s",
+            "--",
+            str(self.COBIB_TEST_DIR / "cobib_test_export.zip"),
+            "--",
+            "einstein",
+        ]
         if skip_notes is True:
             should_include_notes = False
             args.insert(3, "--skip-notes")

@@ -7,8 +7,6 @@ with testing the global parser arguments.
 from __future__ import annotations
 
 import logging
-import tempfile
-from pathlib import Path
 from typing import Any
 
 import pytest
@@ -95,16 +93,17 @@ class TestMainExecutable(CmdLineTest):
         ],
     )
     async def test_logfile(
-        self, setup: Any, monkeypatch: pytest.MonkeyPatch, args: list[str]
+        self, setup: Any, tmp_path: Any, monkeypatch: pytest.MonkeyPatch, args: list[str]
     ) -> None:
         """Tests the logfile parser argument.
 
         Args:
             setup: a local pytest fixture.
+            tmp_path: the built-in pytest fixture.
             monkeypatch: the built-in pytest fixture.
             args: the list of values with which to monkeypatch `sys.argv`.
         """
-        logfile = Path(tempfile.gettempdir()) / "cobib_test_logging.log"
+        logfile = tmp_path / "cobib_test_logging.log"
         # we choose the open command as an arbitrary choice which has minimal side effects
         await self.run_module(monkeypatch, "main", ["cobib", "-l", str(logfile), *args])
         try:

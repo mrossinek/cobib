@@ -38,6 +38,16 @@ class JournalAbbreviations:
             cls._instance = super().__new__(cls)
         return cls._instance
 
+    @classmethod
+    def reset(cls) -> None:
+        """Resets the abbreviations cache.
+
+        This clears the contents of the singleton instance.
+        """
+        if cls._instance is not None:  # pragma: no branch
+            cls._abbreviations = {}
+            cls._fullwords = {}
+
     @staticmethod
     def load_abbreviations() -> None:
         """Load the list of abbreviations from the user configuration.

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import tempfile
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -125,12 +124,13 @@ class TestEditCommand(CommandTest):
     @pytest.mark.parametrize("preserve_files", [None, True, False])
     @pytest.mark.parametrize("config_overwrite", [True, False])
     def test_rename_associated_file(
-        self, setup: Any, preserve_files: bool, config_overwrite: bool
+        self, setup: Any, tmp_path: Any, preserve_files: bool, config_overwrite: bool
     ) -> None:
         """Test removing associated files.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            tmp_path: the built-in pytest fixture.
             preserve_files: argument to `EditCommand`.
             config_overwrite: what to overwrite `config.commands.edit.preserve_files` with.
         """
@@ -143,24 +143,23 @@ class TestEditCommand(CommandTest):
         try:
             config.commands.edit.editor = "sed -i 's/einstein:/dummy:/'"
 
-            with tempfile.TemporaryDirectory() as tmpdirname:
-                path = RelPath(tmpdirname + "/einstein.pdf")
-                open(path.path, "w", encoding="utf-8").close()
+            path = RelPath(str(tmp_path) + "/einstein.pdf")
+            open(path.path, "w", encoding="utf-8").close()
 
-                Database()["einstein"].file = str(path)
+            Database()["einstein"].file = str(path)
 
-                args = ["einstein"]
-                if preserve_files is not None:
-                    args.insert(2, f"--{'' if preserve_files else 'no-'}preserve-files")
-                EditCommand(*args).execute()
-                assert "dummy" in Database().keys()
+            args = ["einstein"]
+            if preserve_files is not None:
+                args.insert(2, f"--{'' if preserve_files else 'no-'}preserve-files")
+            EditCommand(*args).execute()
+            assert "dummy" in Database().keys()
 
-                target = RelPath(tmpdirname + "/dummy.pdf")
+            target = RelPath(str(tmp_path) + "/dummy.pdf")
 
-                if should_preserve:
-                    assert path.path.exists()
-                else:
-                    assert target.path.exists()
+            if should_preserve:
+                assert path.path.exists()
+            else:
+                assert target.path.exists()
         finally:
             config.defaults()
 

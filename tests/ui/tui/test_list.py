@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 import logging
-import tempfile
 from collections.abc import Generator
-from pathlib import Path
-from shutil import copyfile, rmtree
+from shutil import copyfile
 from typing import Any, cast
 
 import pytest
@@ -20,20 +18,22 @@ from cobib.ui.tui import TUI
 from ... import get_resource
 
 TERMINAL_SIZE = (160, 48)
-TMPDIR = Path(tempfile.gettempdir()).resolve()
 
 
 class TestTUIList:
     """Tests for the `ListCommand` behavior inside the TUI."""
 
-    COBIB_TEST_DIR = TMPDIR / "cobib_test"
-    """Path to the temporary coBib test directory."""
-
-    @staticmethod
     @pytest.fixture(autouse=True)
-    def setup() -> Generator[Any, None, None]:
-        """Load testing config."""
+    def setup(self, tmp_path: Any) -> Generator[Any, None, None]:
+        """Load testing config.
+
+        Args:
+            tmp_path: the built-in pytest fixture.
+        """
+        self.COBIB_TEST_DIR = tmp_path.resolve()
+
         InputScreen.cursor_blink = False
+        config.defaults()
         config.load(get_resource("debug.py"))
         yield
         Database.reset()
@@ -217,7 +217,4 @@ class TestTUIList:
                 await pilot.press(answer, "enter")
             await pilot.pause()
 
-        try:
-            assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, run_before=run_before)
-        finally:
-            rmtree(self.COBIB_TEST_DIR)
+        assert snap_compare(TUI(), terminal_size=TERMINAL_SIZE, run_before=run_before)

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import tempfile
 from collections.abc import Generator
 from pathlib import Path
 from shutil import copyfile
@@ -19,24 +18,26 @@ from cobib.ui.tui import TUI
 from ... import get_resource
 
 TERMINAL_SIZE = (160, 48)
-TMPDIR = Path(tempfile.gettempdir()).resolve()
 
 
 class TestTUISelection:
     """Selection tests for the TUI."""
 
-    COBIB_TEST_DIR = TMPDIR / "cobib_test"
-    """Path to the temporary coBib test directory."""
-
     # Note: we can hard-code the `/tmp` path here, because we never really create these files.
-    # We just need some absolute paths to test against.
+    # We just need some absolute paths to test against. They also appear in the snapshots, so they
+    # must not vary between test runs.
     TMP_FILE_A = "/tmp/a.txt"
     TMP_FILE_B = "/tmp/b.txt"
 
-    @staticmethod
     @pytest.fixture(autouse=True)
-    def setup() -> Generator[Any, None, None]:
-        """Load testing config."""
+    def setup(self, tmp_path: Path) -> Generator[Any, None, None]:
+        """Load testing config.
+
+        Args:
+            tmp_path: the built-in pytest fixture.
+        """
+        self.COBIB_TEST_DIR = tmp_path.resolve()
+
         InputScreen.cursor_blink = False
         config.load(get_resource("debug.py"))
         yield

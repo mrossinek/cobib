@@ -14,6 +14,7 @@ from typing_extensions import override
 from cobib.commands import ModifyCommand, OpenCommand
 from cobib.config import Event, config
 from cobib.database import Database
+from cobib.utils.rel_path import RelPath
 
 from .. import MockStdin, get_resource
 from .command_test import CommandTest
@@ -27,22 +28,24 @@ if TYPE_CHECKING:
 class TestOpenCommand(CommandTest):
     """Tests for coBib's OpenCommand."""
 
-    # Note: we can hard-code the `/tmp` path here, because we never really create these files.
-    # We just need some absolute paths to test against.
-    TMP_FILE_A = "/tmp/a.txt"
-    TMP_FILE_B = "/tmp/b.txt"
-    TMP_FILE_C = "/tmp/c space.txt"
-
     @override
     def get_command(self) -> type[cobib.commands.base_command.Command]:
         return OpenCommand
 
     @pytest.fixture(autouse=True)
-    def auto_setup(self) -> Generator[None, None, None]:
-        """Additional setup instructions which will be run automatically for this class of tests."""
-        path_a = Path(self.TMP_FILE_A)
-        path_b = Path(self.TMP_FILE_B)
-        path_c = Path(self.TMP_FILE_C)
+    def auto_setup(self, tmp_path: Path) -> Generator[None, None, None]:
+        """Additional setup instructions which will be run automatically for this class of tests.
+
+        Args:
+            tmp_path: the built-in pytest fixture.
+        """
+        self.TMP_FILE_A = RelPath(tmp_path.resolve() / "a.txt")
+        self.TMP_FILE_B = RelPath(tmp_path.resolve() / "b.txt")
+        self.TMP_FILE_C = RelPath(tmp_path.resolve() / "c space.txt")
+
+        path_a = self.TMP_FILE_A.path
+        path_b = self.TMP_FILE_B.path
+        path_c = self.TMP_FILE_C.path
 
         path_a.touch()
         path_b.touch()
@@ -76,7 +79,16 @@ class TestOpenCommand(CommandTest):
                 get_resource("example_multi_file_entry.yaml", "commands"), "r", encoding="utf-8"
             ) as multi_file_entry:
                 with open(config.database.file, "a", encoding="utf-8") as database:
-                    database.write(multi_file_entry.read())
+                    for line in multi_file_entry.readlines():
+                        if "a.txt" in line:
+                            line_ = f"  - {self.TMP_FILE_A}"
+                        elif "b.txt" in line:
+                            line_ = f"  - {self.TMP_FILE_B}"
+                        elif "c space.txt" in line:
+                            line_ = f"  - {self.TMP_FILE_C}"
+                        else:
+                            line_ = line.rstrip("\n")
+                        database.write(line_ + "\n")
             Database().read()
 
         monkeypatch.setattr("sys.stdin", MockStdin(request.param.get("stdin_list", None)))
@@ -117,9 +129,9 @@ class TestOpenCommand(CommandTest):
                 assert logs == expected_log
         else:
             expected_out = [
-                "  1: [file] " + self.TMP_FILE_A,
-                "  2: [file] " + self.TMP_FILE_B,
-                "  3: [file] " + self.TMP_FILE_C,
+                f"  1: [file] {self.TMP_FILE_A!s}",
+                f"  2: [file] {self.TMP_FILE_B!s}",
+                f"  3: [file] {self.TMP_FILE_C!s}",
                 "  4: [url] https://www.duckduckgo.com",
                 "  5: [url] https://www.google.com",
                 "[all,help,cancel]: ",
@@ -127,9 +139,9 @@ class TestOpenCommand(CommandTest):
 
             expected_log = [
                 ("cobib.commands.open", 10, "Starting Open command."),
-                ("cobib.commands.open", 10, 'Parsing "' + self.TMP_FILE_A + '" for URLs.'),
-                ("cobib.commands.open", 10, 'Parsing "' + self.TMP_FILE_B + '" for URLs.'),
-                ("cobib.commands.open", 10, 'Parsing "' + self.TMP_FILE_C + '" for URLs.'),
+                ("cobib.commands.open", 10, f'Parsing "{self.TMP_FILE_A!s}" for URLs.'),
+                ("cobib.commands.open", 10, f'Parsing "{self.TMP_FILE_B!s}" for URLs.'),
+                ("cobib.commands.open", 10, f'Parsing "{self.TMP_FILE_C!s}" for URLs.'),
                 ("cobib.commands.open", 10, 'Parsing "https://www.duckduckgo.com" for URLs.'),
                 ("cobib.commands.open", 10, 'Parsing "https://www.google.com" for URLs.'),
             ]
@@ -155,9 +167,9 @@ class TestOpenCommand(CommandTest):
             elif "all" in stdin_list:
                 extra_logs = [
                     ("cobib.commands.open", 10, "User selected all urls."),
-                    ("cobib.commands.open", 10, 'Opening "' + self.TMP_FILE_A + '" with cat.'),
-                    ("cobib.commands.open", 10, 'Opening "' + self.TMP_FILE_B + '" with cat.'),
-                    ("cobib.commands.open", 10, 'Opening "' + self.TMP_FILE_C + '" with cat.'),
+                    ("cobib.commands.open", 10, f'Opening "{self.TMP_FILE_A.path}" with cat.'),
+                    ("cobib.commands.open", 10, f'Opening "{self.TMP_FILE_B.path}" with cat.'),
+                    ("cobib.commands.open", 10, f'Opening "{self.TMP_FILE_C.path}" with cat.'),
                     ("cobib.commands.open", 10, 'Opening "https://www.duckduckgo.com" with cat.'),
                     (
                         "cobib.commands.open",
@@ -190,14 +202,19 @@ class TestOpenCommand(CommandTest):
             elif "1" in stdin_list:
                 extra_logs = [
                     ("cobib.commands.open", 10, "User selected url 1"),
-                    ("cobib.commands.open", 10, 'Opening "' + self.TMP_FILE_A + '" with cat.'),
+                    ("cobib.commands.open", 10, f'Opening "{self.TMP_FILE_A.path}" with cat.'),
                 ]
 
             if extra_logs is not None:
                 expected_log.extend(extra_logs)
 
-            for line, truth in zip(output, expected_out):
-                assert line == truth
+            # NOTE: rich wraps at the console width (80 columns without a TTY, e.g. under tox) and
+            # may drop the whitespace at the break, so we compare with all whitespace removed.
+            def _squash(lines: list[str]) -> str:
+                return "".join("".join(lines).split())
+
+            assert _squash(output).startswith(_squash(expected_out))
+
             if logs is not None:
                 assert logs == expected_log
 
@@ -295,7 +312,7 @@ class TestOpenCommand(CommandTest):
             caplog: the built-in pytest fixture.
             args: the arguments to pass to the command.
         """
-        path_a = Path(self.TMP_FILE_A)
+        path_a = self.TMP_FILE_A.path
         path_a.unlink(missing_ok=True)
 
         await OpenCommand(*args).execute()
@@ -320,6 +337,7 @@ class TestOpenCommand(CommandTest):
             monkeypatch: the built-in pytest fixture.
             capsys: the built-in pytest fixture.
         """
+        prev = config.commands.open.fields
         config.commands.open.fields = ["dummy"]
 
         with open(
@@ -327,10 +345,17 @@ class TestOpenCommand(CommandTest):
         ) as multi_file_entry:
             with open(config.database.file, "a", encoding="utf-8") as database:
                 for line in multi_file_entry.readlines():
-                    if line == "  file:\n":
-                        database.write("  dummy:\n")
+                    if "file:" in line:
+                        line_ = "  dummy:"
+                    elif "a.txt" in line:
+                        line_ = f"  - {self.TMP_FILE_A}"
+                    elif "b.txt" in line:
+                        line_ = f"  - {self.TMP_FILE_B}"
+                    elif "c space.txt" in line:
+                        line_ = f"  - {self.TMP_FILE_C}"
                     else:
-                        database.write(line)
+                        line_ = line.rstrip("\n")
+                    database.write(line_ + "\n")
 
         Database().read()
 
@@ -341,14 +366,21 @@ class TestOpenCommand(CommandTest):
         true_out = capsys.readouterr().out.split("\n")
 
         expected_out = [
-            "  1: [dummy] " + self.TMP_FILE_A,
-            "  2: [dummy] " + self.TMP_FILE_B,
-            "  3: [dummy] " + self.TMP_FILE_C,
+            f"  1: [dummy] {self.TMP_FILE_A!s}",
+            f"  2: [dummy] {self.TMP_FILE_B!s}",
+            f"  3: [dummy] {self.TMP_FILE_C!s}",
             "[all,help,cancel]: ",
         ]
 
-        for line, truth in zip(true_out, expected_out):
-            assert line == truth
+        try:
+            # NOTE: rich wraps at the console width (80 columns without a TTY, e.g. under tox) and
+            # may drop the whitespace at the break, so we compare with all whitespace removed.
+            def _squash(lines: list[str]) -> str:
+                return "".join("".join(lines).split())
+
+            assert _squash(true_out).startswith(_squash(expected_out))
+        finally:
+            config.commands.open.fields = prev
 
     @pytest.mark.asyncio
     async def test_open_non_list_field(
@@ -374,7 +406,7 @@ class TestOpenCommand(CommandTest):
             with open(config.database.file, "a", encoding="utf-8") as database:
                 for line in multi_file_entry.readlines():
                     if line == "  file:\n":
-                        database.write("  dummy: /tmp/a.txt\n")
+                        database.write(f"  dummy: {self.TMP_FILE_A}\n")
                         database.write("...\n")
                         break
                     database.write(line)
@@ -392,12 +424,12 @@ class TestOpenCommand(CommandTest):
             (
                 "cobib.commands.open",
                 10,
-                'Parsing "/tmp/a.txt" for URLs.',
+                f'Parsing "{self.TMP_FILE_A!s}" for URLs.',
             ),
             (
                 "cobib.commands.open",
                 10,
-                'Opening "/tmp/a.txt" with cat.',
+                f'Opening "{self.TMP_FILE_A.path}" with cat.',
             ),
         ]
         assert true_log == expected_log
@@ -431,18 +463,18 @@ class TestOpenCommand(CommandTest):
         """
         expected_log = [
             ("cobib.commands.open", 10, "Starting Open command."),
-            ("cobib.commands.open", 10, 'Parsing "/tmp/a.txt" for URLs.'),
-            ("cobib.commands.open", 10, 'Parsing "/tmp/b.txt" for URLs.'),
-            ("cobib.commands.open", 10, 'Parsing "/tmp/c space.txt" for URLs.'),
+            ("cobib.commands.open", 10, f'Parsing "{self.TMP_FILE_A!s}" for URLs.'),
+            ("cobib.commands.open", 10, f'Parsing "{self.TMP_FILE_B!s}" for URLs.'),
+            ("cobib.commands.open", 10, f'Parsing "{self.TMP_FILE_C!s}" for URLs.'),
             ("cobib.commands.open", 10, 'Parsing "https://www.duckduckgo.com" for URLs.'),
             ("cobib.commands.open", 10, 'Parsing "https://www.google.com" for URLs.'),
             ("cobib.commands.open", 10, f"User selected the {field} set of urls from the CLI."),
         ]
         if field in ("all", "file"):
             expected_log += [
-                ("cobib.commands.open", 10, 'Opening "/tmp/a.txt" with cat.'),
-                ("cobib.commands.open", 10, 'Opening "/tmp/b.txt" with cat.'),
-                ("cobib.commands.open", 10, 'Opening "/tmp/c space.txt" with cat.'),
+                ("cobib.commands.open", 10, f'Opening "{self.TMP_FILE_A.path}" with cat.'),
+                ("cobib.commands.open", 10, f'Opening "{self.TMP_FILE_B.path}" with cat.'),
+                ("cobib.commands.open", 10, f'Opening "{self.TMP_FILE_C.path}" with cat.'),
             ]
         if field in ("all", "url"):
             expected_log += [

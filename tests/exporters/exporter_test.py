@@ -1,6 +1,5 @@
 """coBib exporter test class."""
 
-import tempfile
 from collections.abc import Generator
 from pathlib import Path
 from shutil import copyfile
@@ -12,18 +11,19 @@ from cobib.database import Database
 
 from .. import get_resource
 
-TMPDIR = Path(tempfile.gettempdir()).resolve()
-
 
 class ExporterTest:
     """The base class for coBib's exporter test classes."""
 
-    COBIB_TEST_DIR = TMPDIR / "cobib_test"
-    """Path to the temporary coBib test directory."""
-
     @pytest.fixture(autouse=True)
-    def setup(self) -> Generator[None, None, None]:
-        """Setup."""
+    def setup(self, tmp_path: Path) -> Generator[None, None, None]:
+        """Setup.
+
+        Args:
+            tmp_path: the built-in pytest fixture.
+        """
+        self.COBIB_TEST_DIR = tmp_path.resolve()
+
         config.defaults()
         config.database.file = self.COBIB_TEST_DIR / "database.yaml"
 

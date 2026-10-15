@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import Any, Generator
 
 import pytest
@@ -760,9 +760,9 @@ def test_markup_label() -> None:
             "BothNotes",
             {
                 "note": "This is a test note.",
-                "notes": "/tmp/cobib_note_dummy.txt",
+                "notes": "PLACEHOLDER_DUMMY_NOTE",
             },
-            {"note": "This is a test note.", "notes": "/tmp/cobib_note_dummy.txt"},
+            {"note": "This is a test note.", "notes": "PLACEHOLDER_DUMMY_NOTE"},
             None,
         ),
         (
@@ -773,14 +773,14 @@ def test_markup_label() -> None:
         ),
         (
             "OnlyCorrectNotes",
-            {"notes": "/tmp/cobib_note_dummy.txt"},
-            {"note": None, "notes": "/tmp/cobib_note_dummy.txt"},
+            {"notes": "PLACEHOLDER_DUMMY_NOTE"},
+            {"note": None, "notes": "PLACEHOLDER_DUMMY_NOTE"},
             None,
         ),
         (
             "OnlyWrongNote",
-            {"note": "/tmp/cobib_note_dummy.txt"},
-            {"note": None, "notes": "/tmp/cobib_note_dummy.txt"},
+            {"note": "PLACEHOLDER_DUMMY_NOTE"},
+            {"note": None, "notes": "PLACEHOLDER_DUMMY_NOTE"},
             (
                 "cobib.database.entry",
                 30,
@@ -806,8 +806,8 @@ def test_markup_label() -> None:
         ),
         (
             "BothWrongNotes",
-            {"note": "/tmp/cobib_note_dummy.txt", "notes": "This is a test note."},
-            {"note": "This is a test note.", "notes": "/tmp/cobib_note_dummy.txt"},
+            {"note": "PLACEHOLDER_DUMMY_NOTE", "notes": "This is a test note."},
+            {"note": "This is a test note.", "notes": "PLACEHOLDER_DUMMY_NOTE"},
             (
                 "cobib.database.entry",
                 30,
@@ -834,8 +834,8 @@ def test_markup_label() -> None:
         ),
         (
             "WrongNoteCorrectNotes",
-            {"note": "/tmp/another_cobib_note_dummy.txt", "notes": "/tmp/cobib_note_dummy.txt"},
-            {"note": None, "notes": "/tmp/cobib_note_dummy.txt"},
+            {"note": "PLACEHOLDER_ANOTHER_DUMMY_NOTE", "notes": "PLACEHOLDER_DUMMY_NOTE"},
+            {"note": None, "notes": "PLACEHOLDER_DUMMY_NOTE"},
             (
                 "cobib.database.entry",
                 50,
@@ -866,14 +866,21 @@ def test_handling_note_field(
         expected: the expected field, value pairs to assert
         expected_log: the log message whose presence to assert.
     """
-    dummy_note = Path("/tmp/cobib_note_dummy.txt")
-    dummy_note.touch()
-    another_dummy_note = Path("/tmp/another_cobib_note_dummy.txt")
-    another_dummy_note.touch()
-    try:
-        entry = Entry(label, data)
+    with NamedTemporaryFile() as dummy_note, NamedTemporaryFile() as another_dummy_note:
+
+        def _replace_placeholders(string: str | None) -> str | None:
+            if string is None:
+                return string
+
+            return string.replace("PLACEHOLDER_DUMMY_NOTE", dummy_note.name).replace(
+                "PLACEHOLDER_ANOTHER_DUMMY_NOTE", another_dummy_note.name
+            )
+
+        sanitized_data = {key: _replace_placeholders(value) for key, value in data.items()}
+        entry = Entry(label, sanitized_data)
         for field, value in expected.items():
-            assert entry.data.get(field, None) == value
+            value_ = _replace_placeholders(value)
+            assert entry.data.get(field, None) == value_
         if expected_log is not None:
             for scope, level, message in caplog.record_tuples:
                 if (
@@ -884,6 +891,3 @@ def test_handling_note_field(
                     break
             else:
                 assert False, "Warning not raised upon missing journal!"
-    finally:
-        dummy_note.unlink()
-        another_dummy_note.unlink()

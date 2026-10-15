@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from types import SimpleNamespace
 from typing import Dict, Optional
 
 import pytest
@@ -39,6 +40,7 @@ class TestArxivParser(ParserTest):
     """Tests for coBib's ArxivParser."""
 
     @pytest.mark.parametrize("query", ["1701.08213", "https://arxiv.org/abs/1701.08213"])
+    @pytest.mark.xdist_group(name="arXiv")
     def test_from_arxiv(self, query: str, caplog: pytest.LogCaptureFixture) -> None:
         """Test parsing from arXiv.
 
@@ -59,6 +61,7 @@ class TestArxivParser(ParserTest):
             entry = next(iter(entries.values()))
         except (IndexError, StopIteration):
             pytest.skip("Skipping because we likely ran into a network timeout.")
+
         assert_default_test_entry(entry)
 
     # regression test for https://gitlab.com/cobib/cobib/-/issues/57
@@ -68,6 +71,7 @@ class TestArxivParser(ParserTest):
         assert not entries
         assert entries == {}
 
+    @pytest.mark.xdist_group(name="arXiv")
     def test_arxiv_without_doi(self) -> None:
         """Test parsing an arXiv ID without an associated DOI."""
         entries = ArxivParser().parse("1701.08213")
@@ -75,6 +79,7 @@ class TestArxivParser(ParserTest):
             entry = next(iter(entries.values()))
         except (IndexError, StopIteration):
             pytest.skip("Skipping because we likely ran into a network timeout.")
+
         assert entry.label == "Bravyi2017"
         assert entry.data["archivePrefix"] == "arXiv"
         assert entry.data["arxivid"].startswith("1701.08213")
@@ -110,6 +115,37 @@ class TestArxivParser(ParserTest):
             "An Exception occurred while trying to query the arXiv ID: 1701.0821.",
         ) in caplog.record_tuples
 
+    def test_non_atom_response(
+        self, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test that a non-Atom response (e.g. a rate limit) is handled gracefully.
+
+        Args:
+            caplog: the built-in pytest fixture.
+            monkeypatch: the built-in pytest fixture.
+        """
+
+        def fake_get(*args, **kwargs):  # type: ignore[no-untyped-def]
+            """Mock function returning the plain-text body of a rate-limited request."""
+            return SimpleNamespace(
+                text="Rate exceeded.",
+                status_code=429,
+                encoding="utf-8",
+                raise_for_status=lambda: None,
+            )
+
+        monkeypatch.setattr(requests.Session, "get", fake_get)
+
+        entries = ArxivParser().parse("1701.08213")
+
+        assert entries == {}
+        assert (
+            "cobib.parsers.arxiv",
+            logging.ERROR,
+            "Some error (most likely a network issue) occurred while trying to query the arXiv "
+            "ID: 1701.08213.",
+        ) in caplog.record_tuples
+
     def test_dump(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test dumping.
 
@@ -125,6 +161,7 @@ class TestArxivParser(ParserTest):
             "Cannot dump an entry as an arXiv ID.",
         ) in caplog.record_tuples
 
+    @pytest.mark.xdist_group(name="arXiv")
     def test_event_pre_arxiv_parse(self, caplog: pytest.LogCaptureFixture) -> None:
         """Tests the PreArxivParse event."""
 
@@ -146,8 +183,10 @@ class TestArxivParser(ParserTest):
             entry = next(iter(entries.values()))
         except (IndexError, StopIteration):
             pytest.skip("Skipping because we likely ran into a network timeout.")
+
         assert_default_test_entry(entry)
 
+    @pytest.mark.xdist_group(name="arXiv")
     def test_event_post_arxiv_parse(self, caplog: pytest.LogCaptureFixture) -> None:
         """Tests the PostArxivParse event."""
 
@@ -169,5 +208,6 @@ class TestArxivParser(ParserTest):
             entry = next(iter(entries.values()))
         except (IndexError, StopIteration):
             pytest.skip("Skipping because we likely ran into a network timeout.")
+
         assert_default_test_entry(entry)
         assert entry.data["test"] == "dummy"

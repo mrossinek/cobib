@@ -5,9 +5,7 @@ from __future__ import annotations
 import logging
 import os
 from collections.abc import Generator
-from pathlib import Path
 from shutil import copyfile
-from tempfile import TemporaryDirectory
 from typing import Any
 
 import pytest
@@ -90,19 +88,22 @@ def test_config_load_from_env_var() -> None:
             os.environ["COBIB_CONFIG"] = prev_value
 
 
-def test_config_load_xdg() -> None:
-    """Test loading a config from XDG path."""
+def test_config_load_xdg(tmp_path: Any) -> None:
+    """Test loading a config from XDG path.
+
+    Args:
+        tmp_path: the built-in pytest fixture.
+    """
     prev_value = os.getenv("COBIB_CONFIG")
     prev_xdg_value = os.getenv("XDG_CONFIG_HOME")
     try:
         os.environ.pop("COBIB_CONFIG", None)
-        with TemporaryDirectory() as tmpdir:
-            os.environ["XDG_CONFIG_HOME"] = str(tmpdir)
-            path = Path(tmpdir) / "cobib"
-            path.mkdir(parents=True)
-            copyfile(get_resource("debug.py"), path / "config.py")
-            config.load()
-            assert config.database.file == str(path / "example_literature.yaml")
+        os.environ["XDG_CONFIG_HOME"] = str(tmp_path)
+        path = tmp_path / "cobib"
+        path.mkdir(parents=True)
+        copyfile(get_resource("debug.py"), path / "config.py")
+        config.load()
+        assert config.database.file == str(path / "example_literature.yaml")
     finally:
         if prev_xdg_value is None:
             os.environ.pop("XDG_CONFIG_HOME", None)

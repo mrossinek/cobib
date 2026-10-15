@@ -33,6 +33,8 @@ class URLParser(Parser):
     def parse(self, string: str) -> dict[str, Entry]:
         string = Event.PreURLParse.fire(string) or string
 
+        entries: dict[str, Entry] = OrderedDict()
+
         if re.search(ARXIV_REGEX, string):
             LOGGER.debug("URL contains an arXiv ID")
             entries = ArxivParser().parse(string)

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import contextlib
-import tempfile
 from collections.abc import Generator
 from io import StringIO
 from typing import TYPE_CHECKING, Any
@@ -185,12 +184,13 @@ class TestDeleteCommand(CommandTest):
     @pytest.mark.parametrize("preserve_files", [None, True, False])
     @pytest.mark.parametrize("config_overwrite", [True, False])
     async def test_remove_associated_file(
-        self, setup: Any, preserve_files: bool, config_overwrite: bool
+        self, setup: Any, tmp_path: Any, preserve_files: bool, config_overwrite: bool
     ) -> None:
         """Test removing associated files.
 
         Args:
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
+            tmp_path: the built-in pytest fixture.
             preserve_files: argument to `DeleteCommand`.
             config_overwrite: what to overwrite `config.commands.delete.preserve_files` with.
         """
@@ -200,18 +200,17 @@ class TestDeleteCommand(CommandTest):
         if preserve_files is not None:
             should_preserve = preserve_files
 
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            path = RelPath(tmpdirname + "/dummy.pdf")
-            open(path.path, "w", encoding="utf-8").close()
+        path = RelPath(str(tmp_path) + "/dummy.pdf")
+        open(path.path, "w", encoding="utf-8").close()
 
-            Database()["knuthwebsite"].file = str(path)
+        Database()["knuthwebsite"].file = str(path)
 
-            args = ["knuthwebsite"]
-            if preserve_files is not None:
-                args += [f"--{'' if preserve_files else 'no-'}preserve-files"]
-            await DeleteCommand(*args).execute()
+        args = ["knuthwebsite"]
+        if preserve_files is not None:
+            args += [f"--{'' if preserve_files else 'no-'}preserve-files"]
+        await DeleteCommand(*args).execute()
 
-            assert path.path.exists() is should_preserve
+        assert path.path.exists() is should_preserve
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(

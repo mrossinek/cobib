@@ -37,6 +37,7 @@ class TestDOIParser(ParserTest):
     @pytest.mark.parametrize(
         "query", ["10.1021/acs.jpclett.3c00330", "https://doi.org/10.1021/acs.jpclett.3c00330"]
     )
+    @pytest.mark.xdist_group(name="DOI")
     def test_from_doi(self, query: str, caplog: pytest.LogCaptureFixture) -> None:
         """Test parsing from DOI.
 
@@ -113,6 +114,7 @@ class TestDOIParser(ParserTest):
             "Cannot dump an entry as a DOI.",
         ) in caplog.record_tuples
 
+    @pytest.mark.xdist_group(name="DOI")
     def test_event_pre_doi_parse(self, caplog: pytest.LogCaptureFixture) -> None:
         """Tests the PreDOIParse event."""
 
@@ -136,6 +138,7 @@ class TestDOIParser(ParserTest):
             pytest.skip("Skipping because we likely ran into a network timeout.")
         assert_default_test_entry(entry)
 
+    @pytest.mark.xdist_group(name="DOI")
     def test_event_post_doi_parse(self, caplog: pytest.LogCaptureFixture) -> None:
         """Tests the PostDOIParse event."""
 
@@ -159,6 +162,7 @@ class TestDOIParser(ParserTest):
             pytest.skip("Skipping because we likely ran into a network timeout.")
         assert entry.data["test"] == "dummy"
 
+    @pytest.mark.xdist_group(name="DOI")
     def test_handling_of_missing_schema(self) -> None:
         """Test the handling of a missing 'http' schema in the redirected URL.
 
@@ -174,6 +178,7 @@ class TestDOIParser(ParserTest):
         assert len(entries) == 1
         assert "Day_1984" == entry.label
 
+    @pytest.mark.xdist_group(name="DOI")
     def test_handling_of_http_errors(self) -> None:
         """Test the handling of an http error code.
 

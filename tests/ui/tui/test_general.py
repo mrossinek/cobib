@@ -3,11 +3,9 @@
 from __future__ import annotations
 
 import logging
-import tempfile
 from collections.abc import Generator
 from copy import copy
-from pathlib import Path
-from shutil import copyfile, rmtree
+from shutil import copyfile
 from typing import Any, cast
 
 import pytest
@@ -23,19 +21,20 @@ from cobib.utils.logging import HINT
 from ... import get_resource
 
 TERMINAL_SIZE = (160, 48)
-TMPDIR = Path(tempfile.gettempdir()).resolve()
 
 
 class TestTUIGeneral:
     """General tests for the TUI."""
 
-    COBIB_TEST_DIR = TMPDIR / "cobib_test"
-    """Path to the temporary coBib test directory."""
-
-    @staticmethod
     @pytest.fixture(autouse=True)
-    def setup() -> Generator[Any, None, None]:
-        """Load testing config."""
+    def setup(self, tmp_path: Any) -> Generator[Any, None, None]:
+        """Load testing config.
+
+        Args:
+            tmp_path: the built-in pytest fixture.
+        """
+        self.COBIB_TEST_DIR = tmp_path.resolve()
+
         InputScreen.cursor_blink = False
         config.load(get_resource("debug.py"))
         yield
@@ -270,7 +269,6 @@ class TestTUIGeneral:
         finally:
             config.database.file = old_database_file
             Database.read()
-            rmtree(self.COBIB_TEST_DIR)
 
     @pytest.mark.parametrize("escape", [False, True])
     def test_prompt_action(self, snap_compare: Any, escape: bool) -> None:
@@ -309,7 +307,6 @@ class TestTUIGeneral:
         finally:
             config.database.file = old_database_file
             Database.read()
-            rmtree(self.COBIB_TEST_DIR)
 
     def test_prompt_elaborate(self, snap_compare: Any) -> None:
         """Tests the prompt in a more elaborate way via the `review` command.

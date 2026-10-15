@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import tempfile
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -21,11 +19,35 @@ from .exporter_test import ExporterTest
 if TYPE_CHECKING:
     import cobib.commands
 
-TMPDIR = Path(tempfile.gettempdir())
-
 
 class TestYAMLExporter(ExporterTest):
     """Tests for coBib's YAMLExporter."""
+
+    def _assert(self, args: list[str]) -> None:
+        """Assertion utility method for YAML output.
+
+        Args:
+            args: the arguments which were passed to the command.
+        """
+        try:
+            with open(
+                self.COBIB_TEST_DIR / "cobib_test_export.yaml", "r", encoding="utf-8"
+            ) as file:
+                with open(
+                    get_resource("example_literature.yaml"), "r", encoding="utf-8"
+                ) as expected:
+                    # NOTE: do NOT use zip_longest to omit later entries
+                    for line, truth in zip(file, expected):
+                        if truth[0] == "%":
+                            # ignore comments
+                            continue
+                        assert line == truth
+                    if "-s" in args:
+                        with pytest.raises(StopIteration):
+                            next(file)
+        finally:
+            # clean up file system
+            (self.COBIB_TEST_DIR / "cobib_test_export.yaml").unlink(missing_ok=True)
 
     def test_event_pre_yaml_export(self) -> None:
         """Tests the PreYAMLExport event."""
@@ -36,14 +58,14 @@ class TestYAMLExporter(ExporterTest):
 
         assert Event.PreYAMLExport.validate()
 
-        path = str(TMPDIR / "cobib_test_export.yaml")
+        path = str(self.COBIB_TEST_DIR / "cobib_test_export.yaml")
         YAMLExporter(path).write([])
 
-        TestYAMLExport._assert(["-s", "--yaml", path, "--", "einstein"])
+        self._assert(["-s", "--yaml", path, "--", "einstein"])
 
     def test_event_post_yaml_export(self) -> None:
         """Tests the PostYAMLExport event."""
-        path = TMPDIR / "cobib_test_export.yaml"
+        path = self.COBIB_TEST_DIR / "cobib_test_export.yaml"
 
         @Event.PostYAMLExport.subscribe
         def hook(exporter: YAMLExporter) -> None:
@@ -66,15 +88,16 @@ class TestYAMLExport(CommandTest):
     def get_command(self) -> type[cobib.commands.base_command.Command]:
         return ExportCommand
 
-    @staticmethod
-    def _assert(args: list[str]) -> None:
+    def _assert(self, args: list[str]) -> None:
         """Assertion utility method for YAML output.
 
         Args:
             args: the arguments which were passed to the command.
         """
         try:
-            with open(TMPDIR / "cobib_test_export.yaml", "r", encoding="utf-8") as file:
+            with open(
+                self.COBIB_TEST_DIR / "cobib_test_export.yaml", "r", encoding="utf-8"
+            ) as file:
                 with open(
                     get_resource("example_literature.yaml"), "r", encoding="utf-8"
                 ) as expected:
@@ -89,25 +112,25 @@ class TestYAMLExport(CommandTest):
                             next(file)
         finally:
             # clean up file system
-            (TMPDIR / "cobib_test_export.yaml").unlink(missing_ok=True)
+            (self.COBIB_TEST_DIR / "cobib_test_export.yaml").unlink(missing_ok=True)
 
     @pytest.mark.parametrize(
         ["args"],
         [
-            [["--yaml", "--", str(TMPDIR / "cobib_test_export.yaml")]],
+            [["--yaml", "--", "TMPDIR/cobib_test_export.yaml"]],
             [
                 [
                     "--yaml",
                     "--",
-                    str(TMPDIR / "cobib_test_export.yaml"),
+                    "TMPDIR/cobib_test_export.yaml",
                     "--",
                     "++label",
                     "einstein",
                 ]
             ],
-            [["--yaml", str(TMPDIR / "cobib_test_export.yaml"), "-s", "--", "einstein"]],
+            [["--yaml", "TMPDIR/cobib_test_export.yaml", "-s", "--", "einstein"]],
             # the following limit test works only if "einstein" is the first entry in the database
-            [["--yaml", str(TMPDIR / "cobib_test_export.yaml"), "--", "-l", "1"]],
+            [["--yaml", "TMPDIR/cobib_test_export.yaml", "--", "-l", "1"]],
         ],
     )
     def test_command(self, setup: Any, args: list[str]) -> None:
@@ -117,5 +140,6 @@ class TestYAMLExport(CommandTest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             args: the arguments to pass to the command.
         """
+        args = [a.replace("TMPDIR", str(self.COBIB_TEST_DIR)) for a in args]
         ExportCommand(*args).execute()
         self._assert(args)

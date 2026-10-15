@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import tempfile
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -21,11 +19,33 @@ from .exporter_test import ExporterTest
 if TYPE_CHECKING:
     import cobib.commands
 
-TMPDIR = Path(tempfile.gettempdir())
-
 
 class TestBibtexExporter(ExporterTest):
     """Tests for coBib's BibtexExporter."""
+
+    def _assert(self, args: list[str]) -> None:
+        """Assertion utility method for bibtex output.
+
+        Args:
+            args: the arguments which were passed to the command.
+        """
+        try:
+            with open(self.COBIB_TEST_DIR / "cobib_test_export.bib", "r", encoding="utf-8") as file:
+                with open(
+                    get_resource("example_literature.bib"), "r", encoding="utf-8"
+                ) as expected:
+                    # NOTE: do NOT use zip_longest to omit later entries
+                    for line, truth in zip(file, expected):
+                        if truth[0] == "%":
+                            # ignore comments
+                            continue
+                        assert line == truth
+                    if "-s" in args:
+                        with pytest.raises(StopIteration):
+                            next(file)
+        finally:
+            # clean up file system
+            (self.COBIB_TEST_DIR / "cobib_test_export.bib").unlink(missing_ok=True)
 
     def test_event_pre_bibtex_export(self) -> None:
         """Tests the PreBibtexExport event."""
@@ -36,14 +56,14 @@ class TestBibtexExporter(ExporterTest):
 
         assert Event.PreBibtexExport.validate()
 
-        path = str(TMPDIR / "cobib_test_export.bib")
+        path = str(self.COBIB_TEST_DIR / "cobib_test_export.bib")
         BibtexExporter(path).write([])
 
-        TestBibtexExport._assert(["-s", "--bibtex", path, "--", "einstein"])
+        self._assert(["-s", "--bibtex", path, "--", "einstein"])
 
     def test_event_post_bibtex_export(self) -> None:
         """Tests the PostBibtexExport event."""
-        path = TMPDIR / "cobib_test_export.bib"
+        path = self.COBIB_TEST_DIR / "cobib_test_export.bib"
 
         @Event.PostBibtexExport.subscribe
         def hook(exporter: BibtexExporter) -> None:
@@ -66,15 +86,14 @@ class TestBibtexExport(CommandTest):
     def get_command(self) -> type[cobib.commands.base_command.Command]:
         return ExportCommand
 
-    @staticmethod
-    def _assert(args: list[str]) -> None:
+    def _assert(self, args: list[str]) -> None:
         """Assertion utility method for bibtex output.
 
         Args:
             args: the arguments which were passed to the command.
         """
         try:
-            with open(TMPDIR / "cobib_test_export.bib", "r", encoding="utf-8") as file:
+            with open(self.COBIB_TEST_DIR / "cobib_test_export.bib", "r", encoding="utf-8") as file:
                 with open(
                     get_resource("example_literature.bib"), "r", encoding="utf-8"
                 ) as expected:
@@ -89,25 +108,25 @@ class TestBibtexExport(CommandTest):
                             next(file)
         finally:
             # clean up file system
-            (TMPDIR / "cobib_test_export.bib").unlink(missing_ok=True)
+            (self.COBIB_TEST_DIR / "cobib_test_export.bib").unlink(missing_ok=True)
 
     @pytest.mark.parametrize(
         ["args"],
         [
-            [["--bibtex", "--", str(TMPDIR / "cobib_test_export.bib")]],
+            [["--bibtex", "--", "TMPDIR/cobib_test_export.bib"]],
             [
                 [
                     "--bibtex",
                     "--",
-                    str(TMPDIR / "cobib_test_export.bib"),
+                    "TMPDIR/cobib_test_export.bib",
                     "--",
                     "++label",
                     "einstein",
                 ]
             ],
-            [["--bibtex", str(TMPDIR / "cobib_test_export.bib"), "-s", "--", "einstein"]],
+            [["--bibtex", "TMPDIR/cobib_test_export.bib", "-s", "--", "einstein"]],
             # the following limit test works only if "einstein" is the first entry in the database
-            [["--bibtex", str(TMPDIR / "cobib_test_export.bib"), "--", "-l", "1"]],
+            [["--bibtex", "TMPDIR/cobib_test_export.bib", "--", "-l", "1"]],
         ],
     )
     def test_command(self, setup: Any, args: list[str]) -> None:
@@ -117,6 +136,7 @@ class TestBibtexExport(CommandTest):
             setup: the `tests.commands.command_test.CommandTest.setup` fixture.
             args: the arguments to pass to the command.
         """
+        args = [a.replace("TMPDIR", str(self.COBIB_TEST_DIR)) for a in args]
         ExportCommand(*args).execute()
         self._assert(args)
 
@@ -137,7 +157,7 @@ class TestBibtexExport(CommandTest):
             "-s",
             "--bibtex",
             "--",
-            str(TMPDIR / "cobib_test_export.bib"),
+            str(self.COBIB_TEST_DIR / "cobib_test_export.bib"),
             *abbrev_args,
             "--",
             "einstein",
@@ -165,7 +185,7 @@ class TestBibtexExport(CommandTest):
             "-s",
             "--bibtex",
             "--",
-            str(TMPDIR / "cobib_test_export.bib"),
+            str(self.COBIB_TEST_DIR / "cobib_test_export.bib"),
             "--",
             "einstein",
         ]
@@ -194,7 +214,7 @@ class TestBibtexExport(CommandTest):
             dotless: whether to abbreviate with or without punctuation.
         """
         try:
-            with open(TMPDIR / "cobib_test_export.bib", "r", encoding="utf-8") as file:
+            with open(self.COBIB_TEST_DIR / "cobib_test_export.bib", "r", encoding="utf-8") as file:
                 for line in file:
                     if "journal" not in line:
                         continue
@@ -205,4 +225,4 @@ class TestBibtexExport(CommandTest):
                     assert False
         finally:
             # clean up file system
-            (TMPDIR / "cobib_test_export.bib").unlink(missing_ok=True)
+            (self.COBIB_TEST_DIR / "cobib_test_export.bib").unlink(missing_ok=True)
