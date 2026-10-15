@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [6.0.2] - 2026-10-15
+
+Pypi: https://pypi.org/project/cobib/6.0.2/
+
 ### Added
 - Python 3.15 is now officially tested and supported
 
@@ -1381,7 +1386,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v6.0.1...master
+[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v6.0.2...master
+[6.0.2]: https://gitlab.com/cobib/cobib/-/tags/v6.0.2
 [6.0.1]: https://gitlab.com/cobib/cobib/-/tags/v6.0.1
 [6.0.0]: https://gitlab.com/cobib/cobib/-/tags/v6.0.0
 [5.5.5]: https://gitlab.com/cobib/cobib/-/tags/v5.5.5
