@@ -101,7 +101,7 @@ class TestNoteCommand(CommandTest):
             (
                 "cobib.commands.note",
                 40,
-                'The note editing using "cat" failed with the following error code: 256',
+                'The note editing using "cat" failed with the following error code: 1',
             ),
             (
                 "cobib.commands.note",

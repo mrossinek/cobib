@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
+import subprocess
 
 from rich.console import ConsoleRenderable
 from rich.syntax import Syntax
@@ -197,7 +197,9 @@ class NoteCommand(Command):
     @staticmethod
     def _edit(path: RelPath) -> None:
         LOGGER.debug('Starting editor "%s".', config.commands.edit.editor)
-        status = os.system(config.commands.edit.editor + " " + str(path))
+        status = subprocess.run(
+            config.commands.edit.editor + " " + str(path), shell=True, check=False
+        ).returncode
         if status == 0:
             LOGGER.debug("Editor finished successfully.")
         else:

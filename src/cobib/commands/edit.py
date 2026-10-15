@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
+import subprocess
 import tempfile
 from pathlib import Path
 
@@ -195,7 +195,9 @@ class EditCommand(Command):
             tmp_file.write(entry_text)
             tmp_file.flush()
             LOGGER.debug('Starting editor "%s".', config.commands.edit.editor)
-            status = os.system(config.commands.edit.editor + " " + tmp_file.name)
+            status = subprocess.run(
+                config.commands.edit.editor + " " + tmp_file.name, shell=True, check=False
+            ).returncode
             assert status == 0
             LOGGER.debug("Editor finished successfully.")
             new_text = open(tmp_file.name, "r", encoding="utf-8").read()

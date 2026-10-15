@@ -31,6 +31,7 @@ class TestOpenCommand(CommandTest):
     # We just need some absolute paths to test against.
     TMP_FILE_A = "/tmp/a.txt"
     TMP_FILE_B = "/tmp/b.txt"
+    TMP_FILE_C = "/tmp/c space.txt"
 
     @override
     def get_command(self) -> type[cobib.commands.base_command.Command]:
@@ -41,14 +42,17 @@ class TestOpenCommand(CommandTest):
         """Additional setup instructions which will be run automatically for this class of tests."""
         path_a = Path(self.TMP_FILE_A)
         path_b = Path(self.TMP_FILE_B)
+        path_c = Path(self.TMP_FILE_C)
 
         path_a.touch()
         path_b.touch()
+        path_c.touch()
 
         yield
 
         path_a.unlink(missing_ok=True)
         path_b.unlink(missing_ok=True)
+        path_c.unlink(missing_ok=True)
 
     @pytest.fixture
     def post_setup(
@@ -102,6 +106,12 @@ class TestOpenCommand(CommandTest):
                     10,
                     'Opening "http://www-cs-faculty.stanford.edu/\\~{}uno/abcde.html" with cat.',
                 ),
+                (
+                    "cobib.commands.open",
+                    40,
+                    'Error opening "http://www-cs-faculty.stanford.edu/\\~{}uno/abcde.html"'
+                    + " with exit code 1.",
+                ),
             ]
             if logs is not None:
                 assert logs == expected_log
@@ -109,8 +119,9 @@ class TestOpenCommand(CommandTest):
             expected_out = [
                 "  1: [file] " + self.TMP_FILE_A,
                 "  2: [file] " + self.TMP_FILE_B,
-                "  3: [url] https://www.duckduckgo.com",
-                "  4: [url] https://www.google.com",
+                "  3: [file] " + self.TMP_FILE_C,
+                "  4: [url] https://www.duckduckgo.com",
+                "  5: [url] https://www.google.com",
                 "[all,help,cancel]: ",
             ]
 
@@ -118,6 +129,7 @@ class TestOpenCommand(CommandTest):
                 ("cobib.commands.open", 10, "Starting Open command."),
                 ("cobib.commands.open", 10, 'Parsing "' + self.TMP_FILE_A + '" for URLs.'),
                 ("cobib.commands.open", 10, 'Parsing "' + self.TMP_FILE_B + '" for URLs.'),
+                ("cobib.commands.open", 10, 'Parsing "' + self.TMP_FILE_C + '" for URLs.'),
                 ("cobib.commands.open", 10, 'Parsing "https://www.duckduckgo.com" for URLs.'),
                 ("cobib.commands.open", 10, 'Parsing "https://www.google.com" for URLs.'),
             ]
@@ -126,7 +138,7 @@ class TestOpenCommand(CommandTest):
             extra_logs = None
             if "help" in stdin_list:
                 expected_out += expected_out.copy()
-                expected_out[4] += "Multiple targets were found. You may select the following:"
+                expected_out[5] += "Multiple targets were found. You may select the following:"
                 extra_out = [
                     "  1. an individual URL number",
                     "  2. a target type (provided in '[...]')",
@@ -134,7 +146,7 @@ class TestOpenCommand(CommandTest):
                     "  4. or 'cancel' to abort the command",
                 ]
                 for line in reversed(extra_out):
-                    expected_out.insert(5, line)
+                    expected_out.insert(6, line)
 
                 expected_log.append(("cobib.commands.open", 10, "User requested help."))
                 expected_log.append(("cobib.commands.open", 30, "User aborted open command."))
@@ -145,14 +157,35 @@ class TestOpenCommand(CommandTest):
                     ("cobib.commands.open", 10, "User selected all urls."),
                     ("cobib.commands.open", 10, 'Opening "' + self.TMP_FILE_A + '" with cat.'),
                     ("cobib.commands.open", 10, 'Opening "' + self.TMP_FILE_B + '" with cat.'),
+                    ("cobib.commands.open", 10, 'Opening "' + self.TMP_FILE_C + '" with cat.'),
                     ("cobib.commands.open", 10, 'Opening "https://www.duckduckgo.com" with cat.'),
+                    (
+                        "cobib.commands.open",
+                        40,
+                        'Error opening "https://www.duckduckgo.com" with exit code 1.',
+                    ),
                     ("cobib.commands.open", 10, 'Opening "https://www.google.com" with cat.'),
+                    (
+                        "cobib.commands.open",
+                        40,
+                        'Error opening "https://www.google.com" with exit code 1.',
+                    ),
                 ]
             elif "url" in stdin_list:
                 extra_logs = [
                     ("cobib.commands.open", 10, "User selected the url set of urls."),
                     ("cobib.commands.open", 10, 'Opening "https://www.duckduckgo.com" with cat.'),
+                    (
+                        "cobib.commands.open",
+                        40,
+                        'Error opening "https://www.duckduckgo.com" with exit code 1.',
+                    ),
                     ("cobib.commands.open", 10, 'Opening "https://www.google.com" with cat.'),
+                    (
+                        "cobib.commands.open",
+                        40,
+                        'Error opening "https://www.google.com" with exit code 1.',
+                    ),
                 ]
             elif "1" in stdin_list:
                 extra_logs = [
@@ -310,6 +343,7 @@ class TestOpenCommand(CommandTest):
         expected_out = [
             "  1: [dummy] " + self.TMP_FILE_A,
             "  2: [dummy] " + self.TMP_FILE_B,
+            "  3: [dummy] " + self.TMP_FILE_C,
             "[all,help,cancel]: ",
         ]
 
@@ -399,6 +433,7 @@ class TestOpenCommand(CommandTest):
             ("cobib.commands.open", 10, "Starting Open command."),
             ("cobib.commands.open", 10, 'Parsing "/tmp/a.txt" for URLs.'),
             ("cobib.commands.open", 10, 'Parsing "/tmp/b.txt" for URLs.'),
+            ("cobib.commands.open", 10, 'Parsing "/tmp/c space.txt" for URLs.'),
             ("cobib.commands.open", 10, 'Parsing "https://www.duckduckgo.com" for URLs.'),
             ("cobib.commands.open", 10, 'Parsing "https://www.google.com" for URLs.'),
             ("cobib.commands.open", 10, f"User selected the {field} set of urls from the CLI."),
@@ -407,11 +442,22 @@ class TestOpenCommand(CommandTest):
             expected_log += [
                 ("cobib.commands.open", 10, 'Opening "/tmp/a.txt" with cat.'),
                 ("cobib.commands.open", 10, 'Opening "/tmp/b.txt" with cat.'),
+                ("cobib.commands.open", 10, 'Opening "/tmp/c space.txt" with cat.'),
             ]
         if field in ("all", "url"):
             expected_log += [
                 ("cobib.commands.open", 10, 'Opening "https://www.duckduckgo.com" with cat.'),
+                (
+                    "cobib.commands.open",
+                    40,
+                    'Error opening "https://www.duckduckgo.com" with exit code 1.',
+                ),
                 ("cobib.commands.open", 10, 'Opening "https://www.google.com" with cat.'),
+                (
+                    "cobib.commands.open",
+                    40,
+                    'Error opening "https://www.google.com" with exit code 1.',
+                ),
             ]
 
         await OpenCommand("example_multi_file_entry", "--field", field).execute()

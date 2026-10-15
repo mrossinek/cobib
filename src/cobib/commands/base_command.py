@@ -5,8 +5,8 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import os
 import shlex
+import subprocess
 import sys
 from abc import ABC, abstractmethod
 
@@ -204,6 +204,6 @@ class Command(ABC):
             f"git commit {' '.join(git_commit_args)} --message {shlex.quote(msg)}",
         ]
         LOGGER.debug("Auto-commit to git from %s command.", self.name)
-        os.system("; ".join(commands))
+        subprocess.run("; ".join(commands), shell=True, check=False)
 
         Event.PostGitCommit.fire(root, file)

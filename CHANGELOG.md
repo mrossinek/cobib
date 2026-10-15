@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- files whose names contain whitespace can now be opened correctly (#195,!439)
+
 
 ## [6.0.1] - 2025-10-25
 

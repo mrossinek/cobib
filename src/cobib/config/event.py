@@ -931,7 +931,7 @@ class Event(Enum):
             ```python
             @Event.PostGitCommit.subscribe
             def push_to_remote(root: Path, file: Path) -> None:
-                os.system(f"git -C {root} push")
+                subprocess.run(["git", "-C", root, "push"])
             ```
 
         Args:

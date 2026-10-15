@@ -4,14 +4,14 @@ cobib-event(7) -- the event hook specification for cobib(1)
 ## SYNOPSIS
 
 ```python
+import subprocess
 from pathlib import Path
-from os import system
 from cobib.config import Event
 
 
 @Event.PostGitCommit.subscribe
 def push_to_remote(root: Path, file: Path) -> None:
-    system(f"git -C {root} push")
+    subprocess.run(["git", "-C", root, "push"])
 ```
 
 ## DESCRIPTION

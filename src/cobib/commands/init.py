@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -98,10 +98,14 @@ class InitCommand(Command):
                 LOGGER.warning(msg)
             # First, check whether git is configured correctly.
             print("Checking `git config --get user.name`:", end=" ", flush=True)
-            name_set = os.system("git config --get user.name")
+            name_set = subprocess.run(
+                ["git", "config", "--get", "user.name"], check=False
+            ).returncode
             print()
             print("Checking `git config --get user.email`:", end=" ", flush=True)
-            email_set = os.system("git config --get user.email")
+            email_set = subprocess.run(
+                ["git", "config", "--get", "user.email"], check=False
+            ).returncode
             print()
             if name_set != 0 or email_set != 0:
                 msg = (  # pragma: no cover
@@ -111,7 +115,7 @@ class InitCommand(Command):
                 LOGGER.warning(msg)  # pragma: no cover
                 sys.exit(1)
             LOGGER.debug('Initializing git repository in "%s"', self.root)
-            os.system(f"git init {self.root}")
+            subprocess.run(["git", "init", self.root], check=False)
             self.git(force=True)
 
         Event.PostInitCommand.fire(self)

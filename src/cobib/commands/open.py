@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
+import subprocess
 from collections import defaultdict
 from collections.abc import Callable
 from functools import wraps
@@ -217,8 +217,11 @@ class OpenCommand(Command):
                     raise FileNotFoundError(f"Could not find the file at '{url_path.path}'!")
                 url_str = str(url_path.path)
             LOGGER.debug('Opening "%s" with %s.', url_str, opener)
-            os.system(f"{opener} {url_str}")
-            success = True
+            result = subprocess.run([opener, url_str], check=False).returncode
+            if result != 0:
+                LOGGER.error('Error opening "%s" with exit code %d.', url_str, result)
+            else:
+                success = True
 
         except FileNotFoundError as err:
             LOGGER.error(err)
