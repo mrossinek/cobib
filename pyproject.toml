@@ -33,7 +33,7 @@ classifiers = [
 ]
 dependencies = [
     "beautifulsoup4",
-    "bibtexparser<2",
+    "bibtexparser>=2",
     "lxml",
     "natsort",
     "pylatexenc",

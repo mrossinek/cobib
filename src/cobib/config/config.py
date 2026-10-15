@@ -876,8 +876,26 @@ class LoggingConfig(_ConfigBase):
 class BibtexParserConfig(_ConfigBase):
     """The `config.parsers.bibtex` section."""
 
-    ignore_non_standard_types: bool = False
-    """Whether to ignore non-standard BibTeX entry types."""
+    _ignore_non_standard_types: bool = False
+    """**DEPRECATED** Whether to ignore non-standard BibTeX entry types."""
+
+    @property
+    def ignore_non_standard_types(self) -> bool:
+        """**DEPRECATED** Whether to ignore non-standard BibTeX entry types.
+
+        This setting is deprecated as of v6.0.2 of coBib because the underlying parser used
+        downstream no longer supports it.
+        """
+        return self._ignore_non_standard_types  # pragma: no cover
+
+    @ignore_non_standard_types.setter
+    def ignore_non_standard_types(self, ignore_non_standard_types: bool) -> None:
+        LOGGER.log(  # pragma: no cover
+            45,
+            "The config.parsers.bibtex.ignore_non_standard_types setting is DEPRECATED because the "
+            "underlying parser used downstream no longer supports it.",
+        )
+        self._ignore_non_standard_types = ignore_non_standard_types  # pragma: no cover
 
     @override
     def validate(self) -> None:

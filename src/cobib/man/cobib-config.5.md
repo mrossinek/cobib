@@ -228,7 +228,7 @@ Instead, the `Event.subscribe` decorator should be used (cf. *cobib-event(7)*).
 ### LOGGING
 
   * _config.logging.cache_ = `"~/.cache/cobib/cache"`:
-    The default location of the cache.
+    **DEPRECATED** The default location of the cache.
 
   * _config.logging.logfile_ = `"~/.cache/cobib/cobib.log"`:
     The default location of the logfile.
@@ -242,7 +242,7 @@ Instead, the `Event.subscribe` decorator should be used (cf. *cobib-event(7)*).
 #### PARSERS.BIBTEX
 
   * _config.parsers.bibtex.ignore_non_standard_types_ = `False`:
-    Whether to ignore non-standard BibTeX entry types.
+    **DEPRECATED** Whether to ignore non-standard BibTeX entry types.
 
 #### PARSERS.YAML
 

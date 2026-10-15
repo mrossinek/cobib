@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Python 3.15 is now officially tested and supported
 
+### Changed
+- you must upgrade to `bibtexparser>=2.0` as the new minimum supported version (!455)
+
+### Deprecated
+- the `config.parsers.bibtex.ignore_non_standard_types` setting has been deprecated because the
+  underlying parser used downstream no longer supports it (!455)
+
 ### Fixed
 - files whose names contain whitespace can now be opened correctly (#195,!439)
 - the arXiv parser now handles network issues gracefully

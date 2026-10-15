@@ -214,11 +214,6 @@ config.logging.version = "$XDG_CACHE_HOME/cobib/version"
 
 # PARSERS
 
-# PARSERS.BIBTEX
-
-# Whether to ignore non-standard BibTeX entry types.
-config.parsers.bibtex.ignore_non_standard_types = False
-
 # PARSERS.YAML
 
 # Whether to use the C-based implementation of the YAML parser.
