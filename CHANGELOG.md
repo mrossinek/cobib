@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Python 3.15 is now officially tested and supported
+
 ### Fixed
 - files whose names contain whitespace can now be opened correctly (#195,!439)
 
