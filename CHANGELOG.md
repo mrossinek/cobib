@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [6.0.3] - 2026-10-16
+
+Pypi: https://pypi.org/project/cobib/6.0.3/
+
+### Changed
+- (DEV) the development dependencies are now specified as PEP 735 `dependency-groups` (#198,!462)
+
+
 ## [6.0.2] - 2026-10-15
 
 Pypi: https://pypi.org/project/cobib/6.0.2/
@@ -1386,7 +1394,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v6.0.2...master
+[Unreleased]: https://gitlab.com/cobib/cobib/-/compare/v6.0.3...master
+[6.0.3]: https://gitlab.com/cobib/cobib/-/tags/v6.0.3
 [6.0.2]: https://gitlab.com/cobib/cobib/-/tags/v6.0.2
 [6.0.1]: https://gitlab.com/cobib/cobib/-/tags/v6.0.1
 [6.0.0]: https://gitlab.com/cobib/cobib/-/tags/v6.0.0
