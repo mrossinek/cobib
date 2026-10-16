@@ -6,6 +6,7 @@ default:
         - apt-get update
         - git config --global user.email "cobib@cobib.org"
         - git config --global user.name "CoBib"
+        - pip install --upgrade pip
         - pip install virtualenv tox
 
 # See https://docs.gitlab.com/ci/pipelines/merge_request_pipelines/

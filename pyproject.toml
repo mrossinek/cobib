@@ -147,33 +147,36 @@ fuzzy = [
 shell = [
     "prompt_toolkit",
 ]
-# all optional _development_ dependencies
+# Development dependencies live in PEP 735 dependency groups.
+[dependency-groups]
 dev = [
-    "cobib[coverage,docs,lint]",
+    {include-group = "coverage"},
+    {include-group = "docs"},
+    {include-group = "lint"},
 ]
 basedev = [
     "pytest~=9.1.1",
 ]
 docs = [
-    "cobib[basedev]",
+    {include-group = "basedev"},
     "pdoc~=16.0.0",
     "textual-dev~=1.8.0",
 ]
 test = [
-    "cobib[basedev]",
+    {include-group = "basedev"},
     "pytest-asyncio~=1.4.0",
-    "pytest-textual-snapshot @ git+https://git@github.com/mrossinek/pytest-textual-snapshot@update-syrupy",
+    "pytest-textual-snapshot @ git+https://github.com/mrossinek/pytest-textual-snapshot@update-syrupy",
     "pytest-xdist~=3.8.0",
     "ruamel.yaml.clib",
     "textual>=6.0",
 ]
 coverage = [
-    "cobib[test]",
+    {include-group = "test"},
     "coverage~=7.16.2",
     "pytest-cov~=7.1.0",
 ]
 lint = [
-    "cobib[basedev]",
+    {include-group = "basedev"},
     "mypy~=2.4.0",
     "ruff~=0.17.0",
     "types-beautifulsoup4==4.12.0.20250516",
