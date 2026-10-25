@@ -73,7 +73,8 @@ class TestGitCommitEvent(CommandTest):
         """
 
         @Event.PreGitCommit.subscribe
-        def hook(msg: str, args: Optional[Dict[str, Any]] = None) -> Optional[str]:
+        def hook(msg: str, caller: Command, args: Optional[Dict[str, Any]] = None) -> Optional[str]:
+            assert isinstance(caller, DummyCommand)
             return "Hello world!"
 
         assert Event.PreGitCommit.validate()

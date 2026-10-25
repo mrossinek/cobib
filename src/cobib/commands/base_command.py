@@ -193,7 +193,7 @@ class Command(ABC):
             msg += "\n\n"
             msg += json.dumps(args, indent=2, default=str)
 
-        msg = Event.PreGitCommit.fire(msg, args) or msg
+        msg = Event.PreGitCommit.fire(msg, self, args) or msg
 
         git_commit_args = ["--no-gpg-sign", "--quiet"]
         if allow_empty:

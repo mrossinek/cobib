@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- The `PreGitCommit` event now passes the command instance to hooks.
+  Existing hooks will have to be updated to this signature to pass
+  validation. (#194, !452)
+
 
 ## [6.0.3] - 2026-10-16
 

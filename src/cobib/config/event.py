@@ -34,6 +34,7 @@ else:
     _FORWARD_REFS = {
         "ForwardRef('Entry')": "Entry",
         "ForwardRef('commands.AddCommand')": "cobib.commands.add.AddCommand",
+        "ForwardRef('commands.Command')": "cobib.commands.base_command.Command",
         "ForwardRef('commands.DeleteCommand')": "cobib.commands.delete.DeleteCommand",
         "ForwardRef('commands.EditCommand')": "cobib.commands.edit.EditCommand",
         "ForwardRef('commands.ExportCommand')": "cobib.commands.export.ExportCommand",
@@ -868,7 +869,9 @@ class Event(Enum):
         If a registered hook returns a new path, no subsequent hooks will be run!
     """
 
-    PreGitCommit = cast("Event", Callable[[str, Optional[Dict[str, Any]]], Optional[str]])
+    PreGitCommit = cast(
+        "Event", Callable[[str, "commands.Command", Optional[Dict[str, Any]]], Optional[str]]
+    )
     """
     Fires:
         Before starting `cobib.commands.base_command.Command.git` (i.e. whenever an automatic
@@ -876,6 +879,7 @@ class Event(Enum):
 
     Arguments:
         `msg`: the commit message.
+        `caller`: the `Command` instance which fired the event.
         `args`: an optional dictionary of keyword arguments provided to the command that triggered
                 this commit.
 
@@ -884,6 +888,24 @@ class Event(Enum):
 
     Note:
         If a registered hook returns a new commit message, no subsequent hooks will be run!
+
+        The caller can be used to add information specific to the command that has been run. For
+        example, to generate a commit message for an add command to include the keys of the new
+        entries:
+
+        ```python
+        @Event.PreGitCommit.subscribe
+        def pre_git_commit_hook(
+            msg: str,
+            caller: commands.base_command.Command,
+            args: Optional[Dict[str, Any]]
+        ) -> Optional[str]:
+
+            if isinstance(caller, commands.AddCommand):
+                entries = list(caller.new_entries.keys())
+                return f"Added entries: {', '.join(entries)}"
+        ```
+
     """
     PostGitCommit = cast("Event", Callable[[Path, Path], None])
     """

@@ -717,12 +717,13 @@ The arguments and return types of these events vary as detailed below.
     Note:<br>
         If a registered hook returns a new path, no subsequent hooks will be run!
 
-  * _PreGitCommit_ = `Callable[[str, Optional[Dict[str, Any]]], Optional[str]]`:
+  * _PreGitCommit_ = `Callable[[str, cobib.commands.base_command.Command, Optional[Dict[str, Any]]], Optional[str]]`:
     Fires:<br>
         Before starting an automatic git commit (see also *cobib-git(7)*).
 
     Arguments:<br>
         - `msg`: the commit message.<br>
+        - `caller`: the `Command` instance which fired the event.<br>
         - `args`: an optional dictionary of keyword arguments provided to the command that triggered this commit.
 
     Returns:<br>
