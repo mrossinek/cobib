@@ -155,7 +155,7 @@ dev = [
     {include-group = "lint"},
 ]
 basedev = [
-    "pytest~=9.1.1",
+    "pytest~=9.2.0",
 ]
 docs = [
     {include-group = "basedev"},
