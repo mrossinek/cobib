@@ -172,6 +172,42 @@ async def test_download_with_url_map(setup_remove_content_length: Any, tmp_path:
 
 
 @pytest.mark.asyncio
+async def test_gracefully_handle_malformed_content_length(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Any
+) -> None:
+    """Test that a malformed `content-length` header does not crash the download.
+
+    Args:
+        monkeypatch: the built-in pytest fixture.
+        tmp_path: the built-in pytest fixture.
+    """
+
+    class MalformedLengthResponse:
+        """Fake response with a non-numeric `content-length` header."""
+
+        headers = {"content-length": "not-a-number"}
+        content = bytes("%PDF-1.4 dummy", "utf-8")
+
+        def iter_content(self, chunk_size: int = 4096):  # type: ignore[no-untyped-def]
+            """Yield the whole content in a single chunk."""
+            yield self.content
+
+    def fake_get(*args, **kwargs):  # type: ignore[no-untyped-def]
+        """Mock function returning the malformed-length response."""
+        return MalformedLengthResponse()
+
+    monkeypatch.setattr(requests.Session, "get", fake_get)
+
+    path = await FileDownloader().download(
+        "https://example.com/dummy.pdf",
+        "dummy",
+        tmp_path,
+    )
+    assert path is not None
+    assert path.path.exists()
+
+
+@pytest.mark.asyncio
 async def test_gracefully_fail_download(monkeypatch: pytest.MonkeyPatch, tmp_path: Any) -> None:
     """Test gracefully failing downloads.
 

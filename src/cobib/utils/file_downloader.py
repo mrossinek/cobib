@@ -120,7 +120,15 @@ class FileDownloader:
                 session = requests.Session()
                 response = session.get(url, timeout=10, stream=True, headers=headers)
                 total_length_str = response.headers.get("content-length", None)
-                total_length = int(total_length_str) if total_length_str is not None else None
+                try:
+                    total_length = int(total_length_str) if total_length_str is not None else None
+                except (TypeError, ValueError):
+                    LOGGER.warning(
+                        "Ignoring malformed content-length %r for URL '%s'.",
+                        total_length_str,
+                        url,
+                    )
+                    total_length = None
             except requests.exceptions.RequestException as err:
                 msg = f"An Exception occurred while downloading the file located at {url}"
                 LOGGER.warning(msg)
